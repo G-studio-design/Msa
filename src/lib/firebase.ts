@@ -21,6 +21,7 @@ let app;
 let initializationError = null;
 
 // Check if Firebase config values are present before initializing
+// Use the standard JavaScript keys for the config object
 const requiredConfigKeys: (keyof typeof firebaseConfig)[] = [
     'apiKey',
     'authDomain',
@@ -45,8 +46,20 @@ if (missingKeys.length === 0) {
          app = null; // Ensure app is null if init fails
     }
 } else {
+    // Correctly map the JS keys back to the expected ENV VAR names for the error message
+    const keyToEnvVar: Record<string, string> = {
+        apiKey: 'NEXT_PUBLIC_FIREBASE_API_KEY',
+        authDomain: 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
+        projectId: 'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
+        storageBucket: 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
+        messagingSenderId: 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
+        appId: 'NEXT_PUBLIC_FIREBASE_APP_ID',
+        measurementId: 'NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID',
+    };
+    const missingEnvVars = missingKeys.map(key => keyToEnvVar[key] || `UNKNOWN_KEY (${key})`);
+
     const errorMessage =
-        `Firebase configuration environment variables are missing: ${missingKeys.map(k => `NEXT_PUBLIC_FIREBASE_${k.toUpperCase()}`).join(', ')}. ` +
+        `Firebase configuration environment variables are missing: ${missingEnvVars.join(', ')}. ` +
         "Please ensure all required NEXT_PUBLIC_FIREBASE_* variables are set in your environment (e.g., .env.local file or deployment settings).";
     console.error(errorMessage);
     initializationError = errorMessage; // Store error message
