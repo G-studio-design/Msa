@@ -1,11 +1,29 @@
+
+'use client';
+
+import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function SettingsPage() {
-  // TODO: Implement actual settings logic (e.g., profile update, notification prefs)
+  // TODO: Implement actual settings logic (e.g., profile update, notification prefs, language persistence)
+  const [language, setLanguage] = React.useState('en'); // Default language 'en'
+
+  const handleLanguageChange = (value: string) => {
+    setLanguage(value);
+    // TODO: Add logic to actually change the app language (e.g., using i18n library)
+    console.log("Language selected:", value);
+  };
 
   return (
     <div className="container mx-auto py-4 space-y-6">
@@ -64,6 +82,30 @@ export default function SettingsPage() {
                         </Label>
                         <Switch id="in-app-notifications" defaultChecked disabled /> {/* TODO: Enable and add logic */}
                     </div>
+                 </CardContent>
+            </Card>
+
+             <Card>
+                 <CardHeader>
+                    <CardTitle className="text-lg">Language Settings</CardTitle>
+                    <CardDescription>Choose your preferred display language.</CardDescription>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                    <div className="space-y-1">
+                        <Label htmlFor="language-select">Display Language</Label>
+                         <Select value={language} onValueChange={handleLanguageChange}>
+                            <SelectTrigger id="language-select" className="w-[280px]">
+                              <SelectValue placeholder="Select language" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="en">English</SelectItem>
+                              <SelectItem value="id">Bahasa Indonesia</SelectItem>
+                            </SelectContent>
+                          </Select>
+                         <p className="text-xs text-muted-foreground">Select the language for the application interface.</p>
+                    </div>
+                    {/* Button might not be needed if language changes immediately on select */}
+                    {/* <Button disabled>Save Language Preference</Button> */}
                  </CardContent>
             </Card>
         </CardContent>
