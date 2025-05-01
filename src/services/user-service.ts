@@ -1,35 +1,30 @@
+
 // src/services/user-service.ts
 'use server';
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as bcrypt from 'bcrypt';
+// bcrypt removed as hashing is disabled
+// import * as bcrypt from 'bcrypt';
 
 // Define the structure of a user in the database
 export interface User {
     id: string;
     username: string;
     role: string;
-    passwordHash: string; // Store hashed password
+    // SECURITY RISK: Storing plain text password instead of hash
+    password?: string; // Store plain text password - NOT RECOMMENDED
+    passwordHash?: string; // Keep hash field temporarily for migration? Or remove completely. Removing for now based on request.
     email?: string;
     googleUid?: string; // Keep for potential future use, though functionality is removed
     displayName?: string;
     createdAt?: string; // Use ISO string for dates
 }
 
-// // Define the structure for creating a new user (Removed as Google Sign-In is removed)
-// interface NewUserData {
-//     username: string;
-//     password: string; // Plain password received from form
-//     email: string;
-//     googleUid: string;
-//     displayName: string;
-// }
-
 // Define the structure for updating a user's password
 interface UpdatePasswordData {
     userId: string;
-    currentPassword?: string; // Only needed for user-initiated changes, not admin resets
+    currentPassword?: string; // Less critical without hashing, but might still be used for verification
     newPassword: string;
 }
 
@@ -49,7 +44,8 @@ interface AddUserData {
 
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
-const SALT_ROUNDS = 10; // Cost factor for bcrypt hashing
+// SALT_ROUNDS removed as hashing is disabled
+// const SALT_ROUNDS = 10; // Cost factor for bcrypt hashing
 
 // --- Helper Functions ---
 
@@ -76,7 +72,21 @@ async function readUsers(): Promise<User[]> {
             await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
             return [];
         }
-        return parsedData as User[];
+        // Migrate old data if passwordHash exists and password doesn't
+        return (parsedData as any[]).map(user => {
+            if (user.passwordHash && !user.password) {
+                 console.warn(`Migrating user ${user.username}: Removing passwordHash field. Plain text password should be set manually or via reset.`);
+                 // Cannot automatically convert hash back to plain text.
+                 // Setting password to null or a placeholder indicates need for reset.
+                 // User requested setting all passwords to 'admin123' previously,
+                 // so we might assume that for existing users without a 'password' field.
+                 // However, the current request asks to "update all users", which is ambiguous.
+                 // Setting password to undefined here. They will be updated later if needed.
+                 delete user.passwordHash; // Remove the hash
+                 user.password = undefined; // Mark password as needing update/reset
+            }
+            return user as User;
+        }) as User[];
     } catch (error) {
         console.error("Error reading or parsing user database:", error);
         // Attempt to recover by writing an empty array if parsing fails
@@ -98,7 +108,12 @@ async function readUsers(): Promise<User[]> {
  */
 async function writeUsers(users: User[]): Promise<void> {
     try {
-        await fs.writeFile(DB_PATH, JSON.stringify(users, null, 2), 'utf8');
+        // Ensure no passwordHash fields are written
+        const usersToWrite = users.map(u => {
+            const { passwordHash, ...userWithoutHash } = u as any; // Remove passwordHash if it somehow exists
+            return userWithoutHash;
+        });
+        await fs.writeFile(DB_PATH, JSON.stringify(usersToWrite, null, 2), 'utf8');
     } catch (error) {
         console.error("Error writing user database:", error);
         throw new Error('Failed to save user data.');
@@ -129,7 +144,8 @@ export async function findUserById(userId: string): Promise<User | null> {
 }
 
 /**
- * Verifies a user's password.
+ * Verifies a user's password by comparing plain text.
+ * SECURITY RISK: This is insecure. Use password hashing in production.
  * @param username The username.
  * @param password The plain text password to verify.
  * @returns A promise that resolves to the User object if credentials are valid, otherwise null.
@@ -147,39 +163,27 @@ export async function verifyUserCredentials(username: string, password: string):
     // Ensure user is not pending activation (though this state is now unlikely without Google Sign-In)
     if (user.role === 'Pending') {
         console.log(`Login failed for ${username}: User is pending activation.`);
-        return null;
+        return null; // Or handle pending state differently
     }
 
-    if (!user.passwordHash) {
-         console.error(`Login failed for ${username}: User has no password hash stored.`);
-         return null; // Cannot compare if hash doesn't exist
+    if (!user.password) {
+         console.error(`Login failed for ${username}: User has no password stored.`);
+         return null; // Cannot compare if password doesn't exist
     }
 
-    try {
-        console.log(`Comparing provided password with hash for user "${username}"...`);
-        const match = await bcrypt.compare(password, user.passwordHash);
-
-        if (match) {
-            console.log(`Password match successful for user "${username}".`);
-            return user; // Login successful
-        } else {
-            console.log(`Password mismatch for user "${username}".`);
-            return null; // Login failed (wrong password)
-        }
-    } catch (error) {
-        console.error(`Error during password comparison for user "${username}":`, error);
-        // Treat comparison errors as failed login for security
+    // Direct plain text comparison - INSECURE
+    if (password === user.password) {
+        console.log(`Password match successful for user "${username}".`);
+        return user;
+    } else {
+        console.log(`Password mismatch for user "${username}".`);
         return null;
     }
 }
 
-
-// // Function createUserAccount removed as Google Sign-In is removed.
-// export async function createUserAccount(userData: NewUserData): Promise<void> { ... }
-
-
 /**
- * Adds a new user directly (typically by an admin).
+ * Adds a new user directly (typically by an admin). Stores password in plain text.
+ * SECURITY RISK: Storing plain text passwords is highly insecure.
  *
  * @param userData Data for the new user (username, password, role).
  * @returns A promise that resolves to the newly created User object.
@@ -196,31 +200,24 @@ export async function addUser(userData: AddUserData): Promise<User> {
         throw new Error('USERNAME_EXISTS');
     }
 
-    // 2. Hash the password
-    const hashedPassword = await bcrypt.hash(userData.password, SALT_ROUNDS);
-
-    // 3. Prepare new user object
+    // 2. Prepare new user object with plain text password
     const newUser: User = {
         id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`, // Generate a unique ID
         username: userData.username,
-        passwordHash: hashedPassword,
-        role: userData.role, // Set role directly
+        password: userData.password, // Store plain text password
+        role: userData.role,
         email: `${userData.username}@placeholder.example.com`, // Placeholder email
         displayName: userData.username, // Default display name
         createdAt: new Date().toISOString(),
     };
 
-    // 4. Add user and write back to file
+    // 3. Add user and write back to file
     users.push(newUser);
     await writeUsers(users);
 
-    console.log(`User "${newUser.username}" added successfully with role "${newUser.role}".`);
+    console.log(`User "${newUser.username}" added successfully with role "${newUser.role}" (Password stored in plain text - INSECURE).`);
     return newUser;
 }
-
-
-// // Function activateUser removed as Google Sign-In flow is removed.
-// export async function activateUser(userId: string, role: string): Promise<void> { ... }
 
 /**
  * Deletes a user account.
@@ -244,7 +241,7 @@ export async function deleteUser(userId: string): Promise<void> {
 }
 
 /**
- * Updates a user's profile information (username, role).
+ * Updates a user's profile information (username, role). Password is not updated here.
  * @param updateData Data containing userId, new username, and new role.
  * @returns A promise that resolves when the operation is complete.
  * @throws An error if the user is not found or the new username is taken.
@@ -282,13 +279,14 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
 
 
 /**
- * Updates a user's password.
- * Handles both user-initiated changes (requires current password) and admin resets.
+ * Updates a user's password (stores plain text).
+ * SECURITY RISK: Storing plain text passwords is highly insecure.
  * @param updateData Data containing userId, optional currentPassword, and newPassword.
  * @returns A promise that resolves when the password is updated.
- * @throws An error if the user is not found, current password mismatch (if provided), or hashing fails.
+ * @throws An error if the user is not found or current password mismatch (if provided).
  */
 export async function updatePassword(updateData: UpdatePasswordData): Promise<void> {
+    console.warn("Updating password using plain text storage - INSECURE.");
     console.log(`Attempting to update password for user ID: ${updateData.userId}`);
     let users = await readUsers();
     const userIndex = users.findIndex(u => u.id === updateData.userId);
@@ -302,30 +300,28 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
 
     // If currentPassword is provided, verify it (user-initiated change)
     if (updateData.currentPassword) {
-         if (!user.passwordHash) {
-             console.error(`Password update failed for ${updateData.userId}: User has no password hash.`);
-             throw new Error('PASSWORD_HASH_MISSING');
+         if (!user.password) {
+             console.error(`Password update failed for ${updateData.userId}: User has no password set.`);
+             // Handle this case - maybe require admin reset?
+             // Throwing mismatch for now, though it's not exactly a mismatch.
+             throw new Error('PASSWORD_MISMATCH'); // Or a more specific error like 'PASSWORD_NOT_SET'
          }
-        const match = await bcrypt.compare(updateData.currentPassword, user.passwordHash);
-        if (!match) {
+        // Plain text comparison
+        if (updateData.currentPassword !== user.password) {
             console.error(`Current password mismatch for user ID: ${updateData.userId}`);
             throw new Error('PASSWORD_MISMATCH');
         }
          console.log(`Current password verified for user ${updateData.userId}.`);
     } else {
-        // If currentPassword is NOT provided, assume it's an admin reset (or initial setup)
         console.log(`Password reset/update initiated for user ID: ${updateData.userId} (current password check skipped).`);
     }
 
-    // Hash the new password
-    const newHashedPassword = await bcrypt.hash(updateData.newPassword, SALT_ROUNDS);
-
-    // Update the user's password hash
-    users[userIndex] = { ...user, passwordHash: newHashedPassword };
+    // Update the user's plain text password
+    users[userIndex] = { ...user, password: updateData.newPassword };
 
     // Write the updated user list back to the file
     await writeUsers(users);
-    console.log(`Password for user ${updateData.userId} updated successfully.`);
+    console.log(`Password for user ${updateData.userId} updated successfully (Plain text - INSECURE).`);
 }
 
 /**
@@ -336,12 +332,3 @@ export async function getAllUsers(): Promise<User[]> {
     return readUsers();
 }
 
-// // Function resetAllPasswords removed as it was primarily for development/debug with previous changes.
-// export async function resetAllPasswords(defaultPassword: string): Promise<void> { ... }
-
-// // Example function to simulate sending notifications removed
-// async function sendAdminNotification(message: string) { ... }
-
-// --- Development/Debug Function ---
-// Can be added back if needed for specific testing scenarios
-// async function runPasswordReset() { ... }

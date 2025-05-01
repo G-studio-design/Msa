@@ -1,3 +1,4 @@
+
 // src/locales/id.ts
 const id = {
   // Login Page
@@ -174,8 +175,9 @@ const id = {
     tableHeaderPassword: 'Kata Sandi',
     tableHeaderRole: 'Peran / Divisi',
     tableHeaderActions: 'Tindakan',
-    showPasswordButtonLabel: 'Tampilkan Kata Sandi',
-    hidePasswordButtonLabel: 'Sembunyikan Kata Sandi',
+    showPasswordButtonLabel: 'Tampilkan Kata Sandi', // Updated Label
+    hidePasswordButtonLabel: 'Sembunyikan Kata Sandi', // Updated Label
+    passwordHidden: 'Tersembunyi', // Added translation for hidden password
     noUsers: 'Tidak ada pengguna ditemukan.',
     deleteUserButtonLabel: 'Hapus Pengguna',
     deleteDialogTitle: 'Konfirmasi Penghapusan',
@@ -299,4 +301,3 @@ const id = {
 
 export default id;
 
-    

@@ -1,3 +1,4 @@
+
 // src/locales/en.ts
 const en = {
   // Login Page
@@ -174,8 +175,9 @@ const en = {
     tableHeaderPassword: 'Password',
     tableHeaderRole: 'Role / Division',
     tableHeaderActions: 'Actions',
-    showPasswordButtonLabel: 'Show Password',
-    hidePasswordButtonLabel: 'Hide Password',
+    showPasswordButtonLabel: 'Show Password', // Updated Label
+    hidePasswordButtonLabel: 'Hide Password', // Updated Label
+    passwordHidden: 'Hidden', // Added translation for hidden password
     noUsers: 'No users found.',
     deleteUserButtonLabel: 'Delete User',
     deleteDialogTitle: 'Confirm Deletion',
@@ -299,4 +301,3 @@ const en = {
 
 export default en;
 
-    

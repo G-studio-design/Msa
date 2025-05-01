@@ -1,25 +1,72 @@
 
 [
   {
+    "id": "usr_owner_ran",
+    "username": "owner_aeiou",
+    "role": "Owner",
+    "password": "pass_qwert",
+    "email": "owner_aeiou@placeholder.example.com",
+    "displayName": "owner_aeiou",
+    "createdAt": "2025-05-02T17:00:00.000Z"
+  },
+  {
+    "id": "usr_ga_ran",
+    "username": "ga_bcdfg",
+    "role": "General Admin",
+    "password": "pass_zxcvb",
+    "email": "ga_bcdfg@placeholder.example.com",
+    "displayName": "ga_bcdfg",
+    "createdAt": "2025-05-02T17:01:00.000Z"
+  },
+  {
+    "id": "usr_ap_ran",
+    "username": "ap_hjklm",
+    "role": "Admin Proyek",
+    "password": "pass_asdfg",
+    "email": "ap_hjklm@placeholder.example.com",
+    "displayName": "ap_hjklm",
+    "createdAt": "2025-05-02T17:02:00.000Z"
+  },
+  {
+    "id": "usr_arch_ran",
+    "username": "arch_npqrs",
+    "role": "Arsitek",
+    "password": "pass_12345",
+    "email": "arch_npqrs@placeholder.example.com",
+    "displayName": "arch_npqrs",
+    "createdAt": "2025-05-02T17:03:00.000Z"
+  },
+  {
+    "id": "usr_struct_ran",
+    "username": "struct_tvwxyz",
+    "role": "Struktur",
+    "password": "pass_67890",
+    "email": "struct_tvwxyz@placeholder.example.com",
+    "displayName": "struct_tvwxyz",
+    "createdAt": "2025-05-02T17:04:00.000Z"
+  },
+  {
+    "id": "usr_dev_ran",
+    "username": "dev_admn",
+    "role": "Admin Developer",
+    "password": "pass_dev01",
+    "email": "dev_admn@placeholder.example.com",
+    "displayName": "dev_admn",
+    "createdAt": "2025-05-02T17:05:00.000Z"
+  },
+  {
     "id": "usr_7",
     "username": "admin",
     "role": "General Admin",
-    "passwordHash": "$2b$10$IfM7fyrq03o827fT./EaKuJ599fH.Lgq3xQ1X2Z4fJ8Y7z3y4D9vG",
+    "password": "admin",
     "email": "admin@example.com",
-    "displayName": "Admin User"
-  },
-  {
-    "id": "usr_1",
-    "username": "owner_john",
-    "role": "Owner",
-    "passwordHash": "$2b$10$K4c/w8Lz9eG2i.v5D9O6W.6r7m.4E9y.i.u.q.a.S.g.K.q.R.j.Q",
-    "email": "john@example.com",
-    "displayName": "John Owner"
+    "displayName": "Admin User",
+    "createdAt": "2025-05-01T16:00:00.000Z"
   },
   {
     "id": "usr_wayangovina",
     "username": "wayangovina",
-    "passwordHash": "$2b$10$F1ZzE7G9f5yX2d3A6b9C.u0l.O7h4i.P9r.S1t.W2v.X3y.Z4",
+    "password": "govina110900",
     "role": "Owner",
     "email": "iwayangovina@gmail.com",
     "displayName": "wayangovina",
@@ -28,19 +75,11 @@
   {
     "id": "usr_wayan",
     "username": "wayan",
-    "passwordHash": "$2b$10$K4c/w8Lz9eG2i.v5D9O6W.6r7m.4E9y.i.u.q.a.S.g.K.q.R.j.Q",
+    "password": "admin",
     "role": "General Admin",
     "email": "wayan@example.com",
     "displayName": "wayan",
     "createdAt": "2025-05-01T17:20:04.615Z"
-  },
-  {
-    "id": "usr_dev_admin_1",
-    "username": "admin_dev",
-    "passwordHash": "$2b$10$p1aB3cDeFgHiJkLmN.O.P.uQ.rStUvWxYzAbCdEfGhIjKlMnOpQr",
-    "role": "Admin Developer",
-    "email": "admin.dev@example.com",
-    "displayName": "Admin Developer",
-    "createdAt": "2025-05-02T10:00:00.000Z"
   }
 ]
+

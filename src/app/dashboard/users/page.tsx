@@ -452,6 +452,7 @@ export default function ManageUsersPage() {
                             <FormItem>
                               <FormLabel>{isClient ? usersDict.passwordLabel : defaultDict.manageUsersPage.passwordLabel}</FormLabel>
                               <FormControl>
+                                {/* SECURITY RISK: Type is password, but plain text is stored */}
                                 <Input type="password" placeholder={isClient ? usersDict.passwordPlaceholder : defaultDict.manageUsersPage.passwordPlaceholder} {...field} autoComplete="new-password" />
                               </FormControl>
                               <FormMessage />
@@ -554,6 +555,7 @@ export default function ManageUsersPage() {
 
 
                     const isPasswordVisible = visiblePasswords[user.id] || false;
+                    // SECURITY RISK: Changed permission to view plain text password
                     const canViewPassword = ['Owner', 'Admin Developer'].includes(currentUser.role); // Only Owner/Admin Developer can see passwords
 
                     return (
@@ -562,23 +564,24 @@ export default function ManageUsersPage() {
                          <TableCell>
                             {canViewPassword ? (
                                <div className="flex items-center gap-1">
+                                 {/* SECURITY RISK: Displaying plain text password or dots */}
                                  <span className={`font-mono text-xs break-all ${isPasswordVisible ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                   {isPasswordVisible ? user.passwordHash : '•••••••••••••••••••••'} {/* Show hash or dots */}
+                                   {isPasswordVisible ? user.password : '••••••••'} {/* Show plain password or dots */}
                                  </span>
                                    <Button
                                       variant="ghost"
                                       size="icon"
                                       className="h-6 w-6 flex-shrink-0" // Added flex-shrink-0
                                       onClick={() => togglePasswordVisibility(user.id)}
-                                      aria-label={isClient ? (isPasswordVisible ? usersDict.hidePasswordButtonLabel : usersDict.showPasswordButtonLabel) : 'Toggle Password Hash'}
-                                      disabled={isProcessing} // Disable while processing
-                                      title={isClient ? (isPasswordVisible ? usersDict.hidePasswordButtonLabel : usersDict.showPasswordButtonLabel) : 'Toggle Password Hash'}
+                                      aria-label={isClient ? (isPasswordVisible ? usersDict.hidePasswordButtonLabel : usersDict.showPasswordButtonLabel) : 'Toggle Password'}
+                                      disabled={isProcessing || !user.password} // Disable if no password set or processing
+                                      title={isClient ? (isPasswordVisible ? usersDict.hidePasswordButtonLabel : usersDict.showPasswordButtonLabel) : 'Toggle Password'}
                                     >
                                       {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </Button>
                                </div>
                              ) : (
-                                <span className="text-xs text-muted-foreground italic">Hidden</span>
+                                <span className="text-xs text-muted-foreground italic">{isClient ? usersDict.passwordHidden : defaultDict.manageUsersPage.passwordHidden}</span>
                              )}
                          </TableCell>
                         <TableCell>
@@ -705,7 +708,7 @@ export default function ManageUsersPage() {
                                 )}
                                  {/* Hint for Admin Dev last admin */}
                                  {(currentUser.role === 'Admin Developer' && editingUser?.id === currentUser.id && users.filter(u => u.role === 'Admin Developer').length <= 1) && (
-                                     <p className="text-xs text-muted-foreground">Cannot change the role of the last Admin Developer.</p> // Add translation
+                                     <p className="text-xs text-muted-foreground">{isClient ? usersDict.cannotChangeLastDevAdminRoleHint : defaultDict.manageUsersPage.cannotChangeLastDevAdminRoleHint}</p>
                                  )}
                               </FormItem>
                             )}
@@ -726,3 +729,4 @@ export default function ManageUsersPage() {
     </div>
   );
 }
+
