@@ -3,6 +3,7 @@
 
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation'; // Import useRouter
 import type { User } from '@/services/user-service'; // Import the User type
 
 // Define the shape of the context value
@@ -17,6 +18,7 @@ const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 // Create the provider component
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const router = useRouter(); // Get router instance
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     // Initialize state from sessionStorage on the client-side
     if (typeof window !== 'undefined') {
@@ -48,12 +50,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Logout function
   const logout = useCallback(() => {
     setCurrentUser(null);
-    // No need to explicitly remove from sessionStorage here,
-    // the useEffect above will handle it when currentUser becomes null.
-    // Optionally redirect to login page after logout
-    // router.push('/'); // Requires importing useRouter
-    console.log("User logged out.");
-  }, []);
+    // The useEffect above will handle removing from sessionStorage
+    console.log("User logged out. Redirecting to login page.");
+    router.push('/'); // Redirect to login page after logout
+  }, [router]); // Add router to dependency array
 
 
   // Provide the context value to children
