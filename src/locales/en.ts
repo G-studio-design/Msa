@@ -1,4 +1,3 @@
-
 // src/locales/en.ts
 const en = {
   // Login Page
@@ -54,6 +53,8 @@ const en = {
     assignedTo: 'Assigned to',
     nextAction: 'Next',
     taskCanceled: 'This task was canceled.',
+    taskCompleted: 'Task Completed', // Added translation
+    addNewTask: 'Add New Task', // Added translation
     status: {
       completed: 'Completed',
       inprogress: 'In Progress',
@@ -170,11 +171,11 @@ const en = {
     addUserSubmitButton: 'Add User',
     addingUserButton: 'Adding...',
     tableHeaderUsername: 'Username',
-    tableHeaderPassword: 'Password (Hashed)', // Indicate it's hashed
+    tableHeaderPassword: 'Password',
     tableHeaderRole: 'Role / Division',
     tableHeaderActions: 'Actions',
-    showPasswordButtonLabel: 'Show Password Hash',
-    hidePasswordButtonLabel: 'Hide Password Hash',
+    showPasswordButtonLabel: 'Show Password',
+    hidePasswordButtonLabel: 'Hide Password',
     noUsers: 'No users found.',
     deleteUserButtonLabel: 'Delete User',
     deleteDialogTitle: 'Confirm Deletion',
@@ -182,6 +183,7 @@ const en = {
     deleteDialogCancel: 'Cancel',
     deleteDialogConfirm: 'Delete User',
     cannotChangeLastAdminRoleHint: 'Cannot change the role of the last General Admin.',
+    cannotChangeLastDevAdminRoleHint: 'Cannot change the role of the last Admin Developer.', // Added
     activateUserButtonLabel: 'Activate User', // Kept for potential future use if activation logic returns
     activateUserDialogTitle: 'Activate User', // Kept
     activateUserDialogDesc: 'Assign a role to activate user "{username}".', // Kept
@@ -207,7 +209,12 @@ const en = {
       usernameExists: 'Username already exists.',
       cannotDeleteSelf: 'You cannot delete your own account.',
       cannotDeleteLastAdmin: 'Cannot delete the last General Admin.',
+      cannotDeleteLastDevAdmin: 'Cannot delete the last Admin Developer.', // Added
       cannotChangeLastAdminRole: 'Cannot change the role of the last General Admin.',
+      cannotChangeLastDevAdminRole: 'Cannot change the role of the last Admin Developer.', // Added
+      permissionDenied: 'Permission Denied', // Added
+      devCannotEditOwnerGA: 'Admin Developer cannot edit Owner or General Admin.', // Added
+      gaCannotEditOwnerDev: 'General Admin cannot edit Owner or Admin Developer.', // Added
       activateUserSuccess: 'User Activated', // Kept
       activateUserDesc: 'User {username} has been activated.', // Kept
       activateUserError: 'Activation Failed', // Kept
@@ -245,10 +252,10 @@ const en = {
     description: 'Manage your account and application settings.',
     profileCardTitle: 'Profile Information',
     usernameLabel: 'Username',
-    usernameHint: 'Username cannot be changed.', // Updated hint
-    usernamePlaceholder: 'Enter new username', // Placeholder text (field is disabled)
-    updateProfileButton: 'Update Profile', // Button removed
-    updatingProfileButton: 'Updating...', // Button removed
+    usernameHint: 'Enter your new username.', // Updated hint
+    usernamePlaceholder: 'Enter new username',
+    updateProfileButton: 'Update Username', // Changed button text
+    updatingProfileButton: 'Updating...', // Changed button text
     passwordCardTitle: 'Update Password',
     currentPasswordLabel: 'Current Password',
     currentPasswordPlaceholder: 'Enter current password',
@@ -278,16 +285,18 @@ const en = {
         passwordTooShort: 'New password must be at least 6 characters.',
         passwordUpdated: 'Password updated successfully.',
         passwordUpdateFailed: 'Failed to update password. Check current password.',
-        usernameRequired: 'Username cannot be empty.', // Kept for validation consistency if needed elsewhere
-        usernameTooShort: 'Username must be at least 3 characters.', // Kept for validation consistency
-        profileUpdated: 'Profile updated successfully.', // Not currently possible
-        profileUpdateFailed: 'Failed to update profile.', // Not currently possible
+        usernameRequired: 'Username cannot be empty.',
+        usernameTooShort: 'Username must be at least 3 characters.',
+        profileUpdated: 'Username updated successfully.', // Changed text
+        profileUpdateFailed: 'Failed to update username.', // Changed text
         languageChanged: 'Language Changed',
         languageChangedDesc: 'Interface language updated.',
-        passwordMismatchError: 'Current password does not match.', // Added specific error
-        usernameExistsError: 'Username already exists. Please choose another.', // Kept for validation consistency
+        passwordMismatchError: 'Current password does not match.',
+        usernameExistsError: 'Username already exists. Please choose another.',
     }
   },
 };
 
 export default en;
+
+    

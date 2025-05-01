@@ -1,28 +1,37 @@
+// src/app/dashboard/page.tsx
 'use client';
 
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button'; // Import Button
+import { CheckCircle, XCircle, Clock, AlertTriangle, PlusCircle } from 'lucide-react'; // Import PlusCircle
 import { useLanguage } from '@/context/LanguageContext'; // Import language context
 import { getDictionary } from '@/lib/translations'; // Import translation helper
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 // Mock data - Replace with actual data fetching based on user role
 const tasks = [
   { id: 1, title: "Project Alpha - Phase 1", status: "Completed", progress: 100, assignedDivision: "Owner", nextAction: null },
-  { id: 2, title: "Project Beta - Design Specs", status: "In Progress", progress: 60, assignedDivision: "Architect", nextAction: "Submit Design Files" },
-  { id: 3, title: "Project Gamma - Offer Prep", status: "Pending Approval", progress: 20, assignedDivision: "Project Admin", nextAction: "Owner Review" },
-  { id: 4, title: "Project Delta - Structure Plan", status: "Delayed", progress: 45, assignedDivision: "Structure", nextAction: "Upload Structure Files" },
+  { id: 2, title: "Project Beta - Design Specs", status: "In Progress", progress: 60, assignedDivision: "Arsitek", nextAction: "Submit Design Files" }, // Changed from Architect
+  { id: 3, title: "Project Gamma - Offer Prep", status: "Pending Approval", progress: 20, assignedDivision: "Admin Proyek", nextAction: "Owner Review" }, // Changed from Project Admin
+  { id: 4, title: "Project Delta - Structure Plan", status: "Delayed", progress: 45, assignedDivision: "Struktur", nextAction: "Upload Structure Files" }, // Changed from Structure
   { id: 5, title: "Project Epsilon - Canceled", status: "Canceled", progress: 10, assignedDivision: "Owner", nextAction: null },
   { id: 6, title: "Project Zeta - Admin Setup", status: "Pending", progress: 5, assignedDivision: "General Admin", nextAction: "Generate DP Invoice" },
 ];
+
+// Mock current user - Replace with actual auth context data
+const currentUser = {
+    role: 'General Admin', // Example roles: Owner, General Admin, Admin Proyek, Arsitek, Struktur, Admin Developer
+};
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
 
 export default function DashboardPage() {
   const { language } = useLanguage(); // Get current language
+  const { toast } = useToast(); // Initialize toast
   const [isClient, setIsClient] = React.useState(false);
   const [dict, setDict] = React.useState(() => getDictionary(language));
   const dashboardDict = dict.dashboardPage; // Specific dictionary section
@@ -36,7 +45,17 @@ export default function DashboardPage() {
   }, [language]);
 
   // TODO: Fetch tasks based on user role (Admin sees all, others see relevant tasks)
-  const userRole = "General Admin"; // Replace with actual role
+  const userRole = currentUser.role; // Use the mock user role
+
+  // Check if the current user can add tasks
+  const canAddTask = ['Owner', 'General Admin'].includes(userRole);
+
+  // Placeholder function for adding a new task
+  const handleAddTaskClick = () => {
+    // TODO: Implement navigation to a task creation page or open a modal
+    toast({ title: dashboardDict.addNewTask, description: 'Task creation functionality not implemented yet.' });
+    console.log('Add New Task button clicked');
+  };
 
   // Helper function to get status icon and color using translated status
   const getStatusBadge = (status: string) => {
@@ -47,9 +66,9 @@ export default function DashboardPage() {
     switch (status.toLowerCase()) {
       case 'completed':
         return <Badge variant="default" className="bg-green-500 hover:bg-green-600"><CheckCircle className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
-      case 'in progress':
+      case 'inprogress': // Corrected key
         return <Badge variant="secondary" className="bg-blue-500 text-white hover:bg-blue-600"><Clock className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
-      case 'pending approval':
+      case 'pendingapproval': // Corrected key
         return <Badge variant="outline" className="border-yellow-500 text-yellow-600"><AlertTriangle className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
       case 'delayed':
         return <Badge variant="destructive" className="bg-orange-500 hover:bg-orange-600"><Clock className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
@@ -59,13 +78,23 @@ export default function DashboardPage() {
           return <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
         case 'scheduled': // Added case for scheduled
           return <Badge variant="secondary" className="bg-purple-500 text-white hover:bg-purple-600"><Clock className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
+         // Added cases for new statuses from tasks page
+        case 'pendinginput':
+        case 'pendingoffer':
+        case 'pendingdpinvoice':
+        case 'pendingadminfiles':
+        case 'pendingarchitectfiles': // Make sure this key exists in translations
+        case 'pendingstructurefiles': // Make sure this key exists in translations
+        case 'pendingfinalcheck':
+        case 'pendingscheduling':
+            return <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
       default:
         return <Badge>{translatedStatus}</Badge>;
     }
   };
 
-  const filteredTasks = userRole === 'General Admin' || userRole === 'Owner'
-    ? tasks // Admins and Owner see all
+  const filteredTasks = userRole === 'General Admin' || userRole === 'Owner' || userRole === 'Admin Developer'
+    ? tasks // Admins, Owner, and Dev see all
     : tasks.filter(task => task.assignedDivision === userRole || task.nextAction?.includes(userRole)); // Other roles see tasks assigned to them or requiring their action
 
 
@@ -75,10 +104,20 @@ export default function DashboardPage() {
 
 
   return (
-    <div className="container mx-auto py-4">
-      <h1 className="text-3xl font-bold mb-6 text-primary">
-        {isClient ? dashboardDict.title : defaultDict.dashboardPage.title}
-      </h1>
+    <div className="container mx-auto py-4 space-y-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-primary">
+          {isClient ? dashboardDict.title : defaultDict.dashboardPage.title}
+        </h1>
+        {/* Conditionally render Add Task Button */}
+        {isClient && canAddTask && (
+            <Button onClick={handleAddTaskClick}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                {dashboardDict.addNewTask}
+            </Button>
+        )}
+      </div>
+
 
        {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
@@ -119,7 +158,7 @@ export default function DashboardPage() {
          <CardHeader>
            <CardTitle>{isClient ? dashboardDict.taskOverview : defaultDict.dashboardPage.taskOverview}</CardTitle>
            <CardDescription>
-             {isClient ? (userRole === 'General Admin' || userRole === 'Owner'
+             {isClient ? (userRole === 'General Admin' || userRole === 'Owner' || userRole === 'Admin Developer'
                 ? dashboardDict.allTasksDesc
                 : dashboardDict.divisionTasksDesc.replace('{division}', userRole)) : ''}
            </CardDescription>
@@ -142,7 +181,7 @@ export default function DashboardPage() {
                      {isClient && getStatusBadge(task.status)}
                   </CardHeader>
                   <CardContent>
-                     {task.status !== 'Canceled' && (
+                     {task.status !== 'Canceled' && task.status !== 'Completed' && ( // Don't show progress for completed/canceled
                        <>
                           <Progress value={task.progress} className="w-full h-2 mb-1" />
                           <span className="text-xs text-muted-foreground">
@@ -155,6 +194,11 @@ export default function DashboardPage() {
                           {isClient ? dashboardDict.taskCanceled : ''}
                         </p>
                      )}
+                     {task.status === 'Completed' && (
+                         <p className="text-sm text-green-600 font-medium">
+                           {isClient ? dashboardDict.taskCompleted : ''}
+                         </p>
+                      )}
                   </CardContent>
                 </Card>
               ))
@@ -165,3 +209,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    

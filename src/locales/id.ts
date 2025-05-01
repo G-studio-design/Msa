@@ -1,4 +1,3 @@
-
 // src/locales/id.ts
 const id = {
   // Login Page
@@ -54,6 +53,8 @@ const id = {
     assignedTo: 'Ditugaskan ke',
     nextAction: 'Berikutnya',
     taskCanceled: 'Tugas ini dibatalkan.',
+    taskCompleted: 'Tugas Selesai', // Added translation
+    addNewTask: 'Tambah Tugas Baru', // Added translation
     status: {
       completed: 'Selesai',
       inprogress: 'Sedang Berjalan',
@@ -170,11 +171,11 @@ const id = {
     addUserSubmitButton: 'Tambah Pengguna',
     addingUserButton: 'Menambahkan...',
     tableHeaderUsername: 'Nama Pengguna',
-    tableHeaderPassword: 'Kata Sandi (Di-hash)', // Menunjukkan di-hash
+    tableHeaderPassword: 'Kata Sandi',
     tableHeaderRole: 'Peran / Divisi',
     tableHeaderActions: 'Tindakan',
-    showPasswordButtonLabel: 'Tampilkan Hash Kata Sandi',
-    hidePasswordButtonLabel: 'Sembunyikan Hash Kata Sandi',
+    showPasswordButtonLabel: 'Tampilkan Kata Sandi',
+    hidePasswordButtonLabel: 'Sembunyikan Kata Sandi',
     noUsers: 'Tidak ada pengguna ditemukan.',
     deleteUserButtonLabel: 'Hapus Pengguna',
     deleteDialogTitle: 'Konfirmasi Penghapusan',
@@ -182,6 +183,7 @@ const id = {
     deleteDialogCancel: 'Batal',
     deleteDialogConfirm: 'Hapus Pengguna',
     cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin Umum terakhir.',
+    cannotChangeLastDevAdminRoleHint: 'Tidak dapat mengubah peran Admin Pengembang terakhir.', // Added
     activateUserButtonLabel: 'Aktifkan Pengguna', // Kept
     activateUserDialogTitle: 'Aktifkan Pengguna', // Kept
     activateUserDialogDesc: 'Tetapkan peran untuk mengaktifkan pengguna "{username}".', // Kept
@@ -207,7 +209,12 @@ const id = {
         usernameExists: 'Nama pengguna sudah ada.',
         cannotDeleteSelf: 'Anda tidak dapat menghapus akun Anda sendiri.',
         cannotDeleteLastAdmin: 'Tidak dapat menghapus Admin Umum terakhir.',
+        cannotDeleteLastDevAdmin: 'Tidak dapat menghapus Admin Pengembang terakhir.', // Added
         cannotChangeLastAdminRole: 'Tidak dapat mengubah peran Admin Umum terakhir.',
+        cannotChangeLastDevAdminRole: 'Tidak dapat mengubah peran Admin Pengembang terakhir.', // Added
+        permissionDenied: 'Izin Ditolak', // Added
+        devCannotEditOwnerGA: 'Admin Pengembang tidak dapat mengubah Pemilik atau Admin Umum.', // Added
+        gaCannotEditOwnerDev: 'Admin Umum tidak dapat mengubah Pemilik atau Admin Pengembang.', // Added
         activateUserSuccess: 'Pengguna Diaktifkan', // Kept
         activateUserDesc: 'Pengguna {username} telah diaktifkan.', // Kept
         activateUserError: 'Aktivasi Gagal', // Kept
@@ -245,10 +252,10 @@ const id = {
     description: 'Kelola akun dan pengaturan aplikasi Anda.',
     profileCardTitle: 'Informasi Profil',
     usernameLabel: 'Nama Pengguna',
-    usernameHint: 'Nama pengguna tidak dapat diubah.', // Updated hint
-    usernamePlaceholder: 'Masukkan nama pengguna baru', // Placeholder text (field is disabled)
-    updateProfileButton: 'Perbarui Profil', // Button removed
-    updatingProfileButton: 'Memperbarui...', // Button removed
+    usernameHint: 'Masukkan nama pengguna baru Anda.', // Updated hint
+    usernamePlaceholder: 'Masukkan nama pengguna baru',
+    updateProfileButton: 'Perbarui Nama Pengguna', // Changed button text
+    updatingProfileButton: 'Memperbarui...', // Changed button text
     passwordCardTitle: 'Perbarui Kata Sandi',
     currentPasswordLabel: 'Kata Sandi Saat Ini',
     currentPasswordPlaceholder: 'Masukkan kata sandi saat ini',
@@ -278,16 +285,18 @@ const id = {
       passwordTooShort: 'Kata sandi baru minimal 6 karakter.',
       passwordUpdated: 'Kata sandi berhasil diperbarui.',
       passwordUpdateFailed: 'Gagal memperbarui kata sandi. Periksa kata sandi saat ini.',
-      usernameRequired: 'Nama pengguna tidak boleh kosong.', // Kept
-      usernameTooShort: 'Nama pengguna minimal 3 karakter.', // Kept
-      profileUpdated: 'Profil berhasil diperbarui.', // Not possible
-      profileUpdateFailed: 'Gagal memperbarui profil.', // Not possible
+      usernameRequired: 'Nama pengguna tidak boleh kosong.',
+      usernameTooShort: 'Nama pengguna minimal 3 karakter.',
+      profileUpdated: 'Nama pengguna berhasil diperbarui.', // Changed text
+      profileUpdateFailed: 'Gagal memperbarui nama pengguna.', // Changed text
       languageChanged: 'Bahasa Diubah',
       languageChangedDesc: 'Bahasa antarmuka diperbarui.',
-      passwordMismatchError: 'Kata sandi saat ini tidak cocok.', // Added specific error
-      usernameExistsError: 'Nama pengguna sudah ada. Silakan pilih yang lain.', // Kept
+      passwordMismatchError: 'Kata sandi saat ini tidak cocok.',
+      usernameExistsError: 'Nama pengguna sudah ada. Silakan pilih yang lain.',
     }
   },
 };
 
 export default id;
+
+    
