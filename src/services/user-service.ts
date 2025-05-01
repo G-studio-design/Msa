@@ -416,6 +416,27 @@ export async function getAllUsers(): Promise<User[]> {
     return readUsers();
 }
 
+/**
+ * Resets the password for all users to a specified default password.
+ * USE WITH CAUTION - Primarily for development or testing.
+ * @param defaultPassword The new password to set for all users.
+ * @returns A promise that resolves when all passwords have been updated.
+ */
+export async function resetAllPasswords(defaultPassword: string): Promise<void> {
+    console.warn(`--- WARNING: Resetting passwords for ALL users to "${defaultPassword}" ---`);
+    let users = await readUsers();
+
+    const newHashedPassword = await bcrypt.hash(defaultPassword, SALT_ROUNDS);
+
+    users = users.map(user => ({
+        ...user,
+        passwordHash: newHashedPassword,
+    }));
+
+    await writeUsers(users);
+    console.warn(`--- All user passwords have been reset. ---`);
+}
+
 
 // Example function to simulate sending notifications (replace with actual implementation)
 // async function sendAdminNotification(message: string) {
@@ -424,3 +445,16 @@ export async function getAllUsers(): Promise<User[]> {
 //     console.log("--------------------------");
 //     // Implement actual email sending or push notification logic here
 // }
+
+// --- Development/Debug Function ---
+// Uncomment and run this function manually if needed to reset passwords
+// (e.g., by calling it from a script or temporarily in an API route)
+// async function runPasswordReset() {
+//   try {
+//     await resetAllPasswords('admin123');
+//     console.log('Password reset script completed successfully.');
+//   } catch (error) {
+//     console.error('Password reset script failed:', error);
+//   }
+// }
+// runPasswordReset(); // DO NOT leave this uncommented in production code
