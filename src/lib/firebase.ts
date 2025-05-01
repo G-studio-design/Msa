@@ -18,40 +18,52 @@ const firebaseConfig = {
 
 // Initialize Firebase
 let app;
+let initializationError = null;
+
 // Check if Firebase config values are present before initializing
-if (
-    firebaseConfig.apiKey &&
-    firebaseConfig.authDomain &&
-    firebaseConfig.projectId &&
-    firebaseConfig.storageBucket &&
-    firebaseConfig.messagingSenderId &&
-    firebaseConfig.appId
-) {
-    if (!getApps().length) {
-      app = initializeApp(firebaseConfig);
-    } else {
-      app = getApp();
+const requiredConfigKeys: (keyof typeof firebaseConfig)[] = [
+    'apiKey',
+    'authDomain',
+    'projectId',
+    'storageBucket',
+    'messagingSenderId',
+    'appId',
+];
+
+const missingKeys = requiredConfigKeys.filter(key => !firebaseConfig[key]);
+
+if (missingKeys.length === 0) {
+    try {
+        if (!getApps().length) {
+          app = initializeApp(firebaseConfig);
+        } else {
+          app = getApp();
+        }
+    } catch (e: any) {
+         console.error("Firebase initialization failed:", e);
+         initializationError = `Firebase initialization failed: ${e.message}. Check your Firebase config values.`;
+         app = null; // Ensure app is null if init fails
     }
 } else {
-    console.error(
-        "Firebase configuration environment variables are missing. " +
-        "Please ensure all required NEXT_PUBLIC_FIREBASE_* variables " +
-        "are set in your environment (e.g., .env.local file or deployment settings)."
-    );
-    // You might want to throw an error here or handle it differently depending on your app's needs
-    // For now, we'll allow the app to continue but auth will likely fail.
-    // throw new Error("Firebase configuration is missing.");
+    const errorMessage =
+        `Firebase configuration environment variables are missing: ${missingKeys.map(k => `NEXT_PUBLIC_FIREBASE_${k.toUpperCase()}`).join(', ')}. ` +
+        "Please ensure all required NEXT_PUBLIC_FIREBASE_* variables are set in your environment (e.g., .env.local file or deployment settings).";
+    console.error(errorMessage);
+    initializationError = errorMessage; // Store error message
+    app = null; // Ensure app is null if config is missing
 }
 
-// Get Auth instance only if app was initialized
+// Get Auth instance only if app was successfully initialized
 const auth = app ? getAuth(app) : null;
 // const db = app ? getFirestore(app) : null; // Add if you need Firestore
 
-// Throw an error if auth couldn't be initialized due to missing config
+// Throw an error if auth couldn't be initialized due to missing config or init error
 if (!auth) {
-     console.error("Firebase Auth could not be initialized due to missing configuration.");
-    // Optionally throw an error to halt execution if Firebase is critical
-    // throw new Error("Firebase Auth initialization failed due to missing config.");
+     // Log the specific error encountered during initialization
+     console.error("Firebase Auth could not be initialized.", initializationError ? `Reason: ${initializationError}` : "App initialization failed or config missing.");
+    // Optionally throw an error to halt execution if Firebase is critical,
+    // but logging might be sufficient for diagnosing the missing env vars.
+    // throw new Error(initializationError || "Firebase Auth initialization failed.");
 }
 
 
