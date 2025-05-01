@@ -20,9 +20,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Edit, Save, XCircle } from 'lucide-react';
+import { Edit, Save, XCircle, Loader2 } from 'lucide-react'; // Added Loader2
 import { useLanguage } from '@/context/LanguageContext'; // Import language context
 import { getDictionary } from '@/lib/translations'; // Import translation helper
+import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
+import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 
 // Mock data - Replace with actual data fetching based on user role and permissions
 const initialTasks = [
@@ -34,23 +36,31 @@ const initialTasks = [
   { id: 6, title: "Project Zeta - Admin Setup", status: "Pending" },
 ];
 
-// Mock user - Replace with actual user data from auth context
-const currentUser = {
-  role: 'General Admin', // Should be Owner, General Admin, or Admin Proyek
-};
-
 export default function AdminActionsPage() {
   const { toast } = useToast();
   const { language } = useLanguage(); // Get current language
-  const dict = getDictionary(language); // Get dictionary for the current language
+  const { currentUser } = useAuth(); // Get current user from AuthContext
+  const [isClient, setIsClient] = React.useState(false); // State to track client-side mount
+  const [dict, setDict] = React.useState(() => getDictionary(language)); // Initialize dict directly
   const adminDict = dict.adminActionsPage; // Specific dictionary section
   const dashboardDict = dict.dashboardPage; // For status translation
 
-  const [tasks, setTasks] = React.useState(initialTasks);
+  const [tasks, setTasks] = React.useState(initialTasks); // Replace with fetched data
+  const [isLoadingTasks, setIsLoadingTasks] = React.useState(false); // Loading state
   const [editingTaskId, setEditingTaskId] = React.useState<number | null>(null);
   const [newTitle, setNewTitle] = React.useState('');
+  const [isSaving, setIsSaving] = React.useState(false); // Saving state
 
-  // TODO: Check if current user has the required role (Owner, GA, PA), otherwise redirect or show error
+   React.useEffect(() => {
+       setIsClient(true); // Component has mounted client-side
+       // TODO: Fetch tasks if needed
+       // setIsLoadingTasks(true);
+       // fetchAdminTasks().then(data => { setTasks(data); setIsLoadingTasks(false); });
+   }, []);
+
+   React.useEffect(() => {
+        setDict(getDictionary(language)); // Update dictionary when language changes
+   }, [language]);
 
   const handleEditClick = (taskId: number, currentTitle: string) => {
     setEditingTaskId(taskId);
@@ -68,9 +78,10 @@ export default function AdminActionsPage() {
       return;
     }
 
+    setIsSaving(true); // Start saving indicator
     console.log(`Saving new title for task ${taskId}: ${newTitle}`);
     // Simulate API call to update task title
-    new Promise(resolve => setTimeout(resolve, 500)).then(() => {
+    new Promise(resolve => setTimeout(resolve, 800)).then(() => {
       // TODO: Implement actual API call to update task title
       setTasks(
         tasks.map((task) =>
@@ -79,18 +90,39 @@ export default function AdminActionsPage() {
       );
       toast({ title: adminDict.toast.titleUpdated, description: adminDict.toast.titleUpdatedDesc.replace('{id}', taskId.toString()) });
       handleCancelEdit(); // Exit editing mode
+    }).finally(() => {
+        setIsSaving(false); // Stop saving indicator
     });
   };
 
    // Helper function to get translated status
    const getTranslatedStatus = (status: string): string => {
+        if (!isClient) return '...'; // Return placeholder on server
         const statusKey = status.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
         return dashboardDict.status[statusKey] || status; // Fallback to original
     }
 
-  // Basic permission check
-   const canEdit = ['Owner', 'General Admin', 'Admin Proyek'].includes(currentUser.role);
+  // Basic permission check using user role from context
+   const canEdit = currentUser && ['Owner', 'General Admin', 'Admin Proyek'].includes(currentUser.role);
 
+   // Loading state for the page
+    if (!isClient || !currentUser || isLoadingTasks) {
+       return (
+           <div className="container mx-auto py-4 space-y-6">
+               <Card>
+                  <CardHeader>
+                    <Skeleton className="h-7 w-3/5 mb-2" />
+                    <Skeleton className="h-4 w-4/5" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-40 w-full" /> {/* Skeleton for table */}
+                  </CardContent>
+               </Card>
+           </div>
+       );
+    }
+
+   // Access Denied state
    if (!canEdit) {
        return (
             <div className="container mx-auto py-4">
@@ -106,6 +138,7 @@ export default function AdminActionsPage() {
        );
    }
 
+  // Render the main content if loading is complete and user has permission
   return (
     <div className="container mx-auto py-4 space-y-6">
       <Card>
@@ -133,7 +166,7 @@ export default function AdminActionsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                tasks.map((task) => ( // Ensure no whitespace here
+                tasks.map((task) => (
                   <TableRow key={task.id}>
                     <TableCell>{task.id}</TableCell>
                     <TableCell className="font-medium">
@@ -142,6 +175,7 @@ export default function AdminActionsPage() {
                           value={newTitle}
                           onChange={(e) => setNewTitle(e.target.value)}
                           className="h-8"
+                          disabled={isSaving} // Disable input while saving
                         />
                       ) : (
                         task.title
@@ -151,21 +185,21 @@ export default function AdminActionsPage() {
                     <TableCell className="text-right space-x-2">
                       {editingTaskId === task.id ? (
                         <>
-                          <Button variant="ghost" size="icon" onClick={() => handleSaveTitle(task.id)}>
-                            <Save className="h-4 w-4 text-green-600" />
+                          <Button variant="ghost" size="icon" onClick={() => handleSaveTitle(task.id)} disabled={isSaving}>
+                             {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 text-green-600" />}
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={handleCancelEdit}>
+                          <Button variant="ghost" size="icon" onClick={handleCancelEdit} disabled={isSaving}>
                              <XCircle className="h-4 w-4 text-muted-foreground" />
                           </Button>
                         </>
                       ) : (
-                        <Button variant="ghost" size="icon" onClick={() => handleEditClick(task.id, task.title)}>
+                        <Button variant="ghost" size="icon" onClick={() => handleEditClick(task.id, task.title)} disabled={isSaving}>
                           <Edit className="h-4 w-4 text-primary" />
                         </Button>
                       )}
                     </TableCell>
                   </TableRow>
-                )) // Ensure no whitespace here
+                ))
               )}
             </TableBody>
           </Table>

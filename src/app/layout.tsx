@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { LanguageProvider } from '@/context/LanguageContext'; // Import LanguageProvider
+import { AuthProvider } from '@/context/AuthContext'; // Import AuthProvider
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -19,11 +20,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
-         {/* Wrap the entire application with LanguageProvider */}
-        <LanguageProvider>
-            {children}
-            <Toaster />
-        </LanguageProvider>
+        {/* Wrap with AuthProvider first, then LanguageProvider */}
+        <AuthProvider>
+          <LanguageProvider>
+              {children}
+              <Toaster />
+          </LanguageProvider>
+        </AuthProvider>
       </body>
     </html>
   );

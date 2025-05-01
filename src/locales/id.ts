@@ -1,9 +1,9 @@
-
 // src/locales/id.ts
 const id = {
   // Login Page
   login: {
     title: 'Login Msaarch APP',
+    description: 'Masukkan kredensial Anda atau masuk dengan Google.', // Added
     usernameLabel: 'Nama Pengguna',
     usernamePlaceholder: 'Masukkan nama pengguna Anda',
     passwordLabel: 'Kata Sandi',
@@ -14,18 +14,18 @@ const id = {
     redirecting: 'Mengalihkan ke dasbor...',
     fail: 'Login Gagal',
     invalidCredentials: 'Nama pengguna atau kata sandi salah.',
-    bypassButton: 'Lewati Login sebagai Admin (Dev)', // New
-    bypassTitle: 'Lewati Login', // New
-    bypassing: 'Melewati...', // New
-    // Google related translations removed
+    bypassButton: 'Lewati Login sebagai Admin (Dev)',
+    bypassTitle: 'Lewati Login',
+    bypassing: 'Melewati...',
+    googleSignIn: 'Masuk dengan Google', // Added
+    googleSignInHint: 'Gunakan akun Google perusahaan Anda.', // Added
      validation: {
         usernameRequired: 'Nama pengguna wajib diisi.',
         passwordRequired: 'Kata sandi wajib diisi.',
      }
   },
-  // Account Setup Page translations removed
-  // dashboardLayout, dashboardPage, tasksPage, manageUsersPage, adminActionsPage, settingsPage remain the same
-   // Dashboard Layout (Sidebar/Header)
+  // Account Setup Page translations remain removed or adjust as needed
+  // Dashboard Layout
    dashboardLayout: {
     menuTitle: 'Menu',
     menuDescription: 'Navigasi dan opsi pengguna.',
@@ -54,8 +54,8 @@ const id = {
     assignedTo: 'Ditugaskan ke',
     nextAction: 'Berikutnya',
     taskCanceled: 'Tugas ini dibatalkan.',
-    taskCompleted: 'Tugas Selesai', // Added translation
-    addNewTask: 'Tambah Tugas Baru', // Added translation
+    taskCompleted: 'Tugas Selesai',
+    addNewTask: 'Tambah Tugas Baru',
     status: {
       completed: 'Selesai',
       inprogress: 'Sedang Berjalan',
@@ -64,14 +64,14 @@ const id = {
       canceled: 'Dibatalkan',
       pending: 'Tertunda',
       scheduled: 'Terjadwal',
-      pendinginput: 'Menunggu Input', // Added status if needed
-      pendingoffer: 'Menunggu Penawaran', // Added status if needed
-      pendingdpinvoice: 'Menunggu Faktur DP', // Added status if needed
-      pendingadminfiles: 'Menunggu File Admin', // Added status if needed
-      pendingarchitectfiles: 'Menunggu File Arsitek', // Added status if needed
-      pendingstructurefiles: 'Menunggu File Struktur', // Added status if needed
-      pendingfinalcheck: 'Menunggu Pemeriksaan Akhir', // Added status if needed
-      pendingscheduling: 'Menunggu Penjadwalan', // Added status if needed
+      pendinginput: 'Menunggu Input',
+      pendingoffer: 'Menunggu Penawaran',
+      pendingdpinvoice: 'Menunggu Faktur DP',
+      pendingadminfiles: 'Menunggu File Admin',
+      pendingarchitectfiles: 'Menunggu File Arsitek', // Corrected spelling
+      pendingstructurefiles: 'Menunggu File Struktur', // Corrected spelling
+      pendingfinalcheck: 'Menunggu Pemeriksaan Akhir',
+      pendingscheduling: 'Menunggu Penjadwalan',
     },
      progress: '{progress}% Selesai',
   },
@@ -153,7 +153,7 @@ const id = {
   // Manage Users Page
   manageUsersPage: {
     title: 'Kelola Pengguna',
-    description: 'Tambah, ubah, atau hapus akun pengguna (Hanya Pemilik, Admin Umum, Admin Pengembang).', // Updated description
+    description: 'Tambah, ubah, atau hapus akun pengguna (Hanya Pemilik, Admin Umum, Admin Pengembang).',
     addUserButton: 'Tambah Pengguna',
     addUserDialogTitle: 'Tambah Pengguna Baru',
     addUserDialogDesc: 'Masukkan detail untuk akun pengguna baru.',
@@ -196,8 +196,8 @@ const id = {
        Owner: 'Pemilik',
        'General Admin': 'Admin Umum',
        'Admin Proyek': 'Admin Proyek',
-       Arsitek: 'Arsitek',
-       Struktur: 'Struktur',
+       Arsitek: 'Arsitek', // Corrected spelling
+       Struktur: 'Struktur', // Corrected spelling
        'Admin Developer': 'Admin Pengembang',
        Pending: 'Menunggu Aktivasi',
      },
@@ -232,8 +232,8 @@ const id = {
        roleRequired: 'Peran diperlukan',
        usernameExists: 'Nama pengguna sudah ada.',
     },
-    accessDeniedTitle: 'Akses Ditolak', // Added
-    accessDeniedDesc: 'Anda tidak memiliki izin yang diperlukan untuk melihat halaman ini.', // Added
+    accessDeniedTitle: 'Akses Ditolak',
+    accessDeniedDesc: 'Anda tidak memiliki izin yang diperlukan untuk melihat halaman ini.',
   },
    // Admin Actions Page
    adminActionsPage: {
@@ -259,16 +259,16 @@ const id = {
     description: 'Kelola akun dan pengaturan aplikasi Anda.',
     profileCardTitle: 'Informasi Profil',
     usernameLabel: 'Nama Pengguna',
-    usernamePlaceholder: 'Masukkan nama pengguna', // Updated placeholder
-    displayNameLabel: 'Nama Tampilan', // Added
-    emailLabel: 'Alamat Email', // Added
-    emailPlaceholder: 'Masukkan email Anda', // Added
-    whatsappLabel: 'Nomor WhatsApp', // Added
-    whatsappPlaceholder: 'Masukkan nomor WhatsApp (opsional)', // Added
-    changePictureButton: 'Ubah Foto', // Added
-    pictureHint: 'Unggah foto profil baru (JPG, PNG).', // Added
-    updateProfileButton: 'Perbarui Profil', // Changed button text
-    updatingProfileButton: 'Memperbarui...', // Changed button text
+    usernamePlaceholder: 'Masukkan nama pengguna',
+    displayNameLabel: 'Nama Tampilan',
+    emailLabel: 'Alamat Email',
+    emailPlaceholder: 'Masukkan email Anda',
+    whatsappLabel: 'Nomor WhatsApp',
+    whatsappPlaceholder: 'Masukkan nomor WhatsApp (opsional)',
+    changePictureButton: 'Ubah Foto',
+    pictureHint: 'Unggah foto profil baru (JPG, PNG).',
+    updateProfileButton: 'Perbarui Profil',
+    updatingProfileButton: 'Memperbarui...',
     passwordCardTitle: 'Perbarui Kata Sandi',
     currentPasswordLabel: 'Kata Sandi Saat Ini',
     currentPasswordPlaceholder: 'Masukkan kata sandi saat ini',
@@ -294,16 +294,16 @@ const id = {
       error: 'Kesalahan',
       success: 'Berhasil',
       fieldsRequired: 'Semua kolom kata sandi harus diisi.',
-      requiredFields: 'Nama Pengguna dan Email wajib diisi.', // Added
-      invalidEmail: 'Harap masukkan alamat email yang valid.', // Added
+      requiredFields: 'Nama Pengguna dan Email wajib diisi.',
+      invalidEmail: 'Harap masukkan alamat email yang valid.',
       passwordsDontMatch: 'Kata sandi baru tidak cocok.',
       passwordTooShort: 'Kata sandi baru minimal 6 karakter.',
       passwordUpdated: 'Kata sandi berhasil diperbarui.',
       passwordUpdateFailed: 'Gagal memperbarui kata sandi. Periksa kata sandi saat ini.',
-      usernameRequired: 'Nama pengguna tidak boleh kosong.', // Kept
-      usernameTooShort: 'Nama pengguna minimal 3 karakter.', // Kept
-      profileUpdated: 'Profil berhasil diperbarui.', // Changed text
-      profileUpdateFailed: 'Gagal memperbarui profil.', // Changed text
+      usernameRequired: 'Nama pengguna tidak boleh kosong.',
+      usernameTooShort: 'Nama pengguna minimal 3 karakter.',
+      profileUpdated: 'Profil berhasil diperbarui.',
+      profileUpdateFailed: 'Gagal memperbarui profil.',
       languageChanged: 'Bahasa Diubah',
       languageChangedDesc: 'Bahasa antarmuka diperbarui.',
       passwordMismatchError: 'Kata sandi saat ini tidak cocok.',

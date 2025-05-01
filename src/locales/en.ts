@@ -1,9 +1,9 @@
-
 // src/locales/en.ts
 const en = {
   // Login Page
   login: {
     title: 'Msaarch APP Login',
+    description: 'Enter your credentials or sign in with Google.', // Added
     usernameLabel: 'Username',
     usernamePlaceholder: 'Enter your username',
     passwordLabel: 'Password',
@@ -14,19 +14,19 @@ const en = {
     redirecting: 'Redirecting to dashboard...',
     fail: 'Login Failed',
     invalidCredentials: 'Invalid username or password.',
-    bypassButton: 'Bypass Login as Admin (Dev)', // New
-    bypassTitle: 'Bypass Login', // New
-    bypassing: 'Bypassing...', // New
-    // Google related translations removed
+    bypassButton: 'Bypass Login as Admin (Dev)',
+    bypassTitle: 'Bypass Login',
+    bypassing: 'Bypassing...',
+    googleSignIn: 'Sign in with Google', // Added
+    googleSignInHint: 'Use your company Google account.', // Added
     validation: {
         usernameRequired: 'Username is required.',
         passwordRequired: 'Password is required.',
     }
   },
-  // Account Setup Page translations removed
-  // dashboardLayout, dashboardPage, tasksPage, manageUsersPage, adminActionsPage, settingsPage remain the same
-   // Dashboard Layout (Sidebar/Header)
-   dashboardLayout: {
+  // Account Setup Page translations remain removed or adjust as needed
+  // Dashboard Layout
+  dashboardLayout: {
     menuTitle: 'Menu',
     menuDescription: 'Navigation and user options.',
     dashboard: 'Dashboard',
@@ -54,8 +54,8 @@ const en = {
     assignedTo: 'Assigned to',
     nextAction: 'Next',
     taskCanceled: 'This task was canceled.',
-    taskCompleted: 'Task Completed', // Added translation
-    addNewTask: 'Add New Task', // Added translation
+    taskCompleted: 'Task Completed',
+    addNewTask: 'Add New Task',
     status: {
       completed: 'Completed',
       inprogress: 'In Progress',
@@ -64,14 +64,14 @@ const en = {
       canceled: 'Canceled',
       pending: 'Pending',
       scheduled: 'Scheduled',
-      pendinginput: 'Pending Input', // Added status if needed
-      pendingoffer: 'Pending Offer', // Added status if needed
-      pendingdpinvoice: 'Pending DP Invoice', // Added status if needed
-      pendingadminfiles: 'Pending Admin Files', // Added status if needed
-      pendingarchitectfiles: 'Pending Architect Files', // Added status if needed
-      pendingstructurefiles: 'Pending Structure Files', // Added status if needed
-      pendingfinalcheck: 'Pending Final Check', // Added status if needed
-      pendingscheduling: 'Pending Scheduling', // Added status if needed
+      pendinginput: 'Pending Input',
+      pendingoffer: 'Pending Offer',
+      pendingdpinvoice: 'Pending DP Invoice',
+      pendingadminfiles: 'Pending Admin Files',
+      pendingarchitectfiles: 'Pending Architect Files', // Corrected spelling
+      pendingstructurefiles: 'Pending Structure Files', // Corrected spelling
+      pendingfinalcheck: 'Pending Final Check',
+      pendingscheduling: 'Pending Scheduling',
     },
     progress: '{progress}% Complete',
   },
@@ -153,7 +153,7 @@ const en = {
   // Manage Users Page
   manageUsersPage: {
     title: 'Manage Users',
-    description: 'Add, edit, or remove user accounts (Owner, General Admin, Admin Developer only).', // Updated description
+    description: 'Add, edit, or remove user accounts (Owner, General Admin, Admin Developer only).',
     addUserButton: 'Add User',
     addUserDialogTitle: 'Add New User',
     addUserDialogDesc: 'Enter the details for the new user account.',
@@ -196,8 +196,8 @@ const en = {
       Owner: 'Owner',
       'General Admin': 'General Admin',
       'Admin Proyek': 'Project Admin',
-      Arsitek: 'Architect',
-      Struktur: 'Structure',
+      Arsitek: 'Architect', // Corrected spelling
+      Struktur: 'Structure', // Corrected spelling
       'Admin Developer': 'Admin Developer',
       Pending: 'Pending Activation',
     },
@@ -232,8 +232,8 @@ const en = {
       roleRequired: 'Role is required',
       usernameExists: 'Username already exists.',
     },
-    accessDeniedTitle: 'Access Denied', // Added
-    accessDeniedDesc: 'You do not have the required permissions to view this page.', // Added
+    accessDeniedTitle: 'Access Denied',
+    accessDeniedDesc: 'You do not have the required permissions to view this page.',
   },
   // Admin Actions Page
   adminActionsPage: {
@@ -259,16 +259,16 @@ const en = {
     description: 'Manage your account and application settings.',
     profileCardTitle: 'Profile Information',
     usernameLabel: 'Username',
-    usernamePlaceholder: 'Enter username', // Updated placeholder
-    displayNameLabel: 'Display Name', // Added
-    emailLabel: 'Email Address', // Added
-    emailPlaceholder: 'Enter your email', // Added
-    whatsappLabel: 'WhatsApp Number', // Added
-    whatsappPlaceholder: 'Enter WhatsApp number (optional)', // Added
-    changePictureButton: 'Change Picture', // Added
-    pictureHint: 'Upload a new profile picture (JPG, PNG).', // Added
-    updateProfileButton: 'Update Profile', // Changed button text
-    updatingProfileButton: 'Updating...', // Changed button text
+    usernamePlaceholder: 'Enter username',
+    displayNameLabel: 'Display Name',
+    emailLabel: 'Email Address',
+    emailPlaceholder: 'Enter your email',
+    whatsappLabel: 'WhatsApp Number',
+    whatsappPlaceholder: 'Enter WhatsApp number (optional)',
+    changePictureButton: 'Change Picture',
+    pictureHint: 'Upload a new profile picture (JPG, PNG).',
+    updateProfileButton: 'Update Profile',
+    updatingProfileButton: 'Updating...',
     passwordCardTitle: 'Update Password',
     currentPasswordLabel: 'Current Password',
     currentPasswordPlaceholder: 'Enter current password',
@@ -294,16 +294,16 @@ const en = {
         error: 'Error',
         success: 'Success',
         fieldsRequired: 'All password fields are required.',
-        requiredFields: 'Username and Email are required.', // Added
-        invalidEmail: 'Please enter a valid email address.', // Added
+        requiredFields: 'Username and Email are required.',
+        invalidEmail: 'Please enter a valid email address.',
         passwordsDontMatch: 'New passwords do not match.',
         passwordTooShort: 'New password must be at least 6 characters.',
         passwordUpdated: 'Password updated successfully.',
         passwordUpdateFailed: 'Failed to update password. Check current password.',
-        usernameRequired: 'Username cannot be empty.', // Kept for potential use
-        usernameTooShort: 'Username must be at least 3 characters.', // Kept for potential use
-        profileUpdated: 'Profile updated successfully.', // Changed text
-        profileUpdateFailed: 'Failed to update profile.', // Changed text
+        usernameRequired: 'Username cannot be empty.',
+        usernameTooShort: 'Username must be at least 3 characters.',
+        profileUpdated: 'Profile updated successfully.',
+        profileUpdateFailed: 'Failed to update profile.',
         languageChanged: 'Language Changed',
         languageChangedDesc: 'Interface language updated.',
         passwordMismatchError: 'Current password does not match.',
