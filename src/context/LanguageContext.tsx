@@ -3,7 +3,8 @@
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type Language = 'en' | 'id';
+// Export the Language type
+export type Language = 'en' | 'id';
 
 interface LanguageContextProps {
   language: Language;

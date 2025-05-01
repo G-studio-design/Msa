@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import React, { useState, useEffect } from 'react'; // Import useState and useEffect
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Sheet,
@@ -22,9 +23,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator'; // Import Separator
-import { useLanguage } from '@/context/LanguageContext'; // Import language context
-import { getDictionary } from '@/lib/translations'; // Import translation helper
+import { Separator } from '@/components/ui/separator';
+import { useLanguage } from '@/context/LanguageContext';
+import { getDictionary } from '@/lib/translations';
 
 // Mock user data - replace with actual user data from auth context
 const user = {
@@ -34,10 +35,19 @@ const user = {
   initials: 'AU',
 };
 
+// Default dictionary for server render / pre-hydration
+const defaultDict = getDictionary('en');
+
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { language } = useLanguage(); // Get current language
-  const dict = getDictionary(language); // Get dictionary for the current language
+  const [isClient, setIsClient] = useState(false); // State to track client-side mount
+  const [dict, setDict] = useState(defaultDict); // Initialize with default dict
   const layoutDict = dict.dashboardLayout; // Specific dictionary section
+
+  useEffect(() => {
+    setIsClient(true); // Component has mounted client-side
+    setDict(getDictionary(language)); // Update dictionary based on context language
+  }, [language]); // Re-run if language changes
 
   // TODO: Fetch user data and determine visible menu items based on role
 
@@ -52,35 +62,33 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const visibleMenuItems = menuItems.filter(item => item.roles.includes(user.role));
 
   return (
-    <div className="flex min-h-screen w-full"> {/* Use flex for sidebar and main content */}
-      {/* Main content area takes remaining space */}
+    <div className="flex min-h-screen w-full">
       <div className="flex-1 flex flex-col">
-          {/* Header for the main content area */}
           <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6">
-             {/* Left side: App Title/Logo */}
              <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-lg text-primary">
                 <Building className="h-6 w-6" />
-                <span>{layoutDict.appTitle}</span>
+                {/* Render title only on client to avoid mismatch */}
+                <span>{isClient ? layoutDict.appTitle : defaultDict.dashboardLayout.appTitle}</span>
               </Link>
 
-            {/* Right side: Panel Trigger */}
             <div className="flex items-center gap-4">
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="outline" size="icon">
                     <PanelRightOpen className="h-5 w-5" />
-                    <span className="sr-only">{layoutDict.toggleMenu}</span>
+                    {/* Render translated text only on client */}
+                    <span className="sr-only">{isClient ? layoutDict.toggleMenu : defaultDict.dashboardLayout.toggleMenu}</span>
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="bg-primary text-primary-foreground border-primary-foreground/20 w-[300px] sm:w-[320px] flex flex-col p-4">
                   <SheetHeader className="mb-4 text-left">
-                    <SheetTitle className="text-primary-foreground text-xl">{layoutDict.menuTitle}</SheetTitle>
+                     {/* Render translated text only on client */}
+                    <SheetTitle className="text-primary-foreground text-xl">{isClient ? layoutDict.menuTitle : defaultDict.dashboardLayout.menuTitle}</SheetTitle>
                     <SheetDescription className="text-primary-foreground/80">
-                     {layoutDict.menuDescription}
+                     {isClient ? layoutDict.menuDescription : defaultDict.dashboardLayout.menuDescription}
                     </SheetDescription>
                   </SheetHeader>
 
-                   {/* Navigation Menu */}
                   <nav className="flex-1 space-y-2 overflow-y-auto">
                     {visibleMenuItems.map((item) => (
                       <Link
@@ -89,15 +97,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         className="flex items-center gap-3 rounded-md px-3 py-2 text-primary-foreground/90 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground"
                       >
                         <item.icon className="h-5 w-5" />
-                        {/* Use translated label */}
-                        <span>{layoutDict[item.labelKey as keyof typeof layoutDict]}</span>
+                        {/* Render translated label only on client */}
+                        <span>{isClient ? layoutDict[item.labelKey as keyof typeof layoutDict] : defaultDict.dashboardLayout[item.labelKey as keyof typeof defaultDict.dashboardLayout]}</span>
                       </Link>
                     ))}
                   </nav>
 
                    <Separator className="my-4 bg-primary-foreground/20" />
 
-                  {/* User Info and Logout */}
                    <div className="mt-auto space-y-4">
                      <div className="flex items-center gap-3 rounded-md p-2">
                        <Avatar className="h-10 w-10 border-2 border-primary-foreground/30">
@@ -109,11 +116,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                          <span className="text-xs text-primary-foreground/70 truncate">{user.role}</span>
                        </div>
                      </div>
-                    {/* Logout Button */}
                     <Button variant="ghost" className="w-full justify-start gap-3 text-primary-foreground/90 hover:bg-primary-foreground/10 hover:text-primary-foreground" asChild>
                       <Link href="/"> {/* Redirect to login on logout */}
                         <LogOut className="h-5 w-5" />
-                        <span>{layoutDict.logout}</span>
+                         {/* Render translated text only on client */}
+                        <span>{isClient ? layoutDict.logout : defaultDict.dashboardLayout.logout}</span>
                       </Link>
                     </Button>
                    </div>
@@ -122,8 +129,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
           </header>
 
-          {/* Main content area */}
-          <main className="flex-1 overflow-y-auto p-4 md:p-6"> {/* Add overflow-y-auto */}
+          <main className="flex-1 overflow-y-auto p-4 md:p-6">
             {children}
           </main>
       </div>
