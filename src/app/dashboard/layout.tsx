@@ -59,12 +59,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const menuItems = [
     { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
     { href: "/dashboard/tasks", icon: ClipboardList, labelKey: "tasks", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
-    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers", roles: ["General Admin", "Owner", "Admin Developer"] }, // Added Admin Developer
+    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers", roles: ["Owner", "General Admin", "Admin Developer"] }, // Restricted access
     { href: "/dashboard/admin-actions", icon: UserCog, labelKey: "adminActions", roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] }, // Added Admin Developer
     { href: "/dashboard/settings", icon: Settings, labelKey: "settings", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
   ];
 
-  const visibleMenuItems = menuItems.filter(item => item.roles.includes(user.role));
+  // Filter menu items based on the current user's role
+  const visibleMenuItems = isClient ? menuItems.filter(item => item.roles.includes(user.role)) : [];
 
   // Get user role icon based on the getRoleIcon logic from users page
   const getUserRoleIcon = (role: string) => {
@@ -78,7 +79,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           default: return User;
       }
   }
-  const RoleIcon = getUserRoleIcon(user.role);
+  const RoleIcon = isClient ? getUserRoleIcon(user.role) : User;
 
 
   return (

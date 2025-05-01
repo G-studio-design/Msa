@@ -153,7 +153,7 @@ const id = {
   // Manage Users Page
   manageUsersPage: {
     title: 'Kelola Pengguna',
-    description: 'Tambah, ubah, atau hapus akun pengguna untuk semua divisi (Hanya Pemilik/Admin Umum/Admin Pengembang).',
+    description: 'Tambah, ubah, atau hapus akun pengguna (Hanya Pemilik, Admin Umum, Admin Pengembang).', // Updated description
     addUserButton: 'Tambah Pengguna',
     addUserDialogTitle: 'Tambah Pengguna Baru',
     addUserDialogDesc: 'Masukkan detail untuk akun pengguna baru.',
@@ -175,10 +175,10 @@ const id = {
     tableHeaderPassword: 'Kata Sandi',
     tableHeaderRole: 'Peran / Divisi',
     tableHeaderActions: 'Tindakan',
-    showPasswordButtonLabel: 'Tampilkan Kata Sandi', // Updated Label
-    hidePasswordButtonLabel: 'Sembunyikan Kata Sandi', // Updated Label
-    passwordHidden: 'Tersembunyi', // Added translation for hidden password
-    passwordNotSet: 'Belum Diatur', // Added translation for when password field is empty
+    showPasswordButtonLabel: 'Tampilkan Kata Sandi',
+    hidePasswordButtonLabel: 'Sembunyikan Kata Sandi',
+    passwordHidden: 'Tersembunyi',
+    passwordNotSet: 'Belum Diatur',
     noUsers: 'Tidak ada pengguna ditemukan.',
     deleteUserButtonLabel: 'Hapus Pengguna',
     deleteDialogTitle: 'Konfirmasi Penghapusan',
@@ -186,20 +186,20 @@ const id = {
     deleteDialogCancel: 'Batal',
     deleteDialogConfirm: 'Hapus Pengguna',
     cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin Umum terakhir.',
-    cannotChangeLastDevAdminRoleHint: 'Tidak dapat mengubah peran Admin Pengembang terakhir.', // Added
-    activateUserButtonLabel: 'Aktifkan Pengguna', // Kept
-    activateUserDialogTitle: 'Aktifkan Pengguna', // Kept
-    activateUserDialogDesc: 'Tetapkan peran untuk mengaktifkan pengguna "{username}".', // Kept
-    activateUserSubmitButton: 'Aktifkan Pengguna', // Kept
-    activatingUserButton: 'Mengaktifkan...', // Kept
+    cannotChangeLastDevAdminRoleHint: 'Tidak dapat mengubah peran Admin Pengembang terakhir.',
+    activateUserButtonLabel: 'Aktifkan Pengguna',
+    activateUserDialogTitle: 'Aktifkan Pengguna',
+    activateUserDialogDesc: 'Tetapkan peran untuk mengaktifkan pengguna "{username}".',
+    activateUserSubmitButton: 'Aktifkan Pengguna',
+    activatingUserButton: 'Mengaktifkan...',
     roles: {
        Owner: 'Pemilik',
        'General Admin': 'Admin Umum',
        'Admin Proyek': 'Admin Proyek',
        Arsitek: 'Arsitek',
        Struktur: 'Struktur',
-       'Admin Developer': 'Admin Pengembang', // Added role
-       Pending: 'Menunggu Aktivasi', // Kept
+       'Admin Developer': 'Admin Pengembang',
+       Pending: 'Menunggu Aktivasi',
      },
     toast: {
         userAdded: 'Pengguna Ditambahkan',
@@ -212,26 +212,28 @@ const id = {
         usernameExists: 'Nama pengguna sudah ada.',
         cannotDeleteSelf: 'Anda tidak dapat menghapus akun Anda sendiri.',
         cannotDeleteLastAdmin: 'Tidak dapat menghapus Admin Umum terakhir.',
-        cannotDeleteLastDevAdmin: 'Tidak dapat menghapus Admin Pengembang terakhir.', // Added
+        cannotDeleteLastDevAdmin: 'Tidak dapat menghapus Admin Pengembang terakhir.',
         cannotChangeLastAdminRole: 'Tidak dapat mengubah peran Admin Umum terakhir.',
-        cannotChangeLastDevAdminRole: 'Tidak dapat mengubah peran Admin Pengembang terakhir.', // Added
-        permissionDenied: 'Izin Ditolak', // Added
-        editPermissionDenied: 'Anda tidak memiliki izin untuk mengubah pengguna ini.', // Added
-        devCannotEditOwnerGA: 'Admin Pengembang tidak dapat mengubah Pemilik atau Admin Umum.', // Kept
-        gaCannotEditOwnerDev: 'Admin Umum tidak dapat mengubah Pemilik atau Admin Pengembang.', // Kept
-        activateUserSuccess: 'Pengguna Diaktifkan', // Kept
-        activateUserDesc: 'Pengguna {username} telah diaktifkan.', // Kept
-        activateUserError: 'Aktivasi Gagal', // Kept
-        activateUserErrorDesc: 'Tidak dapat mengaktifkan pengguna {username}.', // Kept
-        cannotEditPending: 'Aktifkan pengguna terlebih dahulu sebelum mengubah.', // Kept
-        userNotFound: 'Pengguna tidak ditemukan.', // Added
+        cannotChangeLastDevAdminRole: 'Tidak dapat mengubah peran Admin Pengembang terakhir.',
+        permissionDenied: 'Izin Ditolak',
+        editPermissionDenied: 'Anda tidak memiliki izin untuk mengubah pengguna ini.',
+        devCannotEditOwnerGA: 'Admin Pengembang tidak dapat mengubah Pemilik atau Admin Umum.',
+        gaCannotEditOwnerDev: 'Admin Umum tidak dapat mengubah Pemilik atau Admin Pengembang.',
+        activateUserSuccess: 'Pengguna Diaktifkan',
+        activateUserDesc: 'Pengguna {username} telah diaktifkan.',
+        activateUserError: 'Aktivasi Gagal',
+        activateUserErrorDesc: 'Tidak dapat mengaktifkan pengguna {username}.',
+        cannotEditPending: 'Aktifkan pengguna terlebih dahulu sebelum mengubah.',
+        userNotFound: 'Pengguna tidak ditemukan.',
     },
     validation: {
        usernameMin: 'Nama pengguna minimal 3 karakter',
        passwordMin: 'Kata sandi minimal 6 karakter',
        roleRequired: 'Peran diperlukan',
-       usernameExists: 'Nama pengguna sudah ada.', // Added validation message
-    }
+       usernameExists: 'Nama pengguna sudah ada.',
+    },
+    accessDeniedTitle: 'Akses Ditolak', // Added
+    accessDeniedDesc: 'Anda tidak memiliki izin yang diperlukan untuk melihat halaman ini.', // Added
   },
    // Admin Actions Page
    adminActionsPage: {

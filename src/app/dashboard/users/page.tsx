@@ -150,7 +150,7 @@ export default function ManageUsersPage() {
   type EditUserFormValues = z.infer<typeof editUserSchema>;
 
   // Check if current user has permission (Owner, GA, or Admin Developer)
-  const canManageUsers = ['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role);
+  const canManageUsers = isClient && ['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role);
 
   const addUserForm = useForm<AddUserFormValues>({
     resolver: zodResolver(addUserSchema),
@@ -196,6 +196,7 @@ export default function ManageUsersPage() {
 
 
   const handleAddUser = async (data: AddUserFormValues) => {
+    if (!canManageUsers) return; // Permission check
     setIsProcessing(true);
     addUserForm.clearErrors();
     console.log('Adding user:', data.username);
@@ -221,7 +222,7 @@ export default function ManageUsersPage() {
   };
 
     const handleEditUser = async (data: EditUserFormValues) => {
-        if (!editingUser) return;
+        if (!editingUser || !canManageUsers) return; // Permission check
         setIsProcessing(true);
         editUserForm.clearErrors();
         console.log(`Editing user ${editingUser.id}:`, data.username, data.role);
@@ -282,6 +283,7 @@ export default function ManageUsersPage() {
     };
 
   const handleDeleteUser = async (userId: string, username: string) => {
+    if (!canManageUsers) return; // Permission check
     // Find user locally first for checks
     const userToDelete = users.find(user => user.id === userId);
     if (!userToDelete) return; // Should not happen if UI is correct
@@ -357,7 +359,8 @@ export default function ManageUsersPage() {
          } else if (currentUser.role === 'General Admin') {
              canEditTargetUser = user.role !== 'Owner'; // GA can edit anyone except Owner
          } else if (currentUser.role === 'Admin Developer') {
-             canEditTargetUser = !['Owner', 'General Admin'].includes(user.role); // Admin Dev cannot edit Owner or GA
+             // Admin Dev cannot edit Owner or GA. Can edit self unless last dev.
+             canEditTargetUser = !['Owner', 'General Admin'].includes(user.role);
          }
 
          if (!canEditTargetUser) {
@@ -396,10 +399,10 @@ export default function ManageUsersPage() {
           <div className="container mx-auto py-4">
               <Card className="border-destructive">
                    <CardHeader>
-                       <CardTitle className="text-destructive">{usersDict.accessDeniedTitle}</CardTitle>
+                       <CardTitle className="text-destructive">{isClient ? usersDict.accessDeniedTitle : defaultDict.manageUsersPage.accessDeniedTitle}</CardTitle>
                    </CardHeader>
                    <CardContent>
-                       <p>{usersDict.accessDeniedDesc}</p>
+                       <p>{isClient ? usersDict.accessDeniedDesc : defaultDict.manageUsersPage.accessDeniedDesc}</p>
                    </CardContent>
               </Card>
           </div>
@@ -475,14 +478,13 @@ export default function ManageUsersPage() {
                                   </FormControl>
                                   <SelectContent>
                                     {divisions
-                                        // Owner can create any role
-                                        // GA can create GA, AP, Arsitek, Struktur
-                                        // Admin Dev can create any role
-                                        .filter(division =>
-                                            currentUser.role === 'Owner' ||
-                                            currentUser.role === 'Admin Developer' ||
-                                            (currentUser.role === 'General Admin' && !['Owner', 'Admin Developer'].includes(division))
-                                        )
+                                        // Filter roles that the current user can create
+                                        .filter(division => {
+                                            if (currentUser.role === 'Owner') return true; // Owner can create any role
+                                            if (currentUser.role === 'Admin Developer') return true; // Admin Dev can create any role (except Owner/GA?) - Revisit if needed
+                                            if (currentUser.role === 'General Admin') return !['Owner', 'Admin Developer'].includes(division); // GA cannot create Owner or Admin Dev
+                                            return false; // Other roles cannot create users
+                                        })
                                         .map((division) => (
                                             <SelectItem key={division} value={division}>
                                             {isClient ? (usersDict.roles[division as keyof typeof usersDict.roles] || division) : (defaultDict.manageUsersPage.roles[division as keyof typeof defaultDict.manageUsersPage.roles] || division)}
@@ -544,22 +546,27 @@ export default function ManageUsersPage() {
                     const isLastAdminDeveloper = user.role === 'Admin Developer' && users.filter(u => u.role === 'Admin Developer').length <= 1;
 
                      // Determine if delete should be disabled
-                     const disableDelete = (isSelf && ['General Admin', 'Admin Developer'].includes(currentUser.role)) || // Cannot delete self if GA or Dev
+                     const disableDelete = !canManageUsers || // Cannot delete if current user lacks permission
+                                            (isSelf && ['General Admin', 'Admin Developer'].includes(currentUser.role)) || // Cannot delete self if GA or Dev
                                             (isLastGeneralAdmin && ['General Admin', 'Admin Developer'].includes(currentUser.role)) || // Cannot delete last GA if GA or Dev
                                             (isLastAdminDeveloper && ['General Admin', 'Admin Developer'].includes(currentUser.role)); // Cannot delete last Dev if GA or Dev
 
                       // Determine if edit should be disabled based on permissions
-                      let disableEdit = !canManageUsers || // User cannot manage users at all
+                      let disableEdit = !canManageUsers || // Cannot edit if current user lacks permission
                                         user.role === 'Pending' || // Cannot edit pending users
                                         (currentUser.role === 'General Admin' && user.role === 'Owner') || // GA cannot edit Owner
                                         (currentUser.role === 'Admin Developer' && ['Owner', 'General Admin'].includes(user.role)); // Dev cannot edit Owner/GA
 
 
                     const isPasswordVisible = visiblePasswords[user.id] || false;
-                    // Owner and GA can always see passwords. Admin Dev can see passwords except for Owner/GA.
-                    const alwaysShowPassword = ['Owner', 'General Admin'].includes(currentUser.role);
-                    const showPasswordForDev = currentUser.role === 'Admin Developer' && !['Owner', 'General Admin'].includes(user.role);
-                    const canViewPassword = alwaysShowPassword || showPasswordForDev;
+                    // Determine if the current user can view this specific user's password
+                    // Owner and GA can view all passwords. Admin Dev can view passwords except for Owner/GA.
+                    const canViewPassword = canManageUsers && (
+                        currentUser.role === 'Owner' ||
+                        currentUser.role === 'General Admin' ||
+                        (currentUser.role === 'Admin Developer' && !['Owner', 'General Admin'].includes(user.role))
+                    );
+
 
                     return (
                       <TableRow key={user.id} className={user.role === 'Pending' ? 'bg-yellow-100/30 dark:bg-yellow-900/30 hover:bg-yellow-100/50 dark:hover:bg-yellow-900/50' : ''}>
@@ -569,10 +576,10 @@ export default function ManageUsersPage() {
                                <div className="flex items-center gap-1">
                                  {/* SECURITY RISK: Displaying plain text password */}
                                  <span className="font-mono text-xs break-all text-foreground">
-                                   {user.password || (isClient ? usersDict.passwordNotSet : defaultDict.manageUsersPage.passwordNotSet)} {/* Show plain password or "Not Set" */}
+                                   {isPasswordVisible ? (user.password || (isClient ? usersDict.passwordNotSet : defaultDict.manageUsersPage.passwordNotSet)) : '••••••••'}
                                  </span>
-                                   {/* Show/Hide button only relevant for Admin Dev viewing non-Owner/GA passwords */}
-                                   {showPasswordForDev && user.password && (
+                                   {/* Show/Hide button */}
+                                   {user.password && (
                                        <Button
                                           variant="ghost"
                                           size="icon"
@@ -585,8 +592,7 @@ export default function ManageUsersPage() {
                                           {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                         </Button>
                                    )}
-                                   {/* If always showing password, don't show toggle button */}
-                                   {alwaysShowPassword && !user.password && (
+                                   {!user.password && (
                                         <span className="text-xs text-muted-foreground italic ml-1">({isClient ? usersDict.passwordNotSet : defaultDict.manageUsersPage.passwordNotSet})</span>
                                    )}
                                </div>
@@ -603,13 +609,13 @@ export default function ManageUsersPage() {
                         <TableCell className="text-right space-x-1">
                            {/* Activate Button removed */}
 
-                           {/* Edit User Button (not for Pending users, respecting permissions) */}
-                            {user.role !== 'Pending' && (
+                           {/* Edit User Button (respecting permissions) */}
+                           {canManageUsers && user.role !== 'Pending' && (
                                 <Button
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => openEditDialog(user)}
-                                    disabled={isProcessing || disableEdit} // Use combined disable logic
+                                    disabled={isProcessing || disableEdit}
                                     aria-label={isClient ? usersDict.editUserButtonLabel : defaultDict.manageUsersPage.editUserButtonLabel}
                                     title={isClient ? usersDict.editUserButtonLabel : defaultDict.manageUsersPage.editUserButtonLabel}
                                >
@@ -648,7 +654,7 @@ export default function ManageUsersPage() {
                         </TableCell>
                       </TableRow>
                     );
-                })
+                }) // Ensure no whitespace here
               )}
             </TableBody>
           </Table>
@@ -688,9 +694,13 @@ export default function ManageUsersPage() {
                                 <Select
                                    onValueChange={field.onChange}
                                    value={field.value} // Use controlled value
-                                   disabled={(currentUser.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1) ||
-                                             (currentUser.role === 'Admin Developer' && editingUser?.id === currentUser.id && users.filter(u => u.role === 'Admin Developer').length <= 1) || // Prevent last Dev Admin changing own role
-                                              isProcessing } // Disable while processing
+                                   disabled={
+                                       isProcessing ||
+                                       // Disable if GA trying to change last GA role
+                                       (currentUser.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1) ||
+                                       // Disable if Admin Dev trying to change own role when they are the last Admin Dev
+                                       (currentUser.role === 'Admin Developer' && editingUser?.id === currentUser.id && users.filter(u => u.role === 'Admin Developer').length <= 1)
+                                    } // Disable while processing or if changing last admin's role
                                 >
                                     <FormControl>
                                         <SelectTrigger>
@@ -702,8 +712,8 @@ export default function ManageUsersPage() {
                                             .filter(division => {
                                                 // Filter options based on who is editing
                                                 if (currentUser.role === 'Owner') return true; // Owner can assign any role
-                                                if (currentUser.role === 'General Admin') return division !== 'Owner'; // GA cannot assign Owner role
-                                                if (currentUser.role === 'Admin Developer') return !['Owner', 'General Admin'].includes(division); // Dev cannot assign Owner/GA roles
+                                                if (currentUser.role === 'Admin Developer') return true; // Admin Dev can assign any role (revisit if restrictions needed)
+                                                if (currentUser.role === 'General Admin') return !['Owner', 'Admin Developer'].includes(division); // GA cannot assign Owner or Admin Dev
                                                 return false; // Should not happen if button is disabled correctly
                                             })
                                             .map((division) => (

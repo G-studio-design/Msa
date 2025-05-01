@@ -153,7 +153,7 @@ const en = {
   // Manage Users Page
   manageUsersPage: {
     title: 'Manage Users',
-    description: 'Add, edit, or remove user accounts for all divisions (Owner/GA/Admin Developer only).',
+    description: 'Add, edit, or remove user accounts (Owner, General Admin, Admin Developer only).', // Updated description
     addUserButton: 'Add User',
     addUserDialogTitle: 'Add New User',
     addUserDialogDesc: 'Enter the details for the new user account.',
@@ -175,10 +175,10 @@ const en = {
     tableHeaderPassword: 'Password',
     tableHeaderRole: 'Role / Division',
     tableHeaderActions: 'Actions',
-    showPasswordButtonLabel: 'Show Password', // Updated Label
-    hidePasswordButtonLabel: 'Hide Password', // Updated Label
-    passwordHidden: 'Hidden', // Added translation for hidden password
-    passwordNotSet: 'Not Set', // Added translation for when password field is empty
+    showPasswordButtonLabel: 'Show Password',
+    hidePasswordButtonLabel: 'Hide Password',
+    passwordHidden: 'Hidden',
+    passwordNotSet: 'Not Set',
     noUsers: 'No users found.',
     deleteUserButtonLabel: 'Delete User',
     deleteDialogTitle: 'Confirm Deletion',
@@ -186,20 +186,20 @@ const en = {
     deleteDialogCancel: 'Cancel',
     deleteDialogConfirm: 'Delete User',
     cannotChangeLastAdminRoleHint: 'Cannot change the role of the last General Admin.',
-    cannotChangeLastDevAdminRoleHint: 'Cannot change the role of the last Admin Developer.', // Added
-    activateUserButtonLabel: 'Activate User', // Kept for potential future use if activation logic returns
-    activateUserDialogTitle: 'Activate User', // Kept
-    activateUserDialogDesc: 'Assign a role to activate user "{username}".', // Kept
-    activateUserSubmitButton: 'Activate User', // Kept
-    activatingUserButton: 'Activating...', // Kept
+    cannotChangeLastDevAdminRoleHint: 'Cannot change the role of the last Admin Developer.',
+    activateUserButtonLabel: 'Activate User',
+    activateUserDialogTitle: 'Activate User',
+    activateUserDialogDesc: 'Assign a role to activate user "{username}".',
+    activateUserSubmitButton: 'Activate User',
+    activatingUserButton: 'Activating...',
     roles: {
       Owner: 'Owner',
       'General Admin': 'General Admin',
       'Admin Proyek': 'Project Admin',
       Arsitek: 'Architect',
       Struktur: 'Structure',
-      'Admin Developer': 'Admin Developer', // Added role
-      Pending: 'Pending Activation', // Kept as role might exist even if creation flow is gone
+      'Admin Developer': 'Admin Developer',
+      Pending: 'Pending Activation',
     },
     toast: {
       userAdded: 'User Added',
@@ -212,26 +212,28 @@ const en = {
       usernameExists: 'Username already exists.',
       cannotDeleteSelf: 'You cannot delete your own account.',
       cannotDeleteLastAdmin: 'Cannot delete the last General Admin.',
-      cannotDeleteLastDevAdmin: 'Cannot delete the last Admin Developer.', // Added
+      cannotDeleteLastDevAdmin: 'Cannot delete the last Admin Developer.',
       cannotChangeLastAdminRole: 'Cannot change the role of the last General Admin.',
-      cannotChangeLastDevAdminRole: 'Cannot change the role of the last Admin Developer.', // Added
-      permissionDenied: 'Permission Denied', // Added
-      editPermissionDenied: 'You do not have permission to edit this user.', // Added generic edit denial
-      devCannotEditOwnerGA: 'Admin Developer cannot edit Owner or General Admin.', // Kept specific message if needed elsewhere
-      gaCannotEditOwnerDev: 'General Admin cannot edit Owner or Admin Developer.', // Kept specific message if needed elsewhere
-      activateUserSuccess: 'User Activated', // Kept
-      activateUserDesc: 'User {username} has been activated.', // Kept
-      activateUserError: 'Activation Failed', // Kept
-      activateUserErrorDesc: 'Could not activate user {username}.', // Kept
-      cannotEditPending: 'Activate the user first before editing.', // Kept
-      userNotFound: 'User not found.', // Added
+      cannotChangeLastDevAdminRole: 'Cannot change the role of the last Admin Developer.',
+      permissionDenied: 'Permission Denied',
+      editPermissionDenied: 'You do not have permission to edit this user.',
+      devCannotEditOwnerGA: 'Admin Developer cannot edit Owner or General Admin.',
+      gaCannotEditOwnerDev: 'General Admin cannot edit Owner or Admin Developer.',
+      activateUserSuccess: 'User Activated',
+      activateUserDesc: 'User {username} has been activated.',
+      activateUserError: 'Activation Failed',
+      activateUserErrorDesc: 'Could not activate user {username}.',
+      cannotEditPending: 'Activate the user first before editing.',
+      userNotFound: 'User not found.',
     },
     validation: {
       usernameMin: 'Username must be at least 3 characters',
       passwordMin: 'Password must be at least 6 characters',
       roleRequired: 'Role is required',
-      usernameExists: 'Username already exists.', // Added validation message
-    }
+      usernameExists: 'Username already exists.',
+    },
+    accessDeniedTitle: 'Access Denied', // Added
+    accessDeniedDesc: 'You do not have the required permissions to view this page.', // Added
   },
   // Admin Actions Page
   adminActionsPage: {
