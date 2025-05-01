@@ -4,82 +4,99 @@
     "id": "usr_owner_ran",
     "username": "owner_aeiou",
     "role": "Owner",
-    "password": "pass_qwert",
+    "password": "admin123",
     "email": "owner_aeiou@placeholder.example.com",
     "displayName": "owner_aeiou",
-    "createdAt": "2025-05-02T17:00:00.000Z"
+    "createdAt": "2025-05-02T17:00:00.000Z",
+    "whatsappNumber": "",
+    "profilePictureUrl": null
   },
   {
     "id": "usr_ga_ran",
     "username": "ga_bcdfg",
     "role": "General Admin",
-    "password": "pass_zxcvb",
+    "password": "admin123",
     "email": "ga_bcdfg@placeholder.example.com",
     "displayName": "ga_bcdfg",
-    "createdAt": "2025-05-02T17:01:00.000Z"
+    "createdAt": "2025-05-02T17:01:00.000Z",
+    "whatsappNumber": "",
+    "profilePictureUrl": null
   },
   {
     "id": "usr_ap_ran",
     "username": "ap_hjklm",
     "role": "Admin Proyek",
-    "password": "pass_asdfg",
+    "password": "admin123",
     "email": "ap_hjklm@placeholder.example.com",
     "displayName": "ap_hjklm",
-    "createdAt": "2025-05-02T17:02:00.000Z"
+    "createdAt": "2025-05-02T17:02:00.000Z",
+    "whatsappNumber": "",
+    "profilePictureUrl": null
   },
   {
     "id": "usr_arch_ran",
     "username": "arch_npqrs",
     "role": "Arsitek",
-    "password": "pass_12345",
+    "password": "admin123",
     "email": "arch_npqrs@placeholder.example.com",
     "displayName": "arch_npqrs",
-    "createdAt": "2025-05-02T17:03:00.000Z"
+    "createdAt": "2025-05-02T17:03:00.000Z",
+    "whatsappNumber": "",
+    "profilePictureUrl": null
   },
   {
     "id": "usr_struct_ran",
     "username": "struct_tvwxyz",
     "role": "Struktur",
-    "password": "pass_67890",
+    "password": "admin123",
     "email": "struct_tvwxyz@placeholder.example.com",
     "displayName": "struct_tvwxyz",
-    "createdAt": "2025-05-02T17:04:00.000Z"
+    "createdAt": "2025-05-02T17:04:00.000Z",
+    "whatsappNumber": "",
+    "profilePictureUrl": null
   },
   {
     "id": "usr_dev_ran",
     "username": "dev_admn",
     "role": "Admin Developer",
-    "password": "pass_dev01",
+    "password": "admin123",
     "email": "dev_admn@placeholder.example.com",
     "displayName": "dev_admn",
-    "createdAt": "2025-05-02T17:05:00.000Z"
+    "createdAt": "2025-05-02T17:05:00.000Z",
+    "whatsappNumber": "",
+    "profilePictureUrl": null
   },
   {
     "id": "usr_7",
     "username": "admin",
     "role": "General Admin",
-    "password": "admin",
+    "password": "admin123",
     "email": "admin@example.com",
     "displayName": "Admin User",
-    "createdAt": "2025-05-01T16:00:00.000Z"
+    "createdAt": "2025-05-01T16:00:00.000Z",
+    "whatsappNumber": "",
+    "profilePictureUrl": null
   },
   {
     "id": "usr_wayangovina",
     "username": "wayangovina",
-    "password": "govina110900",
+    "password": "admin123",
     "role": "Owner",
     "email": "iwayangovina@gmail.com",
     "displayName": "wayangovina",
-    "createdAt": "2025-05-01T17:20:04.615Z"
+    "createdAt": "2025-05-01T17:20:04.615Z",
+    "whatsappNumber": "",
+    "profilePictureUrl": null
   },
   {
     "id": "usr_wayan",
     "username": "wayan",
-    "password": "admin",
+    "password": "admin123",
     "role": "General Admin",
     "email": "wayan@example.com",
     "displayName": "wayan",
-    "createdAt": "2025-05-01T17:20:04.615Z"
+    "createdAt": "2025-05-01T17:20:04.615Z",
+    "whatsappNumber": "",
+    "profilePictureUrl": null
   }
 ]
-

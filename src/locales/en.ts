@@ -1,5 +1,3 @@
-
-
 // src/locales/en.ts
 const en = {
   // Login Page
@@ -257,9 +255,15 @@ const en = {
     description: 'Manage your account and application settings.',
     profileCardTitle: 'Profile Information',
     usernameLabel: 'Username',
-    usernameHint: 'Username cannot be changed.', // Updated hint
-    usernamePlaceholder: 'Enter new username',
-    updateProfileButton: 'Update Username', // Changed button text
+    usernamePlaceholder: 'Enter username', // Updated placeholder
+    displayNameLabel: 'Display Name', // Added
+    emailLabel: 'Email Address', // Added
+    emailPlaceholder: 'Enter your email', // Added
+    whatsappLabel: 'WhatsApp Number', // Added
+    whatsappPlaceholder: 'Enter WhatsApp number (optional)', // Added
+    changePictureButton: 'Change Picture', // Added
+    pictureHint: 'Upload a new profile picture (JPG, PNG).', // Added
+    updateProfileButton: 'Update Profile', // Changed button text
     updatingProfileButton: 'Updating...', // Changed button text
     passwordCardTitle: 'Update Password',
     currentPasswordLabel: 'Current Password',
@@ -286,14 +290,16 @@ const en = {
         error: 'Error',
         success: 'Success',
         fieldsRequired: 'All password fields are required.',
+        requiredFields: 'Username and Email are required.', // Added
+        invalidEmail: 'Please enter a valid email address.', // Added
         passwordsDontMatch: 'New passwords do not match.',
         passwordTooShort: 'New password must be at least 6 characters.',
         passwordUpdated: 'Password updated successfully.',
         passwordUpdateFailed: 'Failed to update password. Check current password.',
-        usernameRequired: 'Username cannot be empty.',
-        usernameTooShort: 'Username must be at least 3 characters.',
-        profileUpdated: 'Username updated successfully.', // Changed text
-        profileUpdateFailed: 'Failed to update username.', // Changed text
+        usernameRequired: 'Username cannot be empty.', // Kept for potential use
+        usernameTooShort: 'Username must be at least 3 characters.', // Kept for potential use
+        profileUpdated: 'Profile updated successfully.', // Changed text
+        profileUpdateFailed: 'Failed to update profile.', // Changed text
         languageChanged: 'Language Changed',
         languageChangedDesc: 'Interface language updated.',
         passwordMismatchError: 'Current password does not match.',
@@ -303,5 +309,3 @@ const en = {
 };
 
 export default en;
-
-

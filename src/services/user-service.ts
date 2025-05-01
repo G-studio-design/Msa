@@ -1,11 +1,9 @@
-
 // src/services/user-service.ts
 'use server';
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
 // bcrypt removed as hashing is disabled
-// import * as bcrypt from 'bcrypt';
 
 // Define the structure of a user in the database
 export interface User {
@@ -14,8 +12,9 @@ export interface User {
     role: string;
     // SECURITY RISK: Storing plain text password instead of hash
     password?: string; // Store plain text password - NOT RECOMMENDED
-    passwordHash?: string; // Keep hash field temporarily for migration? Or remove completely. Removing for now based on request.
     email?: string;
+    whatsappNumber?: string; // Added WhatsApp number
+    profilePictureUrl?: string; // Added profile picture URL
     googleUid?: string; // Keep for potential future use, though functionality is removed
     displayName?: string;
     createdAt?: string; // Use ISO string for dates
@@ -32,7 +31,10 @@ interface UpdatePasswordData {
 interface UpdateProfileData {
     userId: string;
     username: string;
-    role: string;
+    role: string; // Keep role here for admin updates, but settings page won't change it
+    email?: string; // Make email optional for update data
+    whatsappNumber?: string; // Make WhatsApp optional
+    profilePictureUrl?: string; // Make profile picture optional
 }
 
 // Define the structure for adding a user directly (by admin)
@@ -44,8 +46,6 @@ interface AddUserData {
 
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
-// SALT_ROUNDS removed as hashing is disabled
-// const SALT_ROUNDS = 10; // Cost factor for bcrypt hashing
 
 // --- Helper Functions ---
 
@@ -65,31 +65,21 @@ async function readUsers(): Promise<User[]> {
 
     try {
         const data = await fs.readFile(DB_PATH, 'utf8');
-        // Add basic validation to ensure it's an array
         const parsedData = JSON.parse(data);
         if (!Array.isArray(parsedData)) {
             console.error("User database file does not contain a valid JSON array. Resetting.");
             await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
             return [];
         }
-        // Migrate old data if passwordHash exists and password doesn't
-        return (parsedData as any[]).map(user => {
-            if (user.passwordHash && !user.password) {
-                 console.warn(`Migrating user ${user.username}: Removing passwordHash field. Plain text password should be set manually or via reset.`);
-                 // Cannot automatically convert hash back to plain text.
-                 // Setting password to null or a placeholder indicates need for reset.
-                 // User requested setting all passwords to 'admin123' previously,
-                 // so we might assume that for existing users without a 'password' field.
-                 // However, the current request asks to "update all users", which is ambiguous.
-                 // Setting password to undefined here. They will be updated later if needed.
-                 delete user.passwordHash; // Remove the hash
-                 user.password = undefined; // Mark password as needing update/reset
-            }
-            return user as User;
-        }) as User[];
+        // Add default empty strings for new fields if they don't exist
+        return (parsedData as any[]).map(user => ({
+            ...user,
+            email: user.email || '',
+            whatsappNumber: user.whatsappNumber || '',
+            profilePictureUrl: user.profilePictureUrl || undefined, // Keep undefined if not present
+        })) as User[];
     } catch (error) {
         console.error("Error reading or parsing user database:", error);
-        // Attempt to recover by writing an empty array if parsing fails
         try {
             console.log("Attempting to reset user database due to read/parse error.");
             await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
@@ -110,7 +100,7 @@ async function writeUsers(users: User[]): Promise<void> {
     try {
         // Ensure no passwordHash fields are written
         const usersToWrite = users.map(u => {
-            const { passwordHash, ...userWithoutHash } = u as any; // Remove passwordHash if it somehow exists
+            const { passwordHash, ...userWithoutHash } = u as any;
             return userWithoutHash;
         });
         await fs.writeFile(DB_PATH, JSON.stringify(usersToWrite, null, 2), 'utf8');
@@ -160,21 +150,21 @@ export async function verifyUserCredentials(username: string, password: string):
     }
     console.log(`User "${username}" found. ID: ${user.id}, Role: ${user.role}`);
 
-    // Ensure user is not pending activation (though this state is now unlikely without Google Sign-In)
     if (user.role === 'Pending') {
         console.log(`Login failed for ${username}: User is pending activation.`);
-        return null; // Or handle pending state differently
+        return null;
     }
 
     if (!user.password) {
          console.error(`Login failed for ${username}: User has no password stored.`);
-         return null; // Cannot compare if password doesn't exist
+         return null;
     }
 
-    // Direct plain text comparison - INSECURE
     if (password === user.password) {
         console.log(`Password match successful for user "${username}".`);
-        return user;
+        // Omit password before returning user object
+        const { password: _p, ...userWithoutPassword } = user;
+        return userWithoutPassword;
     } else {
         console.log(`Password mismatch for user "${username}".`);
         return null;
@@ -186,37 +176,37 @@ export async function verifyUserCredentials(username: string, password: string):
  * SECURITY RISK: Storing plain text passwords is highly insecure.
  *
  * @param userData Data for the new user (username, password, role).
- * @returns A promise that resolves to the newly created User object.
+ * @returns A promise that resolves to the newly created User object (without password).
  * @throws An error if the username already exists or another issue occurs.
  */
-export async function addUser(userData: AddUserData): Promise<User> {
+export async function addUser(userData: AddUserData): Promise<Omit<User, 'password'>> {
     console.log('Attempting to add user:', userData.username, userData.role);
     const users = await readUsers();
 
-    // 1. Check if username exists
     const usernameExists = users.some(u => u.username.toLowerCase() === userData.username.toLowerCase());
     if (usernameExists) {
         console.error(`Username "${userData.username}" already exists.`);
         throw new Error('USERNAME_EXISTS');
     }
 
-    // 2. Prepare new user object with plain text password
     const newUser: User = {
-        id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`, // Generate a unique ID
+        id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         username: userData.username,
-        password: userData.password, // Store plain text password
+        password: userData.password,
         role: userData.role,
-        email: `${userData.username}@placeholder.example.com`, // Placeholder email
-        displayName: userData.username, // Default display name
+        email: `${userData.username}@placeholder.example.com`,
+        whatsappNumber: '', // Initialize new fields
+        profilePictureUrl: undefined,
+        displayName: userData.username,
         createdAt: new Date().toISOString(),
     };
 
-    // 3. Add user and write back to file
     users.push(newUser);
     await writeUsers(users);
 
     console.log(`User "${newUser.username}" added successfully with role "${newUser.role}" (Password stored in plain text - INSECURE).`);
-    return newUser;
+    const { password: _p, ...newUserWithoutPassword } = newUser;
+    return newUserWithoutPassword;
 }
 
 /**
@@ -241,8 +231,8 @@ export async function deleteUser(userId: string): Promise<void> {
 }
 
 /**
- * Updates a user's profile information (username, role). Password is not updated here.
- * @param updateData Data containing userId, new username, and new role.
+ * Updates a user's profile information (username, role, email, whatsapp, picture). Password is not updated here.
+ * @param updateData Data containing userId and fields to update.
  * @returns A promise that resolves when the operation is complete.
  * @throws An error if the user is not found or the new username is taken.
  */
@@ -256,22 +246,33 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
         throw new Error('USER_NOT_FOUND');
     }
 
-    // Check if the new username is already taken by another user
-    const newUsernameLower = updateData.username.toLowerCase();
-    const usernameConflict = users.some(u => u.id !== updateData.userId && u.username.toLowerCase() === newUsernameLower);
-    if (usernameConflict) {
-        console.error(`New username "${updateData.username}" is already taken.`);
-        throw new Error('USERNAME_EXISTS');
+    // Check if the new username is already taken by another user (if username is being changed)
+    if (updateData.username && updateData.username !== users[userIndex].username) {
+        const newUsernameLower = updateData.username.toLowerCase();
+        const usernameConflict = users.some(u => u.id !== updateData.userId && u.username.toLowerCase() === newUsernameLower);
+        if (usernameConflict) {
+            console.error(`New username "${updateData.username}" is already taken.`);
+            throw new Error('USERNAME_EXISTS');
+        }
     }
 
-    // Update user data
-    users[userIndex] = {
-        ...users[userIndex],
-        username: updateData.username,
-        role: updateData.role,
-        // Optionally update displayName if username changes
-        displayName: updateData.username,
-    };
+    // Update user data selectively
+    const updatedUser = { ...users[userIndex] };
+    if (updateData.username) updatedUser.username = updateData.username;
+    if (updateData.role) updatedUser.role = updateData.role; // Allow role update (e.g., from admin page)
+    if (updateData.email !== undefined) updatedUser.email = updateData.email; // Allow setting email to empty string
+    if (updateData.whatsappNumber !== undefined) updatedUser.whatsappNumber = updateData.whatsappNumber;
+    if (updateData.profilePictureUrl !== undefined) updatedUser.profilePictureUrl = updateData.profilePictureUrl;
+
+    // Update displayName if username changes and displayName wasn't explicitly updated
+    if (updateData.username && updateData.username !== users[userIndex].username && !updateData.displayName) {
+        updatedUser.displayName = updateData.username;
+    } else if (updateData.displayName) { // Allow explicit displayName update if provided
+        updatedUser.displayName = updateData.displayName;
+    }
+
+
+    users[userIndex] = updatedUser;
 
     await writeUsers(users);
     console.log(`User profile for ${updateData.userId} updated successfully.`);
@@ -298,15 +299,11 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
 
     const user = users[userIndex];
 
-    // If currentPassword is provided, verify it (user-initiated change)
     if (updateData.currentPassword) {
          if (!user.password) {
              console.error(`Password update failed for ${updateData.userId}: User has no password set.`);
-             // Handle this case - maybe require admin reset?
-             // Throwing mismatch for now, though it's not exactly a mismatch.
-             throw new Error('PASSWORD_MISMATCH'); // Or a more specific error like 'PASSWORD_NOT_SET'
+             throw new Error('PASSWORD_MISMATCH');
          }
-        // Plain text comparison
         if (updateData.currentPassword !== user.password) {
             console.error(`Current password mismatch for user ID: ${updateData.userId}`);
             throw new Error('PASSWORD_MISMATCH');
@@ -316,19 +313,20 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
         console.log(`Password reset/update initiated for user ID: ${updateData.userId} (current password check skipped).`);
     }
 
-    // Update the user's plain text password
     users[userIndex] = { ...user, password: updateData.newPassword };
 
-    // Write the updated user list back to the file
     await writeUsers(users);
     console.log(`Password for user ${updateData.userId} updated successfully (Plain text - INSECURE).`);
 }
 
 /**
- * Gets all users from the database.
- * @returns A promise that resolves to an array of all User objects.
+ * Gets all users from the database, omitting passwords.
+ * @returns A promise that resolves to an array of all User objects without passwords.
  */
-export async function getAllUsers(): Promise<User[]> {
-    return readUsers();
+export async function getAllUsers(): Promise<Omit<User, 'password'>[]> {
+    const users = await readUsers();
+    return users.map(user => {
+        const { password: _p, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+    });
 }
-

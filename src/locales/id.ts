@@ -1,5 +1,3 @@
-
-
 // src/locales/id.ts
 const id = {
   // Login Page
@@ -257,9 +255,15 @@ const id = {
     description: 'Kelola akun dan pengaturan aplikasi Anda.',
     profileCardTitle: 'Informasi Profil',
     usernameLabel: 'Nama Pengguna',
-    usernameHint: 'Nama pengguna tidak dapat diubah.', // Updated hint
-    usernamePlaceholder: 'Masukkan nama pengguna baru',
-    updateProfileButton: 'Perbarui Nama Pengguna', // Changed button text
+    usernamePlaceholder: 'Masukkan nama pengguna', // Updated placeholder
+    displayNameLabel: 'Nama Tampilan', // Added
+    emailLabel: 'Alamat Email', // Added
+    emailPlaceholder: 'Masukkan email Anda', // Added
+    whatsappLabel: 'Nomor WhatsApp', // Added
+    whatsappPlaceholder: 'Masukkan nomor WhatsApp (opsional)', // Added
+    changePictureButton: 'Ubah Foto', // Added
+    pictureHint: 'Unggah foto profil baru (JPG, PNG).', // Added
+    updateProfileButton: 'Perbarui Profil', // Changed button text
     updatingProfileButton: 'Memperbarui...', // Changed button text
     passwordCardTitle: 'Perbarui Kata Sandi',
     currentPasswordLabel: 'Kata Sandi Saat Ini',
@@ -286,14 +290,16 @@ const id = {
       error: 'Kesalahan',
       success: 'Berhasil',
       fieldsRequired: 'Semua kolom kata sandi harus diisi.',
+      requiredFields: 'Nama Pengguna dan Email wajib diisi.', // Added
+      invalidEmail: 'Harap masukkan alamat email yang valid.', // Added
       passwordsDontMatch: 'Kata sandi baru tidak cocok.',
       passwordTooShort: 'Kata sandi baru minimal 6 karakter.',
       passwordUpdated: 'Kata sandi berhasil diperbarui.',
       passwordUpdateFailed: 'Gagal memperbarui kata sandi. Periksa kata sandi saat ini.',
-      usernameRequired: 'Nama pengguna tidak boleh kosong.',
-      usernameTooShort: 'Nama pengguna minimal 3 karakter.',
-      profileUpdated: 'Nama pengguna berhasil diperbarui.', // Changed text
-      profileUpdateFailed: 'Gagal memperbarui nama pengguna.', // Changed text
+      usernameRequired: 'Nama pengguna tidak boleh kosong.', // Kept
+      usernameTooShort: 'Nama pengguna minimal 3 karakter.', // Kept
+      profileUpdated: 'Profil berhasil diperbarui.', // Changed text
+      profileUpdateFailed: 'Gagal memperbarui profil.', // Changed text
       languageChanged: 'Bahasa Diubah',
       languageChangedDesc: 'Bahasa antarmuka diperbarui.',
       passwordMismatchError: 'Kata sandi saat ini tidak cocok.',
@@ -303,5 +309,3 @@ const id = {
 };
 
 export default id;
-
-
