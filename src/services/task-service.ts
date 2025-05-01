@@ -107,6 +107,7 @@ async function writeTasks(tasks: Task[]): Promise<void> {
 /**
  * Adds a new task to the database.
  * Initializes the task with the starting workflow state.
+ * Notifies the 'Admin Proyek' division.
  * @param taskData Data for the new task.
  * @returns A promise that resolves to the newly created Task object.
  */
@@ -121,13 +122,18 @@ export async function addTask(taskData: AddTaskData): Promise<Task> {
         timestamp: now,
     }));
 
+    // Define the initial workflow state
+    const initialStatus = 'Pending Offer'; // Task starts by needing an offer
+    const initialAssignedDivision = 'Admin Proyek'; // Assigned to Project Admin
+    const initialNextAction = 'Upload Offer Document'; // Next step for Project Admin
+
     const newTask: Task = {
         id: `task_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         title: taskData.title,
-        status: 'Pending Input', // Initial status according to workflow
-        progress: 5, // Start with a small progress percentage
-        assignedDivision: 'Owner', // First step belongs to the Owner
-        nextAction: 'Input Project Data', // First action for the Owner
+        status: initialStatus,
+        progress: 10, // Start progress slightly higher as initial step is done
+        assignedDivision: initialAssignedDivision,
+        nextAction: initialNextAction,
         workflowHistory: [
             { division: taskData.createdBy, action: 'Created Task', timestamp: now },
             // Add history entry for initial file uploads if any
@@ -135,7 +141,9 @@ export async function addTask(taskData: AddTaskData): Promise<Task> {
                  division: file.uploadedBy,
                  action: `Uploaded initial file: ${file.name}`,
                  timestamp: file.timestamp,
-            }))
+            })),
+            // Add initial assignment history entry
+            { division: 'System', action: `Assigned to ${initialAssignedDivision} for ${initialNextAction}`, timestamp: now }
         ],
         files: filesWithTimestamps, // Save initial files with timestamps
         createdAt: now,
@@ -144,10 +152,15 @@ export async function addTask(taskData: AddTaskData): Promise<Task> {
 
     tasks.push(newTask);
     await writeTasks(tasks);
-    console.log(`Task "${newTask.title}" (ID: ${newTask.id}) added successfully. Assigned to Owner for Input.`);
+    console.log(`Task "${newTask.title}" (ID: ${newTask.id}) added successfully. Assigned to ${initialAssignedDivision} for ${initialNextAction}.`);
 
-    // TODO: Trigger notification to Owner for 'Pending Input'
-    await notifyUser('Owner', `New task "${newTask.title}" requires your input.`);
+    // --- Notify Admin Proyek ---
+    // Notify the 'Admin Proyek' division that a new task requires an offer document.
+    await notifyUser(initialAssignedDivision, `New task "${newTask.title}" created. Please upload the offer document.`);
+    // --- End Notification ---
+
+    // // Original notification (Commented out as the task now starts assigned to Admin Proyek)
+    // // await notifyUser('Owner', `New task "${newTask.title}" requires your input.`);
 
     return newTask;
 }
@@ -209,9 +222,10 @@ export async function updateTask(updatedTask: Task): Promise<void> {
     await writeTasks(tasks);
     console.log(`Task ${updatedTask.id} updated successfully.`);
 
-     // TODO: Trigger notification based on status change or next assigned division
-     if (tasks[taskIndex].assignedDivision !== originalTask.assignedDivision && tasks[taskIndex].assignedDivision) {
-       await notifyUser(tasks[taskIndex].assignedDivision, `Task "${tasks[taskIndex].title}" requires your action: ${tasks[taskIndex].nextAction}`);
+     // Notify the newly assigned division if it changed and is not empty
+     if (tasks[taskIndex].assignedDivision && tasks[taskIndex].assignedDivision !== originalTask.assignedDivision) {
+        const nextActionDesc = tasks[taskIndex].nextAction || 'action'; // Provide a fallback if nextAction is null
+       await notifyUser(tasks[taskIndex].assignedDivision, `Task "${tasks[taskIndex].title}" requires your ${nextActionDesc}.`);
      }
 }
 
@@ -242,5 +256,8 @@ export async function updateTaskTitle(taskId: string, newTitle: string): Promise
 // Replace with actual notification logic
 async function notifyUser(roleOrUserId: string, message: string) {
     console.log(`NOTIFICATION to ${roleOrUserId}: ${message}`);
-    // Implement email, in-app, or other notification methods
+    // TODO: Implement actual notification logic
+    // 1. Find all users with the target role (e.g., 'Admin Proyek').
+    // 2. For each user, create a notification entry in a separate notification database/store.
+    // 3. (Optional) Send push notifications or emails if configured.
 }
