@@ -54,7 +54,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
     { href: "/dashboard/tasks", icon: ClipboardList, labelKey: "tasks", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
     { href: "/dashboard/users", icon: Users, labelKey: "manageUsers", roles: ["Owner", "General Admin", "Admin Developer"] }, // Restricted access
-    { href: "/dashboard/admin-actions", icon: UserCog, labelKey: "adminActions", roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] },
+    { href: "/dashboard/admin-actions", icon: UserCog, labelKey: "adminActions", roles: ["Owner", "General Admin", "Admin Proyek"] }, // Adjusted roles slightly
     { href: "/dashboard/settings", icon: Settings, labelKey: "settings", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
   ];
 
@@ -70,28 +70,45 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           case 'Owner': return User;
           case 'General Admin': return UserCog;
           case 'Admin Proyek': return UserCog;
-          case 'Arsitek': return User;
-          case 'Struktur': return User;
+          case 'Arsitek': return User; // Use specific icons if available or desired
+          case 'Struktur': return User; // Use specific icons if available or desired
           case 'Admin Developer': return Code;
           default: return User;
       }
   }
+  // Define RoleIcon only when client-side and user is available
   const RoleIcon = isClient && currentUser ? getUserRoleIcon(currentUser.role) : User;
 
+  // Helper function to get user initials for avatar fallback
   const getUserInitials = (name: string | undefined): string => {
       if (!name) return '?';
-      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+      return name.split(' ')
+                 .map(n => n[0])
+                 .join('')
+                 .toUpperCase()
+                 .slice(0, 2);
   }
+
+  // Get translated role name
+   const getTranslatedRole = (role: string): string => {
+       if (!isClient) return '...'; // Avoid server/client mismatch
+       const rolesDict = dict.manageUsersPage.roles;
+       return rolesDict[role as keyof typeof rolesDict] || role; // Fallback to original role
+   }
 
   return (
     <div className="flex min-h-screen w-full">
+      {/* Content Area */}
       <div className="flex-1 flex flex-col">
+          {/* Header */}
           <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6">
              <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-lg text-primary">
                 <Building className="h-6 w-6" />
+                {/* Use defaultDict on server, dict on client */}
                 <span>{isClient ? layoutDict.appTitle : defaultDict.dashboardLayout.appTitle}</span>
               </Link>
 
+            {/* Right side actions - Sheet Trigger */}
             <div className="flex items-center gap-4">
               <Sheet>
                 <SheetTrigger asChild>
@@ -101,6 +118,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="bg-primary text-primary-foreground border-primary-foreground/20 w-[300px] sm:w-[320px] flex flex-col p-4">
+                  {/* Sheet Header */}
                   <SheetHeader className="mb-4 text-left">
                     <SheetTitle className="text-primary-foreground text-xl">{isClient ? layoutDict.menuTitle : defaultDict.dashboardLayout.menuTitle}</SheetTitle>
                     <SheetDescription className="text-primary-foreground/80">
@@ -108,7 +126,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     </SheetDescription>
                   </SheetHeader>
 
-                  {/* Navigation */}
+                  {/* Navigation Links */}
                    <nav className="flex-1 space-y-2 overflow-y-auto">
                      {isClient && currentUser ? (
                          visibleMenuItems.map((item) => (
@@ -118,6 +136,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                              className="flex items-center gap-3 rounded-md px-3 py-2 text-primary-foreground/90 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground"
                            >
                              <item.icon className="h-5 w-5" />
+                             {/* Translate labels */}
                              <span>{layoutDict[item.labelKey as keyof typeof layoutDict]}</span>
                            </Link>
                          ))
@@ -134,24 +153,32 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                      )}
                    </nav>
 
-
                    <Separator className="my-4 bg-primary-foreground/20" />
 
-                   {/* User Info and Logout */}
+                   {/* User Info and Logout Section */}
                    <div className="mt-auto space-y-4">
+                     {/* User Profile Display - Updated */}
                      {isClient && currentUser ? (
                        <div className="flex items-center gap-3 rounded-md p-2">
                          <Avatar className="h-10 w-10 border-2 border-primary-foreground/30">
-                           <AvatarImage src={currentUser.profilePictureUrl} alt={currentUser.displayName || currentUser.username} />
+                            {/* Use picsum for placeholder, ideally use actual URL */}
+                           <AvatarImage
+                                src={currentUser.profilePictureUrl || `https://picsum.photos/seed/${currentUser.id}/100`} // Use context user ID for seed
+                                alt={currentUser.displayName || currentUser.username}
+                                data-ai-hint="user avatar placeholder" // AI Hint
+                            />
                            <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground">
+                               {/* Display initials */}
                                {getUserInitials(currentUser.displayName || currentUser.username)}
                            </AvatarFallback>
                          </Avatar>
                          <div className="flex flex-col overflow-hidden">
+                           {/* Display Name or Username */}
                            <span className="text-sm font-medium truncate text-primary-foreground">{currentUser.displayName || currentUser.username}</span>
+                            {/* Role with Icon and Translated Name */}
                            <span className="text-xs text-primary-foreground/70 truncate flex items-center gap-1">
                              <RoleIcon className="h-3 w-3 flex-shrink-0" />
-                             {dict.manageUsersPage.roles[currentUser.role as keyof typeof dict.manageUsersPage.roles] || currentUser.role}
+                             {getTranslatedRole(currentUser.role)}
                            </span>
                          </div>
                        </div>
@@ -166,6 +193,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                           </div>
                      )}
 
+                    {/* Logout Button */}
                     <Button
                       variant="ghost"
                       className="w-full justify-start gap-3 text-primary-foreground/90 hover:bg-primary-foreground/10 hover:text-primary-foreground"
@@ -181,6 +209,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
           </header>
 
+          {/* Main Content */}
           <main className="flex-1 overflow-y-auto p-4 md:p-6">
             {/* Ensure children only render when user is loaded to prevent unauthorized access flash */}
              {isClient && currentUser ? children : (

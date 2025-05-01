@@ -78,6 +78,7 @@ async function readUsers(): Promise<User[]> {
             email: user.email || '',
             whatsappNumber: user.whatsappNumber || '',
             profilePictureUrl: user.profilePictureUrl || undefined, // Keep undefined if not present
+            displayName: user.displayName || user.username, // Set displayName default to username
         })) as User[];
     } catch (error) {
         console.error("Error reading or parsing user database:", error);
@@ -199,7 +200,7 @@ export async function addUser(userData: AddUserData): Promise<Omit<User, 'passwo
         email: `${userData.username}@placeholder.example.com`,
         whatsappNumber: '', // Initialize new fields
         profilePictureUrl: undefined,
-        displayName: userData.username,
+        displayName: userData.username, // Default display name to username
         createdAt: new Date().toISOString(),
     };
 
@@ -466,4 +467,18 @@ export async function getAllUsers(): Promise<User[]> {
 //     users[userIndex] = user;
 //     await writeUsers(users);
 //     console.log(`User ${user.username} activated successfully with role ${role}.`);
+// }
+
+// --- Notification Service Stub ---
+// Replace with actual notification logic (e.g., email, in-app)
+// async function notifyAdminsOfProfileChange(username: string, changes: Partial<User>) {
+//     console.log(`NOTIFICATION: User '${username}' updated their profile. Changes:`, changes);
+//     // Find Admin/Owner users
+//     // Send notification (e.g., email, websocket message)
+// }
+
+// async function notifyAdminsOfPasswordChange(username: string) {
+//     console.log(`NOTIFICATION: User '${username}' updated their password.`);
+//     // Find Admin/Owner users
+//     // Send notification
 // }

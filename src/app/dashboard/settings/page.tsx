@@ -40,6 +40,7 @@ export default function SettingsPage() {
    const [email, setEmail] = React.useState('');
    const [whatsappNumber, setWhatsappNumber] = React.useState('');
    const [profilePictureUrl, setProfilePictureUrl] = React.useState<string | undefined>(undefined);
+   // const [displayName, setDisplayName] = React.useState(''); // Explicit state for display name if needed
    const [isUpdatingProfile, setIsUpdatingProfile] = React.useState(false);
 
    // State for password fields and submission status
@@ -55,6 +56,7 @@ export default function SettingsPage() {
             setEmail(currentUser.email || '');
             setWhatsappNumber(currentUser.whatsappNumber || '');
             setProfilePictureUrl(currentUser.profilePictureUrl);
+            // setDisplayName(currentUser.displayName || currentUser.username); // Initialize display name
        }
    }, [currentUser]);
 
@@ -74,7 +76,19 @@ export default function SettingsPage() {
     toast({ title: settingsDict.toast.languageChanged, description: settingsDict.toast.languageChangedDesc });
   };
 
-  // Handle profile picture change (future implementation) remains the same...
+  // Handle profile picture change (future implementation)
+   const handleProfilePictureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+       const file = event.target.files?.[0];
+       if (file) {
+           console.log("New profile picture selected:", file.name);
+           // TODO: Implement image upload logic here
+           // 1. Upload file to storage (e.g., Firebase Storage, Cloudinary)
+           // 2. Get the public URL of the uploaded image
+           // 3. Update the `profilePictureUrl` state with the new URL
+           // 4. Include the new URL in the `handleProfileUpdate` payload
+           toast({ title: 'Feature Coming Soon', description: 'Profile picture upload is not yet implemented.' });
+       }
+   };
 
   const handleProfileUpdate = async () => {
      if (!currentUser) return; // Should not happen if UI is rendered correctly
@@ -101,10 +115,14 @@ export default function SettingsPage() {
             // profilePictureUrl: newUploadedUrl || profilePictureUrl, // Add logic if implementing uploads
         };
 
+        // TODO: Call notification service before updating profile
+        // await notifyAdminsOfProfileChange(currentUser.username, updatedUserData);
+
         await updateUserProfile(updatedUserData);
 
         // Update AuthContext with the new user data (excluding password)
-        updateAuthContextUser(prev => prev ? { ...prev, ...updatedUserData } : null);
+        // Use functional update to ensure we're updating based on the latest previous state
+        updateAuthContextUser(prev => prev ? { ...prev, ...updatedUserData, profilePictureUrl: profilePictureUrl } : null); // Include profilePic
 
 
         toast({ title: settingsDict.toast.success, description: settingsDict.toast.profileUpdated });
@@ -147,6 +165,9 @@ export default function SettingsPage() {
     console.log(`Attempting password update for user ID: ${currentUser.id}`);
 
     try {
+        // TODO: Call notification service before updating password
+        // await notifyAdminsOfPasswordChange(currentUser.username);
+
         await updatePassword({
             userId: currentUser.id,
             currentPassword: currentPassword,
@@ -177,6 +198,7 @@ export default function SettingsPage() {
     }
   };
 
+   // Helper function to get user initials for avatar fallback
    const getUserInitials = (name: string | undefined): string => {
         if (!name) return '?';
         return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -275,14 +297,22 @@ export default function SettingsPage() {
                           </Avatar>
                          <div>
                              <Label htmlFor="profile-picture-upload" className="cursor-pointer">
-                                 <Button asChild variant="outline" size="sm" disabled>
+                                 <Button asChild variant="outline" size="sm" disabled={isUpdatingProfile}>
                                       <span>
                                         <Upload className="mr-2 h-4 w-4" />
                                         {settingsDict.changePictureButton}
                                       </span>
                                  </Button>
                              </Label>
-                              <Input id="profile-picture-upload" type="file" className="hidden" accept="image/*" disabled />
+                              {/* File input hidden, triggered by the button's label */}
+                              <Input
+                                 id="profile-picture-upload"
+                                 type="file"
+                                 className="hidden"
+                                 accept="image/*"
+                                 onChange={handleProfilePictureChange} // Add onChange handler
+                                 disabled={isUpdatingProfile}
+                              />
                              <p className="text-xs text-muted-foreground mt-1">{settingsDict.pictureHint}</p>
                          </div>
                      </div>
@@ -300,12 +330,13 @@ export default function SettingsPage() {
                              />
                          </div>
                          <div className="space-y-1">
+                            {/* Display Name - Display only for now, assuming tied to username */}
                             <Label htmlFor="display-name">{settingsDict.displayNameLabel}</Label>
                              <Input
                                 id="display-name"
-                                value={currentUser?.displayName || ''}
+                                value={currentUser?.displayName || ''} // Display from context
                                 readOnly
-                                disabled // Usually not directly editable
+                                disabled // Usually not directly editable separate from username
                                 className="cursor-not-allowed bg-muted/50"
                              />
                          </div>
@@ -362,7 +393,7 @@ export default function SettingsPage() {
                            value={currentPassword}
                            onChange={(e) => setCurrentPassword(e.target.value)}
                            disabled={isUpdatingPassword}
-                           autoComplete="current-password"
+                           autoComplete="current-password" // Helps password managers
                         />
                     </div>
                      <div className="space-y-1">
@@ -374,7 +405,7 @@ export default function SettingsPage() {
                            value={newPassword}
                            onChange={(e) => setNewPassword(e.target.value)}
                            disabled={isUpdatingPassword}
-                           autoComplete="new-password"
+                           autoComplete="new-password" // Helps password managers
                         />
                     </div>
                      <div className="space-y-1">
@@ -386,7 +417,7 @@ export default function SettingsPage() {
                            value={confirmPassword}
                            onChange={(e) => setConfirmPassword(e.target.value)}
                            disabled={isUpdatingPassword}
-                           autoComplete="new-password"
+                           autoComplete="new-password" // Helps password managers
                         />
                     </div>
                     <Button onClick={handlePasswordUpdate} disabled={isUpdatingPassword || !currentPassword || !newPassword || !confirmPassword}>
