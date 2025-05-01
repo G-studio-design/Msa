@@ -1,4 +1,5 @@
 
+
 // src/locales/en.ts
 const en = {
   // Login Page
@@ -215,13 +216,15 @@ const en = {
       cannotChangeLastAdminRole: 'Cannot change the role of the last General Admin.',
       cannotChangeLastDevAdminRole: 'Cannot change the role of the last Admin Developer.', // Added
       permissionDenied: 'Permission Denied', // Added
-      devCannotEditOwnerGA: 'Admin Developer cannot edit Owner or General Admin.', // Added
-      gaCannotEditOwnerDev: 'General Admin cannot edit Owner or Admin Developer.', // Added
+      editPermissionDenied: 'You do not have permission to edit this user.', // Added generic edit denial
+      devCannotEditOwnerGA: 'Admin Developer cannot edit Owner or General Admin.', // Kept specific message if needed elsewhere
+      gaCannotEditOwnerDev: 'General Admin cannot edit Owner or Admin Developer.', // Kept specific message if needed elsewhere
       activateUserSuccess: 'User Activated', // Kept
       activateUserDesc: 'User {username} has been activated.', // Kept
       activateUserError: 'Activation Failed', // Kept
       activateUserErrorDesc: 'Could not activate user {username}.', // Kept
       cannotEditPending: 'Activate the user first before editing.', // Kept
+      userNotFound: 'User not found.', // Added
     },
     validation: {
       usernameMin: 'Username must be at least 3 characters',
@@ -254,7 +257,7 @@ const en = {
     description: 'Manage your account and application settings.',
     profileCardTitle: 'Profile Information',
     usernameLabel: 'Username',
-    usernameHint: 'Enter your new username.', // Updated hint
+    usernameHint: 'Username cannot be changed.', // Updated hint
     usernamePlaceholder: 'Enter new username',
     updateProfileButton: 'Update Username', // Changed button text
     updatingProfileButton: 'Updating...', // Changed button text
@@ -300,4 +303,5 @@ const en = {
 };
 
 export default en;
+
 

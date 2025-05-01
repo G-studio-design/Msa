@@ -1,4 +1,5 @@
 
+
 // src/locales/id.ts
 const id = {
   // Login Page
@@ -215,13 +216,15 @@ const id = {
         cannotChangeLastAdminRole: 'Tidak dapat mengubah peran Admin Umum terakhir.',
         cannotChangeLastDevAdminRole: 'Tidak dapat mengubah peran Admin Pengembang terakhir.', // Added
         permissionDenied: 'Izin Ditolak', // Added
-        devCannotEditOwnerGA: 'Admin Pengembang tidak dapat mengubah Pemilik atau Admin Umum.', // Added
-        gaCannotEditOwnerDev: 'Admin Umum tidak dapat mengubah Pemilik atau Admin Pengembang.', // Added
+        editPermissionDenied: 'Anda tidak memiliki izin untuk mengubah pengguna ini.', // Added
+        devCannotEditOwnerGA: 'Admin Pengembang tidak dapat mengubah Pemilik atau Admin Umum.', // Kept
+        gaCannotEditOwnerDev: 'Admin Umum tidak dapat mengubah Pemilik atau Admin Pengembang.', // Kept
         activateUserSuccess: 'Pengguna Diaktifkan', // Kept
         activateUserDesc: 'Pengguna {username} telah diaktifkan.', // Kept
         activateUserError: 'Aktivasi Gagal', // Kept
         activateUserErrorDesc: 'Tidak dapat mengaktifkan pengguna {username}.', // Kept
         cannotEditPending: 'Aktifkan pengguna terlebih dahulu sebelum mengubah.', // Kept
+        userNotFound: 'Pengguna tidak ditemukan.', // Added
     },
     validation: {
        usernameMin: 'Nama pengguna minimal 3 karakter',
@@ -254,7 +257,7 @@ const id = {
     description: 'Kelola akun dan pengaturan aplikasi Anda.',
     profileCardTitle: 'Informasi Profil',
     usernameLabel: 'Nama Pengguna',
-    usernameHint: 'Masukkan nama pengguna baru Anda.', // Updated hint
+    usernameHint: 'Nama pengguna tidak dapat diubah.', // Updated hint
     usernamePlaceholder: 'Masukkan nama pengguna baru',
     updateProfileButton: 'Perbarui Nama Pengguna', // Changed button text
     updatingProfileButton: 'Memperbarui...', // Changed button text
@@ -300,4 +303,5 @@ const id = {
 };
 
 export default id;
+
 

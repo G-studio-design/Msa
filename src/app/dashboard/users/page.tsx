@@ -1,4 +1,5 @@
 
+
 // src/app/dashboard/users/page.tsx
 'use client';
 
@@ -102,9 +103,6 @@ const getEditUserSchema = (dictValidation: ReturnType<typeof getDictionary>['man
 });
 
 // Activate User Schema removed as activation flow is removed
-// const getActivateUserSchema = (dictValidation: ReturnType<typeof getDictionary>['manageUsersPage']['validation']) => z.object({
-//      role: z.enum(divisions as [string, ...string[]], { required_error: dictValidation.roleRequired }),
-// });
 
 
 export default function ManageUsersPage() {
@@ -119,9 +117,7 @@ export default function ManageUsersPage() {
   const [isProcessing, setIsProcessing] = React.useState(false); // General processing state for buttons
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = React.useState(false);
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = React.useState(false);
-  // isActivateUserDialogOpen state removed
   const [editingUser, setEditingUser] = React.useState<UserType | null>(null);
-  // activatingUser state removed
   const [visiblePasswords, setVisiblePasswords] = React.useState<Record<string, boolean>>({}); // State for password visibility
 
   // Fetch users on component mount
@@ -149,11 +145,9 @@ export default function ManageUsersPage() {
   // Initialize schemas based on current language
   const addUserSchema = getAddUserSchema(usersDict.validation);
   const editUserSchema = getEditUserSchema(usersDict.validation);
-  // activateUserSchema removed
 
   type AddUserFormValues = z.infer<typeof addUserSchema>;
   type EditUserFormValues = z.infer<typeof editUserSchema>;
-  // ActivateUserFormValues removed
 
   // Check if current user has permission (Owner, GA, or Admin Developer)
   const canManageUsers = ['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role);
@@ -177,7 +171,6 @@ export default function ManageUsersPage() {
      context: { dict: usersDict.validation },
   });
 
-   // activateUserForm removed
 
    // Effect to reset edit form when editingUser changes
    React.useEffect(() => {
@@ -192,16 +185,14 @@ export default function ManageUsersPage() {
       }
     }, [editingUser, editUserForm]);
 
-    // Effect to reset activate form removed
 
      // Re-validate forms if language changes
      React.useEffect(() => {
          if(isClient) {
              addUserForm.trigger();
              editUserForm.trigger();
-             // activateUserForm trigger removed
          }
-     }, [dict, addUserForm, editUserForm, /* activateUserForm removed */, isClient]);
+     }, [dict, addUserForm, editUserForm, isClient]);
 
 
   const handleAddUser = async (data: AddUserFormValues) => {
@@ -235,7 +226,7 @@ export default function ManageUsersPage() {
         editUserForm.clearErrors();
         console.log(`Editing user ${editingUser.id}:`, data.username, data.role);
 
-        // Prevent changing role of last GA if the current user is GA (or Admin Dev)
+        // Prevent changing role of last GA if the current user is GA or Admin Dev
         if (['General Admin', 'Admin Developer'].includes(currentUser.role) && editingUser.role === 'General Admin' && data.role !== 'General Admin') {
             const gaCount = users.filter(u => u.role === 'General Admin').length;
             if (gaCount <= 1) {
@@ -249,7 +240,7 @@ export default function ManageUsersPage() {
          if (currentUser.role === 'Admin Developer' && editingUser.id === currentUser.id && data.role !== 'Admin Developer') {
              const devAdminCount = users.filter(u => u.role === 'Admin Developer').length;
              if (devAdminCount <= 1) {
-                  toast({ variant: 'destructive', title: usersDict.toast.error, description: 'Cannot change the role of the last Admin Developer.' }); // Add translation
+                  toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotChangeLastDevAdminRole });
                   setIsProcessing(false);
                   return;
              }
@@ -270,7 +261,7 @@ export default function ManageUsersPage() {
                  desc = usersDict.toast.usernameExists;
                  editUserForm.setError('username', { type: 'manual', message: desc });
              } else if (error.message === 'USER_NOT_FOUND') {
-                 desc = 'User not found.'; // Or a translation
+                 desc = usersDict.toast.userNotFound; // Use translation
              } else {
                  desc = error.message || 'Failed to update user.';
              }
@@ -304,7 +295,7 @@ export default function ManageUsersPage() {
       if (['General Admin', 'Admin Developer'].includes(currentUser.role) && userToDelete.role === 'Admin Developer') {
            const devAdminCount = users.filter(u => u.role === 'Admin Developer').length;
            if (devAdminCount <= 1) {
-               toast({ variant: 'destructive', title: usersDict.toast.error, description: 'Cannot delete the last Admin Developer.' }); // Add translation
+               toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotDeleteLastDevAdmin });
                return;
            }
       }
@@ -334,8 +325,6 @@ export default function ManageUsersPage() {
     }
   };
 
-  // handleActivateUser function removed
-
    const onAddSubmit = (data: AddUserFormValues) => {
        handleAddUser(data); // No need for async/await check here, handled internally
    };
@@ -344,30 +333,32 @@ export default function ManageUsersPage() {
        handleEditUser(data); // No need for async/await check here, handled internally
    };
 
-   // onActivateSubmit function removed
-
    const openEditDialog = (user: UserType) => {
-        // Prevent editing 'Pending' users directly in this dialog (though 'Pending' state should not be reachable now)
+        // Prevent editing 'Pending' users directly in this dialog
         if (user.role === 'Pending') {
              toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotEditPending});
              return;
         }
-        // Admin Dev cannot edit Owner or GA
-         if (currentUser.role === 'Admin Developer' && ['Owner', 'General Admin'].includes(user.role)) {
-              toast({ variant: 'destructive', title: usersDict.toast.permissionDenied, description: 'Admin Developer cannot edit Owner or General Admin.' }); // Add translation
-              return;
+
+         // Check permissions based on currentUser.role
+         let canEditTargetUser = false;
+         if (currentUser.role === 'Owner') {
+             canEditTargetUser = true; // Owner can edit anyone
+         } else if (currentUser.role === 'General Admin') {
+             canEditTargetUser = user.role !== 'Owner'; // GA can edit anyone except Owner
+         } else if (currentUser.role === 'Admin Developer') {
+             canEditTargetUser = !['Owner', 'General Admin'].includes(user.role); // Admin Dev cannot edit Owner or GA
          }
-        // GA cannot edit Owner or Admin Dev
-         if (currentUser.role === 'General Admin' && ['Owner', 'Admin Developer'].includes(user.role)) {
-              toast({ variant: 'destructive', title: usersDict.toast.permissionDenied, description: 'General Admin cannot edit Owner or Admin Developer.' }); // Add translation
-              return;
+
+         if (!canEditTargetUser) {
+            toast({ variant: 'destructive', title: usersDict.toast.permissionDenied, description: usersDict.toast.editPermissionDenied }); // Use a general denial message
+             return;
          }
 
         setEditingUser(user);
         setIsEditUserDialogOpen(true);
     };
 
-    // openActivateDialog function removed
 
    const togglePasswordVisibility = (userId: string) => {
         setVisiblePasswords(prev => ({
@@ -550,13 +541,14 @@ export default function ManageUsersPage() {
                       // Determine if edit should be disabled based on permissions
                       let disableEdit = !canManageUsers || // User cannot manage users at all
                                         user.role === 'Pending' || // Cannot edit pending users
-                                        (currentUser.role === 'Admin Developer' && ['Owner', 'General Admin'].includes(user.role)) || // Dev cannot edit Owner/GA
-                                        (currentUser.role === 'General Admin' && ['Owner', 'Admin Developer'].includes(user.role)); // GA cannot edit Owner/Dev
+                                        (currentUser.role === 'General Admin' && user.role === 'Owner') || // GA cannot edit Owner
+                                        (currentUser.role === 'Admin Developer' && ['Owner', 'General Admin'].includes(user.role)); // Dev cannot edit Owner/GA
 
 
                     const isPasswordVisible = visiblePasswords[user.id] || false;
-                    // SECURITY RISK: Changed permission to view plain text password
-                    const canViewPassword = ['Owner', 'Admin Developer'].includes(currentUser.role); // Only Owner/Admin Developer can see passwords
+                    // Owner and GA can see passwords. Admin Dev can see passwords except for Owner/GA.
+                    const canViewPassword = currentUser.role === 'Owner' || currentUser.role === 'General Admin' ||
+                                           (currentUser.role === 'Admin Developer' && !['Owner', 'General Admin'].includes(user.role));
 
                     return (
                       <TableRow key={user.id} className={user.role === 'Pending' ? 'bg-yellow-100/30 dark:bg-yellow-900/30 hover:bg-yellow-100/50 dark:hover:bg-yellow-900/50' : ''}>
@@ -689,11 +681,13 @@ export default function ManageUsersPage() {
                                     </FormControl>
                                     <SelectContent>
                                         {divisions
-                                            .filter(division =>
-                                                currentUser.role === 'Owner' || // Owner can edit to any role
-                                                currentUser.role === 'Admin Developer' || // Admin Dev can edit to any role (except Owner/GA - handled in openEditDialog)
-                                                (currentUser.role === 'General Admin' && !['Owner', 'Admin Developer'].includes(division)) // GA can edit to non-Owner/Dev roles
-                                            )
+                                            .filter(division => {
+                                                // Filter options based on who is editing
+                                                if (currentUser.role === 'Owner') return true; // Owner can assign any role
+                                                if (currentUser.role === 'General Admin') return division !== 'Owner'; // GA cannot assign Owner role
+                                                if (currentUser.role === 'Admin Developer') return !['Owner', 'General Admin'].includes(division); // Dev cannot assign Owner/GA roles
+                                                return false; // Should not happen if button is disabled correctly
+                                            })
                                             .map((division) => (
                                                 <SelectItem key={division} value={division}>
                                                     {isClient ? (usersDict.roles[division as keyof typeof usersDict.roles] || division) : (defaultDict.manageUsersPage.roles[division as keyof typeof defaultDict.manageUsersPage.roles] || division)}
@@ -725,8 +719,8 @@ export default function ManageUsersPage() {
           </DialogContent>
        </Dialog>
 
-       {/* Activate User Dialog removed */}
     </div>
   );
 }
+
 
