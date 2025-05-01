@@ -190,7 +190,11 @@ const en = {
     description: 'Manage your account and application settings.',
     profileCardTitle: 'Profile Information',
     usernameLabel: 'Username',
-    usernameHint: 'Username cannot be changed.',
+    usernameHint: 'Username cannot be changed.', // Kept for reference, but now editable
+    usernamePlaceholder: 'Enter new username', // Added placeholder
+    updateProfileButton: 'Update Profile', // Added button text
+    updatingProfileButton: 'Updating...', // Added button loading state text
+    passwordCardTitle: 'Update Password', // Changed title
     currentPasswordLabel: 'Current Password',
     currentPasswordPlaceholder: 'Enter current password',
     newPasswordLabel: 'New Password',
@@ -219,6 +223,12 @@ const en = {
         passwordTooShort: 'New password must be at least 6 characters.',
         passwordUpdated: 'Password updated successfully.',
         passwordUpdateFailed: 'Failed to update password. Check current password.',
+        usernameRequired: 'Username cannot be empty.', // Added username validation
+        usernameTooShort: 'Username must be at least 3 characters.', // Added username validation
+        profileUpdated: 'Profile updated successfully.', // Added profile success message
+        profileUpdateFailed: 'Failed to update profile.', // Added profile error message
+        languageChanged: 'Language Changed', // Added language change toast title
+        languageChangedDesc: 'Interface language updated.', // Added language change toast description
     }
   },
 };

@@ -190,7 +190,11 @@ const id = {
     description: 'Kelola akun dan pengaturan aplikasi Anda.',
     profileCardTitle: 'Informasi Profil',
     usernameLabel: 'Nama Pengguna',
-    usernameHint: 'Nama pengguna tidak dapat diubah.',
+    usernameHint: 'Nama pengguna tidak dapat diubah.', // Dipertahankan untuk referensi, tapi sekarang bisa diedit
+    usernamePlaceholder: 'Masukkan nama pengguna baru', // Placeholder ditambahkan
+    updateProfileButton: 'Perbarui Profil', // Teks tombol ditambahkan
+    updatingProfileButton: 'Memperbarui...', // Teks status pemuatan tombol ditambahkan
+    passwordCardTitle: 'Perbarui Kata Sandi', // Judul diubah
     currentPasswordLabel: 'Kata Sandi Saat Ini',
     currentPasswordPlaceholder: 'Masukkan kata sandi saat ini',
     newPasswordLabel: 'Kata Sandi Baru',
@@ -219,6 +223,12 @@ const id = {
       passwordTooShort: 'Kata sandi baru minimal 6 karakter.',
       passwordUpdated: 'Kata sandi berhasil diperbarui.',
       passwordUpdateFailed: 'Gagal memperbarui kata sandi. Periksa kata sandi saat ini.',
+      usernameRequired: 'Nama pengguna tidak boleh kosong.', // Validasi username ditambahkan
+      usernameTooShort: 'Nama pengguna minimal 3 karakter.', // Validasi username ditambahkan
+      profileUpdated: 'Profil berhasil diperbarui.', // Pesan sukses profil ditambahkan
+      profileUpdateFailed: 'Gagal memperbarui profil.', // Pesan error profil ditambahkan
+      languageChanged: 'Bahasa Diubah', // Judul toast perubahan bahasa ditambahkan
+      languageChangedDesc: 'Bahasa antarmuka diperbarui.', // Deskripsi toast perubahan bahasa ditambahkan
     }
   },
 };

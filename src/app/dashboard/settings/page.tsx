@@ -18,11 +18,21 @@ import { getDictionary } from '@/lib/translations'; // Import translation helper
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { Loader2 } from 'lucide-react'; // Import Loader2 icon
 
+// Default dictionary for server render / pre-hydration
+const defaultDict = getDictionary('en');
+
 export default function SettingsPage() {
    const { language, setLanguage } = useLanguage(); // Get language state and setter
-   const dict = getDictionary(language); // Get dictionary for the current language
-   const settingsDict = dict.settingsPage; // Specific dictionary section
    const { toast } = useToast(); // Initialize toast
+   const [isClient, setIsClient] = React.useState(false); // State to track client-side mount
+   const [dict, setDict] = React.useState(defaultDict); // Initialize with default dict
+   const settingsDict = dict.settingsPage; // Specific dictionary section
+
+   React.useEffect(() => {
+       setIsClient(true); // Component has mounted client-side
+       setDict(getDictionary(language)); // Update dictionary based on context language
+   }, [language]); // Re-run if language changes
+
 
    // State for profile update
    const [username, setUsername] = React.useState('current_username'); // TODO: Replace with actual username from auth context
@@ -40,6 +50,7 @@ export default function SettingsPage() {
      // Type assertion as the SelectItem values are guaranteed to be 'en' or 'id'
     setLanguage(value as 'en' | 'id');
     console.log("Language selected:", value);
+     toast({ title: settingsDict.toast.languageChanged, description: settingsDict.toast.languageChangedDesc });
   };
 
   const handleProfileUpdate = async () => {
@@ -121,23 +132,24 @@ export default function SettingsPage() {
     <div className="container mx-auto py-4 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">{settingsDict.title}</CardTitle>
-          <CardDescription>{settingsDict.description}</CardDescription>
+            {/* Render translated title only on client */}
+            <CardTitle className="text-2xl">{isClient ? settingsDict.title : defaultDict.settingsPage.title}</CardTitle>
+            <CardDescription>{isClient ? settingsDict.description : defaultDict.settingsPage.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
             {/* Profile Update Card */}
             <Card>
                  <CardHeader>
-                    <CardTitle className="text-lg">{settingsDict.profileCardTitle}</CardTitle>
+                    <CardTitle className="text-lg">{isClient ? settingsDict.profileCardTitle : defaultDict.settingsPage.profileCardTitle}</CardTitle>
                  </CardHeader>
                  <CardContent className="space-y-4">
                     <div className="space-y-1">
-                        <Label htmlFor="username">{settingsDict.usernameLabel}</Label>
+                        <Label htmlFor="username">{isClient ? settingsDict.usernameLabel : defaultDict.settingsPage.usernameLabel}</Label>
                         <Input
                            id="username"
                            value={username}
                            onChange={(e) => setUsername(e.target.value)}
-                           placeholder={settingsDict.usernamePlaceholder}
+                           placeholder={isClient ? settingsDict.usernamePlaceholder : defaultDict.settingsPage.usernamePlaceholder}
                            disabled={isUpdatingProfile}
                         />
                          {/* <p className="text-xs text-muted-foreground">{settingsDict.usernameHint}</p> */}
@@ -146,10 +158,10 @@ export default function SettingsPage() {
                          {isUpdatingProfile ? (
                              <>
                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                 {settingsDict.updatingProfileButton}
+                                 {isClient ? settingsDict.updatingProfileButton : defaultDict.settingsPage.updatingProfileButton}
                              </>
                          ) : (
-                            settingsDict.updateProfileButton
+                           isClient ? settingsDict.updateProfileButton : defaultDict.settingsPage.updateProfileButton
                          )}
                      </Button>
                  </CardContent>
@@ -158,37 +170,37 @@ export default function SettingsPage() {
             {/* Password Update Card */}
             <Card>
                  <CardHeader>
-                    <CardTitle className="text-lg">{settingsDict.passwordCardTitle}</CardTitle>
+                    <CardTitle className="text-lg">{isClient ? settingsDict.passwordCardTitle : defaultDict.settingsPage.passwordCardTitle}</CardTitle>
                  </CardHeader>
                  <CardContent className="space-y-4">
                      <div className="space-y-1">
-                        <Label htmlFor="current-password">{settingsDict.currentPasswordLabel}</Label>
+                        <Label htmlFor="current-password">{isClient ? settingsDict.currentPasswordLabel : defaultDict.settingsPage.currentPasswordLabel}</Label>
                         <Input
                            id="current-password"
                            type="password"
-                           placeholder={settingsDict.currentPasswordPlaceholder}
+                           placeholder={isClient ? settingsDict.currentPasswordPlaceholder : defaultDict.settingsPage.currentPasswordPlaceholder}
                            value={currentPassword}
                            onChange={(e) => setCurrentPassword(e.target.value)}
                            disabled={isUpdatingPassword}
                         />
                     </div>
                      <div className="space-y-1">
-                        <Label htmlFor="new-password">{settingsDict.newPasswordLabel}</Label>
+                        <Label htmlFor="new-password">{isClient ? settingsDict.newPasswordLabel : defaultDict.settingsPage.newPasswordLabel}</Label>
                         <Input
                            id="new-password"
                            type="password"
-                           placeholder={settingsDict.newPasswordPlaceholder}
+                           placeholder={isClient ? settingsDict.newPasswordPlaceholder : defaultDict.settingsPage.newPasswordPlaceholder}
                            value={newPassword}
                            onChange={(e) => setNewPassword(e.target.value)}
                            disabled={isUpdatingPassword}
                         />
                     </div>
                      <div className="space-y-1">
-                        <Label htmlFor="confirm-password">{settingsDict.confirmPasswordLabel}</Label>
+                        <Label htmlFor="confirm-password">{isClient ? settingsDict.confirmPasswordLabel : defaultDict.settingsPage.confirmPasswordLabel}</Label>
                         <Input
                            id="confirm-password"
                            type="password"
-                           placeholder={settingsDict.confirmPasswordPlaceholder}
+                           placeholder={isClient ? settingsDict.confirmPasswordPlaceholder : defaultDict.settingsPage.confirmPasswordPlaceholder}
                            value={confirmPassword}
                            onChange={(e) => setConfirmPassword(e.target.value)}
                            disabled={isUpdatingPassword}
@@ -198,10 +210,10 @@ export default function SettingsPage() {
                         {isUpdatingPassword ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                {settingsDict.updatingPasswordButton}
+                                {isClient ? settingsDict.updatingPasswordButton : defaultDict.settingsPage.updatingPasswordButton}
                             </>
                         ) : (
-                           settingsDict.updatePasswordButton
+                           isClient ? settingsDict.updatePasswordButton : defaultDict.settingsPage.updatePasswordButton
                         )}
                     </Button>
                  </CardContent>
@@ -210,14 +222,14 @@ export default function SettingsPage() {
             {/* Notifications Card */}
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-lg">{settingsDict.notificationsCardTitle}</CardTitle>
+                    <CardTitle className="text-lg">{isClient ? settingsDict.notificationsCardTitle : defaultDict.settingsPage.notificationsCardTitle}</CardTitle>
                  </CardHeader>
                  <CardContent className="space-y-4">
                     <div className="flex items-center justify-between space-x-2">
                         <Label htmlFor="email-notifications" className="flex flex-col space-y-1">
-                            <span>{settingsDict.emailNotificationsLabel}</span>
+                            <span>{isClient ? settingsDict.emailNotificationsLabel : defaultDict.settingsPage.emailNotificationsLabel}</span>
                             <span className="font-normal leading-snug text-muted-foreground">
-                               {settingsDict.emailNotificationsHint}
+                               {isClient ? settingsDict.emailNotificationsHint : defaultDict.settingsPage.emailNotificationsHint}
                             </span>
                         </Label>
                         {/* TODO: Implement notification preference logic */}
@@ -225,9 +237,9 @@ export default function SettingsPage() {
                     </div>
                      <div className="flex items-center justify-between space-x-2">
                         <Label htmlFor="in-app-notifications" className="flex flex-col space-y-1">
-                            <span>{settingsDict.inAppNotificationsLabel}</span>
+                            <span>{isClient ? settingsDict.inAppNotificationsLabel : defaultDict.settingsPage.inAppNotificationsLabel}</span>
                             <span className="font-normal leading-snug text-muted-foreground">
-                                {settingsDict.inAppNotificationsHint}
+                                {isClient ? settingsDict.inAppNotificationsHint : defaultDict.settingsPage.inAppNotificationsHint}
                             </span>
                         </Label>
                          {/* TODO: Implement notification preference logic */}
@@ -239,22 +251,22 @@ export default function SettingsPage() {
              {/* Language Card */}
              <Card>
                  <CardHeader>
-                    <CardTitle className="text-lg">{settingsDict.languageCardTitle}</CardTitle>
-                    <CardDescription>{settingsDict.languageCardDescription}</CardDescription>
+                    <CardTitle className="text-lg">{isClient ? settingsDict.languageCardTitle : defaultDict.settingsPage.languageCardTitle}</CardTitle>
+                    <CardDescription>{isClient ? settingsDict.languageCardDescription : defaultDict.settingsPage.languageCardDescription}</CardDescription>
                  </CardHeader>
                  <CardContent className="space-y-4">
                     <div className="space-y-1">
-                        <Label htmlFor="language-select">{settingsDict.languageSelectLabel}</Label>
+                        <Label htmlFor="language-select">{isClient ? settingsDict.languageSelectLabel : defaultDict.settingsPage.languageSelectLabel}</Label>
                          <Select value={language} onValueChange={handleLanguageChange}>
                             <SelectTrigger id="language-select" className="w-[280px]">
-                              <SelectValue placeholder={settingsDict.languageSelectPlaceholder} />
+                              <SelectValue placeholder={isClient ? settingsDict.languageSelectPlaceholder : defaultDict.settingsPage.languageSelectPlaceholder} />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="en">{settingsDict.languageEnglish}</SelectItem>
-                              <SelectItem value="id">{settingsDict.languageIndonesian}</SelectItem>
+                              <SelectItem value="en">{isClient ? settingsDict.languageEnglish : defaultDict.settingsPage.languageEnglish}</SelectItem>
+                              <SelectItem value="id">{isClient ? settingsDict.languageIndonesian : defaultDict.settingsPage.languageIndonesian}</SelectItem>
                             </SelectContent>
                           </Select>
-                         <p className="text-xs text-muted-foreground">{settingsDict.languageSelectHint}</p>
+                         <p className="text-xs text-muted-foreground">{isClient ? settingsDict.languageSelectHint : defaultDict.settingsPage.languageSelectHint}</p>
                     </div>
                  </CardContent>
             </Card>
