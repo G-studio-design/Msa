@@ -22,6 +22,7 @@ import {
   PanelRightOpen,
   Code,
   User,
+  Loader2, // Added Loader2 import
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
