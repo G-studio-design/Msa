@@ -22,6 +22,7 @@ import {
   UserCog,
   PanelRightOpen,
   Code, // Added Code icon for Admin Dev
+  User, // Import the User icon
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
