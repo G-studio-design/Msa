@@ -21,6 +21,7 @@ import {
   FileText,
   Trash2,
   CalendarClock,
+  Loader2, // Added loader icon
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
@@ -68,6 +69,8 @@ const currentUser = {
   role: 'Architect', // Should match assignedDivision for actionability
 };
 
+type WorkflowHistoryEntry = typeof initialTask.workflowHistory[0] & { formattedTimestamp?: string };
+
 export default function TasksPage() {
   const { toast } = useToast();
   const [task, setTask] = React.useState(initialTask); // In a real app, fetch this based on ID or context
@@ -77,6 +80,27 @@ export default function TasksPage() {
   const [scheduleDate, setScheduleDate] = React.useState('');
   const [scheduleTime, setScheduleTime] = React.useState('');
   const [scheduleLocation, setScheduleLocation] = React.useState('');
+  const [formattedHistory, setFormattedHistory] = React.useState<WorkflowHistoryEntry[]>([]);
+  const [formattedFiles, setFormattedFiles] = React.useState<typeof initialTask.files & { formattedTimestamp?: string }[]>([]);
+  const [isClient, setIsClient] = React.useState(false); // State to track client-side mount
+
+   // Format dates client-side to avoid hydration mismatch
+   React.useEffect(() => {
+      setIsClient(true); // Component has mounted client-side
+
+      setFormattedHistory(
+        task.workflowHistory.map(entry => ({
+          ...entry,
+          formattedTimestamp: new Date(entry.timestamp).toLocaleString(),
+        }))
+      );
+      setFormattedFiles(
+        task.files.map(file => ({
+           ...file,
+           formattedTimestamp: new Date(file.timestamp).toLocaleDateString(), // Use toLocaleDateString for files list
+        }))
+      );
+    }, [task.workflowHistory, task.files]); // Re-run if history or files change
 
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -304,24 +328,20 @@ export default function TasksPage() {
         toast({ variant: 'destructive', title: 'Cannot Add Yet', description: 'Sidang must be scheduled first.' });
         return;
       }
-        const historyEntry = task.workflowHistory.find(entry => entry.action.includes('Scheduled Sidang'));
-        if (!historyEntry) {
+        // Find the scheduling entry in the original history to get the timestamp
+        const schedulingEntry = task.workflowHistory.find(entry => entry.action.startsWith('Scheduled Sidang'));
+        if (!schedulingEntry) {
              toast({ variant: 'destructive', title: 'Error', description: 'Could not find scheduling information.' });
              return;
         }
-        // Extract date/time from history entry (this is brittle, better to store separately)
-         const scheduleInfoMatch = historyEntry.action.match(/for (.*)$/);
-         if (!scheduleInfoMatch || !scheduleInfoMatch[1]) {
-             toast({ variant: 'destructive', title: 'Error', description: 'Could not parse schedule time.' });
-             return;
-         }
-         const scheduledDateTime = new Date(scheduleInfoMatch[1]);
+
+         const scheduledDateTime = new Date(schedulingEntry.timestamp); // Use the original accurate timestamp
          // Estimate end time (e.g., 1 hour later) - Adjust as needed
          const endTime = new Date(scheduledDateTime.getTime() + 60 * 60 * 1000);
 
       const eventDetails = {
           title: `Sidang: ${task.title}`,
-          location: scheduleLocation || "Meeting Room 1", // Get location from state or task data
+          location: scheduleLocation || "Meeting Room 1", // Get location from state or task data if stored there
           startTime: scheduledDateTime.toISOString(),
           endTime: endTime.toISOString(),
           description: `Sidang discussion for project: ${task.title}`,
@@ -406,7 +426,8 @@ export default function TasksPage() {
                 </div>
               )}
               <Button onClick={handleProgressSubmit} disabled={isSubmitting || (!description && uploadedFiles.length === 0)}>
-                <Send className="mr-2 h-4 w-4" /> {isSubmitting ? 'Submitting...' : 'Submit Progress'}
+                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                 {isSubmitting ? 'Submitting...' : 'Submit Progress'}
               </Button>
             </div>
           )}
@@ -430,17 +451,20 @@ export default function TasksPage() {
                          </AlertDialogDescription>
                        </AlertDialogHeader>
                        <AlertDialogFooter>
-                         <AlertDialogCancel>Back</AlertDialogCancel>
+                         <AlertDialogCancel disabled={isSubmitting}>Back</AlertDialogCancel>
                          <AlertDialogAction
                             className="bg-destructive hover:bg-destructive/90"
-                            onClick={() => handleDecision('cancel')}>
-                           Confirm Cancelation
+                            onClick={() => handleDecision('cancel')}
+                            disabled={isSubmitting}>
+                             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                             Confirm Cancelation
                          </AlertDialogAction>
                        </AlertDialogFooter>
                      </AlertDialogContent>
                    </AlertDialog>
                    <Button onClick={() => handleDecision('continue')} disabled={isSubmitting} className="accent-teal">
-                      <CheckCircle className="mr-2 h-4 w-4" /> Continue Progress
+                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                      Continue Progress
                    </Button>
                  </div>
              </div>
@@ -463,8 +487,9 @@ export default function TasksPage() {
                           <Input id="scheduleLocation" placeholder="e.g., Main Conference Room" value={scheduleLocation} onChange={e => setScheduleLocation(e.target.value)} disabled={isSubmitting} />
                        </div>
                     </div>
-                   <Button onClick={handleScheduleSubmit} disabled={isSubmitting}>
-                     <CalendarClock className="mr-2 h-4 w-4" /> {isSubmitting ? 'Scheduling...' : 'Confirm Schedule'}
+                   <Button onClick={handleScheduleSubmit} disabled={isSubmitting || !scheduleDate || !scheduleTime || !scheduleLocation}>
+                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarClock className="mr-2 h-4 w-4" />}
+                     {isSubmitting ? 'Scheduling...' : 'Confirm Schedule'}
                    </Button>
                  </div>
                )}
@@ -472,7 +497,9 @@ export default function TasksPage() {
             {showCalendarButton && (
                 <div className="border-t pt-4 mt-4">
                    <Button onClick={handleAddToCalendar} disabled={isSubmitting} variant="outline">
-                       <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><line x1="12" y1="14" x2="12" y2="18"></line><line x1="10" y1="16" x2="14" y2="16"></line></svg>
+                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> :
+                           <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><line x1="12" y1="14" x2="12" y2="18"></line><line x1="10" y1="16" x2="14" y2="16"></line></svg>
+                        }
                        {isSubmitting ? 'Adding...' : 'Add Sidang to Google Calendar'}
                     </Button>
                 </div>
@@ -486,11 +513,13 @@ export default function TasksPage() {
                    <div className="flex gap-4">
                       {/* For simplicity, using the same 'continue' logic for success */}
                       <Button onClick={() => handleDecision('continue')} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white">
-                         <CheckCircle className="mr-2 h-4 w-4" /> Mark as Success
+                         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                         Mark as Success
                       </Button>
                       {/* TODO: Add a "Fail" button and logic */}
                        <Button variant="destructive" onClick={() => { /* Implement fail logic */ toast({title: "Fail logic not implemented yet."})}} disabled={isSubmitting}>
-                         <XCircle className="mr-2 h-4 w-4" /> Mark as Fail
+                         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
+                         Mark as Fail
                        </Button>
                    </div>
                 </div>
@@ -520,18 +549,20 @@ export default function TasksPage() {
              <CardDescription>History of files uploaded during the process.</CardDescription>
            </CardHeader>
            <CardContent>
-             {task.files.length === 0 ? (
+             {!isClient ? (
+                 <p className="text-sm text-muted-foreground">Loading file list...</p>
+             ) : formattedFiles.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No files uploaded yet.</p>
              ) : (
                <ul className="space-y-2">
-                  {task.files.map((file, index) => (
+                  {formattedFiles.map((file, index) => (
                    <li key={index} className="flex items-center justify-between p-2 border rounded-md hover:bg-secondary/50">
                       <div className="flex items-center gap-2">
                           <FileText className="h-5 w-5 text-primary" />
                           <span className="text-sm font-medium">{file.name}</span>
                       </div>
                       <div className="text-xs text-muted-foreground">
-                         Uploaded by {file.uploadedBy} on {new Date(file.timestamp).toLocaleDateString()}
+                         Uploaded by {file.uploadedBy} on {file.formattedTimestamp || '...'}
                       </div>
                    </li>
                   ))}
@@ -548,17 +579,21 @@ export default function TasksPage() {
           <CardDescription>Timeline of actions taken.</CardDescription>
         </CardHeader>
         <CardContent>
-            <ul className="space-y-3">
-               {task.workflowHistory.map((entry, index) => (
-                 <li key={index} className="flex items-start gap-3">
-                    <div className={`mt-1 h-3 w-3 rounded-full ${index === task.workflowHistory.length - 1 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
+            {!isClient ? (
+                <p className="text-sm text-muted-foreground">Loading history...</p>
+            ) : (
+                <ul className="space-y-3">
+                {formattedHistory.map((entry, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                    <div className={`mt-1 h-3 w-3 rounded-full ${index === formattedHistory.length - 1 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
                     <div>
                         <p className="text-sm font-medium">{entry.action} <span className="text-muted-foreground">by {entry.division}</span></p>
-                        <p className="text-xs text-muted-foreground">{new Date(entry.timestamp).toLocaleString()}</p>
+                        <p className="text-xs text-muted-foreground">{entry.formattedTimestamp || '...'}</p> {/* Display formatted date or loading */}
                     </div>
-                 </li>
-               ))}
-            </ul>
+                    </li>
+                ))}
+                </ul>
+            )}
         </CardContent>
       </Card>
     </div>
