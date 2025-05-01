@@ -1,3 +1,4 @@
+
 // src/locales/id.ts
 const id = {
   // Login Page
@@ -331,6 +332,17 @@ const id = {
       usernameExistsError: 'Nama pengguna sudah ada. Silakan pilih yang lain.',
     }
   },
+   // Notifications (General)
+   notifications: {
+       permissionGrantedTitle: "Notifikasi Diaktifkan",
+       permissionGrantedDesc: "Anda sekarang akan menerima notifikasi.",
+       permissionDeniedTitle: "Notifikasi Ditolak",
+       permissionDeniedDesc: "Anda dapat mengaktifkan notifikasi nanti di pengaturan browser Anda.",
+       permissionErrorTitle: "Kesalahan Izin",
+       permissionErrorDesc: "Tidak dapat meminta izin notifikasi.",
+       notSupportedTitle: "Notifikasi Tidak Didukung",
+       notSupportedDesc: "Browser Anda tidak mendukung notifikasi.",
+   },
 };
 
 export default id;

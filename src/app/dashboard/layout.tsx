@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { ReactNode } from 'react';
@@ -31,6 +32,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -38,6 +40,7 @@ const defaultDict = getDictionary('en');
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { language } = useLanguage(); // Get current language
   const { currentUser, logout } = useAuth(); // Get current user and logout function from AuthContext
+  const { toast } = useToast(); // Initialize toast
   const [isClient, setIsClient] = useState(false); // State to track client-side mount
   const [dict, setDict] = useState(() => getDictionary(language)); // Initialize dict directly
   const layoutDict = dict.dashboardLayout; // Specific dictionary section
@@ -45,6 +48,50 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     setIsClient(true); // Component has mounted client-side
   }, []);
+
+  // Effect to request notification permission on client mount after user is logged in
+  useEffect(() => {
+      if (isClient && currentUser) {
+          // Check if Notification API is supported
+          if ('Notification' in window) {
+              // Check current permission status
+              if (Notification.permission === 'default') {
+                  console.log('Requesting notification permission...');
+                  Notification.requestPermission().then(permission => {
+                      console.log('Notification permission status:', permission);
+                      if (permission === 'granted') {
+                          toast({
+                              title: 'Notifications Enabled',
+                              description: 'You will now receive notifications.',
+                          });
+                      } else if (permission === 'denied') {
+                           toast({
+                              title: 'Notifications Denied',
+                              description: 'You can enable notifications later in your browser settings.',
+                              variant: 'destructive'
+                          });
+                      }
+                  }).catch(err => {
+                      console.error('Error requesting notification permission:', err);
+                      toast({
+                          title: 'Permission Error',
+                          description: 'Could not request notification permission.',
+                          variant: 'destructive'
+                      });
+                  });
+              } else if (Notification.permission === 'granted') {
+                  console.log('Notification permission already granted.');
+              } else {
+                  console.log('Notification permission previously denied.');
+              }
+          } else {
+              console.warn('This browser does not support desktop notification');
+              // Optionally inform the user that notifications aren't supported
+              // toast({ title: 'Notifications Not Supported', description: 'Your browser does not support notifications.' });
+          }
+      }
+  }, [isClient, currentUser, toast]); // Run when client status or user changes
+
 
   useEffect(() => {
     setDict(getDictionary(language)); // Update dictionary when language changes
@@ -222,3 +269,4 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
+

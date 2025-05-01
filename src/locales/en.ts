@@ -1,3 +1,4 @@
+
 // src/locales/en.ts
 const en = {
   // Login Page
@@ -330,6 +331,17 @@ const en = {
         passwordMismatchError: 'Current password does not match.',
         usernameExistsError: 'Username already exists. Please choose another.',
     }
+  },
+  // Notifications (General)
+  notifications: {
+      permissionGrantedTitle: "Notifications Enabled",
+      permissionGrantedDesc: "You will now receive notifications.",
+      permissionDeniedTitle: "Notifications Denied",
+      permissionDeniedDesc: "You can enable notifications later in your browser settings.",
+      permissionErrorTitle: "Permission Error",
+      permissionErrorDesc: "Could not request notification permission.",
+      notSupportedTitle: "Notifications Not Supported",
+      notSupportedDesc: "Your browser does not support notifications.",
   },
 };
 
