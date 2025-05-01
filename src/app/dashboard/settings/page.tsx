@@ -40,7 +40,8 @@ async function simulateUploadAndCompress(file: File): Promise<string> {
 
   // For simulation, we'll generate a placeholder URL based on the file name/time
   // Using a fixed seed but varying path based on filename for more stable simulation
-  const simulatedUrl = `https://picsum.photos/seed/${file.name}/${Date.now()}/200`;
+  // Use timestamp in seed for slightly better simulation of uniqueness
+  const simulatedUrl = `https://picsum.photos/seed/${file.name}${Date.now()}/200`;
   console.log(`Simulated upload complete. URL: ${simulatedUrl}`);
   return simulatedUrl;
 }
@@ -137,16 +138,14 @@ export default function SettingsPage() {
     setIsUploading(!!selectedFile); // Set uploading state if file is selected
     console.log(`Attempting profile update for user ID: ${currentUser.id}`);
 
-    let newPictureUrl = currentProfilePictureUrl; // Start with current local state URL
+    let uploadedPictureUrl = currentProfilePictureUrl; // Start with current stored URL
 
     try {
         // --- Simulate Image Upload and Compression ---
         if (selectedFile) {
             try {
-                newPictureUrl = await simulateUploadAndCompress(selectedFile);
-                // Update local state immediately for UI feedback, final context/DB update happens after profile save
-                 setCurrentProfilePictureUrl(newPictureUrl);
-                 console.log("Simulated URL obtained:", newPictureUrl);
+                uploadedPictureUrl = await simulateUploadAndCompress(selectedFile);
+                 console.log("Simulated URL obtained:", uploadedPictureUrl);
             } catch (uploadError) {
                 console.error("Simulated upload error:", uploadError);
                  toast({ variant: 'destructive', title: 'Upload Failed', description: 'Could not simulate image upload.' });
@@ -167,7 +166,7 @@ export default function SettingsPage() {
             email: email,
             whatsappNumber: whatsappNumber,
             displayName: username, // Assume displayName should match username for simplicity here
-            profilePictureUrl: newPictureUrl, // Use the new URL (or original if no upload)
+            profilePictureUrl: uploadedPictureUrl, // Use the new URL (or original if no upload)
         };
 
         // TODO: Call notification service before updating profile
@@ -186,6 +185,9 @@ export default function SettingsPage() {
              displayName: updatedUserData.displayName,
              profilePictureUrl: updatedUserData.profilePictureUrl // Update URL in context
             } : null);
+
+        // Update local state for immediate UI feedback AFTER successful save
+        setCurrentProfilePictureUrl(updatedUserData.profilePictureUrl);
 
         // Reset preview and selected file state after successful update
         setProfilePicturePreview(null);
@@ -355,8 +357,8 @@ export default function SettingsPage() {
                           <Avatar className="h-20 w-20 border-2 border-primary/30">
                               <AvatarImage
                                   // Show preview if available, otherwise show the current stored URL from local state
+                                  // Force re-render if URL changes by using key. Use the preview OR the stored URL as the key.
                                   src={profilePicturePreview || currentProfilePictureUrl || `https://picsum.photos/seed/${currentUser.id}/100`}
-                                  // Force re-render if URL changes by using key
                                   key={profilePicturePreview || currentProfilePictureUrl}
                                   alt={currentUser.displayName || currentUser.username}
                                   data-ai-hint="user avatar placeholder" // AI Hint
