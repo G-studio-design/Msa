@@ -5,8 +5,8 @@ import * as React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'; // Import Firebase Auth modules
-import { app as firebaseApp, isFirebaseInitialized, auth as firebaseAuth } from '@/lib/firebase'; // Import Firebase app instance and initialization status
+// import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'; // Firebase Auth no longer used
+// import { app as firebaseApp, isFirebaseInitialized, auth as firebaseAuth } from '@/lib/firebase'; // Firebase no longer used
 
 import { Button } from '@/components/ui/button';
 import {
@@ -20,13 +20,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { LogIn } from 'lucide-react';
+import { LogIn, Loader2 } from 'lucide-react'; // Import Loader2
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { Separator } from '@/components/ui/separator'; // Import Separator
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // Import Alert components
 import { AlertTriangle } from 'lucide-react'; // Import icon for alert
+import { verifyUserCredentials } from '@/services/user-service'; // Import local user service
 
 // Google Icon SVG (simple version)
 const GoogleIcon = () => (
@@ -51,18 +52,17 @@ export default function LoginPage() {
   const { language } = useLanguage();
   const [dict, setDict] = React.useState(defaultDict.login);
   const [isClient, setIsClient] = React.useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = React.useState(false); // Loading state for Google button
-  const [firebaseError, setFirebaseError] = React.useState<string | null>(null); // State for Firebase error
+  const [isGoogleLoading, setIsGoogleLoading] = React.useState(false); // Still keep for UI disabling
+  // const [firebaseError, setFirebaseError] = React.useState<string | null>(null); // Firebase errors no longer relevant
 
   React.useEffect(() => {
       setIsClient(true);
       setDict(getDictionary(language).login);
-      // Check Firebase status on client mount
-      if (!isFirebaseInitialized) {
-          // Use a generic message, detailed error is in console
-          setFirebaseError(dict.firebaseConfigError || defaultDict.login.firebaseConfigError);
-      }
-  }, [language, dict.firebaseConfigError]); // Rerun if language changes
+      // Firebase check no longer needed
+      // if (!isFirebaseInitialized) {
+      //     setFirebaseError(dict.firebaseConfigError || defaultDict.login.firebaseConfigError);
+      // }
+  }, [language]); // Rerun if language changes
 
   // Initialize schema based on current language dict
   const loginSchema = getLoginSchema(dict);
@@ -80,79 +80,64 @@ export default function LoginPage() {
 
   // Update resolver if language/dict changes
   React.useEffect(() => {
-      form.trigger();
-  }, [dict, form]);
+      if(isClient) form.trigger(); // Trigger validation on client side only after dict update
+  }, [dict, form, isClient]);
 
-  // TODO: Implement actual authentication logic using Firebase or other methods
-  const onSubmit = (data: LoginFormValues) => {
-    console.log('Login attempt:', data);
-    // Simulate login success/failure
-    // Replace with actual authentication call
-    // Accept the user 'admin'/'admin' defined in `users/page.tsx` mock data
-    // !! In a real app, this should check against a secure user database/auth provider !!
-    if (data.username === 'admin' && data.password === 'admin') {
-      toast({
-        title: dict.success,
-        description: dict.redirecting,
-      });
-      router.push('/dashboard');
-    } else {
-      toast({
-        variant: 'destructive',
-        title: dict.fail,
-        description: dict.invalidCredentials,
-      });
-       form.resetField('password');
+  const onSubmit = async (data: LoginFormValues) => {
+    console.log('Login attempt:', data.username);
+    form.clearErrors(); // Clear previous errors
+
+    try {
+        const user = await verifyUserCredentials(data.username, data.password);
+
+        if (user) {
+            // TODO: Implement session management (e.g., set a secure cookie or token)
+            console.log('Login successful for user:', user.username, 'Role:', user.role);
+            toast({
+                title: dict.success,
+                description: dict.redirecting,
+            });
+            router.push('/dashboard'); // Redirect to dashboard on success
+        } else {
+            console.log('Invalid credentials for:', data.username);
+            toast({
+                variant: 'destructive',
+                title: dict.fail,
+                description: dict.invalidCredentials,
+            });
+            form.setError('username', { type: 'manual', message: ' ' }); // Add error marker without specific message
+            form.setError('password', { type: 'manual', message: dict.invalidCredentials });
+            form.resetField('password');
+        }
+    } catch (error: any) {
+        console.error('Login error:', error);
+        toast({
+            variant: 'destructive',
+            title: 'Login Error',
+            description: 'An unexpected error occurred during login.',
+        });
+        form.resetField('password');
     }
   };
 
   const handleGoogleSignIn = async () => {
-    // Double check initialization status before proceeding
-    if (!isFirebaseInitialized || !firebaseAuth || !firebaseApp) {
-        console.error("Firebase not initialized. Cannot perform Google Sign-In.");
-        toast({
-             variant: 'destructive',
-             title: 'Initialization Error',
-             description: firebaseError || 'Firebase is not configured correctly.',
-        });
-        setFirebaseError(firebaseError || dict.firebaseConfigError || defaultDict.login.firebaseConfigError); // Ensure error is shown
-        return;
-    }
-
-    setIsGoogleLoading(true);
-    setFirebaseError(null); // Clear previous errors
-    const provider = new GoogleAuthProvider();
-
-    try {
-      const result = await signInWithPopup(firebaseAuth, provider); // Use imported auth instance
-      const user = result.user;
-      console.log('Google Sign-In Successful:', user);
+      // Google Sign-In is disabled as Firebase is not configured
+      setIsGoogleLoading(true); // Keep UI feedback
+      console.warn("Google Sign-In is currently disabled because Firebase is not configured for this project.");
       toast({
-        title: dict.googleSuccess,
-        description: dict.googleSetupPrompt,
+          variant: 'destructive',
+          title: 'Feature Disabled',
+          description: 'Google Sign-In is not available.',
       });
-
-      // Redirect to setup page, passing Google user info (minimal example)
-      // In a real app, use state management or secure tokens
-      router.push(`/auth/setup-account?email=${encodeURIComponent(user.email || '')}&displayName=${encodeURIComponent(user.displayName || '')}&googleUid=${encodeURIComponent(user.uid)}`);
-
-    } catch (error: any) {
-      console.error('Google Sign-In Error:', error);
-      // Handle specific Firebase errors if needed
-      let description = error.message || dict.googleErrorDefault;
-      if (error.code === 'auth/popup-closed-by-user') {
-          description = dict.googlePopupClosed;
-      } else if (error.code === 'auth/cancelled-popup-request') {
-          description = dict.googlePopupCancelled;
-      }
-      toast({
-        variant: 'destructive',
-        title: dict.googleFail,
-        description: description,
-      });
+      // Simulate a delay then stop loading
+      await new Promise(resolve => setTimeout(resolve, 500));
       setIsGoogleLoading(false);
-    }
-    // No need to set loading to false on success because we navigate away
+
+    // Original Firebase logic removed
+    // if (!isFirebaseInitialized || !firebaseAuth || !firebaseApp) { ... }
+    // const provider = new GoogleAuthProvider();
+    // try { const result = await signInWithPopup(firebaseAuth, provider); ... }
+    // catch (error: any) { ... }
   };
 
   return (
@@ -164,15 +149,8 @@ export default function LoginPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {isClient && firebaseError && (
-              <Alert variant="destructive" className="mb-4">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>{dict.firebaseErrorTitle || 'Configuration Error'}</AlertTitle>
-                  <AlertDescription>
-                      {firebaseError}
-                  </AlertDescription>
-              </Alert>
-          )}
+           {/* Firebase error alert removed */}
+          {/* {isClient && firebaseError && ( ... )} */}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -207,7 +185,7 @@ export default function LoginPage() {
                 )}
               />
               <Button type="submit" className="w-full accent-teal" disabled={form.formState.isSubmitting}>
-                <LogIn className="mr-2 h-4 w-4" />
+                {form.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
                  {isClient ? (form.formState.isSubmitting ? dict.loggingIn : dict.loginButton) : defaultDict.login.loginButton}
               </Button>
             </form>
@@ -220,17 +198,20 @@ export default function LoginPage() {
               variant="outline"
               className="w-full"
               onClick={handleGoogleSignIn}
-              disabled={isGoogleLoading || !isClient || !isFirebaseInitialized} // Disable if not initialized or loading
-              aria-disabled={!isClient || !isFirebaseInitialized} // Indicate disabled state for accessibility
-              title={isClient && !isFirebaseInitialized ? firebaseError || 'Google Sign-In disabled due to configuration error' : ''} // Tooltip
+              disabled={isGoogleLoading || !isClient} // Disable if not client or loading
+              aria-disabled={!isClient} // Indicate disabled state for accessibility
+              title={isClient ? dict.googleSignInDisabled : ''} // Tooltip indicating disabled state
             >
               {isGoogleLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> // Use Loader2 icon
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <GoogleIcon />
               )}
                <span className="ml-2">{isClient ? (isGoogleLoading ? dict.googleLoading : dict.googleSignInButton) : defaultDict.login.googleSignInButton}</span>
             </Button>
+            <p className="mt-2 text-center text-xs text-muted-foreground">
+                {isClient ? dict.googleSignInHint : ''}
+            </p>
 
         </CardContent>
       </Card>

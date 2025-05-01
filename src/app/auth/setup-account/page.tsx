@@ -22,7 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { Loader2 } from 'lucide-react';
-import { createUserAccount } from '@/services/user-service'; // Import the service function
+import { createUserAccount } from '@/services/user-service'; // Import the local service function
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -46,7 +46,7 @@ export default function AccountSetupPage() {
   const [dict, setDict] = React.useState(defaultDict.accountSetup);
   const [isClient, setIsClient] = React.useState(false);
 
-  // Extract Google user info from query params (use cautiously)
+  // Extract Google user info - THESE WILL BE EMPTY since Google Sign-In is disabled
   const email = searchParams.get('email') || '';
   const displayName = searchParams.get('displayName') || 'User';
   const googleUid = searchParams.get('googleUid') || '';
@@ -55,6 +55,18 @@ export default function AccountSetupPage() {
       setIsClient(true);
       setDict(getDictionary(language).accountSetup);
   }, [language]);
+
+   // Redirect immediately if required params are missing (expected since Google Sign-in is disabled)
+   React.useEffect(() => {
+     if (isClient) {
+        if (!email || !googleUid) {
+             console.warn("Account setup page accessed without Google Sign-In parameters. Redirecting to login.");
+             toast({ variant: 'destructive', title: 'Access Denied', description: 'Please log in or sign up first.' }); // General message
+             router.replace('/'); // Use replace to avoid history entry
+        }
+     }
+   }, [isClient, email, googleUid, router, toast]);
+
 
   // Initialize schema based on current language dict
   const setupSchema = getSetupSchema(dict.validation);
@@ -72,26 +84,26 @@ export default function AccountSetupPage() {
 
   // Update resolver if language/dict changes
   React.useEffect(() => {
-      form.trigger();
-  }, [dict, form]);
+      if(isClient) form.trigger();
+  }, [dict, form, isClient]);
 
   const onSubmit = async (data: SetupFormValues) => {
-    console.log('Account Setup attempt:', data);
+    console.log('Account Setup attempt:', data.username);
+    form.clearErrors(); // Clear previous errors
 
-    // TODO: Implement actual account creation logic
-    // This should involve:
-    // 1. Checking if the chosen username already exists in your user database.
-    // 2. Securely hashing the chosen password.
-    // 3. Storing the new user details (username, HASHED password, associated Google UID/email, initial role 'Pending') in your database.
-    // 4. Sending a notification (e.g., email, in-app message) to users with 'Owner' or 'General Admin' roles.
+    // Ensure required parameters are present before proceeding
+    if (!email || !googleUid || !displayName) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Missing required information for setup.' });
+        return; // Prevent submission if parameters are somehow missing
+    }
 
     try {
-        // Simulate API call to backend/service function
+        // Call the local service function
         await createUserAccount({
             username: data.username,
-            password: data.password, // Send plain password - HASH ON SERVER
+            password: data.password, // Send plain password - HASHED IN SERVICE
             email: email,
-            googleUid: googleUid,
+            googleUid: googleUid, // Store Google UID for potential future linking
             displayName: displayName,
         });
 
@@ -99,38 +111,39 @@ export default function AccountSetupPage() {
             title: dict.successTitle,
             description: dict.successDescription,
         });
-        // Redirect to login page or a pending activation page
+        // Redirect to login page after successful pending registration
         router.push('/');
 
     } catch (error: any) {
         console.error("Account setup error:", error);
+        let errorMessage = dict.failDescription || 'An unknown error occurred during setup.';
         // Handle specific errors (e.g., username exists)
         if (error.message === 'USERNAME_EXISTS') {
-            form.setError('username', { type: 'manual', message: dict.usernameExists });
-            toast({
-                variant: 'destructive',
-                title: dict.failTitle,
-                description: dict.usernameExists,
-            });
+            errorMessage = dict.usernameExists;
+            form.setError('username', { type: 'manual', message: errorMessage });
+        } else if (error.message === 'EMAIL_EXISTS') {
+            errorMessage = dict.emailExists || 'This email is already associated with an account.'; // Add email exists translation
+            // Optionally set error on email field if it existed in the form
         } else {
-            toast({
-                variant: 'destructive',
-                title: dict.failTitle,
-                description: error.message || 'An unknown error occurred during setup.',
-            });
+           errorMessage = error.message || errorMessage;
         }
+
+        toast({
+            variant: 'destructive',
+            title: dict.failTitle,
+            description: errorMessage,
+        });
     }
   };
 
-  // Redirect if required params are missing (basic check)
-  React.useEffect(() => {
-    if (isClient && (!email || !googleUid)) {
-        console.warn("Missing email or googleUid for account setup. Redirecting.");
-        toast({ variant: 'destructive', title: 'Setup Error', description: 'Missing required information.' });
-        router.replace('/'); // Use replace to avoid history entry
-    }
-  }, [isClient, email, googleUid, router, toast]);
-
+   // If still loading or redirecting, show a loading state or minimal content
+   if (!isClient || (!email || !googleUid)) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-secondary">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      );
+   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-secondary">

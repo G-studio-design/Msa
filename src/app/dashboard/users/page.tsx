@@ -37,7 +37,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, User, UserCog, Edit, Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react'; // Added CheckCircle
+import { PlusCircle, Trash2, User, UserCog, Edit, Loader2, Eye, EyeOff, CheckCircle, ShieldAlert } from 'lucide-react'; // Added ShieldAlert
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -62,36 +62,21 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
-import { activateUser } from '@/services/user-service'; // Import activation service
+import {
+    getAllUsers,
+    addUser,
+    updateUserProfile,
+    deleteUser,
+    activateUser,
+    type User as UserType // Import the type from service
+} from '@/services/user-service';
+import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 
-// Mock user data - Replace with actual user data fetching and state management
-interface UserType {
-    id: string;
-    username: string;
-    role: string;
-    password?: string; // Added password (optional for display/mock) - INSECURE IN REAL APP
-    googleUid?: string; // Added to link Google accounts
-    email?: string; // Added email
-    displayName?: string; // Added display name from Google
-}
-// !! IMPORTANT: Storing plain text passwords like this is highly insecure !!
-// This is only for demonstrating the requested functionality with mock data.
-// In a real application, passwords MUST be securely hashed.
-const initialUsers: UserType[] = [
-  { id: 'usr_1', username: 'owner_john', role: 'Owner', password: 'owner_password1', email: 'john@example.com' },
-  { id: 'usr_2', username: 'genadmin_sara', role: 'General Admin', password: 'ga_password2', email: 'sara@example.com' },
-  { id: 'usr_3', username: 'projadmin_mike', role: 'Admin Proyek', password: 'pa_password3', email: 'mike@example.com' },
-  { id: 'usr_4', username: 'arch_emily', role: 'Arsitek', password: 'arch_password4', email: 'emily@example.com' },
-  { id: 'usr_5', username: 'struct_dave', role: 'Struktur', password: 'struct_password5', email: 'dave@example.com' },
-  { id: 'usr_6', username: 'owner_jane', role: 'Owner', password: 'owner_password6', email: 'jane@example.com' },
-  { id: 'usr_7', username: 'admin', role: 'General Admin', password: 'admin', email: 'admin@example.com' },
-  // Add a pending user example
-   { id: 'usr_pending_1', username: 'new_user_bob', role: 'Pending', password: 'pending_password', email: 'bob.google@example.com', googleUid: 'google123', displayName: 'Bob Google' },
-];
-
-const divisions = ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur']; // Exclude 'Pending' from selection
+// Define available roles for selection (excluding Pending)
+const divisions = ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur'];
 
 // Mock current logged-in user - Replace with actual auth context data
+// In a real app, fetch this from session/token
 const currentUser = {
     id: 'usr_7', // Example: Logged in as admin
     username: 'admin',
@@ -114,6 +99,11 @@ const getEditUserSchema = (dictValidation: ReturnType<typeof getDictionary>['man
     // Password is not edited here by default
 });
 
+const getActivateUserSchema = (dictValidation: ReturnType<typeof getDictionary>['manageUsersPage']['validation']) => z.object({
+     role: z.enum(divisions as [string, ...string[]], { required_error: dictValidation.roleRequired }),
+});
+
+
 export default function ManageUsersPage() {
   const { toast } = useToast();
   const { language } = useLanguage();
@@ -121,12 +111,32 @@ export default function ManageUsersPage() {
   const [isClient, setIsClient] = React.useState(false);
   const usersDict = dict.manageUsersPage;
 
-  const [users, setUsers] = React.useState<UserType[]>(initialUsers);
+  const [users, setUsers] = React.useState<UserType[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true); // Loading state for initial fetch
+  const [isProcessing, setIsProcessing] = React.useState(false); // General processing state for buttons
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = React.useState(false);
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = React.useState(false);
+  const [isActivateUserDialogOpen, setIsActivateUserDialogOpen] = React.useState(false); // State for activation dialog
   const [editingUser, setEditingUser] = React.useState<UserType | null>(null);
-  const [visiblePasswords, setVisiblePasswords] = React.useState<Record<string, boolean>>({});
-  const [activatingUserId, setActivatingUserId] = React.useState<string | null>(null); // State for activation loading
+  const [activatingUser, setActivatingUser] = React.useState<UserType | null>(null); // User being activated
+  const [visiblePasswords, setVisiblePasswords] = React.useState<Record<string, boolean>>({}); // State for password visibility
+
+  // Fetch users on component mount
+  React.useEffect(() => {
+      async function fetchUsers() {
+          setIsLoading(true);
+          try {
+              const fetchedUsers = await getAllUsers();
+              setUsers(fetchedUsers);
+          } catch (error) {
+              console.error("Failed to fetch users:", error);
+              toast({ variant: 'destructive', title: 'Error', description: 'Could not load user data.' });
+          } finally {
+              setIsLoading(false);
+          }
+      }
+      fetchUsers();
+  }, [toast]); // Refetch if toast changes? Maybe remove toast dependency if not needed.
 
     React.useEffect(() => {
         setIsClient(true);
@@ -136,8 +146,11 @@ export default function ManageUsersPage() {
   // Initialize schemas based on current language
   const addUserSchema = getAddUserSchema(usersDict.validation);
   const editUserSchema = getEditUserSchema(usersDict.validation);
+  const activateUserSchema = getActivateUserSchema(usersDict.validation); // Schema for activation form
+
   type AddUserFormValues = z.infer<typeof addUserSchema>;
   type EditUserFormValues = z.infer<typeof editUserSchema>;
+  type ActivateUserFormValues = z.infer<typeof activateUserSchema>; // Type for activation form
 
   // Check if current user has permission (Owner or General Admin)
   const canManageUsers = ['Owner', 'General Admin'].includes(currentUser.role);
@@ -161,6 +174,14 @@ export default function ManageUsersPage() {
      context: { dict: usersDict.validation },
   });
 
+   const activateUserForm = useForm<ActivateUserFormValues>({ // Form for activation dialog
+     resolver: zodResolver(activateUserSchema),
+     defaultValues: {
+       role: undefined,
+     },
+     context: { dict: usersDict.validation },
+   });
+
    // Effect to reset edit form when editingUser changes
    React.useEffect(() => {
       if (editingUser) {
@@ -174,71 +195,93 @@ export default function ManageUsersPage() {
       }
     }, [editingUser, editUserForm]);
 
+    // Effect to reset activate form when activatingUser changes
+    React.useEffect(() => {
+       if (!activatingUser) {
+           activateUserForm.reset({ role: undefined });
+       }
+    }, [activatingUser, activateUserForm]);
+
+
      // Re-validate forms if language changes
      React.useEffect(() => {
-         addUserForm.trigger();
-         editUserForm.trigger();
-     }, [dict, addUserForm, editUserForm]);
+         if(isClient) {
+             addUserForm.trigger();
+             editUserForm.trigger();
+             activateUserForm.trigger();
+         }
+     }, [dict, addUserForm, editUserForm, activateUserForm, isClient]);
 
 
-  const handleAddUser = (data: AddUserFormValues) => {
-    console.log('Adding user:', data);
-    // Simulate API call to add user
-    return new Promise<boolean>(resolve => setTimeout(() => {
-        // Check for duplicate username
-        if (users.some(u => u.username.toLowerCase() === data.username.toLowerCase())) {
-            toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.usernameExists });
-            resolve(false);
-            return;
+  const handleAddUser = async (data: AddUserFormValues) => {
+    setIsProcessing(true);
+    addUserForm.clearErrors();
+    console.log('Adding user:', data.username);
+    try {
+        const newUser = await addUser(data); // Use service function
+        setUsers([...users, newUser]); // Add to local state
+        toast({ title: usersDict.toast.userAdded, description: usersDict.toast.userAddedDesc.replace('{username}', data.username) });
+        addUserForm.reset();
+        setIsAddUserDialogOpen(false);
+    } catch (error: any) {
+        console.error("Add user error:", error);
+        let desc = usersDict.toast.error;
+        if (error.message === 'USERNAME_EXISTS') {
+            desc = usersDict.toast.usernameExists;
+            addUserForm.setError('username', { type: 'manual', message: desc });
+        } else {
+            desc = error.message || 'Failed to add user.';
         }
-      // TODO: Replace with actual API call using user-service (potentially a different function than createUserAccount)
-      // This function assumes direct creation, not the Google sign-up flow
-      const newUser: UserType = {
-        id: `usr_${Date.now()}`,
-        username: data.username,
-        role: data.role,
-        password: data.password, // !! STORE HASHED PASSWORD IN REAL APP !!
-        email: `${data.username}@example.com`, // Mock email
-      };
-      setUsers([...users, newUser]);
-      toast({ title: usersDict.toast.userAdded, description: usersDict.toast.userAddedDesc.replace('{username}', data.username) });
-      addUserForm.reset();
-      resolve(true);
-    }, 1000));
+        toast({ variant: 'destructive', title: usersDict.toast.error, description: desc });
+    } finally {
+        setIsProcessing(false);
+    }
   };
 
-    const handleEditUser = (data: EditUserFormValues) => {
-        if (!editingUser) return Promise.resolve(false);
-        console.log(`Editing user ${editingUser.id}:`, data);
+    const handleEditUser = async (data: EditUserFormValues) => {
+        if (!editingUser) return;
+        setIsProcessing(true);
+        editUserForm.clearErrors();
+        console.log(`Editing user ${editingUser.id}:`, data.username, data.role);
 
-        // Simulate API call to update user
-        return new Promise<boolean>(resolve => setTimeout(() => {
-            // Check for duplicate username (excluding self)
-            if (users.some(u => u.id !== editingUser.id && u.username.toLowerCase() === data.username.toLowerCase())) {
-                 toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.usernameExists });
-                 resolve(false);
-                 return;
-             }
+        // Prevent changing role of last GA if the current user is GA
+        if (currentUser.role === 'General Admin' && editingUser.role === 'General Admin' && data.role !== 'General Admin') {
+            const gaCount = users.filter(u => u.role === 'General Admin').length;
+            if (gaCount <= 1) {
+                toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotChangeLastAdminRole });
+                setIsProcessing(false);
+                return;
+            }
+        }
 
-             // Prevent changing role of last GA
-             if (currentUser.role === 'General Admin' && editingUser.role === 'General Admin' && data.role !== 'General Admin') {
-                 const gaCount = users.filter(u => u.role === 'General Admin').length;
-                 if (gaCount <= 1) {
-                     toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotChangeLastAdminRole });
-                     resolve(false);
-                     return;
-                 }
-             }
-            // TODO: Implement actual API call to update user (username, role)
-            setUsers(users.map(u => u.id === editingUser.id ? { ...u, username: data.username, role: data.role } : u));
+        try {
+            await updateUserProfile({ userId: editingUser.id, username: data.username, role: data.role });
+             // Update local state
+            setUsers(users.map(u => u.id === editingUser.id ? { ...u, username: data.username, role: data.role, displayName: data.username } : u));
             toast({ title: usersDict.toast.userUpdated, description: usersDict.toast.userUpdatedDesc.replace('{username}', data.username) });
-            resolve(true);
-        }, 1000));
+            setIsEditUserDialogOpen(false);
+            setEditingUser(null);
+        } catch (error: any) {
+             console.error("Edit user error:", error);
+             let desc = usersDict.toast.error;
+             if (error.message === 'USERNAME_EXISTS') {
+                 desc = usersDict.toast.usernameExists;
+                 editUserForm.setError('username', { type: 'manual', message: desc });
+             } else if (error.message === 'USER_NOT_FOUND') {
+                 desc = 'User not found.'; // Or a translation
+             } else {
+                 desc = error.message || 'Failed to update user.';
+             }
+             toast({ variant: 'destructive', title: usersDict.toast.error, description: desc });
+        } finally {
+             setIsProcessing(false);
+        }
     };
 
-  const handleDeleteUser = (userId: string) => {
+  const handleDeleteUser = async (userId: string, username: string) => {
+    // Find user locally first for checks
     const userToDelete = users.find(user => user.id === userId);
-    if (!userToDelete) return;
+    if (!userToDelete) return; // Should not happen if UI is correct
 
      // Prevent deleting self if GA
      if (currentUser.role === 'General Admin' && currentUser.id === userId) {
@@ -255,62 +298,87 @@ export default function ManageUsersPage() {
          }
      }
 
-    console.log('Deleting user:', userId);
-    // Simulate API call to delete user
-    new Promise(resolve => setTimeout(resolve, 500)).then(() => {
-      // TODO: Implement actual API call to delete user
-      setUsers(users.filter((user) => user.id !== userId));
-      setVisiblePasswords(prev => {
-          const newState = {...prev};
-          delete newState[userId];
-          return newState;
-      });
-      toast({ title: usersDict.toast.userDeleted, description: usersDict.toast.userDeletedDesc.replace('{username}', userToDelete.username) });
-    });
+    setIsProcessing(true); // Indicate processing
+    console.log('Attempting to delete user:', userId, username);
+    try {
+        await deleteUser(userId); // Call service function
+        setUsers(users.filter((user) => user.id !== userId)); // Update local state
+        // Clean up password visibility state
+        setVisiblePasswords(prev => {
+            const newState = {...prev};
+            delete newState[userId];
+            return newState;
+        });
+        toast({ title: usersDict.toast.userDeleted, description: usersDict.toast.userDeletedDesc.replace('{username}', username) });
+    } catch (error: any) {
+         console.error("Delete user error:", error);
+         toast({
+             variant: 'destructive',
+             title: usersDict.toast.error,
+             description: error.message || 'Failed to delete user.',
+         });
+    } finally {
+        setIsProcessing(false); // Stop indicating processing
+    }
   };
 
-  const handleActivateUser = async (userId: string, username: string) => {
-      setActivatingUserId(userId); // Set loading state for this specific user
-      try {
-          await activateUser(userId); // Call the service function
-          // Update local state to reflect activation (e.g., change role from 'Pending' to a default)
-          setUsers(users.map(u => u.id === userId ? { ...u, role: 'Arsitek' } : u)); // Example: Activate to 'Arsitek'
-          toast({ title: usersDict.toast.activateUserSuccess, description: usersDict.toast.activateUserDesc.replace('{username}', username) });
-      } catch (error: any) {
-          console.error("Activation error:", error);
-          toast({
-              variant: 'destructive',
-              title: usersDict.toast.activateUserError,
-              description: usersDict.toast.activateUserErrorDesc.replace('{username}', username) + ` (${error.message})`,
-          });
-      } finally {
-          setActivatingUserId(null); // Clear loading state
-      }
-  };
+  const handleActivateUser = async (data: ActivateUserFormValues) => {
+       if (!activatingUser) return;
+       setIsProcessing(true);
+       activateUserForm.clearErrors();
+       console.log(`Activating user ${activatingUser.id} with role ${data.role}`);
 
-   const onAddSubmit = async (data: AddUserFormValues) => {
-      const success = await handleAddUser(data);
-      if (success) {
-        setIsAddUserDialogOpen(false);
-      }
+       try {
+           await activateUser(activatingUser.id); // Call the service function (role update handled inside)
+           // Update local state to reflect activation and assigned role
+           setUsers(users.map(u => u.id === activatingUser.id ? { ...u, role: data.role } : u)); // Update role locally
+           toast({ title: usersDict.toast.activateUserSuccess, description: usersDict.toast.activateUserDesc.replace('{username}', activatingUser.username) });
+           setIsActivateUserDialogOpen(false);
+           setActivatingUser(null);
+       } catch (error: any) {
+           console.error("Activation error:", error);
+           toast({
+               variant: 'destructive',
+               title: usersDict.toast.activateUserError,
+               description: usersDict.toast.activateUserErrorDesc.replace('{username}', activatingUser.username) + ` (${error.message || 'Unknown error'})`,
+           });
+       } finally {
+           setIsProcessing(false);
+       }
    };
 
-   const onEditSubmit = async (data: EditUserFormValues) => {
-        const success = await handleEditUser(data);
-        if (success) {
-            setIsEditUserDialogOpen(false);
-            setEditingUser(null);
-        }
-    };
+
+   const onAddSubmit = (data: AddUserFormValues) => {
+       handleAddUser(data); // No need for async/await check here, handled internally
+   };
+
+   const onEditSubmit = (data: EditUserFormValues) => {
+       handleEditUser(data); // No need for async/await check here, handled internally
+   };
+
+   const onActivateSubmit = (data: ActivateUserFormValues) => {
+       handleActivateUser(data); // Handle activation submission
+   };
+
 
    const openEditDialog = (user: UserType) => {
         // Prevent editing 'Pending' users directly in this dialog
         if (user.role === 'Pending') {
-             toast({ variant: 'destructive', title: usersDict.toast.error, description: 'Activate the user first.'}); // Add translation
+             toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotEditPending});
              return;
         }
         setEditingUser(user);
         setIsEditUserDialogOpen(true);
+    };
+
+    const openActivateDialog = (user: UserType) => {
+        if (user.role !== 'Pending') {
+            // Should not happen if button is shown correctly, but good to check
+            console.warn(`Attempted to open activate dialog for non-pending user: ${user.id}`);
+            return;
+        }
+        setActivatingUser(user);
+        setIsActivateUserDialogOpen(true);
     };
 
    const togglePasswordVisibility = (userId: string) => {
@@ -327,21 +395,21 @@ export default function ManageUsersPage() {
           case 'Admin Proyek': return <UserCog className="h-4 w-4 text-orange-600" />;
           case 'Arsitek': return <User className="h-4 w-4 text-green-600" />;
           case 'Struktur': return <User className="h-4 w-4 text-yellow-600" />;
-          case 'Pending': return <User className="h-4 w-4 text-gray-400" />; // Icon for Pending
+          case 'Pending': return <ShieldAlert className="h-4 w-4 text-yellow-500" />; // Use ShieldAlert for Pending
           default: return <User className="h-4 w-4 text-muted-foreground" />;
       }
   }
 
   // Render Access Denied if not Owner or General Admin
-  if (!canManageUsers) {
+  if (isClient && !canManageUsers) {
       return (
           <div className="container mx-auto py-4">
               <Card className="border-destructive">
                    <CardHeader>
-                       <CardTitle className="text-destructive">{isClient ? dict.adminActionsPage.accessDeniedTitle : defaultDict.adminActionsPage.accessDeniedTitle}</CardTitle>
+                       <CardTitle className="text-destructive">{usersDict.accessDeniedTitle}</CardTitle>
                    </CardHeader>
                    <CardContent>
-                       <p>{isClient ? dict.adminActionsPage.accessDeniedDesc : defaultDict.adminActionsPage.accessDeniedDesc}</p>
+                       <p>{usersDict.accessDeniedDesc}</p>
                    </CardContent>
               </Card>
           </div>
@@ -359,7 +427,7 @@ export default function ManageUsersPage() {
           {/* Add User Dialog Trigger */}
           <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="accent-teal">
+              <Button className="accent-teal" disabled={isProcessing || isLoading}>
                 <PlusCircle className="mr-2 h-4 w-4" /> {isClient ? usersDict.addUserButton : defaultDict.manageUsersPage.addUserButton}
               </Button>
             </DialogTrigger>
@@ -426,10 +494,10 @@ export default function ManageUsersPage() {
                         )}
                       />
                     <DialogFooter>
-                         <Button type="button" variant="outline" onClick={() => setIsAddUserDialogOpen(false)} disabled={addUserForm.formState.isSubmitting}>{isClient ? usersDict.cancelButton : defaultDict.manageUsersPage.cancelButton}</Button>
-                         <Button type="submit" className="accent-teal" disabled={addUserForm.formState.isSubmitting}>
-                           {addUserForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                           {isClient ? (addUserForm.formState.isSubmitting ? usersDict.addingUserButton : usersDict.addUserSubmitButton) : defaultDict.manageUsersPage.addUserSubmitButton}
+                         <Button type="button" variant="outline" onClick={() => setIsAddUserDialogOpen(false)} disabled={isProcessing}>{isClient ? usersDict.cancelButton : defaultDict.manageUsersPage.cancelButton}</Button>
+                         <Button type="submit" className="accent-teal" disabled={isProcessing}>
+                           {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                           {isClient ? (isProcessing ? usersDict.addingUserButton : usersDict.addUserSubmitButton) : defaultDict.manageUsersPage.addUserSubmitButton}
                          </Button>
                      </DialogFooter>
                   </form>
@@ -448,7 +516,20 @@ export default function ManageUsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.length === 0 ? (
+              {isLoading ? (
+                 // Show Skeleton Loaders
+                  [...Array(5)].map((_, i) => (
+                    <TableRow key={`skeleton-${i}`}>
+                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                        <TableCell className="text-right space-x-1">
+                            <Skeleton className="h-8 w-8 inline-block" />
+                            <Skeleton className="h-8 w-8 inline-block" />
+                        </TableCell>
+                    </TableRow>
+                  ))
+              ) : users.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center text-muted-foreground">
                     {isClient ? usersDict.noUsers : defaultDict.manageUsersPage.noUsers}
@@ -459,28 +540,33 @@ export default function ManageUsersPage() {
                    const isSelf = user.id === currentUser.id;
                     const isLastGeneralAdmin = user.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1;
                     const disableDelete = (isSelf && currentUser.role === 'General Admin') || (isLastGeneralAdmin && currentUser.role === 'General Admin');
-                    const disableEdit = (isSelf && currentUser.role === 'General Admin') || user.role === 'Pending'; // Disable edit for self (GA) and pending users
+                    const disableEdit = (currentUser.role !== 'General Admin' && currentUser.role !== 'Owner') || user.role === 'Pending'; // Disable edit if not GA/Owner or if user is Pending
                     const isPasswordVisible = visiblePasswords[user.id] || false;
-                    const isActivating = activatingUserId === user.id; // Check if this user is being activated
+                    const canViewPassword = currentUser.role === 'Owner' || currentUser.role === 'General Admin'; // Only Owner/GA can see passwords
 
                     return (
-                      <TableRow key={user.id} className={user.role === 'Pending' ? 'bg-muted/30 hover:bg-muted/50' : ''}>
+                      <TableRow key={user.id} className={user.role === 'Pending' ? 'bg-yellow-100/30 dark:bg-yellow-900/30 hover:bg-yellow-100/50 dark:hover:bg-yellow-900/50' : ''}>
                         <TableCell className="font-medium">{user.username}</TableCell>
                          <TableCell>
-                           <div className="flex items-center gap-1">
-                             <span className={`font-mono text-xs ${isPasswordVisible ? 'text-foreground' : 'text-muted-foreground'}`}>
-                               {isPasswordVisible ? (user.password || 'N/A') : '••••••••'}
-                             </span>
-                               <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6"
-                                  onClick={() => togglePasswordVisibility(user.id)}
-                                  aria-label={isClient ? (isPasswordVisible ? usersDict.hidePasswordButtonLabel : usersDict.showPasswordButtonLabel) : 'Toggle Password'}
-                                >
-                                  {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </Button>
-                           </div>
+                            {canViewPassword ? (
+                               <div className="flex items-center gap-1">
+                                 <span className={`font-mono text-xs ${isPasswordVisible ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                   {isPasswordVisible ? 'HASHED' : '••••••••'} {/* Show "HASHED" instead of actual hash */}
+                                 </span>
+                                   <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6"
+                                      onClick={() => togglePasswordVisibility(user.id)}
+                                      aria-label={isClient ? (isPasswordVisible ? usersDict.hidePasswordButtonLabel : usersDict.showPasswordButtonLabel) : 'Toggle Password'}
+                                      disabled={isProcessing} // Disable while processing
+                                    >
+                                      {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </Button>
+                               </div>
+                             ) : (
+                                <span className="text-xs text-muted-foreground italic">Hidden</span>
+                             )}
                          </TableCell>
                         <TableCell>
                             <div className="flex items-center gap-2">
@@ -489,56 +575,62 @@ export default function ManageUsersPage() {
                             </div>
                         </TableCell>
                         <TableCell className="text-right space-x-1">
-                           {/* Activate Button (only for Pending users) */}
-                           {user.role === 'Pending' && (
+                           {/* Activate Button (only for Pending users and if manager) */}
+                           {user.role === 'Pending' && canManageUsers && (
                                <Button
                                    variant="ghost"
                                    size="icon"
-                                   onClick={() => handleActivateUser(user.id, user.username)}
-                                   disabled={isActivating || activatingUserId !== null} // Disable if any activation is in progress
-                                   aria-label={isClient ? 'Activate User' : 'Activate User'} // Add translation
+                                   onClick={() => openActivateDialog(user)}
+                                   disabled={isProcessing} // Disable if any processing is ongoing
+                                   aria-label={isClient ? usersDict.activateUserButtonLabel : defaultDict.manageUsersPage.activateUserButtonLabel}
+                                   title={isClient ? usersDict.activateUserButtonLabel : defaultDict.manageUsersPage.activateUserButtonLabel}
                                >
-                                   {isActivating ? <Loader2 className="h-4 w-4 animate-spin text-green-600" /> : <CheckCircle className="h-4 w-4 text-green-600" />}
+                                   <CheckCircle className="h-4 w-4 text-green-600" />
                                </Button>
                            )}
 
-                           {/* Edit User Button (not for Pending users) */}
-                            {user.role !== 'Pending' && (
+                           {/* Edit User Button (not for Pending users, only for managers) */}
+                            {user.role !== 'Pending' && canManageUsers && (
                                 <Button
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => openEditDialog(user)}
-                                    disabled={disableEdit}
+                                    disabled={isProcessing || disableEdit} // Also disable during processing
                                     aria-label={isClient ? usersDict.editUserButtonLabel : defaultDict.manageUsersPage.editUserButtonLabel}
+                                    title={isClient ? usersDict.editUserButtonLabel : defaultDict.manageUsersPage.editUserButtonLabel}
                                >
                                    <Edit className="h-4 w-4 text-blue-500" />
                                </Button>
                             )}
 
-                           {/* Delete User Button */}
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" disabled={disableDelete} aria-label={isClient ? usersDict.deleteUserButtonLabel : defaultDict.manageUsersPage.deleteUserButtonLabel}>
-                                 <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>{isClient ? usersDict.deleteDialogTitle : defaultDict.manageUsersPage.deleteDialogTitle}</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                   {isClient ? usersDict.deleteDialogDesc.replace('{username}', user.username) : defaultDict.manageUsersPage.deleteDialogDesc.replace('{username}', user.username)}
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>{isClient ? usersDict.deleteDialogCancel : defaultDict.manageUsersPage.deleteDialogCancel}</AlertDialogCancel>
-                                <AlertDialogAction
-                                   className="bg-destructive hover:bg-destructive/90"
-                                   onClick={() => handleDeleteUser(user.id)}>
-                                  {isClient ? usersDict.deleteDialogConfirm : defaultDict.manageUsersPage.deleteDialogConfirm}
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                           {/* Delete User Button (only for managers) */}
+                            {canManageUsers && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" disabled={isProcessing || disableDelete} aria-label={isClient ? usersDict.deleteUserButtonLabel : defaultDict.manageUsersPage.deleteUserButtonLabel} title={isClient ? usersDict.deleteUserButtonLabel : defaultDict.manageUsersPage.deleteUserButtonLabel}>
+                                     <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>{isClient ? usersDict.deleteDialogTitle : defaultDict.manageUsersPage.deleteDialogTitle}</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                       {isClient ? usersDict.deleteDialogDesc.replace('{username}', user.username) : defaultDict.manageUsersPage.deleteDialogDesc.replace('{username}', user.username)}
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel disabled={isProcessing}>{isClient ? usersDict.deleteDialogCancel : defaultDict.manageUsersPage.deleteDialogCancel}</AlertDialogCancel>
+                                    <AlertDialogAction
+                                       className="bg-destructive hover:bg-destructive/90"
+                                       onClick={() => handleDeleteUser(user.id, user.username)}
+                                       disabled={isProcessing}>
+                                        {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                      {isClient ? usersDict.deleteDialogConfirm : defaultDict.manageUsersPage.deleteDialogConfirm}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                             )}
                         </TableCell>
                       </TableRow>
                     );
@@ -581,7 +673,7 @@ export default function ManageUsersPage() {
                                 <FormLabel>{isClient ? usersDict.roleLabel : defaultDict.manageUsersPage.roleLabel}</FormLabel>
                                 <Select
                                    onValueChange={field.onChange}
-                                   defaultValue={field.value}
+                                   value={field.value} // Use controlled value
                                    disabled={(currentUser.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1)}
                                 >
                                     <FormControl>
@@ -605,16 +697,65 @@ export default function ManageUsersPage() {
                             )}
                         />
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => {setIsEditUserDialogOpen(false); setEditingUser(null);}} disabled={editUserForm.formState.isSubmitting}>{isClient ? usersDict.cancelButton : defaultDict.manageUsersPage.cancelButton}</Button>
-                            <Button type="submit" className="accent-teal" disabled={editUserForm.formState.isSubmitting || !editUserForm.formState.isDirty}>
-                                {editUserForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                {isClient ? (editUserForm.formState.isSubmitting ? usersDict.editingUserButton : usersDict.editUserSubmitButton) : defaultDict.manageUsersPage.editUserSubmitButton}
+                            <Button type="button" variant="outline" onClick={() => {setIsEditUserDialogOpen(false); setEditingUser(null);}} disabled={isProcessing}>{isClient ? usersDict.cancelButton : defaultDict.manageUsersPage.cancelButton}</Button>
+                            <Button type="submit" className="accent-teal" disabled={isProcessing || !editUserForm.formState.isDirty}>
+                                {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {isClient ? (isProcessing ? usersDict.editingUserButton : usersDict.editUserSubmitButton) : defaultDict.manageUsersPage.editUserSubmitButton}
                              </Button>
                         </DialogFooter>
                    </form>
                </Form>
           </DialogContent>
        </Dialog>
+
+       {/* Activate User Dialog */}
+       <Dialog open={isActivateUserDialogOpen} onOpenChange={(open) => { setIsActivateUserDialogOpen(open); if (!open) setActivatingUser(null); }}>
+         <DialogContent className="sm:max-w-[425px]">
+           <DialogHeader>
+             <DialogTitle>{isClient ? usersDict.activateUserDialogTitle : defaultDict.manageUsersPage.activateUserDialogTitle}</DialogTitle>
+             <DialogDescription>
+                 {isClient ? usersDict.activateUserDialogDesc.replace('{username}', activatingUser?.username || '') : defaultDict.manageUsersPage.activateUserDialogDesc.replace('{username}', activatingUser?.username || '')}
+             </DialogDescription>
+           </DialogHeader>
+           <Form {...activateUserForm}>
+             <form onSubmit={activateUserForm.handleSubmit(onActivateSubmit)} className="space-y-4 py-4">
+               {/* Role Field for Activation */}
+               <FormField
+                   control={activateUserForm.control}
+                   name="role"
+                   render={({ field }) => (
+                     <FormItem>
+                       <FormLabel>{isClient ? usersDict.roleLabel : defaultDict.manageUsersPage.roleLabel}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                           <FormControl>
+                             <SelectTrigger>
+                               <SelectValue placeholder={isClient ? usersDict.rolePlaceholder : defaultDict.manageUsersPage.rolePlaceholder} />
+                             </SelectTrigger>
+                           </FormControl>
+                           <SelectContent>
+                             {divisions.map((division) => ( // Assign from standard roles
+                               <SelectItem key={division} value={division}>
+                                 {isClient ? (usersDict.roles[division as keyof typeof usersDict.roles] || division) : (defaultDict.manageUsersPage.roles[division as keyof typeof defaultDict.manageUsersPage.roles] || division)}
+                               </SelectItem>
+                             ))}
+                           </SelectContent>
+                         </Select>
+                       <FormMessage />
+                     </FormItem>
+                   )}
+                 />
+               <DialogFooter>
+                 <Button type="button" variant="outline" onClick={() => { setIsActivateUserDialogOpen(false); setActivatingUser(null); }} disabled={isProcessing}>{isClient ? usersDict.cancelButton : defaultDict.manageUsersPage.cancelButton}</Button>
+                 <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white" disabled={isProcessing}>
+                   {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                   {isClient ? (isProcessing ? usersDict.activatingUserButton : usersDict.activateUserSubmitButton) : defaultDict.manageUsersPage.activateUserSubmitButton}
+                 </Button>
+               </DialogFooter>
+             </form>
+           </Form>
+         </DialogContent>
+       </Dialog>
+
 
     </div>
   );

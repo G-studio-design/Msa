@@ -1,3 +1,4 @@
+// src/app/dashboard/settings/page.tsx
 'use client';
 
 import * as React from 'react';
@@ -17,9 +18,17 @@ import { useLanguage } from '@/context/LanguageContext'; // Import language cont
 import { getDictionary } from '@/lib/translations'; // Import translation helper
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { Loader2 } from 'lucide-react'; // Import Loader2 icon
+import { updatePassword } from '@/services/user-service'; // Import the local service function
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
+
+// Mock current logged-in user - Replace with actual auth context data
+// In a real app, fetch this from session/token
+const currentUser = {
+    id: 'usr_7', // Example: Logged in as admin - REPLACE WITH ACTUAL USER ID
+    username: 'admin', // Example - REPLACE WITH ACTUAL USERNAME
+};
 
 export default function SettingsPage() {
    const { language, setLanguage } = useLanguage(); // Get language state and setter
@@ -34,9 +43,9 @@ export default function SettingsPage() {
    }, [language]); // Re-run if language changes
 
 
-   // State for profile update
-   const [username, setUsername] = React.useState('current_username'); // TODO: Replace with actual username from auth context
-   const [isUpdatingProfile, setIsUpdatingProfile] = React.useState(false);
+   // State for profile update - Username update disabled
+   const [username, setUsername] = React.useState(currentUser.username); // Use current user's username
+   // const [isUpdatingProfile, setIsUpdatingProfile] = React.useState(false); // No longer needed
 
    // State for password fields and submission status
    const [currentPassword, setCurrentPassword] = React.useState('');
@@ -44,7 +53,7 @@ export default function SettingsPage() {
    const [confirmPassword, setConfirmPassword] = React.useState('');
    const [isUpdatingPassword, setIsUpdatingPassword] = React.useState(false);
 
-  // TODO: Implement actual settings logic (e.g., profile update, notification prefs)
+  // TODO: Implement notification preference logic if needed
 
   const handleLanguageChange = (value: string) => {
      // Type assertion as the SelectItem values are guaranteed to be 'en' or 'id'
@@ -53,36 +62,8 @@ export default function SettingsPage() {
      toast({ title: settingsDict.toast.languageChanged, description: settingsDict.toast.languageChangedDesc });
   };
 
-  const handleProfileUpdate = async () => {
-      if (!username.trim()) {
-         toast({ variant: 'destructive', title: settingsDict.toast.error, description: settingsDict.toast.usernameRequired });
-         return;
-      }
-      // Basic validation (e.g., length) - Add more complex validation if needed
-      if (username.length < 3) {
-         toast({ variant: 'destructive', title: settingsDict.toast.error, description: settingsDict.toast.usernameTooShort });
-         return;
-      }
-
-      setIsUpdatingProfile(true);
-      console.log(`Attempting profile update for username: ${username}`);
-
-      // Simulate API call to update username
-      // TODO: Replace with actual API call - verify user, update username in DB/Auth system
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Simulate success/failure
-      const success = true; // Replace with actual API response handling
-
-      if (success) {
-          toast({ title: settingsDict.toast.success, description: settingsDict.toast.profileUpdated });
-          // Optionally update local state/context if needed, though fetching on next load might be better
-      } else {
-          toast({ variant: 'destructive', title: settingsDict.toast.error, description: settingsDict.toast.profileUpdateFailed });
-      }
-
-      setIsUpdatingProfile(false);
-  };
+  // Profile update logic removed as username change is disabled
+  // const handleProfileUpdate = async () => { ... };
 
 
   const handlePasswordUpdate = async () => {
@@ -103,28 +84,39 @@ export default function SettingsPage() {
     }
 
     setIsUpdatingPassword(true);
-    console.log('Attempting password update for current user...');
+    console.log(`Attempting password update for user ID: ${currentUser.id}`);
 
-    // Simulate API call to update password
-    // TODO: Replace with actual API call - verify currentPassword and update to newPassword
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+        // Call the local service function to update password
+        await updatePassword({
+            userId: currentUser.id,
+            currentPassword: currentPassword, // Provide current password for verification
+            newPassword: newPassword,
+        });
 
-    // Simulate success/failure (replace with actual API response handling)
-    const success = true; // Simulate success for now
-
-    if (success) {
         toast({ title: settingsDict.toast.success, description: settingsDict.toast.passwordUpdated });
+        // Clear all password fields on success
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
-    } else {
-        toast({ variant: 'destructive', title: settingsDict.toast.error, description: settingsDict.toast.passwordUpdateFailed });
-        // Don't clear current password on failure, but clear new ones
-        setNewPassword('');
-        setConfirmPassword('');
-    }
 
-    setIsUpdatingPassword(false);
+    } catch (error: any) {
+        console.error("Password update error:", error);
+        let description = settingsDict.toast.passwordUpdateFailed;
+        if (error.message === 'USER_NOT_FOUND') {
+            description = 'User not found.'; // Or a better translation
+        } else if (error.message === 'PASSWORD_MISMATCH') {
+            description = settingsDict.toast.passwordMismatchError; // Use a specific translation for mismatch
+            // Don't clear current password on mismatch, but clear new ones
+            setNewPassword('');
+            setConfirmPassword('');
+        } else {
+            description = error.message || description;
+        }
+         toast({ variant: 'destructive', title: settingsDict.toast.error, description: description });
+    } finally {
+        setIsUpdatingPassword(false);
+    }
   };
 
 
@@ -137,7 +129,7 @@ export default function SettingsPage() {
             <CardDescription>{isClient ? settingsDict.description : defaultDict.settingsPage.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-            {/* Profile Update Card */}
+            {/* Profile Info Card (Username Display Only) */}
             <Card>
                  <CardHeader>
                     <CardTitle className="text-lg">{isClient ? settingsDict.profileCardTitle : defaultDict.settingsPage.profileCardTitle}</CardTitle>
@@ -148,22 +140,14 @@ export default function SettingsPage() {
                         <Input
                            id="username"
                            value={username}
-                           onChange={(e) => setUsername(e.target.value)}
-                           placeholder={isClient ? settingsDict.usernamePlaceholder : defaultDict.settingsPage.usernamePlaceholder}
-                           disabled={isUpdatingProfile}
+                           readOnly // Make username read-only
+                           disabled // Visually indicate it's disabled
+                           className="cursor-not-allowed bg-muted/50"
                         />
-                         {/* <p className="text-xs text-muted-foreground">{settingsDict.usernameHint}</p> */}
+                         <p className="text-xs text-muted-foreground">{isClient ? settingsDict.usernameHint : defaultDict.settingsPage.usernameHint}</p>
                     </div>
-                     <Button onClick={handleProfileUpdate} disabled={isUpdatingProfile || !username.trim()}>
-                         {isUpdatingProfile ? (
-                             <>
-                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                 {isClient ? settingsDict.updatingProfileButton : defaultDict.settingsPage.updatingProfileButton}
-                             </>
-                         ) : (
-                           isClient ? settingsDict.updateProfileButton : defaultDict.settingsPage.updateProfileButton
-                         )}
-                     </Button>
+                     {/* Update Profile Button Removed */}
+                     {/* <Button onClick={handleProfileUpdate} disabled={isUpdatingProfile || !username.trim()}>...</Button> */}
                  </CardContent>
             </Card>
 
@@ -182,6 +166,7 @@ export default function SettingsPage() {
                            value={currentPassword}
                            onChange={(e) => setCurrentPassword(e.target.value)}
                            disabled={isUpdatingPassword}
+                           autoComplete="current-password"
                         />
                     </div>
                      <div className="space-y-1">
@@ -193,6 +178,7 @@ export default function SettingsPage() {
                            value={newPassword}
                            onChange={(e) => setNewPassword(e.target.value)}
                            disabled={isUpdatingPassword}
+                           autoComplete="new-password"
                         />
                     </div>
                      <div className="space-y-1">
@@ -204,6 +190,7 @@ export default function SettingsPage() {
                            value={confirmPassword}
                            onChange={(e) => setConfirmPassword(e.target.value)}
                            disabled={isUpdatingPassword}
+                           autoComplete="new-password"
                         />
                     </div>
                     <Button onClick={handlePasswordUpdate} disabled={isUpdatingPassword || !currentPassword || !newPassword || !confirmPassword}>

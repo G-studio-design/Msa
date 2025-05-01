@@ -13,23 +13,25 @@ const id = {
     redirecting: 'Mengalihkan ke dasbor...',
     fail: 'Login Gagal',
     invalidCredentials: 'Nama pengguna atau kata sandi salah.',
-    googleSignInButton: 'Masuk dengan Google', // Added
-    googleLoading: 'Sedang masuk...', // Added
-    googleSuccess: 'Masuk dengan Google Berhasil', // Added
-    googleSetupPrompt: 'Harap lengkapi detail akun Anda.', // Added
-    googleFail: 'Masuk dengan Google Gagal', // Added
-    googleErrorDefault: 'Terjadi kesalahan saat Masuk dengan Google.', // Added
-    googlePopupClosed: 'Popup masuk ditutup oleh pengguna.', // Added
-    googlePopupCancelled: 'Permintaan popup masuk dibatalkan.', // Added
-    firebaseConfigError: 'Masuk dengan Google tidak tersedia karena masalah konfigurasi. Silakan hubungi dukungan.', // Added generic user-facing error
-    firebaseErrorTitle: 'Kesalahan Konfigurasi', // Added title for the error alert
-     validation: { // Added validation structure
+    googleSignInButton: 'Masuk dengan Google',
+    googleLoading: 'Sedang masuk...',
+    googleSuccess: 'Masuk dengan Google Berhasil',
+    googleSetupPrompt: 'Harap lengkapi detail akun Anda.',
+    googleFail: 'Masuk dengan Google Gagal',
+    googleErrorDefault: 'Terjadi kesalahan saat Masuk dengan Google.',
+    googlePopupClosed: 'Popup masuk ditutup oleh pengguna.',
+    googlePopupCancelled: 'Permintaan popup masuk dibatalkan.',
+    firebaseConfigError: 'Masuk dengan Google tidak tersedia karena masalah konfigurasi. Silakan hubungi dukungan.', // Kept for potential future use
+    firebaseErrorTitle: 'Kesalahan Konfigurasi', // Kept for potential future use
+    googleSignInDisabled: 'Masuk dengan Google saat ini dinonaktifkan.', // Added
+    googleSignInHint: 'Masuk Google dinonaktifkan. Silakan gunakan nama pengguna/kata sandi.', // Added hint
+     validation: {
         usernameRequired: 'Nama pengguna wajib diisi.',
         passwordRequired: 'Kata sandi wajib diisi.',
      }
   },
   // Account Setup Page
-  accountSetup: { // Added section
+  accountSetup: {
       title: 'Siapkan Akun Anda',
       welcomeMessage: 'Selamat datang, {displayName}! Harap lengkapi pengaturan akun Anda.', // Use {displayName}
       info: 'Anda masuk dengan Google ({email}). Sekarang, buat nama pengguna dan kata sandi untuk Msaarch APP.', // Use {email}
@@ -44,7 +46,9 @@ const id = {
       successTitle: 'Pengaturan Selesai',
       successDescription: 'Akun Anda menunggu aktivasi. Admin telah diberitahu.',
       failTitle: 'Pengaturan Gagal',
+      failDescription: 'Terjadi kesalahan yang tidak diketahui saat pengaturan.', // Added default fail description
       usernameExists: 'Nama pengguna ini sudah digunakan. Silakan pilih yang lain.',
+      emailExists: 'Alamat email ini sudah terkait dengan akun lain.', // Added
       passwordMismatch: 'Kata sandi tidak cocok.',
       validation: {
           usernameMin: 'Nama pengguna minimal 3 karakter',
@@ -203,13 +207,18 @@ const id = {
     deleteDialogCancel: 'Batal',
     deleteDialogConfirm: 'Hapus Pengguna',
     cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin Umum terakhir.',
+    activateUserButtonLabel: 'Aktifkan Pengguna', // Added
+    activateUserDialogTitle: 'Aktifkan Pengguna', // Added
+    activateUserDialogDesc: 'Tetapkan peran untuk mengaktifkan pengguna "{username}".', // Added
+    activateUserSubmitButton: 'Aktifkan Pengguna', // Added
+    activatingUserButton: 'Mengaktifkan...', // Added
     roles: {
        Owner: 'Pemilik',
        'General Admin': 'Admin Umum',
        'Admin Proyek': 'Admin Proyek',
        Arsitek: 'Arsitek',
        Struktur: 'Struktur',
-       Pending: 'Menunggu Aktivasi', // Added Pending role
+       Pending: 'Menunggu Aktivasi',
      },
     toast: {
         userAdded: 'Pengguna Ditambahkan',
@@ -223,10 +232,11 @@ const id = {
         cannotDeleteSelf: 'Anda tidak dapat menghapus akun Anda sendiri.',
         cannotDeleteLastAdmin: 'Tidak dapat menghapus Admin Umum terakhir.',
         cannotChangeLastAdminRole: 'Tidak dapat mengubah peran Admin Umum terakhir.',
-        activateUserSuccess: 'Pengguna Diaktifkan', // Added
-        activateUserDesc: 'Pengguna {username} telah diaktifkan.', // Added
-        activateUserError: 'Aktivasi Gagal', // Added
-        activateUserErrorDesc: 'Tidak dapat mengaktifkan pengguna {username}.', // Added
+        activateUserSuccess: 'Pengguna Diaktifkan',
+        activateUserDesc: 'Pengguna {username} telah diaktifkan.',
+        activateUserError: 'Aktivasi Gagal',
+        activateUserErrorDesc: 'Tidak dapat mengaktifkan pengguna {username}.',
+        cannotEditPending: 'Aktifkan pengguna terlebih dahulu sebelum mengubah.', // Added
     },
     validation: {
        usernameMin: 'Nama pengguna minimal 3 karakter',

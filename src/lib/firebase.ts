@@ -20,10 +20,19 @@ const firebaseConfig = {
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let initializationError: string | null = null;
-let isFirebaseInitialized: boolean = false;
+let isFirebaseInitialized: boolean = false; // Default to false as we are disabling Firebase auth
 
+console.warn("Firebase initialization is currently disabled as the application uses local authentication.");
+initializationError = "Firebase features (like Google Sign-In) are disabled.";
+
+
+// --- FIREBASE INITIALIZATION DISABLED ---
+// The following logic is commented out because local authentication is used.
+// If you need Firebase features later, uncomment this section and ensure
+// your environment variables in .env.local are correctly set.
+
+/*
 // Check if Firebase config values are present before initializing
-// Use the standard JavaScript keys for the config object
 const requiredConfigKeys: (keyof typeof firebaseConfig)[] = [
     'apiKey',
     'authDomain',
@@ -85,6 +94,8 @@ if (!auth && isFirebaseInitialized) { // Check if auth failed even if app seemed
     // Error already logged above if config was missing or initializeApp failed
     console.warn("Firebase was not initialized. Features depending on Firebase (like Google Sign-In) will be unavailable.");
 }
+*/
+// --- END OF DISABLED FIREBASE INITIALIZATION ---
 
 
 // Export auth and potentially db, along with the initialization status

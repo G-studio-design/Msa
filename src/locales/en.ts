@@ -13,23 +13,25 @@ const en = {
     redirecting: 'Redirecting to dashboard...',
     fail: 'Login Failed',
     invalidCredentials: 'Invalid username or password.',
-    googleSignInButton: 'Sign in with Google', // Added
-    googleLoading: 'Signing in...', // Added
-    googleSuccess: 'Google Sign-In Successful', // Added
-    googleSetupPrompt: 'Please set up your account details.', // Added
-    googleFail: 'Google Sign-In Failed', // Added
-    googleErrorDefault: 'An error occurred during Google Sign-In.', // Added
-    googlePopupClosed: 'Sign-in popup closed by user.', // Added
-    googlePopupCancelled: 'Sign-in popup request cancelled.', // Added
-    firebaseConfigError: 'Google Sign-In is unavailable due to a configuration issue. Please contact support.', // Added generic user-facing error
-    firebaseErrorTitle: 'Configuration Error', // Added title for the error alert
-    validation: { // Added validation structure
+    googleSignInButton: 'Sign in with Google',
+    googleLoading: 'Signing in...',
+    googleSuccess: 'Google Sign-In Successful',
+    googleSetupPrompt: 'Please set up your account details.',
+    googleFail: 'Google Sign-In Failed',
+    googleErrorDefault: 'An error occurred during Google Sign-In.',
+    googlePopupClosed: 'Sign-in popup closed by user.',
+    googlePopupCancelled: 'Sign-in popup request cancelled.',
+    firebaseConfigError: 'Google Sign-In is unavailable due to a configuration issue. Please contact support.', // Kept for potential future use
+    firebaseErrorTitle: 'Configuration Error', // Kept for potential future use
+    googleSignInDisabled: 'Google Sign-In is currently disabled.', // Added
+    googleSignInHint: 'Google Sign-In is disabled. Please use username/password.', // Added hint
+    validation: {
         usernameRequired: 'Username is required.',
         passwordRequired: 'Password is required.',
     }
   },
   // Account Setup Page
-  accountSetup: { // Added section
+  accountSetup: {
       title: 'Set Up Your Account',
       welcomeMessage: 'Welcome, {displayName}! Please complete your account setup.', // Use {displayName}
       info: 'You signed in with Google ({email}). Now, create a username and password for Msaarch APP.', // Use {email}
@@ -44,7 +46,9 @@ const en = {
       successTitle: 'Setup Complete',
       successDescription: 'Your account is pending activation. Admins have been notified.',
       failTitle: 'Setup Failed',
+      failDescription: 'An unknown error occurred during setup.', // Added default fail description
       usernameExists: 'This username is already taken. Please choose another.',
+      emailExists: 'This email address is already associated with an account.', // Added
       passwordMismatch: 'Passwords do not match.',
       validation: {
           usernameMin: 'Username must be at least 3 characters',
@@ -203,13 +207,18 @@ const en = {
     deleteDialogCancel: 'Cancel',
     deleteDialogConfirm: 'Delete User',
     cannotChangeLastAdminRoleHint: 'Cannot change the role of the last General Admin.',
+    activateUserButtonLabel: 'Activate User', // Added
+    activateUserDialogTitle: 'Activate User', // Added
+    activateUserDialogDesc: 'Assign a role to activate user "{username}".', // Added
+    activateUserSubmitButton: 'Activate User', // Added
+    activatingUserButton: 'Activating...', // Added
     roles: {
       Owner: 'Owner',
       'General Admin': 'General Admin',
       'Admin Proyek': 'Project Admin',
       Arsitek: 'Architect',
       Struktur: 'Structure',
-      Pending: 'Pending Activation', // Added Pending role
+      Pending: 'Pending Activation',
     },
     toast: {
       userAdded: 'User Added',
@@ -223,10 +232,11 @@ const en = {
       cannotDeleteSelf: 'You cannot delete your own account.',
       cannotDeleteLastAdmin: 'Cannot delete the last General Admin.',
       cannotChangeLastAdminRole: 'Cannot change the role of the last General Admin.',
-      activateUserSuccess: 'User Activated', // Added
-      activateUserDesc: 'User {username} has been activated.', // Added
-      activateUserError: 'Activation Failed', // Added
-      activateUserErrorDesc: 'Could not activate user {username}.', // Added
+      activateUserSuccess: 'User Activated',
+      activateUserDesc: 'User {username} has been activated.',
+      activateUserError: 'Activation Failed',
+      activateUserErrorDesc: 'Could not activate user {username}.',
+      cannotEditPending: 'Activate the user first before editing.', // Added
     },
     validation: {
       usernameMin: 'Username must be at least 3 characters',
