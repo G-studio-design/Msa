@@ -1,8 +1,7 @@
-
 'use client';
 
 import type { ReactNode } from 'react';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Sheet,
@@ -226,7 +225,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
              <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-lg text-primary">
                 <Building className="h-6 w-6" />
                 {/* Use defaultDict on server, dict on client */}
-                <span>{isClient ? layoutDict?.appTitle : defaultDict?.dashboardLayout?.appTitle}</span>
+                <span>{isClient && layoutDict ? layoutDict.appTitle : defaultDict?.dashboardLayout?.appTitle}</span>
               </Link>
 
             {/* Right side actions - Notification Popover and Sheet Trigger */}
@@ -244,14 +243,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                              {unreadCount}
                            </Badge>
                        )}
-                       <span className="sr-only">{isClient ? dict?.notifications?.tooltip : defaultDict?.notifications?.tooltip}</span>
+                       <span className="sr-only">{isClient && dict?.notifications ? dict?.notifications?.tooltip : defaultDict?.notifications?.tooltip}</span>
                    </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-80 p-0"> {/* Adjusted width and removed padding */}
                   <div className="p-4 border-b">
-                      <h4 className="font-medium leading-none">{isClient ? dict?.notifications?.title : defaultDict?.notifications?.title}</h4>
+                      <h4 className="font-medium leading-none">{isClient && dict?.notifications ? dict?.notifications?.title : defaultDict?.notifications?.title}</h4>
                       <p className="text-sm text-muted-foreground">
-                        {isClient ? dict?.notifications?.description : defaultDict?.notifications?.description}
+                        {isClient && dict?.notifications ? dict?.notifications?.description : defaultDict?.notifications?.description}
                       </p>
                   </div>
                   <div className="max-h-60 overflow-y-auto"> {/* Scrollable area */}
@@ -279,7 +278,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                    ) : (
                      <div className="p-4 text-center text-sm text-muted-foreground flex flex-col items-center gap-2">
                        <MessageSquareWarning className="h-6 w-6" />
-                       {isClient ? dict?.notifications?.empty : defaultDict?.notifications?.empty}
+                       {isClient && dict?.notifications ? dict?.notifications?.empty : defaultDict?.notifications?.empty}
                      </div>
                    )}
                  </div>
@@ -292,15 +291,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <SheetTrigger asChild>
                   <Button variant="outline" size="icon">
                     <PanelRightOpen className="h-5 w-5" />
-                    <span className="sr-only">{isClient ? layoutDict?.toggleMenu : defaultDict?.dashboardLayout?.toggleMenu}</span>
+                    <span className="sr-only">{isClient && layoutDict ? layoutDict.toggleMenu : defaultDict?.dashboardLayout?.toggleMenu}</span>
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="bg-primary text-primary-foreground border-primary-foreground/20 w-[300px] sm:w-[320px] flex flex-col p-4">
                   {/* Sheet Header */}
                   <SheetHeader className="mb-4 text-left">
-                    <SheetTitle className="text-primary-foreground text-xl">{isClient ? layoutDict?.menuTitle : defaultDict?.dashboardLayout?.menuTitle}</SheetTitle>
+                    <SheetTitle className="text-primary-foreground text-xl">{isClient && layoutDict ? layoutDict.menuTitle : defaultDict?.dashboardLayout?.menuTitle}</SheetTitle>
                     <SheetDescription className="text-primary-foreground/80">
-                     {isClient ? layoutDict?.menuDescription : defaultDict?.dashboardLayout?.menuDescription}
+                     {isClient && layoutDict ? layoutDict.menuDescription : defaultDict?.dashboardLayout?.menuDescription}
                     </SheetDescription>
                   </SheetHeader>
 
@@ -379,7 +378,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                       disabled={!isClient || !currentUser} // Disable if not client or no user
                     >
                       <LogOut className="h-5 w-5" />
-                      <span>{isClient ? layoutDict?.logout : defaultDict?.dashboardLayout?.logout}</span>
+                      <span>{isClient && layoutDict ? layoutDict.logout : defaultDict?.dashboardLayout?.logout}</span>
                     </Button>
                    </div>
                 </SheetContent>

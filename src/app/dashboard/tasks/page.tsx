@@ -628,91 +628,104 @@ export default function TasksPage() {
     }
 
   // --- Render Task List View ---
-  const renderTaskList = () => (
-     <Card>
-         <CardHeader>
-             <div className="flex justify-between items-center">
-                 <div>
-                     <CardTitle className="text-2xl">{tasksDict.taskListTitle || 'Task List'}</CardTitle>
-                     <CardDescription>{tasksDict.taskListDescription || 'View and manage ongoing tasks.'}</CardDescription>
-                 </div>
-                  {/* Filter Dropdown */}
-                  <DropdownMenu>
-                       <DropdownMenuTrigger asChild>
-                           <Button variant="outline">
-                               <ListFilter className="mr-2 h-4 w-4" />
-                               {tasksDict.filterButton || 'Filter by Status'}
-                               {statusFilter.length > 0 && ` (${statusFilter.length})`}
-                           </Button>
-                       </DropdownMenuTrigger>
-                       <DropdownMenuContent className="w-56">
-                           <DropdownMenuLabel>{tasksDict.filterStatusLabel || 'Filter Statuses'}</DropdownMenuLabel>
-                           <DropdownMenuSeparator />
-                           {taskStatuses.map((status) => (
-                                <DropdownMenuCheckboxItem
-                                   key={status}
-                                   checked={statusFilter.includes(status)}
-                                   onCheckedChange={() => handleStatusFilterChange(status)}
-                                >
-                                   {getTranslatedStatus(status)}
-                                </DropdownMenuCheckboxItem>
-                           ))}
-                           {/* Option to clear filters */}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuCheckboxItem
-                                checked={statusFilter.length === 0}
-                                onCheckedChange={() => setStatusFilter([])}
-                                className="text-muted-foreground"
-                            >
-                                {tasksDict.filterClear || 'Show All'}
-                            </DropdownMenuCheckboxItem>
-                       </DropdownMenuContent>
-                   </DropdownMenu>
-             </div>
-         </CardHeader>
-         <CardContent>
-             <div className="space-y-4">
-                 {filteredTasks.length === 0 ? (
-                     <p className="text-muted-foreground text-center py-4">{tasksDict.noTasksFound || 'No tasks match the current filters.'}</p>
-                 ) : (
-                     filteredTasks.map((taskItem) => (
-                         <Card key={taskItem.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedTask(taskItem)}>
-                            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                                <div>
-                                    <CardTitle className="text-lg">{taskItem.title}</CardTitle>
-                                    <CardDescription className="text-xs text-muted-foreground">
-                                         {tasksDict.assignedLabel}: {taskItem.assignedDivision || tasksDict.none} {taskItem.nextAction ? `| ${tasksDict.nextActionLabel}: ${taskItem.nextAction}` : ''}
-                                    </CardDescription>
-                                </div>
-                                {getStatusBadge(taskItem.status)}
-                            </CardHeader>
-                            <CardContent>
-                                {taskItem.status !== 'Canceled' && taskItem.status !== 'Completed' && (
-                                    <>
-                                        <Progress value={taskItem.progress} className="w-full h-2 mb-1" />
-                                        <span className="text-xs text-muted-foreground">
-                                            {dashboardDict.progress.replace('{progress}', taskItem.progress.toString())}
-                                        </span>
-                                    </>
-                                )}
-                                {(taskItem.status === 'Canceled' || taskItem.status === 'Completed') && (
-                                    <p className={`text-sm font-medium ${taskItem.status === 'Canceled' ? 'text-destructive' : 'text-green-600'}`}>
-                                        {getTranslatedStatus(taskItem.status)}
-                                    </p>
-                                )}
-                            </CardContent>
-                             <CardFooter className="text-xs text-muted-foreground justify-end">
-                                 <span className="flex items-center gap-1">
-                                      {tasksDict.viewDetails || 'View Details'} <ArrowRight className="h-3 w-3" />
-                                 </span>
-                             </CardFooter>
-                         </Card>
-                     ))
-                 )}
-             </div>
-         </CardContent>
-     </Card>
-  );
+  const renderTaskList = () => {
+    const tasksDictSafe = dict?.tasksPage;
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="text-2xl">
+                {tasksDictSafe?.taskListTitle || 'Task List'}
+              </CardTitle>
+              <CardDescription>
+                {tasksDictSafe?.taskListDescription || 'View and manage ongoing tasks.'}
+              </CardDescription>
+            </div>
+            {/* Filter Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <ListFilter className="mr-2 h-4 w-4" />
+                  {tasksDictSafe?.filterButton || 'Filter by Status'}
+                  {statusFilter.length > 0 && ` (${statusFilter.length})`}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>{tasksDictSafe?.filterStatusLabel || 'Filter Statuses'}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {taskStatuses.map((status) => (
+                  <DropdownMenuCheckboxItem
+                    key={status}
+                    checked={statusFilter.includes(status)}
+                    onCheckedChange={() => handleStatusFilterChange(status)}
+                  >
+                    {getTranslatedStatus(status)}
+                  </DropdownMenuCheckboxItem>
+                ))}
+                {/* Option to clear filters */}
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem
+                  checked={statusFilter.length === 0}
+                  onCheckedChange={() => setStatusFilter([])}
+                  className="text-muted-foreground"
+                >
+                  {tasksDictSafe?.filterClear || 'Show All'}
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {filteredTasks.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">
+                {tasksDictSafe?.noTasksFound || 'No tasks match the current filters.'}
+              </p>
+            ) : (
+              filteredTasks.map((taskItem) => (
+                <Card
+                  key={taskItem.id}
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => setSelectedTask(taskItem)}
+                >
+                  <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                    <div>
+                      <CardTitle className="text-lg">{taskItem.title}</CardTitle>
+                      <CardDescription className="text-xs text-muted-foreground">
+                        {tasksDictSafe?.assignedLabel}: {taskItem.assignedDivision || tasksDictSafe?.none} {taskItem.nextAction ? `| ${tasksDictSafe?.nextActionLabel}: ${taskItem.nextAction}` : ''}
+                      </CardDescription>
+                    </div>
+                    {getStatusBadge(taskItem.status)}
+                  </CardHeader>
+                  <CardContent>
+                    {taskItem.status !== 'Canceled' && taskItem.status !== 'Completed' && (
+                      <>
+                        <Progress value={taskItem.progress} className="w-full h-2 mb-1" />
+                        <span className="text-xs text-muted-foreground">
+                          {dashboardDict.progress.replace('{progress}', taskItem.progress.toString())}
+                        </span>
+                      </>
+                    )}
+                    {(taskItem.status === 'Canceled' || taskItem.status === 'Completed') && (
+                      <p className={`text-sm font-medium ${taskItem.status === 'Canceled' ? 'text-destructive' : 'text-green-600'}`}>
+                        {getTranslatedStatus(taskItem.status)}
+                      </p>
+                    )}
+                  </CardContent>
+                  <CardFooter className="text-xs text-muted-foreground justify-end">
+                    <span className="flex items-center gap-1">
+                      {tasksDictSafe?.viewDetails || 'View Details'} <ArrowRight className="h-3 w-3" />
+                    </span>
+                  </CardFooter>
+                </Card>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   // --- Render Selected Task Detail View ---
   const renderSelectedTaskDetail = (task: Task) => (
