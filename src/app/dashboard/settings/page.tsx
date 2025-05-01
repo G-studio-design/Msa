@@ -85,16 +85,18 @@ export default function SettingsPage() {
   // Handle profile picture change
    const handleProfilePictureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
        const file = event.target.files?.[0];
+
        if (file) {
            console.log("New profile picture selected:", file.name);
            setSelectedFile(file); // Store the file object
 
-           // Check if FileReader is available
+           // Check if FileReader is available (client-side only)
            if (typeof window !== 'undefined' && window.FileReader) {
-               const reader = new FileReader();
-                console.log("FileReader instance created:", reader); // Debug log
+               const reader = new FileReader(); // Instantiate FileReader here
+               console.log("FileReader instance created:", reader); // Debug log
 
                reader.onloadend = () => {
+                   console.log("File read finished. Result type:", typeof reader.result);
                    // Ensure result is a string before setting state
                    if (typeof reader.result === 'string') {
                        setProfilePicturePreview(reader.result);
@@ -113,35 +115,38 @@ export default function SettingsPage() {
                };
 
                try {
-                   // Explicitly check if readDataURL is a function on the instance
-                    if (typeof reader.readDataURL === 'function') {
-                        console.log("Attempting to call reader.readDataURL..."); // Debug log
-                        reader.readDataURL(file);
-                    } else {
-                        console.error("reader.readDataURL is not a function on the FileReader instance.");
-                        throw new Error("FileReader.readDataURL is not available.");
-                    }
+                   // Verify readAsDataURL method exists before calling
+                   if (typeof reader.readAsDataURL === 'function') {
+                       console.log("Attempting to call reader.readAsDataURL..."); // Debug log
+                       reader.readAsDataURL(file); // Call the method
+                   } else {
+                       // This case should ideally not be reached if the FileReader constructor succeeded
+                       // but added as a safeguard.
+                       console.error("readAsDataURL method not found on FileReader instance.");
+                       throw new Error("FileReader.readAsDataURL is not available.");
+                   }
                } catch (e) {
-                   console.error("Error calling readDataURL:", e);
+                   console.error("Error calling readAsDataURL:", e);
                    setProfilePicturePreview(null); // Reset preview on error
                    toast({ variant: 'destructive', title: settingsDict.toast.error, description: 'Could not process the selected file.' });
                }
            } else {
-               // FileReader API not supported
+               // FileReader API not supported or not client-side
                console.error("FileReader API is not available in this environment.");
                setSelectedFile(null); // Reset file selection
                toast({ variant: 'destructive', title: 'Browser Error', description: 'Your browser does not support file reading for preview.' });
            }
        } else {
-            // No file selected or selection cancelled
-            setSelectedFile(null);
-            setProfilePicturePreview(null);
-            console.log("No file selected or selection cancelled.");
+           // No file selected or selection cancelled
+           setSelectedFile(null);
+           setProfilePicturePreview(null);
+           console.log("No file selected or selection cancelled.");
        }
-        // Reset the input value to allow selecting the same file again if needed
-        if (event.target) { // Add null check for event.target
-            event.target.value = '';
-        }
+
+       // Reset the input value to allow selecting the same file again if needed
+       if (event.target) {
+           event.target.value = '';
+       }
    };
 
 
