@@ -122,6 +122,14 @@ const id = {
     workflowHistoryDesc: 'Garis waktu tindakan yang diambil.',
     loadingHistory: 'Memuat riwayat...',
     historyActionBy: '{action} oleh {division}',
+    taskListTitle: 'Daftar Tugas', // Added
+    taskListDescription: 'Lihat dan kelola tugas yang sedang berjalan.', // Added
+    filterButton: 'Filter berdasarkan Status', // Added
+    filterStatusLabel: 'Filter Status', // Added
+    filterClear: 'Tampilkan Semua', // Added
+    noTasksFound: 'Tidak ada tugas yang cocok dengan filter saat ini.', // Added
+    viewDetails: 'Lihat Detail', // Added
+    backToList: 'Kembali ke Daftar', // Added
      toast: {
         permissionDenied: 'Izin Ditolak',
         notYourTurn: 'Bukan giliran Anda untuk memperbarui progres.',
@@ -259,7 +267,7 @@ const id = {
    // Admin Actions Page
    adminActionsPage: {
        title: 'Tindakan Admin - Ubah Judul Tugas',
-       description: 'Pengguna dengan izin yang sesuai (Pemilik, Admin Umum, Admin Proyek) dapat mengubah judul tugas di sini.',
+       description: 'Pengguna dengan izin yang sesuai (Pemilik, Admin Umum) dapat mengubah judul tugas di sini.', // Removed Admin Proyek
        tableHeaderId: 'ID Tugas',
        tableHeaderTitle: 'Judul Saat Ini',
        tableHeaderStatus: 'Status',

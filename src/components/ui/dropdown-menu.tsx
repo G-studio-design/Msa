@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -95,7 +96,7 @@ DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName
 const DropdownMenuCheckboxItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.CheckboxItem>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.CheckboxItem>
->(({ className, children, checked, ...props }, ref) => (
+>(({ className, children, checked, onSelect, ...props }, ref) => ( // Added onSelect prop
   <DropdownMenuPrimitive.CheckboxItem
     ref={ref}
     className={cn(
@@ -103,6 +104,10 @@ const DropdownMenuCheckboxItem = React.forwardRef<
       className
     )}
     checked={checked}
+    onSelect={(event) => { // Prevent default behavior which closes the menu
+        event.preventDefault();
+        onSelect && onSelect(event); // Call original onSelect if provided
+    }}
     {...props}
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">

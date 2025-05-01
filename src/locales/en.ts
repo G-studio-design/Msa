@@ -122,6 +122,14 @@ const en = {
     workflowHistoryDesc: 'Timeline of actions taken.',
     loadingHistory: 'Loading history...',
     historyActionBy: '{action} by {division}',
+    taskListTitle: 'Task List', // Added
+    taskListDescription: 'View and manage ongoing tasks.', // Added
+    filterButton: 'Filter by Status', // Added
+    filterStatusLabel: 'Filter Statuses', // Added
+    filterClear: 'Show All', // Added
+    noTasksFound: 'No tasks match the current filters.', // Added
+    viewDetails: 'View Details', // Added
+    backToList: 'Back to List', // Added
     toast: {
       permissionDenied: 'Permission Denied',
       notYourTurn: 'Not your turn to update progress.',
@@ -259,7 +267,7 @@ const en = {
   // Admin Actions Page
   adminActionsPage: {
       title: 'Admin Actions - Modify Task Titles',
-      description: 'Users with appropriate permissions (Owner, General Admin, Admin Proyek) can modify task titles here.',
+      description: 'Users with appropriate permissions (Owner, General Admin) can modify task titles here.', // Removed Admin Proyek
       tableHeaderId: 'Task ID',
       tableHeaderTitle: 'Current Title',
       tableHeaderStatus: 'Status',
