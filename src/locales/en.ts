@@ -13,6 +13,9 @@ const en = {
     redirecting: 'Redirecting to dashboard...',
     fail: 'Login Failed',
     invalidCredentials: 'Invalid username or password.',
+    bypassButton: 'Bypass Login as Admin (Dev)', // New
+    bypassTitle: 'Bypass Login', // New
+    bypassing: 'Bypassing...', // New
     // Google related translations removed
     validation: {
         usernameRequired: 'Username is required.',
@@ -58,6 +61,14 @@ const en = {
       canceled: 'Canceled',
       pending: 'Pending',
       scheduled: 'Scheduled',
+      pendinginput: 'Pending Input', // Added status if needed
+      pendingoffer: 'Pending Offer', // Added status if needed
+      pendingdpinvoice: 'Pending DP Invoice', // Added status if needed
+      pendingadminfiles: 'Pending Admin Files', // Added status if needed
+      pendingarchitectfiles: 'Pending Architect Files', // Added status if needed
+      pendingstructurefiles: 'Pending Structure Files', // Added status if needed
+      pendingfinalcheck: 'Pending Final Check', // Added status if needed
+      pendingscheduling: 'Pending Scheduling', // Added status if needed
     },
     progress: '{progress}% Complete',
   },

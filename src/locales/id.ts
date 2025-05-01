@@ -13,6 +13,9 @@ const id = {
     redirecting: 'Mengalihkan ke dasbor...',
     fail: 'Login Gagal',
     invalidCredentials: 'Nama pengguna atau kata sandi salah.',
+    bypassButton: 'Lewati Login sebagai Admin (Dev)', // New
+    bypassTitle: 'Lewati Login', // New
+    bypassing: 'Melewati...', // New
     // Google related translations removed
      validation: {
         usernameRequired: 'Nama pengguna wajib diisi.',
@@ -58,6 +61,14 @@ const id = {
       canceled: 'Dibatalkan',
       pending: 'Tertunda',
       scheduled: 'Terjadwal',
+      pendinginput: 'Menunggu Input', // Added status if needed
+      pendingoffer: 'Menunggu Penawaran', // Added status if needed
+      pendingdpinvoice: 'Menunggu Faktur DP', // Added status if needed
+      pendingadminfiles: 'Menunggu File Admin', // Added status if needed
+      pendingarchitectfiles: 'Menunggu File Arsitek', // Added status if needed
+      pendingstructurefiles: 'Menunggu File Struktur', // Added status if needed
+      pendingfinalcheck: 'Menunggu Pemeriksaan Akhir', // Added status if needed
+      pendingscheduling: 'Menunggu Penjadwalan', // Added status if needed
     },
      progress: '{progress}% Selesai',
   },

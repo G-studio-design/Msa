@@ -19,7 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { LogIn, Loader2 } from 'lucide-react'; // Import Loader2
+import { LogIn, Loader2, ShieldCheck } from 'lucide-react'; // Import Loader2 and ShieldCheck
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
@@ -42,6 +42,8 @@ export default function LoginPage() {
   const { language } = useLanguage();
   const [dict, setDict] = React.useState(defaultDict.login);
   const [isClient, setIsClient] = React.useState(false);
+  const [isBypassing, setIsBypassing] = React.useState(false); // State for bypass button
+
   // isGoogleLoading and firebaseError state removed
 
   React.useEffect(() => {
@@ -106,6 +108,20 @@ export default function LoginPage() {
     }
   };
 
+  const handleBypassLogin = () => {
+      setIsBypassing(true);
+      console.log('Bypassing login as admin (Development Only)');
+      toast({
+          title: isClient ? dict.bypassTitle : defaultDict.login.bypassTitle,
+          description: isClient ? dict.redirecting : defaultDict.login.redirecting,
+          variant: 'default', // Use default variant for bypass toast
+          duration: 2000, // Shorter duration
+      });
+      // Simulate successful login redirection
+      router.push('/dashboard');
+      // No actual user verification or session creation happens here
+  };
+
   // handleGoogleSignIn function removed
 
   return (
@@ -151,10 +167,25 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full accent-teal" disabled={form.formState.isSubmitting}>
+              <Button type="submit" className="w-full accent-teal" disabled={form.formState.isSubmitting || isBypassing}>
                 {form.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
                  {isClient ? (form.formState.isSubmitting ? dict.loggingIn : dict.loginButton) : defaultDict.login.loginButton}
               </Button>
+
+              {/* Bypass Login Button - Development Only */}
+               {process.env.NODE_ENV === 'development' && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full mt-2"
+                    onClick={handleBypassLogin}
+                    disabled={isBypassing || form.formState.isSubmitting}
+                  >
+                    {isBypassing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
+                     {isClient ? (isBypassing ? dict.bypassing : dict.bypassButton) : defaultDict.login.bypassButton}
+                  </Button>
+                )}
+
             </form>
           </Form>
 
