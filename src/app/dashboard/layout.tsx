@@ -42,6 +42,7 @@ import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { useRouter } from 'next/navigation'; // Import useRouter for navigation
+import { cn } from '@/lib/utils'; // Import cn utility
 
 // Define a type for notifications
 interface Notification {
@@ -398,3 +399,5 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
+    
