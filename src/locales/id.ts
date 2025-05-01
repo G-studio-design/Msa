@@ -1,7 +1,7 @@
 const id = {
   // Login Page
   login: {
-    title: 'Login Manajer Proyek Saya', // Updated title
+    title: 'Login Msaarch APP', // Updated title
     usernameLabel: 'Nama Pengguna',
     usernamePlaceholder: 'Masukkan nama pengguna Anda',
     passwordLabel: 'Kata Sandi',
@@ -23,7 +23,7 @@ const id = {
     adminActions: 'Tindakan Admin',
     settings: 'Pengaturan',
     logout: 'Keluar',
-    appTitle: 'Manajer Proyek Saya', // Updated application title
+    appTitle: 'Msaarch APP', // Updated application title
     toggleMenu: 'Buka/Tutup Panel Menu',
   },
   // Dashboard Page

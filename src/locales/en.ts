@@ -1,7 +1,7 @@
 const en = {
   // Login Page
   login: {
-    title: 'My Project Manager Login', // Updated title
+    title: 'Msaarch APP Login', // Updated title
     usernameLabel: 'Username',
     usernamePlaceholder: 'Enter your username',
     passwordLabel: 'Password',
@@ -23,7 +23,7 @@ const en = {
     adminActions: 'Admin Actions',
     settings: 'Settings',
     logout: 'Logout',
-    appTitle: 'My Project Manager', // Updated application title
+    appTitle: 'Msaarch APP', // Updated application title
     toggleMenu: 'Toggle Menu Panel',
   },
   // Dashboard Page
