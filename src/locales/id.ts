@@ -150,6 +150,26 @@ const id = {
         couldNotFindSchedule: 'Tidak dapat menemukan informasi penjadwalan.',
       }
   },
+   // Add Task Page
+   addTaskPage: {
+       title: 'Buat Tugas Baru',
+       description: 'Masukkan judul proyek dan unggah file awal (Hanya Pemilik/Admin Umum).',
+       titleLabel: 'Judul Proyek',
+       titlePlaceholder: 'Masukkan judul proyek lengkap',
+       filesLabel: 'File Awal (Opsional)',
+       filesHint: 'Unggah dokumen awal atau brief terkait proyek.',
+       createButton: 'Buat Tugas',
+       creatingButton: 'Membuat...',
+       accessDenied: 'Anda tidak memiliki izin untuk menambahkan tugas baru.',
+       toast: {
+           success: 'Tugas Dibuat',
+           successDesc: 'Tugas "{title}" berhasil ditambahkan. Pemilik diberitahu untuk input.',
+           error: 'Gagal Membuat Tugas',
+       },
+       validation: {
+           titleMin: 'Judul proyek minimal 5 karakter.',
+       }
+   },
   // Manage Users Page
   manageUsersPage: {
     title: 'Kelola Pengguna',

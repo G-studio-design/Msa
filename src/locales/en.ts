@@ -150,6 +150,26 @@ const en = {
       couldNotFindSchedule: 'Could not find scheduling information.',
     }
   },
+  // Add Task Page
+  addTaskPage: {
+      title: 'Create New Task',
+      description: 'Enter the project title and upload initial files (Owner/General Admin only).',
+      titleLabel: 'Project Title',
+      titlePlaceholder: 'Enter the full project title',
+      filesLabel: 'Initial Files (Optional)',
+      filesHint: 'Upload any initial documents or briefs related to the project.',
+      createButton: 'Create Task',
+      creatingButton: 'Creating...',
+      accessDenied: 'You do not have permission to add new tasks.',
+      toast: {
+          success: 'Task Created',
+          successDesc: 'Task "{title}" added successfully. Owner notified for input.',
+          error: 'Failed to Create Task',
+      },
+      validation: {
+          titleMin: 'Project title must be at least 5 characters.',
+      }
+  },
   // Manage Users Page
   manageUsersPage: {
     title: 'Manage Users',

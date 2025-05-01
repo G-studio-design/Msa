@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Label } from '@/components/ui/label'; // Keep Label if needed elsewhere, but Input has implicit label linking
 import {
   Table,
   TableBody,
@@ -21,21 +21,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Edit, Save, XCircle, Loader2 } from 'lucide-react'; // Added Loader2
-import { useLanguage } from '@/context/LanguageContext'; // Import language context
-import { getDictionary } from '@/lib/translations'; // Import translation helper
-import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
-import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
+import { Edit, Save, XCircle, Loader2 } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
+import { getDictionary } from '@/lib/translations';
+import { useAuth } from '@/context/AuthContext';
+import { Skeleton } from '@/components/ui/skeleton';
+import { getAllTasks, updateTaskTitle, type Task } from '@/services/task-service'; // Import task service
 
-// Mock data - Replace with actual data fetching based on user role and permissions
-const initialTasks = [
-  { id: 1, title: "Project Alpha - Phase 1", status: "Completed" },
-  { id: 2, title: "Project Beta - Design Specs", status: "In Progress" },
-  { id: 3, title: "Project Gamma - Offer Prep", status: "Pending Approval" },
-  { id: 4, title: "Project Delta - Structure Plan", status: "Delayed" },
-  { id: 5, title: "Project Epsilon - Canceled", status: "Canceled" },
-  { id: 6, title: "Project Zeta - Admin Setup", status: "Pending" },
-];
+// Mock data removed - will fetch from service
+// const initialTasks = [...];
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -49,18 +43,33 @@ export default function AdminActionsPage() {
   const [adminDict, setAdminDict] = React.useState(defaultDict.adminActionsPage); // Specific dictionary section
   const [dashboardDict, setDashboardDict] = React.useState(defaultDict.dashboardPage); // For status translation
 
-  const [tasks, setTasks] = React.useState(initialTasks); // Replace with fetched data
-  const [isLoadingTasks, setIsLoadingTasks] = React.useState(false); // Loading state
-  const [editingTaskId, setEditingTaskId] = React.useState<number | null>(null);
+  const [tasks, setTasks] = React.useState<Task[]>([]); // State to hold fetched tasks
+  const [isLoadingTasks, setIsLoadingTasks] = React.useState(true); // Loading state
+  const [editingTaskId, setEditingTaskId] = React.useState<string | null>(null); // Use string ID
   const [newTitle, setNewTitle] = React.useState('');
   const [isSaving, setIsSaving] = React.useState(false); // Saving state
 
    React.useEffect(() => {
-       setIsClient(true); // Component has mounted client-side
-       // TODO: Fetch tasks if needed
-       // setIsLoadingTasks(true);
-       // fetchAdminTasks().then(data => { setTasks(data); setIsLoadingTasks(false); });
-   }, []);
+        setIsClient(true);
+        // Fetch tasks when component mounts and user is loaded
+        const fetchTasks = async () => {
+             if (currentUser && ['Owner', 'General Admin', 'Admin Proyek'].includes(currentUser.role)) {
+                 setIsLoadingTasks(true);
+                 try {
+                     const fetchedTasks = await getAllTasks();
+                     setTasks(fetchedTasks);
+                 } catch (error) {
+                     console.error("Failed to fetch tasks for admin actions:", error);
+                     toast({ variant: 'destructive', title: 'Error', description: 'Could not load task data.' });
+                 } finally {
+                     setIsLoadingTasks(false);
+                 }
+             } else {
+                setIsLoadingTasks(false); // No need to load if no permission
+             }
+        };
+        fetchTasks();
+   }, [currentUser, toast]); // Re-run if user changes
 
    React.useEffect(() => {
         const newDict = getDictionary(language); // Update dictionary when language changes
@@ -69,7 +78,7 @@ export default function AdminActionsPage() {
         setDashboardDict(newDict.dashboardPage);
    }, [language]);
 
-  const handleEditClick = (taskId: number, currentTitle: string) => {
+  const handleEditClick = (taskId: string, currentTitle: string) => {
     setEditingTaskId(taskId);
     setNewTitle(currentTitle);
   };
@@ -79,7 +88,7 @@ export default function AdminActionsPage() {
     setNewTitle('');
   };
 
-  const handleSaveTitle = (taskId: number) => {
+  const handleSaveTitle = async (taskId: string) => { // Make async
     if (!newTitle.trim()) {
       toast({ variant: 'destructive', title: adminDict.toast.error, description: adminDict.toast.titleEmpty });
       return;
@@ -87,19 +96,23 @@ export default function AdminActionsPage() {
 
     setIsSaving(true); // Start saving indicator
     console.log(`Saving new title for task ${taskId}: ${newTitle}`);
-    // Simulate API call to update task title
-    new Promise(resolve => setTimeout(resolve, 800)).then(() => {
-      // TODO: Implement actual API call to update task title
-      setTasks(
-        tasks.map((task) =>
-          task.id === taskId ? { ...task, title: newTitle } : task
-        )
-      );
-      toast({ title: adminDict.toast.titleUpdated, description: adminDict.toast.titleUpdatedDesc.replace('{id}', taskId.toString()) });
-      handleCancelEdit(); // Exit editing mode
-    }).finally(() => {
+
+    try {
+        await updateTaskTitle(taskId, newTitle); // Use service function
+        // Update local state optimistically or re-fetch
+        setTasks(
+            tasks.map((task) =>
+            task.id === taskId ? { ...task, title: newTitle } : task
+            )
+        );
+        toast({ title: adminDict.toast.titleUpdated, description: adminDict.toast.titleUpdatedDesc.replace('{id}', taskId) });
+        handleCancelEdit(); // Exit editing mode
+    } catch (error: any) {
+        console.error("Failed to update task title:", error);
+        toast({ variant: 'destructive', title: adminDict.toast.error, description: error.message || 'Failed to save title.' });
+    } finally {
         setIsSaving(false); // Stop saving indicator
-    });
+    }
   };
 
    // Helper function to get translated status
@@ -166,16 +179,7 @@ export default function AdminActionsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoadingTasks ? (
-                 [...Array(3)].map((_, i) => (
-                     <TableRow key={`skel-${i}`}>
-                         <TableCell><Skeleton className="h-4 w-8" /></TableCell>
-                         <TableCell><Skeleton className="h-4 w-3/4" /></TableCell>
-                         <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                         <TableCell className="text-right"><Skeleton className="h-8 w-8 inline-block" /></TableCell>
-                     </TableRow>
-                 ))
-               ) : tasks.length === 0 ? (
+              {tasks.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center text-muted-foreground">
                     {isClient ? adminDict.noTasks : defaultDict.adminActionsPage.noTasks}
@@ -184,7 +188,7 @@ export default function AdminActionsPage() {
               ) : (
                 tasks.map((task) => (
                   <TableRow key={task.id}>
-                    <TableCell>{task.id}</TableCell>
+                    <TableCell className="text-xs font-mono">{task.id}</TableCell> {/* Display full ID */}
                     <TableCell className="font-medium">
                       {editingTaskId === task.id ? (
                         <Input
