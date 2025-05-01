@@ -75,8 +75,8 @@ export default function TasksPage() {
   const { currentUser } = useAuth(); // Get current user from AuthContext
   const [isClient, setIsClient] = React.useState(false); // State to track client-side mount
   const [dict, setDict] = React.useState(() => getDictionary(language)); // Initialize dict directly
-  const tasksDict = dict.tasksPage; // Specific dictionary section
-  const dashboardDict = dict.dashboardPage; // For status translation
+  const [tasksDict, setTasksDict] = React.useState(() => dict.tasksPage); // Specific dictionary section
+  const [dashboardDict, setDashboardDict] = React.useState(() => dict.dashboardPage); // For status translation
 
   const [allTasks, setAllTasks] = React.useState<Task[]>([]); // State to hold ALL fetched tasks
   const [isLoadingTasks, setIsLoadingTasks] = React.useState(true); // State for loading task data
@@ -114,8 +114,12 @@ export default function TasksPage() {
   }, [currentUser, toast]);
 
   React.useEffect(() => {
-    setDict(getDictionary(language)); // Update dictionary when language changes
+      const newDict = getDictionary(language); // Update dictionary when language changes
+      setDict(newDict);
+      setTasksDict(newDict.tasksPage);
+      setDashboardDict(newDict.dashboardPage);
   }, [language]);
+
 
   // Helper function to format dates client-side
   const formatTimestamp = (timestamp: string): string => {
@@ -161,7 +165,8 @@ export default function TasksPage() {
 
   // Helper to get translated status
     const getTranslatedStatus = (statusKey: string): string => {
-        if (!isClient || !dashboardDict || !dashboardDict.status) return '...';
+        // Check if dashboardDict and dashboardDict.status are available
+        if (!isClient || !dashboardDict || !dashboardDict.status) return statusKey; // Return original key if dict not ready
         const key = statusKey?.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
         return dashboardDict.status[key] || statusKey; // Fallback to original key if not found
     }
@@ -169,6 +174,12 @@ export default function TasksPage() {
       // Helper function to get status icon and color using translated status (similar to dashboard)
   const getStatusBadge = (status: string) => {
     if (!isClient || !status) return <Skeleton className="h-5 w-20" />; // Skeleton during hydration mismatch check or if status is missing
+
+    // Ensure dashboardDict and dashboardDict.status are available
+    if (!dashboardDict || !dashboardDict.status) {
+      return <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />{status}</Badge>; // Fallback badge
+    }
+
     const statusKey = status.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
     const translatedStatus = dashboardDict.status[statusKey] || status; // Fallback to original
 
@@ -248,7 +259,7 @@ export default function TasksPage() {
     }
 
     // Admins Proyek MUST upload at least one offer file. Other roles continue to have description as optional
-    if (selectedTask.assignedDivision === 'Admin Proyek' && uploadedFiles.length === 0) {
+    if (selectedTask.assignedDivision === 'Admin Proyek' && selectedTask.status === 'Pending Offer' && uploadedFiles.length === 0) {
       toast({ variant: 'destructive', title: tasksDict.toast.missingInput, description: tasksDict.toast.provideOfferFile });
       return;
     }
@@ -629,17 +640,25 @@ export default function TasksPage() {
 
   // --- Render Task List View ---
   const renderTaskList = () => {
-    const tasksDictSafe = dict?.tasksPage;
+    // Ensure tasksDict is available before rendering
+    if (!tasksDict) {
+        return (
+            <div className="container mx-auto py-4 space-y-6">
+                <Card><CardHeader><Skeleton className="h-7 w-3/5 mb-2" /></CardHeader></Card>
+            </div>
+        ); // Or some other loading state
+    }
+
     return (
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
               <CardTitle className="text-2xl">
-                {tasksDictSafe?.taskListTitle || 'Task List'}
+                {tasksDict.taskListTitle || 'Task List'}
               </CardTitle>
               <CardDescription>
-                {tasksDictSafe?.taskListDescription || 'View and manage ongoing tasks.'}
+                {tasksDict.taskListDescription || 'View and manage ongoing tasks.'}
               </CardDescription>
             </div>
             {/* Filter Dropdown */}
@@ -647,12 +666,12 @@ export default function TasksPage() {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">
                   <ListFilter className="mr-2 h-4 w-4" />
-                  {tasksDictSafe?.filterButton || 'Filter by Status'}
+                  {tasksDict.filterButton || 'Filter by Status'}
                   {statusFilter.length > 0 && ` (${statusFilter.length})`}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>{tasksDictSafe?.filterStatusLabel || 'Filter Statuses'}</DropdownMenuLabel>
+                <DropdownMenuLabel>{tasksDict.filterStatusLabel || 'Filter Statuses'}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {taskStatuses.map((status) => (
                   <DropdownMenuCheckboxItem
@@ -670,7 +689,7 @@ export default function TasksPage() {
                   onCheckedChange={() => setStatusFilter([])}
                   className="text-muted-foreground"
                 >
-                  {tasksDictSafe?.filterClear || 'Show All'}
+                  {tasksDict.filterClear || 'Show All'}
                 </DropdownMenuCheckboxItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -680,7 +699,7 @@ export default function TasksPage() {
           <div className="space-y-4">
             {filteredTasks.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">
-                {tasksDictSafe?.noTasksFound || 'No tasks match the current filters.'}
+                {tasksDict.noTasksFound || 'No tasks match the current filters.'}
               </p>
             ) : (
               filteredTasks.map((taskItem) => (
@@ -693,7 +712,7 @@ export default function TasksPage() {
                     <div>
                       <CardTitle className="text-lg">{taskItem.title}</CardTitle>
                       <CardDescription className="text-xs text-muted-foreground">
-                        {tasksDictSafe?.assignedLabel}: {taskItem.assignedDivision || tasksDictSafe?.none} {taskItem.nextAction ? `| ${tasksDictSafe?.nextActionLabel}: ${taskItem.nextAction}` : ''}
+                        {tasksDict.assignedLabel}: {taskItem.assignedDivision || tasksDict.none} {taskItem.nextAction ? `| ${tasksDict.nextActionLabel}: ${taskItem.nextAction}` : ''}
                       </CardDescription>
                     </div>
                     {getStatusBadge(taskItem.status)}
@@ -703,7 +722,7 @@ export default function TasksPage() {
                       <>
                         <Progress value={taskItem.progress} className="w-full h-2 mb-1" />
                         <span className="text-xs text-muted-foreground">
-                          {dashboardDict.progress.replace('{progress}', taskItem.progress.toString())}
+                          {dashboardDict?.progress?.replace('{progress}', taskItem.progress.toString()) ?? `${taskItem.progress}%`}
                         </span>
                       </>
                     )}
@@ -715,7 +734,7 @@ export default function TasksPage() {
                   </CardContent>
                   <CardFooter className="text-xs text-muted-foreground justify-end">
                     <span className="flex items-center gap-1">
-                      {tasksDictSafe?.viewDetails || 'View Details'} <ArrowRight className="h-3 w-3" />
+                      {tasksDict.viewDetails || 'View Details'} <ArrowRight className="h-3 w-3" />
                     </span>
                   </CardFooter>
                 </Card>
@@ -728,240 +747,249 @@ export default function TasksPage() {
   };
 
   // --- Render Selected Task Detail View ---
-  const renderSelectedTaskDetail = (task: Task) => (
-    <>
-     <Button variant="outline" onClick={() => setSelectedTask(null)} className="mb-4">
-        &larr; {tasksDict.backToList || 'Back to List'}
-     </Button>
-     <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-             <div>
-               {/* TODO: Allow editing title for Owner, GA, PA */}
-                <CardTitle className="text-2xl">{task.title}</CardTitle>
-                <CardDescription>
-                    {tasksDict.statusLabel}: {getStatusBadge(task.status)} | {tasksDict.nextActionLabel}: {task.nextAction || tasksDict.none} | {tasksDict.assignedLabel}: {task.assignedDivision || tasksDict.none}
-                </CardDescription>
-              </div>
-                <div className="text-right">
-                    <div className="text-sm font-medium">{tasksDict.progressLabel}</div>
-                    <Progress value={task.progress} className="w-32 h-2 mt-1" />
-                    <span className="text-xs text-muted-foreground">{dashboardDict.progress.replace('{progress}', task.progress.toString())}</span>
-                </div>
-          </div>
-        </CardHeader>
+  const renderSelectedTaskDetail = (task: Task) => {
+      // Ensure tasksDict is available
+       if (!tasksDict) {
+           return <Skeleton className="h-64 w-full" />; // Or some loading state
+       }
 
-        {/* Action Section */}
-        <CardContent>
-          {showUploadSection && (
-            <div className="space-y-4 border-t pt-4">
-              <h3 className="text-lg font-semibold">{tasksDict.uploadProgressTitle.replace('{role}', currentUser!.role)}</h3> {/* Non-null assertion */}
-              <div className="grid w-full items-center gap-1.5">
-                <Label htmlFor="description">{tasksDict.descriptionLabel}</Label>
-                <Textarea
-                  id="description"
-                  placeholder={tasksDict.descriptionPlaceholder.replace('{division}', task.assignedDivision)}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-              <div className="grid w-full items-center gap-1.5">
-                <Label htmlFor="picture">{tasksDict.attachFilesLabel}</Label>
-                <Input id="picture" type="file" multiple onChange={handleFileChange} disabled={isSubmitting} />
-              </div>
-              {uploadedFiles.length > 0 && (
-                <div className="space-y-2 rounded-md border p-3">
-                  <Label>{tasksDict.selectedFilesLabel}</Label>
-                  <ul className="list-disc list-inside text-sm space-y-1 max-h-32 overflow-y-auto">
-                    {uploadedFiles.map((file, index) => (
-                       <li key={index} className="flex items-center justify-between group">
-                           <span className="truncate max-w-xs text-muted-foreground group-hover:text-foreground">
-                             {file.name} <span className="text-xs">({(file.size / 1024).toFixed(1)} KB)</span>
-                           </span>
-                          <Button
-                               variant="ghost"
-                               size="sm"
-                               type="button" // Prevent form submission
-                               onClick={() => removeFile(index)}
-                               disabled={isSubmitting}
-                               className="opacity-50 group-hover:opacity-100"
-                           >
-                             <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                       </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <Button onClick={handleProgressSubmit} disabled={isSubmitting || (!description && uploadedFiles.length === 0)}>
-                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                 {isSubmitting ? tasksDict.submittingButton : tasksDict.submitButton}
-              </Button>
-            </div>
-          )}
-
-           {showOwnerDecisionSection && (
-             <div className="space-y-4 border-t pt-4">
-               <h3 className="text-lg font-semibold">{tasksDict.ownerActionTitle}</h3>
-               <p className="text-sm text-muted-foreground">{tasksDict.ownerActionDesc}</p>
-                <div className="flex gap-4">
-                   <AlertDialog>
-                     <AlertDialogTrigger asChild>
-                       <Button variant="outline" disabled={isSubmitting}>
-                         <XCircle className="mr-2 h-4 w-4" /> {tasksDict.cancelProgressButton}
-                       </Button>
-                     </AlertDialogTrigger>
-                     <AlertDialogContent>
-                       <AlertDialogHeader>
-                         <AlertDialogTitle>{tasksDict.cancelDialogTitle}</AlertDialogTitle>
-                         <AlertDialogDescription>
-                          {tasksDict.cancelDialogDesc}
-                         </AlertDialogDescription>
-                       </AlertDialogHeader>
-                       <AlertDialogFooter>
-                         <AlertDialogCancel disabled={isSubmitting}>{tasksDict.cancelDialogCancel}</AlertDialogCancel>
-                         <AlertDialogAction
-                            className="bg-destructive hover:bg-destructive/90"
-                            onClick={() => handleDecision('cancel')}
-                            disabled={isSubmitting}>
-                             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                             {tasksDict.cancelDialogConfirm}
-                         </AlertDialogAction>
-                       </AlertDialogFooter>
-                     </AlertDialogContent>
-                   </AlertDialog>
-                   <Button onClick={() => handleDecision('continue')} disabled={isSubmitting} className="accent-teal">
-                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
-                      {tasksDict.continueProgressButton}
-                   </Button>
-                 </div>
-             </div>
-           )}
-
-            {showSchedulingSection && (
-                 <div className="space-y-4 border-t pt-4">
-                   <h3 className="text-lg font-semibold">{tasksDict.scheduleSidangTitle.replace('{role}', currentUser!.role)}</h3> {/* Non-null assertion */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-1.5">
-                         <Label htmlFor="scheduleDate">{tasksDict.dateLabel}</Label>
-                         <Input id="scheduleDate" type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} disabled={isSubmitting} />
-                      </div>
-                       <div className="space-y-1.5">
-                          <Label htmlFor="scheduleTime">{tasksDict.timeLabel}</Label>
-                          <Input id="scheduleTime" type="time" value={scheduleTime} onChange={e => setScheduleTime(e.target.value)} disabled={isSubmitting} />
-                       </div>
-                       <div className="space-y-1.5">
-                          <Label htmlFor="scheduleLocation">{tasksDict.locationLabel}</Label>
-                          <Input id="scheduleLocation" placeholder={tasksDict.locationPlaceholder} value={scheduleLocation} onChange={e => setScheduleLocation(e.target.value)} disabled={isSubmitting} />
-                       </div>
-                    </div>
-                   <Button onClick={handleScheduleSubmit} disabled={isSubmitting || !scheduleDate || !scheduleTime || !scheduleLocation}>
-                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarClock className="mr-2 h-4 w-4" />}
-                     {isSubmitting ? tasksDict.schedulingButton : tasksDict.confirmScheduleButton}
-                   </Button>
-                 </div>
-               )}
-
-            {showCalendarButton && (
-                <div className="border-t pt-4 mt-4">
-                   <Button onClick={handleAddToCalendar} disabled={isSubmitting} variant="outline">
-                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> :
-                           <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><line x1="12" y1="14" x2="12" y2="18"></line><line x1="10" y1="16" x2="14" y2="16"></line></svg>
-                        }
-                       {isSubmitting ? tasksDict.addingCalendarButton : tasksDict.addCalendarButton}
-                    </Button>
-                </div>
-            )}
-
-
-           {showSidangOutcomeSection && (
-                <div className="space-y-4 border-t pt-4">
-                  <h3 className="text-lg font-semibold">{tasksDict.sidangOutcomeTitle}</h3>
-                   <p className="text-sm text-muted-foreground">{tasksDict.sidangOutcomeDesc}</p>
-                   <div className="flex gap-4">
-                      {/* For simplicity, using the same 'continue' logic for success */}
-                      <Button onClick={() => handleDecision('continue')} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white">
-                         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
-                         {tasksDict.markSuccessButton}
-                      </Button>
-                       <Button variant="destructive" onClick={() => { /* Implement fail logic */ toast({title: tasksDict.toast.failNotImplemented})}} disabled={isSubmitting}>
-                         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
-                         {tasksDict.markFailButton}
-                       </Button>
-                   </div>
-                </div>
-             )}
-
-
-           {task.status === 'Completed' && (
-              <div className="border-t pt-4 text-center">
-                 <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
-                 <p className="font-semibold text-lg text-green-600">{tasksDict.completedMessage}</p>
-              </div>
-           )}
-            {task.status === 'Canceled' && (
-               <div className="border-t pt-4 text-center">
-                  <XCircle className="h-12 w-12 text-destructive mx-auto mb-2" />
-                  <p className="font-semibold text-lg text-destructive">{tasksDict.canceledMessage}</p>
-               </div>
-            )}
-
-        </CardContent>
-      </Card>
-
-       {/* File List Card */}
-        <Card className="mt-6">
-            <CardHeader>
-              <CardTitle>{tasksDict.uploadedFilesTitle}</CardTitle>
-              <CardDescription>{tasksDict.uploadedFilesDesc}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {task.files.length === 0 ? (
-                 <p className="text-sm text-muted-foreground">{tasksDict.noFiles}</p>
-              ) : (
-                <ul className="space-y-2">
-                   {task.files.map((file, index) => (
-                    <li key={index} className="flex items-center justify-between p-2 border rounded-md hover:bg-secondary/50">
-                       <div className="flex items-center gap-2">
-                           <FileText className="h-5 w-5 text-primary" />
-                           <span className="text-sm font-medium">{file.name}</span>
-                       </div>
-                       <div className="text-xs text-muted-foreground">
-                          {tasksDict.uploadedByOn.replace('{user}', file.uploadedBy).replace('{date}', formatDateOnly(file.timestamp))}
-                       </div>
-                    </li>
-                   ))}
-                </ul>
-              )}
-            </CardContent>
-        </Card>
-
-
-       {/* Workflow History Card */}
-       <Card className="mt-6">
-         <CardHeader>
-           <CardTitle>{tasksDict.workflowHistoryTitle}</CardTitle>
-           <CardDescription>{tasksDict.workflowHistoryDesc}</CardDescription>
-         </CardHeader>
-         <CardContent>
-             <ul className="space-y-3">
-             {task.workflowHistory.map((entry, index) => (
-                 <li key={index} className="flex items-start gap-3">
-                     <div className={`mt-1 h-3 w-3 rounded-full flex-shrink-0 ${index === task.workflowHistory.length - 1 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
-                     <div>
-                         <p className="text-sm font-medium">
-                             {tasksDict.historyActionBy.replace('{action}', entry.action).replace('{division}', entry.division)}
-                         </p>
-                         <p className="text-xs text-muted-foreground">{formatTimestamp(entry.timestamp)}</p> {/* Use helper function */}
+       return (
+           <>
+               <Button variant="outline" onClick={() => setSelectedTask(null)} className="mb-4">
+                   &larr; {tasksDict.backToList || 'Back to List'}
+               </Button>
+               <Card>
+                   <CardHeader>
+                     <div className="flex justify-between items-start">
+                        <div>
+                          {/* TODO: Allow editing title for Owner, GA, PA */}
+                           <CardTitle className="text-2xl">{task.title}</CardTitle>
+                           <CardDescription>
+                               {tasksDict.statusLabel}: {getStatusBadge(task.status)} | {tasksDict.nextActionLabel}: {task.nextAction || tasksDict.none} | {tasksDict.assignedLabel}: {task.assignedDivision || tasksDict.none}
+                           </CardDescription>
+                         </div>
+                           <div className="text-right">
+                               <div className="text-sm font-medium">{tasksDict.progressLabel}</div>
+                               <Progress value={task.progress} className="w-32 h-2 mt-1" />
+                               <span className="text-xs text-muted-foreground">
+                                   {dashboardDict?.progress?.replace('{progress}', task.progress.toString()) ?? `${task.progress}%`}
+                               </span>
+                           </div>
                      </div>
-                 </li>
-             ))}
-             </ul>
-         </CardContent>
-       </Card>
-     </>
-  );
+                   </CardHeader>
+
+                   {/* Action Section */}
+                   <CardContent>
+                     {showUploadSection && (
+                       <div className="space-y-4 border-t pt-4">
+                         <h3 className="text-lg font-semibold">{tasksDict.uploadProgressTitle.replace('{role}', currentUser!.role)}</h3> {/* Non-null assertion */}
+                         <div className="grid w-full items-center gap-1.5">
+                           <Label htmlFor="description">{tasksDict.descriptionLabel}</Label>
+                           <Textarea
+                             id="description"
+                             placeholder={tasksDict.descriptionPlaceholder.replace('{division}', task.assignedDivision)}
+                             value={description}
+                             onChange={(e) => setDescription(e.target.value)}
+                             disabled={isSubmitting}
+                           />
+                         </div>
+                         <div className="grid w-full items-center gap-1.5">
+                           <Label htmlFor="picture">{tasksDict.attachFilesLabel}</Label>
+                           <Input id="picture" type="file" multiple onChange={handleFileChange} disabled={isSubmitting} />
+                         </div>
+                         {uploadedFiles.length > 0 && (
+                           <div className="space-y-2 rounded-md border p-3">
+                             <Label>{tasksDict.selectedFilesLabel}</Label>
+                             <ul className="list-disc list-inside text-sm space-y-1 max-h-32 overflow-y-auto">
+                               {uploadedFiles.map((file, index) => (
+                                  <li key={index} className="flex items-center justify-between group">
+                                      <span className="truncate max-w-xs text-muted-foreground group-hover:text-foreground">
+                                        {file.name} <span className="text-xs">({(file.size / 1024).toFixed(1)} KB)</span>
+                                      </span>
+                                     <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          type="button" // Prevent form submission
+                                          onClick={() => removeFile(index)}
+                                          disabled={isSubmitting}
+                                          className="opacity-50 group-hover:opacity-100"
+                                      >
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                     </Button>
+                                  </li>
+                               ))}
+                             </ul>
+                           </div>
+                         )}
+                          <Button onClick={handleProgressSubmit} disabled={isSubmitting || (!description && uploadedFiles.length === 0 && task.assignedDivision !== 'Admin Proyek' && task.status !== 'Pending Offer') || (task.assignedDivision === 'Admin Proyek' && task.status === 'Pending Offer' && uploadedFiles.length === 0)}>
+                              {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                              {isSubmitting ? tasksDict.submittingButton : tasksDict.submitButton}
+                          </Button>
+                       </div>
+                     )}
+
+                      {showOwnerDecisionSection && (
+                        <div className="space-y-4 border-t pt-4">
+                          <h3 className="text-lg font-semibold">{tasksDict.ownerActionTitle}</h3>
+                          <p className="text-sm text-muted-foreground">{tasksDict.ownerActionDesc}</p>
+                           <div className="flex gap-4">
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="outline" disabled={isSubmitting}>
+                                    <XCircle className="mr-2 h-4 w-4" /> {tasksDict.cancelProgressButton}
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>{tasksDict.cancelDialogTitle}</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                     {tasksDict.cancelDialogDesc}
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel disabled={isSubmitting}>{tasksDict.cancelDialogCancel}</AlertDialogCancel>
+                                    <AlertDialogAction
+                                       className="bg-destructive hover:bg-destructive/90"
+                                       onClick={() => handleDecision('cancel')}
+                                       disabled={isSubmitting}>
+                                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                        {tasksDict.cancelDialogConfirm}
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                              <Button onClick={() => handleDecision('continue')} disabled={isSubmitting} className="accent-teal">
+                                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                                 {tasksDict.continueProgressButton}
+                              </Button>
+                            </div>
+                        </div>
+                      )}
+
+                       {showSchedulingSection && (
+                            <div className="space-y-4 border-t pt-4">
+                              <h3 className="text-lg font-semibold">{tasksDict.scheduleSidangTitle.replace('{role}', currentUser!.role)}</h3> {/* Non-null assertion */}
+                               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                 <div className="space-y-1.5">
+                                    <Label htmlFor="scheduleDate">{tasksDict.dateLabel}</Label>
+                                    <Input id="scheduleDate" type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} disabled={isSubmitting} />
+                                 </div>
+                                  <div className="space-y-1.5">
+                                     <Label htmlFor="scheduleTime">{tasksDict.timeLabel}</Label>
+                                     <Input id="scheduleTime" type="time" value={scheduleTime} onChange={e => setScheduleTime(e.target.value)} disabled={isSubmitting} />
+                                  </div>
+                                  <div className="space-y-1.5">
+                                     <Label htmlFor="scheduleLocation">{tasksDict.locationLabel}</Label>
+                                     <Input id="scheduleLocation" placeholder={tasksDict.locationPlaceholder} value={scheduleLocation} onChange={e => setScheduleLocation(e.target.value)} disabled={isSubmitting} />
+                                  </div>
+                               </div>
+                              <Button onClick={handleScheduleSubmit} disabled={isSubmitting || !scheduleDate || !scheduleTime || !scheduleLocation}>
+                                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarClock className="mr-2 h-4 w-4" />}
+                                {isSubmitting ? tasksDict.schedulingButton : tasksDict.confirmScheduleButton}
+                              </Button>
+                            </div>
+                          )}
+
+                       {showCalendarButton && (
+                           <div className="border-t pt-4 mt-4">
+                              <Button onClick={handleAddToCalendar} disabled={isSubmitting} variant="outline">
+                                   {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> :
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><line x1="12" y1="14" x2="12" y2="18"></line><line x1="10" y1="16" x2="14" y2="16"></line></svg>
+                                   }
+                                  {isSubmitting ? tasksDict.addingCalendarButton : tasksDict.addCalendarButton}
+                               </Button>
+                           </div>
+                       )}
+
+
+                      {showSidangOutcomeSection && (
+                           <div className="space-y-4 border-t pt-4">
+                             <h3 className="text-lg font-semibold">{tasksDict.sidangOutcomeTitle}</h3>
+                              <p className="text-sm text-muted-foreground">{tasksDict.sidangOutcomeDesc}</p>
+                              <div className="flex gap-4">
+                                 {/* For simplicity, using the same 'continue' logic for success */}
+                                 <Button onClick={() => handleDecision('continue')} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white">
+                                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                                    {tasksDict.markSuccessButton}
+                                 </Button>
+                                  <Button variant="destructive" onClick={() => { /* Implement fail logic */ toast({title: tasksDict.toast.failNotImplemented})}} disabled={isSubmitting}>
+                                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
+                                    {tasksDict.markFailButton}
+                                  </Button>
+                              </div>
+                           </div>
+                        )}
+
+
+                      {task.status === 'Completed' && (
+                         <div className="border-t pt-4 text-center">
+                            <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
+                            <p className="font-semibold text-lg text-green-600">{tasksDict.completedMessage}</p>
+                         </div>
+                      )}
+                       {task.status === 'Canceled' && (
+                          <div className="border-t pt-4 text-center">
+                             <XCircle className="h-12 w-12 text-destructive mx-auto mb-2" />
+                             <p className="font-semibold text-lg text-destructive">{tasksDict.canceledMessage}</p>
+                          </div>
+                       )}
+
+                   </CardContent>
+                 </Card>
+
+                  {/* File List Card */}
+                   <Card className="mt-6">
+                       <CardHeader>
+                         <CardTitle>{tasksDict.uploadedFilesTitle}</CardTitle>
+                         <CardDescription>{tasksDict.uploadedFilesDesc}</CardDescription>
+                       </CardHeader>
+                       <CardContent>
+                         {task.files.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">{tasksDict.noFiles}</p>
+                         ) : (
+                           <ul className="space-y-2">
+                              {task.files.map((file, index) => (
+                               <li key={index} className="flex items-center justify-between p-2 border rounded-md hover:bg-secondary/50">
+                                  <div className="flex items-center gap-2">
+                                      <FileText className="h-5 w-5 text-primary" />
+                                      <span className="text-sm font-medium">{file.name}</span>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                     {tasksDict.uploadedByOn.replace('{user}', file.uploadedBy).replace('{date}', formatDateOnly(file.timestamp))}
+                                  </div>
+                               </li>
+                              ))}
+                           </ul>
+                         )}
+                       </CardContent>
+                   </Card>
+
+
+                  {/* Workflow History Card */}
+                  <Card className="mt-6">
+                    <CardHeader>
+                      <CardTitle>{tasksDict.workflowHistoryTitle}</CardTitle>
+                      <CardDescription>{tasksDict.workflowHistoryDesc}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ul className="space-y-3">
+                        {task.workflowHistory.map((entry, index) => (
+                            <li key={index} className="flex items-start gap-3">
+                                <div className={`mt-1 h-3 w-3 rounded-full flex-shrink-0 ${index === task.workflowHistory.length - 1 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
+                                <div>
+                                    <p className="text-sm font-medium">
+                                        {tasksDict.historyActionBy.replace('{action}', entry.action).replace('{division}', entry.division)}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">{formatTimestamp(entry.timestamp)}</p> {/* Use helper function */}
+                                </div>
+                            </li>
+                        ))}
+                        </ul>
+                    </CardContent>
+                  </Card>
+                </>
+       );
+  }
 
 
   return (
