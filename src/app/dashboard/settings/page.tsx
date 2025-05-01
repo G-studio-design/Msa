@@ -33,6 +33,13 @@ async function simulateUploadAndCompress(file: File): Promise<string> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 800));
 
+  // Simulate potential failure
+  if (Math.random() < 0.2) { // Simulate failure 20% of the time
+      console.error("Simulated upload failed!");
+      throw new Error("Simulated upload error");
+  }
+
+
   // In a real app:
   // 1. Use a library like browser-image-compression to compress the file.
   // 2. Upload the compressed file to a storage service (Firebase Storage, S3, etc.).
@@ -122,14 +129,14 @@ export default function SettingsPage() {
                    } else {
                        console.error("FileReader result is not a string:", reader.result);
                        setProfilePicturePreview(null); // Reset preview on error
-                       toast({ variant: 'destructive', title: 'Error', description: 'Failed to read file for preview.' });
+                       toast({ variant: 'destructive', title: settingsDict.toast.error, description: 'Failed to read file for preview.' });
                    }
                };
 
                reader.onerror = (error) => {
                    console.error("FileReader error:", error);
                    setProfilePicturePreview(null); // Reset preview on error
-                   toast({ variant: 'destructive', title: 'Error', description: 'Failed to read file.' });
+                   toast({ variant: 'destructive', title: settingsDict.toast.error, description: 'Failed to read file.' });
                };
 
                try {
@@ -144,7 +151,7 @@ export default function SettingsPage() {
                } catch (e) {
                    console.error("Error calling readDataURL:", e);
                    setProfilePicturePreview(null); // Reset preview on error
-                   toast({ variant: 'destructive', title: 'Error', description: 'Could not process the selected file.' });
+                   toast({ variant: 'destructive', title: settingsDict.toast.error, description: 'Could not process the selected file.' });
                }
            } else {
                // FileReader API not supported
@@ -189,13 +196,16 @@ export default function SettingsPage() {
                 uploadedPictureUrl = await simulateUploadAndCompress(selectedFile);
                  console.log("Simulated URL obtained:", uploadedPictureUrl);
             } catch (uploadError) {
-                console.error("Simulated upload error:", uploadError);
-                 toast({ variant: 'destructive', title: 'Upload Failed', description: 'Could not simulate image upload.' });
+                console.error("Profile picture upload error:", uploadError);
+                // Display "Coming Soon" toast on upload failure
+                 toast({ variant: 'default', title: 'Feature Coming Soon', description: 'Profile picture upload is under development. Please try again later.' });
                  setIsUploading(false);
                  setIsUpdatingProfile(false);
+                 setSelectedFile(null); // Clear selected file on failure
+                 setProfilePicturePreview(null); // Clear preview on failure
                  return; // Stop profile update if upload fails
             } finally {
-                setIsUploading(false); // Upload finished (success or fail)
+                setIsUploading(false); // Upload finished (success or simulation fail)
             }
         }
         // --- End Simulation ---
@@ -238,7 +248,7 @@ export default function SettingsPage() {
         toast({ title: settingsDict.toast.success, description: settingsDict.toast.profileUpdated });
 
     } catch (error: any) {
-        console.error("Profile update error:", error);
+        console.error("Profile update error (excluding upload):", error);
         let description = settingsDict.toast.profileUpdateFailed;
         if (error.message === 'USERNAME_EXISTS') {
             description = settingsDict.toast.usernameExistsError;
@@ -610,3 +620,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    
