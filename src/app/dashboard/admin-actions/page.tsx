@@ -187,7 +187,7 @@ export default function AdminActionsPage() {
                 </TableRow>
               ) : (
                 tasks.map((task) => (
-                  <TableRow key={task.id}>
+                  <TableRow key={task.id}>{/* Removed whitespace here */}
                     <TableCell className="text-xs font-mono">{task.id}</TableCell> {/* Display full ID */}
                     <TableCell className="font-medium">
                       {editingTaskId === task.id ? (

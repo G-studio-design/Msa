@@ -1,1 +1,31 @@
-[]
+[
+  {
+    "id": "task_1746135389371_75z4h",
+    "title": "proyek canggu",
+    "status": "Pending Input",
+    "progress": 5,
+    "assignedDivision": "Owner",
+    "nextAction": "Input Project Data",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Task",
+        "timestamp": "2025-05-01T21:36:29.371Z"
+      },
+      {
+        "division": "sudina",
+        "action": "Uploaded initial file: brosur PDF Tanah Pegangan Marketing.pdf",
+        "timestamp": "2025-05-01T21:36:29.371Z"
+      }
+    ],
+    "files": [
+      {
+        "name": "brosur PDF Tanah Pegangan Marketing.pdf",
+        "uploadedBy": "sudina",
+        "timestamp": "2025-05-01T21:36:29.371Z"
+      }
+    ],
+    "createdAt": "2025-05-01T21:36:29.371Z",
+    "createdBy": "sudina"
+  }
+]
