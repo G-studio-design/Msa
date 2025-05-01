@@ -44,11 +44,12 @@ const id = {
     taskCanceled: 'Tugas ini dibatalkan.',
     status: {
       completed: 'Selesai',
-      inProgress: 'Sedang Berjalan',
-      pendingApproval: 'Menunggu Persetujuan',
+      inprogress: 'Sedang Berjalan', // Corrected key
+      pendingapproval: 'Menunggu Persetujuan', // Corrected key
       delayed: 'Tertunda',
       canceled: 'Dibatalkan',
       pending: 'Tertunda',
+      scheduled: 'Terjadwal', // Added status
     },
      progress: '{progress}% Selesai', // Gunakan {progress}
   },
@@ -155,7 +156,7 @@ const id = {
         userAdded: 'Pengguna Ditambahkan',
         userAddedDesc: 'Pengguna {username} berhasil dibuat.', // Use {username}
         userDeleted: 'Pengguna Dihapus',
-        userDeletedDesc: 'Pengguna dengan ID {id} dihapus.', // Use {id}
+        userDeletedDesc: 'Pengguna {username} dihapus.', // Use {username} instead of ID
         error: 'Kesalahan',
         usernameExists: 'Nama pengguna sudah ada.',
     },
@@ -197,6 +198,7 @@ const id = {
     confirmPasswordLabel: 'Konfirmasi Kata Sandi Baru',
     confirmPasswordPlaceholder: 'Konfirmasi kata sandi baru',
     updatePasswordButton: 'Perbarui Kata Sandi',
+    updatingPasswordButton: 'Memperbarui...', // Added state for button
     notificationsCardTitle: 'Preferensi Notifikasi',
     emailNotificationsLabel: 'Notifikasi Email',
     emailNotificationsHint: 'Terima pembaruan email untuk penugasan tugas dan perubahan status.',
@@ -209,6 +211,15 @@ const id = {
     languageSelectHint: 'Pilih bahasa untuk antarmuka aplikasi.',
     languageEnglish: 'Inggris',
     languageIndonesian: 'Bahasa Indonesia',
+    toast: {
+      error: 'Kesalahan',
+      success: 'Berhasil',
+      fieldsRequired: 'Semua kolom kata sandi harus diisi.',
+      passwordsDontMatch: 'Kata sandi baru tidak cocok.',
+      passwordTooShort: 'Kata sandi baru minimal 6 karakter.',
+      passwordUpdated: 'Kata sandi berhasil diperbarui.',
+      passwordUpdateFailed: 'Gagal memperbarui kata sandi. Periksa kata sandi saat ini.',
+    }
   },
 };
 

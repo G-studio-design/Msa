@@ -44,11 +44,12 @@ const en = {
     taskCanceled: 'This task was canceled.',
     status: {
       completed: 'Completed',
-      inProgress: 'In Progress',
-      pendingApproval: 'Pending Approval',
+      inprogress: 'In Progress', // Corrected key
+      pendingapproval: 'Pending Approval', // Corrected key
       delayed: 'Delayed',
       canceled: 'Canceled',
       pending: 'Pending',
+      scheduled: 'Scheduled', // Added status
     },
     progress: '{progress}% Complete', // Use {progress} as placeholder
   },
@@ -155,7 +156,7 @@ const en = {
       userAdded: 'User Added',
       userAddedDesc: 'User {username} created successfully.', // Use {username}
       userDeleted: 'User Deleted',
-      userDeletedDesc: 'User with ID {id} removed.', // Use {id}
+      userDeletedDesc: 'User {username} removed.', // Use {username} instead of ID
       error: 'Error',
       usernameExists: 'Username already exists.',
     },
@@ -197,6 +198,7 @@ const en = {
     confirmPasswordLabel: 'Confirm New Password',
     confirmPasswordPlaceholder: 'Confirm new password',
     updatePasswordButton: 'Update Password',
+    updatingPasswordButton: 'Updating...', // Added state for button
     notificationsCardTitle: 'Notification Preferences',
     emailNotificationsLabel: 'Email Notifications',
     emailNotificationsHint: 'Receive email updates for task assignments and status changes.',
@@ -209,6 +211,15 @@ const en = {
     languageSelectHint: 'Select the language for the application interface.',
     languageEnglish: 'English',
     languageIndonesian: 'Bahasa Indonesia',
+    toast: {
+        error: 'Error',
+        success: 'Success',
+        fieldsRequired: 'All password fields are required.',
+        passwordsDontMatch: 'New passwords do not match.',
+        passwordTooShort: 'New password must be at least 6 characters.',
+        passwordUpdated: 'Password updated successfully.',
+        passwordUpdateFailed: 'Failed to update password. Check current password.',
+    }
   },
 };
 
