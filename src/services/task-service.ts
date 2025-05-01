@@ -38,6 +38,7 @@ export interface Task {
 }
 
 // Define the structure for adding a new task
+// Make initialFiles properties match FileEntry (except timestamp, which will be added)
 export interface AddTaskData {
     title: string;
     initialFiles: Omit<FileEntry, 'timestamp'>[]; // Files provided at creation
@@ -105,6 +106,7 @@ async function writeTasks(tasks: Task[]): Promise<void> {
 
 /**
  * Adds a new task to the database.
+ * Initializes the task with the starting workflow state.
  * @param taskData Data for the new task.
  * @returns A promise that resolves to the newly created Task object.
  */
@@ -113,29 +115,39 @@ export async function addTask(taskData: AddTaskData): Promise<Task> {
     const tasks = await readTasks();
     const now = new Date().toISOString();
 
+    // Add timestamps to initial files
+    const filesWithTimestamps = taskData.initialFiles.map(file => ({
+        ...file,
+        timestamp: now,
+    }));
+
     const newTask: Task = {
         id: `task_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         title: taskData.title,
-        status: 'Pending Input', // Initial status
-        progress: 5, // Initial small progress
-        assignedDivision: 'Owner', // First step is Owner input
-        nextAction: 'Input Project Data',
+        status: 'Pending Input', // Initial status according to workflow
+        progress: 5, // Start with a small progress percentage
+        assignedDivision: 'Owner', // First step belongs to the Owner
+        nextAction: 'Input Project Data', // First action for the Owner
         workflowHistory: [
             { division: taskData.createdBy, action: 'Created Task', timestamp: now },
+            // Add history entry for initial file uploads if any
+            ...filesWithTimestamps.map(file => ({
+                 division: file.uploadedBy,
+                 action: `Uploaded initial file: ${file.name}`,
+                 timestamp: file.timestamp,
+            }))
         ],
-        files: taskData.initialFiles.map(file => ({
-            ...file,
-            timestamp: now, // Add timestamp to initial files
-        })),
+        files: filesWithTimestamps, // Save initial files with timestamps
         createdAt: now,
         createdBy: taskData.createdBy,
     };
 
     tasks.push(newTask);
     await writeTasks(tasks);
-    console.log(`Task "${newTask.title}" (ID: ${newTask.id}) added successfully.`);
+    console.log(`Task "${newTask.title}" (ID: ${newTask.id}) added successfully. Assigned to Owner for Input.`);
 
     // TODO: Trigger notification to Owner for 'Pending Input'
+    await notifyUser('Owner', `New task "${newTask.title}" requires your input.`);
 
     return newTask;
 }
@@ -186,20 +198,21 @@ export async function updateTask(updatedTask: Task): Promise<void> {
 
     // Ensure workflow history and files are preserved if not explicitly overwritten
     // (though typically the updatedTask object should contain the merged history/files)
+    const originalTask = tasks[taskIndex]; // Store original for comparison
     tasks[taskIndex] = {
-        ...tasks[taskIndex], // Keep existing fields
+        ...originalTask,     // Keep existing fields
         ...updatedTask,     // Overwrite with new values
-        workflowHistory: updatedTask.workflowHistory || tasks[taskIndex].workflowHistory,
-        files: updatedTask.files || tasks[taskIndex].files,
+        workflowHistory: updatedTask.workflowHistory || originalTask.workflowHistory,
+        files: updatedTask.files || originalTask.files,
     };
 
     await writeTasks(tasks);
     console.log(`Task ${updatedTask.id} updated successfully.`);
 
      // TODO: Trigger notification based on status change or next assigned division
-     // if (tasks[taskIndex].assignedDivision !== originalTask.assignedDivision) {
-     //   notifyUser(tasks[taskIndex].assignedDivision, `Task "${tasks[taskIndex].title}" requires your action: ${tasks[taskIndex].nextAction}`);
-     // }
+     if (tasks[taskIndex].assignedDivision !== originalTask.assignedDivision && tasks[taskIndex].assignedDivision) {
+       await notifyUser(tasks[taskIndex].assignedDivision, `Task "${tasks[taskIndex].title}" requires your action: ${tasks[taskIndex].nextAction}`);
+     }
 }
 
 /**

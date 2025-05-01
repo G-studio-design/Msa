@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
-import { addTask, type AddTaskData } from '@/services/task-service'; // Import task service
+import { addTask, type AddTaskData } from '@/services/task-service'; // Import task service and type
 import { Loader2, Upload, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -87,27 +87,34 @@ export default function AddTaskPage() {
     console.log('Adding new task:', data.title, 'by', currentUser.username);
     console.log('Selected files:', selectedFiles.map(f => f.name));
 
-    // Simulate file upload and prepare data for service
-     const uploadedFileNames = selectedFiles.map(file => ({
+    // Prepare file data for the service
+    // In a real app, you'd upload the file *here* and get URLs/references before calling addTask
+    // For now, just prepare the structure expected by AddTaskData
+     const initialFilesData = selectedFiles.map(file => ({
          name: file.name,
-         // In a real app, you'd upload the file here and get a URL or identifier
-         // For now, just store the name and who uploaded it initially
+         // In a real app, store URL or identifier after upload
          uploadedBy: currentUser.username, // Or currentUser.id
-         timestamp: new Date().toISOString(),
      }));
-
 
     const newTaskData: AddTaskData = {
       title: data.title,
-      initialFiles: uploadedFileNames,
+      initialFiles: initialFilesData,
       createdBy: currentUser.username, // Track who created the task
     };
 
     try {
-      // TODO: Implement file upload logic here before calling addTask
-      // e.g., upload files to storage, get URLs/references
+      // --- TODO: Implement actual file upload logic here ---
+      // Example:
+      // const uploadedFileReferences = await Promise.all(
+      //   selectedFiles.map(file => uploadFileToStorage(file)) // Assume this returns { name: string, url: string }
+      // );
+      // newTaskData.initialFiles = uploadedFileReferences.map(ref => ({ name: ref.name, url: ref.url, uploadedBy: currentUser.username }));
+      // --- End File Upload Logic ---
 
-      await addTask(newTaskData);
+      console.log('Calling addTask service with:', newTaskData);
+      const createdTask = await addTask(newTaskData);
+      console.log('Task created successfully:', createdTask);
+
       toast({ title: addTaskDict.toast.success, description: addTaskDict.toast.successDesc.replace('{title}', data.title) });
       router.push('/dashboard'); // Redirect back to dashboard on success
     } catch (error: any) {
@@ -115,7 +122,7 @@ export default function AddTaskPage() {
       toast({
         variant: 'destructive',
         title: addTaskDict.toast.error,
-        description: error.message || 'An unexpected error occurred.',
+        description: error.message || 'An unexpected error occurred while creating the task.',
       });
     } finally {
       setIsLoading(false);
