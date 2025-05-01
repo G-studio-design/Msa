@@ -1,6 +1,6 @@
 // src/lib/firebase.ts
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
+import { getAuth, type Auth } from "firebase/auth";
 // import { getFirestore } from "firebase/firestore"; // Add if you need Firestore
 
 // Your web app's Firebase configuration
@@ -17,8 +17,10 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-let app;
-let initializationError = null;
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let initializationError: string | null = null;
+let isFirebaseInitialized: boolean = false;
 
 // Check if Firebase config values are present before initializing
 // Use the standard JavaScript keys for the config object
@@ -40,10 +42,16 @@ if (missingKeys.length === 0) {
         } else {
           app = getApp();
         }
+        // Get Auth instance only if app was successfully initialized
+        auth = getAuth(app);
+        isFirebaseInitialized = true;
+        console.log("Firebase initialized successfully.");
     } catch (e: any) {
-         console.error("Firebase initialization failed:", e);
-         initializationError = `Firebase initialization failed: ${e.message}. Check your Firebase config values.`;
-         app = null; // Ensure app is null if init fails
+         console.error("Firebase initialization failed during initializeApp/getAuth:", e);
+         initializationError = `Firebase initialization failed: ${e.message}. Check your Firebase config values and project setup.`;
+         app = null;
+         auth = null;
+         isFirebaseInitialized = false;
     }
 } else {
     // Correctly map the JS keys back to the expected ENV VAR names for the error message
@@ -54,30 +62,30 @@ if (missingKeys.length === 0) {
         storageBucket: 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
         messagingSenderId: 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
         appId: 'NEXT_PUBLIC_FIREBASE_APP_ID',
-        measurementId: 'NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID',
+        // measurementId: 'NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID', // Optional
     };
     const missingEnvVars = missingKeys.map(key => keyToEnvVar[key] || `UNKNOWN_KEY (${key})`);
 
     const errorMessage =
         `Firebase configuration environment variables are missing: ${missingEnvVars.join(', ')}. ` +
         "Please ensure all required NEXT_PUBLIC_FIREBASE_* variables are set in your environment (e.g., .env.local file or deployment settings).";
-    console.error(errorMessage);
-    initializationError = errorMessage; // Store error message
-    app = null; // Ensure app is null if config is missing
+    console.error(errorMessage); // Log the detailed error for developers
+    initializationError = "Firebase configuration is incomplete. Google Sign-In is disabled."; // Store a generic error for potential UI use
+    app = null;
+    auth = null;
+    isFirebaseInitialized = false;
 }
 
-// Get Auth instance only if app was successfully initialized
-const auth = app ? getAuth(app) : null;
-// const db = app ? getFirestore(app) : null; // Add if you need Firestore
-
-// Throw an error if auth couldn't be initialized due to missing config or init error
-if (!auth) {
-     // Log the specific error encountered during initialization
-     console.error("Firebase Auth could not be initialized.", initializationError ? `Reason: ${initializationError}` : "App initialization failed or config missing.");
-    // Optionally throw an error to halt execution if Firebase is critical,
-    // but logging might be sufficient for diagnosing the missing env vars.
-    // throw new Error(initializationError || "Firebase Auth initialization failed.");
+// Log if auth couldn't be initialized
+if (!auth && isFirebaseInitialized) { // Check if auth failed even if app seemed to init
+     console.error("Firebase Auth could not be initialized, even though app object exists.", initializationError || "Unknown auth initialization error.");
+     isFirebaseInitialized = false; // Mark as not initialized if Auth failed
+     initializationError = initializationError || "Firebase Auth initialization failed.";
+} else if (!isFirebaseInitialized) {
+    // Error already logged above if config was missing or initializeApp failed
+    console.warn("Firebase was not initialized. Features depending on Firebase (like Google Sign-In) will be unavailable.");
 }
 
 
-export { app, auth }; // Export auth and potentially db
+// Export auth and potentially db, along with the initialization status
+export { app, auth, isFirebaseInitialized, initializationError };

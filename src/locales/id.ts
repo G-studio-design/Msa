@@ -19,6 +19,10 @@ const id = {
     googleSetupPrompt: 'Harap lengkapi detail akun Anda.', // Added
     googleFail: 'Masuk dengan Google Gagal', // Added
     googleErrorDefault: 'Terjadi kesalahan saat Masuk dengan Google.', // Added
+    googlePopupClosed: 'Popup masuk ditutup oleh pengguna.', // Added
+    googlePopupCancelled: 'Permintaan popup masuk dibatalkan.', // Added
+    firebaseConfigError: 'Masuk dengan Google tidak tersedia karena masalah konfigurasi. Silakan hubungi dukungan.', // Added generic user-facing error
+    firebaseErrorTitle: 'Kesalahan Konfigurasi', // Added title for the error alert
      validation: { // Added validation structure
         usernameRequired: 'Nama pengguna wajib diisi.',
         passwordRequired: 'Kata sandi wajib diisi.',

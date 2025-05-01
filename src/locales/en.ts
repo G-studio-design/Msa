@@ -19,6 +19,10 @@ const en = {
     googleSetupPrompt: 'Please set up your account details.', // Added
     googleFail: 'Google Sign-In Failed', // Added
     googleErrorDefault: 'An error occurred during Google Sign-In.', // Added
+    googlePopupClosed: 'Sign-in popup closed by user.', // Added
+    googlePopupCancelled: 'Sign-in popup request cancelled.', // Added
+    firebaseConfigError: 'Google Sign-In is unavailable due to a configuration issue. Please contact support.', // Added generic user-facing error
+    firebaseErrorTitle: 'Configuration Error', // Added title for the error alert
     validation: { // Added validation structure
         usernameRequired: 'Username is required.',
         passwordRequired: 'Password is required.',

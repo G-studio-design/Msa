@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'; // Import Firebase Auth modules
-import { app as firebaseApp } from '@/lib/firebase'; // Import Firebase app instance
+import { app as firebaseApp, isFirebaseInitialized, auth as firebaseAuth } from '@/lib/firebase'; // Import Firebase app instance and initialization status
 
 import { Button } from '@/components/ui/button';
 import {
@@ -25,6 +25,8 @@ import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { Separator } from '@/components/ui/separator'; // Import Separator
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // Import Alert components
+import { AlertTriangle } from 'lucide-react'; // Import icon for alert
 
 // Google Icon SVG (simple version)
 const GoogleIcon = () => (
@@ -50,11 +52,17 @@ export default function LoginPage() {
   const [dict, setDict] = React.useState(defaultDict.login);
   const [isClient, setIsClient] = React.useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = React.useState(false); // Loading state for Google button
+  const [firebaseError, setFirebaseError] = React.useState<string | null>(null); // State for Firebase error
 
   React.useEffect(() => {
       setIsClient(true);
       setDict(getDictionary(language).login);
-  }, [language]);
+      // Check Firebase status on client mount
+      if (!isFirebaseInitialized) {
+          // Use a generic message, detailed error is in console
+          setFirebaseError(dict.firebaseConfigError || defaultDict.login.firebaseConfigError);
+      }
+  }, [language, dict.firebaseConfigError]); // Rerun if language changes
 
   // Initialize schema based on current language dict
   const loginSchema = getLoginSchema(dict);
@@ -99,12 +107,24 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = async () => {
+    // Double check initialization status before proceeding
+    if (!isFirebaseInitialized || !firebaseAuth || !firebaseApp) {
+        console.error("Firebase not initialized. Cannot perform Google Sign-In.");
+        toast({
+             variant: 'destructive',
+             title: 'Initialization Error',
+             description: firebaseError || 'Firebase is not configured correctly.',
+        });
+        setFirebaseError(firebaseError || dict.firebaseConfigError || defaultDict.login.firebaseConfigError); // Ensure error is shown
+        return;
+    }
+
     setIsGoogleLoading(true);
-    const auth = getAuth(firebaseApp);
+    setFirebaseError(null); // Clear previous errors
     const provider = new GoogleAuthProvider();
 
     try {
-      const result = await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(firebaseAuth, provider); // Use imported auth instance
       const user = result.user;
       console.log('Google Sign-In Successful:', user);
       toast({
@@ -118,10 +138,17 @@ export default function LoginPage() {
 
     } catch (error: any) {
       console.error('Google Sign-In Error:', error);
+      // Handle specific Firebase errors if needed
+      let description = error.message || dict.googleErrorDefault;
+      if (error.code === 'auth/popup-closed-by-user') {
+          description = dict.googlePopupClosed;
+      } else if (error.code === 'auth/cancelled-popup-request') {
+          description = dict.googlePopupCancelled;
+      }
       toast({
         variant: 'destructive',
         title: dict.googleFail,
-        description: error.message || dict.googleErrorDefault,
+        description: description,
       });
       setIsGoogleLoading(false);
     }
@@ -129,7 +156,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary">
+    <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
           <CardTitle className="text-center text-2xl font-bold text-primary">
@@ -137,6 +164,15 @@ export default function LoginPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
+          {isClient && firebaseError && (
+              <Alert variant="destructive" className="mb-4">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>{dict.firebaseErrorTitle || 'Configuration Error'}</AlertTitle>
+                  <AlertDescription>
+                      {firebaseError}
+                  </AlertDescription>
+              </Alert>
+          )}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -184,14 +220,16 @@ export default function LoginPage() {
               variant="outline"
               className="w-full"
               onClick={handleGoogleSignIn}
-              disabled={isGoogleLoading}
+              disabled={isGoogleLoading || !isClient || !isFirebaseInitialized} // Disable if not initialized or loading
+              aria-disabled={!isClient || !isFirebaseInitialized} // Indicate disabled state for accessibility
+              title={isClient && !isFirebaseInitialized ? firebaseError || 'Google Sign-In disabled due to configuration error' : ''} // Tooltip
             >
               {isGoogleLoading ? (
-                <span className="animate-spin mr-2">...</span> // Simple loader
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> // Use Loader2 icon
               ) : (
                 <GoogleIcon />
               )}
-              {isClient ? (isGoogleLoading ? dict.googleLoading : dict.googleSignInButton) : defaultDict.login.googleSignInButton}
+               <span className="ml-2">{isClient ? (isGoogleLoading ? dict.googleLoading : dict.googleSignInButton) : defaultDict.login.googleSignInButton}</span>
             </Button>
 
         </CardContent>
