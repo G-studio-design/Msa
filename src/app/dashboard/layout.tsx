@@ -144,7 +144,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
     { href: "/dashboard/tasks", icon: ClipboardList, labelKey: "tasks", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
     { href: "/dashboard/users", icon: Users, labelKey: "manageUsers", roles: ["Owner", "General Admin", "Admin Developer"] }, // Restricted access
-    { href: "/dashboard/admin-actions", icon: UserCog, labelKey: "adminActions", roles: ["Owner", "General Admin", "Admin Proyek"] }, // Adjusted roles slightly
+    // Updated roles for Admin Actions: Owner and General Admin only. Admin Proyek should use the Tasks menu.
+    { href: "/dashboard/admin-actions", icon: UserCog, labelKey: "adminActions", roles: ["Owner", "General Admin"] },
     { href: "/dashboard/settings", icon: Settings, labelKey: "settings", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
   ];
 
@@ -159,9 +160,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       switch(role) {
           case 'Owner': return User;
           case 'General Admin': return UserCog;
-          case 'Admin Proyek': return UserCog;
-          case 'Arsitek': return User; // Use specific icons if available or desired
-          case 'Struktur': return User; // Use specific icons if available or desired
+          case 'Admin Proyek': return UserCog; // Keep the icon for Admin Proyek
+          case 'Arsitek': return User;
+          case 'Struktur': return User;
           case 'Admin Developer': return Code;
           default: return User;
       }
@@ -399,5 +400,3 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
-
-    

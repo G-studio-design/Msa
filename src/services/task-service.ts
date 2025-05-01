@@ -1,8 +1,10 @@
+
 // src/services/task-service.ts
 'use server';
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { notifyUsersByRole } from './notification-service'; // Import notification service
 
 // Define the structure of a Workflow History entry
 export interface WorkflowHistoryEntry {
@@ -107,7 +109,7 @@ async function writeTasks(tasks: Task[]): Promise<void> {
 /**
  * Adds a new task to the database.
  * Initializes the task with the starting workflow state.
- * Notifies the 'Admin Proyek' division.
+ * Notifies the 'Admin Proyek' division using the notification service.
  * @param taskData Data for the new task.
  * @returns A promise that resolves to the newly created Task object.
  */
@@ -154,13 +156,10 @@ export async function addTask(taskData: AddTaskData): Promise<Task> {
     await writeTasks(tasks);
     console.log(`Task "${newTask.title}" (ID: ${newTask.id}) added successfully. Assigned to ${initialAssignedDivision} for ${initialNextAction}.`);
 
-    // --- Notify Admin Proyek ---
+    // --- Notify Admin Proyek using Notification Service ---
     // Notify the 'Admin Proyek' division that a new task requires an offer document.
-    await notifyUser(initialAssignedDivision, `New task "${newTask.title}" created. Please upload the offer document.`);
+    await notifyUsersByRole(initialAssignedDivision, `New task "${newTask.title}" created. Please upload the offer document.`, newTask.id);
     // --- End Notification ---
-
-    // // Original notification (Commented out as the task now starts assigned to Admin Proyek)
-    // // await notifyUser('Owner', `New task "${newTask.title}" requires your input.`);
 
     return newTask;
 }
@@ -195,6 +194,7 @@ export async function getTaskById(taskId: string): Promise<Task | null> {
 /**
  * Updates an existing task in the database.
  * Use this for updating status, progress, adding files, history, etc.
+ * Notifies the newly assigned division if the assignment changes.
  * @param updatedTask The full task object with updated values.
  * @returns A promise that resolves when the update is complete.
  * @throws An error if the task to update is not found.
@@ -210,7 +210,6 @@ export async function updateTask(updatedTask: Task): Promise<void> {
     }
 
     // Ensure workflow history and files are preserved if not explicitly overwritten
-    // (though typically the updatedTask object should contain the merged history/files)
     const originalTask = tasks[taskIndex]; // Store original for comparison
     tasks[taskIndex] = {
         ...originalTask,     // Keep existing fields
@@ -223,11 +222,13 @@ export async function updateTask(updatedTask: Task): Promise<void> {
     console.log(`Task ${updatedTask.id} updated successfully.`);
 
      // Notify the newly assigned division if it changed and is not empty
-     if (tasks[taskIndex].assignedDivision && tasks[taskIndex].assignedDivision !== originalTask.assignedDivision) {
+     const newlyAssignedDivision = tasks[taskIndex].assignedDivision;
+     if (newlyAssignedDivision && newlyAssignedDivision !== originalTask.assignedDivision) {
         const nextActionDesc = tasks[taskIndex].nextAction || 'action'; // Provide a fallback if nextAction is null
-       await notifyUser(tasks[taskIndex].assignedDivision, `Task "${tasks[taskIndex].title}" requires your ${nextActionDesc}.`);
+       await notifyUsersByRole(newlyAssignedDivision, `Task "${tasks[taskIndex].title}" requires your ${nextActionDesc}.`, tasks[taskIndex].id);
      }
 }
+
 
 /**
  * Updates the title of a specific task.
@@ -252,12 +253,7 @@ export async function updateTaskTitle(taskId: string, newTitle: string): Promise
      console.log(`Title for task ${taskId} updated successfully.`);
 }
 
-// --- Placeholder Notification Function ---
-// Replace with actual notification logic
-async function notifyUser(roleOrUserId: string, message: string) {
-    console.log(`NOTIFICATION to ${roleOrUserId}: ${message}`);
-    // TODO: Implement actual notification logic
-    // 1. Find all users with the target role (e.g., 'Admin Proyek').
-    // 2. For each user, create a notification entry in a separate notification database/store.
-    // 3. (Optional) Send push notifications or emails if configured.
-}
+// --- Placeholder Notification Function (Removed - Using notification-service) ---
+// async function notifyUser(roleOrUserId: string, message: string) {
+//     console.log(`NOTIFICATION to ${roleOrUserId}: ${message}`);
+// }
