@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet" // Import SheetHeader, SheetTitle, SheetDescription
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
@@ -232,6 +232,11 @@ const Sidebar = React.forwardRef<
             className="w-sidebar-width-mobile bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden" // Use Tailwind var
             side={side}
           >
+            {/* Add a visually hidden title for accessibility */}
+            <SheetHeader className="sr-only">
+              <SheetTitle>Sidebar Menu</SheetTitle>
+              <SheetDescription>Navigation links for the application.</SheetDescription>
+            </SheetHeader>
             <div className="flex h-full w-full flex-col">{children}</div>
           </SheetContent>
         </Sheet>
@@ -370,7 +375,10 @@ const SidebarInset = React.forwardRef<
   React.ComponentProps<"main">
 >(({ className, ...props }, ref) => {
   const { state, isMobile } = useSidebar(); // Get sidebar state and mobile status
-  const { collapsible = 'icon', variant = 'sidebar' } = React.useContext(SidebarContext) ?? {}; // Get collapsible and variant from context if available
+  const sidebarContext = React.useContext(SidebarContext);
+  const collapsible = sidebarContext?.collapsible ?? 'icon'; // Get collapsible from context if available
+  const variant = sidebarContext?.variant ?? 'sidebar'; // Get variant from context if available
+
 
   // Determine padding based on sidebar state, collapsible type, and variant
   const getPaddingLeft = () => {
