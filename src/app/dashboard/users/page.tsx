@@ -419,7 +419,7 @@ export default function ManageUsersPage() {
         <CardContent>
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow>{/* Removed whitespace */}
                  {/* Render header text only on client */}
                 <TableHead>{isClient ? usersDict.tableHeaderUsername : defaultDict.manageUsersPage.tableHeaderUsername}</TableHead>
                 <TableHead>{isClient ? usersDict.tableHeaderPassword : defaultDict.manageUsersPage.tableHeaderPassword}</TableHead> {/* Added Password Header */}
@@ -446,7 +446,7 @@ export default function ManageUsersPage() {
                     const isPasswordVisible = visiblePasswords[user.id] || false;
 
                     return (
-                      <TableRow key={user.id}>
+                      <TableRow key={user.id}>{/* Removed whitespace */}
                         <TableCell className="font-medium">{user.username}</TableCell>
                          {/* Password Cell - Visible only to GA/Owner */}
                          <TableCell>
