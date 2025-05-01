@@ -84,7 +84,7 @@ export default function AdminActionsPage() {
 
    // Helper function to get translated status
    const getTranslatedStatus = (status: string): string => {
-        const statusKey = status.toLowerCase().replace(' ','') as keyof typeof dashboardDict.status;
+        const statusKey = status.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
         return dashboardDict.status[statusKey] || status; // Fallback to original
     }
 
@@ -133,7 +133,7 @@ export default function AdminActionsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                tasks.map((task) => (
+                tasks.map((task) => ( // Ensure no whitespace here
                   <TableRow key={task.id}>
                     <TableCell>{task.id}</TableCell>
                     <TableCell className="font-medium">
@@ -165,7 +165,7 @@ export default function AdminActionsPage() {
                       )}
                     </TableCell>
                   </TableRow>
-                ))
+                )) // Ensure no whitespace here
               )}
             </TableBody>
           </Table>
