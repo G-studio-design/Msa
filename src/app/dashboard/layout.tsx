@@ -52,7 +52,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <SidebarHeader className="items-center">
            <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-lg text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors">
             <Building className="h-6 w-6" />
-            <span>TaskTrackPro</span>
+            {/* Use span to hide text when collapsed */}
+            <span className="group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden">TaskTrackPro</span>
           </Link>
         </SidebarHeader>
         <SidebarContent className="p-2">
@@ -61,7 +62,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <SidebarMenuButton asChild tooltip="Dashboard">
                 <Link href="/dashboard">
                   <LayoutDashboard />
-                  <span>Dashboard</span>
+                   {/* Use span to hide text when collapsed */}
+                   <span className="group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden">Dashboard</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -69,7 +71,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <SidebarMenuButton asChild tooltip="Tasks">
                 <Link href="/dashboard/tasks">
                   <ClipboardList />
-                  <span>Tasks</span>
+                  <span className="group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden">Tasks</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -79,7 +81,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <SidebarMenuButton asChild tooltip="Manage Users">
                   <Link href="/dashboard/users">
                     <Users />
-                    <span>Manage Users</span>
+                    <span className="group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden">Manage Users</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -89,7 +91,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                  <SidebarMenuButton asChild tooltip="Admin Actions">
                    <Link href="/dashboard/admin-actions">
                      <UserCog />
-                     <span>Admin Actions</span>
+                     <span className="group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden">Admin Actions</span>
                    </Link>
                  </SidebarMenuButton>
                </SidebarMenuItem>
@@ -98,7 +100,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <SidebarMenuButton asChild tooltip="Settings">
                 <Link href="/dashboard/settings">
                   <Settings />
-                  <span>Settings</span>
+                  <span className="group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden">Settings</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -106,17 +108,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </SidebarContent>
         <SidebarSeparator />
         <SidebarFooter className="p-2">
-          <div className="flex items-center gap-3 rounded-md p-2 hover:bg-sidebar-accent transition-colors">
-            <Avatar className="h-9 w-9">
+          <div className="flex items-center gap-3 rounded-md p-2 hover:bg-sidebar-accent transition-colors group-data-[state=collapsed]:group-data-[collapsible=icon]:p-0 group-data-[state=collapsed]:group-data-[collapsible=icon]:justify-center group-data-[state=collapsed]:group-data-[collapsible=icon]:gap-0">
+            <Avatar className="h-9 w-9 group-data-[state=collapsed]:group-data-[collapsible=icon]:h-8 group-data-[state=collapsed]:group-data-[collapsible=icon]:w-8">
               <AvatarImage src={user.avatarUrl} alt={user.name} />
               <AvatarFallback>{user.initials}</AvatarFallback>
             </Avatar>
-            <div className="flex flex-col overflow-hidden">
+             {/* Hide text and logout button when collapsed */}
+            <div className="flex flex-col overflow-hidden group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden">
                <span className="text-sm font-medium truncate text-sidebar-foreground">{user.name}</span>
                <span className="text-xs text-sidebar-foreground/70 truncate">{user.role}</span>
              </div>
             {/* TODO: Add logout functionality */}
-            <Button variant="ghost" size="icon" className="ml-auto text-sidebar-foreground hover:text-sidebar-accent-foreground" asChild>
+            <Button variant="ghost" size="icon" className="ml-auto text-sidebar-foreground hover:text-sidebar-accent-foreground group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden" asChild>
                <Link href="/"> {/* Redirect to login on logout */}
                 <LogOut className="h-5 w-5" />
                </Link>
@@ -125,13 +128,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </SidebarFooter>
       </Sidebar>
 
-      {/* Main content area - SidebarInset ensures correct spacing */}
-      <SidebarInset className="p-4 md:p-6">
+      {/* Main content area - SidebarInset handles padding dynamically */}
+      <SidebarInset>
         {/* Header within the main content area */}
-        <header className="flex items-center justify-between mb-6">
+        <header className="flex items-center justify-between mb-6 p-4 md:p-6">
            {/* Mobile Sidebar Trigger and Logo (aligned left) */}
           <div className="flex items-center gap-4">
             <SidebarTrigger className="md:hidden" /> {/* Mobile sidebar trigger */}
+            {/* Desktop Sidebar Trigger (always visible on desktop) */}
+             <SidebarTrigger className="hidden md:flex" />
             <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-lg text-primary md:hidden"> {/* Mobile logo */}
               <Building className="h-6 w-6" />
               <span>TaskTrackPro</span>
@@ -165,7 +170,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
              </Sheet>
           </div>
         </header>
-        {children}
+         {/* Apply padding to the main content area */}
+         <div className="p-4 md:p-6 pt-0">
+           {children}
+         </div>
       </SidebarInset>
     </SidebarProvider>
   );
