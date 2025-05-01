@@ -329,18 +329,27 @@ export default function ManageUsersPage() {
        console.log(`Activating user ${activatingUser.id} with role ${data.role}`);
 
        try {
-           await activateUser(activatingUser.id); // Call the service function (role update handled inside)
+           // Pass both userId and the selected role to the service function
+           await activateUser(activatingUser.id, data.role);
            // Update local state to reflect activation and assigned role
-           setUsers(users.map(u => u.id === activatingUser.id ? { ...u, role: data.role } : u)); // Update role locally
+           setUsers(users.map(u => u.id === activatingUser.id ? { ...u, role: data.role } : u));
            toast({ title: usersDict.toast.activateUserSuccess, description: usersDict.toast.activateUserDesc.replace('{username}', activatingUser.username) });
            setIsActivateUserDialogOpen(false);
            setActivatingUser(null);
        } catch (error: any) {
            console.error("Activation error:", error);
+            let errorDesc = usersDict.toast.activateUserErrorDesc.replace('{username}', activatingUser.username);
+            if (error.message === 'USER_NOT_FOUND') {
+                errorDesc += ' User not found.';
+            } else if (error.message === 'USER_NOT_PENDING') {
+                 errorDesc += ' User is not in pending state.';
+            } else {
+                 errorDesc += ` (${error.message || 'Unknown error'})`;
+            }
            toast({
                variant: 'destructive',
                title: usersDict.toast.activateUserError,
-               description: usersDict.toast.activateUserErrorDesc.replace('{username}', activatingUser.username) + ` (${error.message || 'Unknown error'})`,
+               description: errorDesc,
            });
        } finally {
            setIsProcessing(false);

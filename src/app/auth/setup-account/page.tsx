@@ -119,11 +119,12 @@ export default function AccountSetupPage() {
         let errorMessage = dict.failDescription || 'An unknown error occurred during setup.';
         // Handle specific errors (e.g., username exists)
         if (error.message === 'USERNAME_EXISTS') {
-            errorMessage = dict.usernameExists;
+            errorMessage = dict.validation.usernameExists || dict.usernameExists; // Use validation message if available
             form.setError('username', { type: 'manual', message: errorMessage });
         } else if (error.message === 'EMAIL_EXISTS') {
-            errorMessage = dict.emailExists || 'This email is already associated with an account.'; // Add email exists translation
+            errorMessage = dict.validation.emailExists || dict.emailExists || 'This email is already associated with an account.'; // Use validation message
             // Optionally set error on email field if it existed in the form
+            // No email field in this form, so just show in toast
         } else {
            errorMessage = error.message || errorMessage;
         }

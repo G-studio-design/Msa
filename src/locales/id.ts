@@ -56,6 +56,8 @@ const id = {
           passwordRequired: 'Kata sandi wajib diisi',
           confirmPasswordRequired: 'Konfirmasi kata sandi wajib diisi',
           usernameRequired: 'Nama pengguna wajib diisi',
+          usernameExists: 'Nama pengguna sudah ada.', // Added validation message
+          emailExists: 'Email sudah ada.', // Added validation message
       }
   },
   // Dashboard Layout (Sidebar/Header)
@@ -242,6 +244,7 @@ const id = {
        usernameMin: 'Nama pengguna minimal 3 karakter',
        passwordMin: 'Kata sandi minimal 6 karakter',
        roleRequired: 'Peran diperlukan',
+       usernameExists: 'Nama pengguna sudah ada.', // Added validation message
     }
   },
    // Admin Actions Page
@@ -268,9 +271,9 @@ const id = {
     description: 'Kelola akun dan pengaturan aplikasi Anda.',
     profileCardTitle: 'Informasi Profil',
     usernameLabel: 'Nama Pengguna',
-    usernameHint: 'Nama pengguna tidak dapat diubah.',
+    usernameHint: 'Masukkan nama pengguna yang Anda inginkan', // Updated hint
     usernamePlaceholder: 'Masukkan nama pengguna baru',
-    updateProfileButton: 'Perbarui Profil',
+    updateProfileButton: 'Perbarui Profil', // Changed button text
     updatingProfileButton: 'Memperbarui...',
     passwordCardTitle: 'Perbarui Kata Sandi',
     currentPasswordLabel: 'Kata Sandi Saat Ini',
@@ -301,12 +304,14 @@ const id = {
       passwordTooShort: 'Kata sandi baru minimal 6 karakter.',
       passwordUpdated: 'Kata sandi berhasil diperbarui.',
       passwordUpdateFailed: 'Gagal memperbarui kata sandi. Periksa kata sandi saat ini.',
-      usernameRequired: 'Nama pengguna tidak boleh kosong.',
-      usernameTooShort: 'Nama pengguna minimal 3 karakter.',
+      usernameRequired: 'Nama pengguna tidak boleh kosong.', // Added for username
+      usernameTooShort: 'Nama pengguna minimal 3 karakter.', // Added for username
       profileUpdated: 'Profil berhasil diperbarui.',
       profileUpdateFailed: 'Gagal memperbarui profil.',
       languageChanged: 'Bahasa Diubah',
       languageChangedDesc: 'Bahasa antarmuka diperbarui.',
+      passwordMismatchError: 'Kata sandi saat ini tidak cocok.', // Added specific error
+      usernameExistsError: 'Nama pengguna sudah ada. Silakan pilih yang lain.', // Added specific error
     }
   },
 };

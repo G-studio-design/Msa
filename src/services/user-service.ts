@@ -69,10 +69,25 @@ async function readUsers(): Promise<User[]> {
 
     try {
         const data = await fs.readFile(DB_PATH, 'utf8');
-        return JSON.parse(data) as User[];
+        // Add basic validation to ensure it's an array
+        const parsedData = JSON.parse(data);
+        if (!Array.isArray(parsedData)) {
+            console.error("User database file does not contain a valid JSON array. Resetting.");
+            await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
+            return [];
+        }
+        return parsedData as User[];
     } catch (error) {
-        console.error("Error reading user database:", error);
-        throw new Error('Failed to read user data.'); // Or return empty array
+        console.error("Error reading or parsing user database:", error);
+        // Attempt to recover by writing an empty array if parsing fails
+        try {
+            console.log("Attempting to reset user database due to read/parse error.");
+            await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
+            return [];
+        } catch (writeError) {
+            console.error("Failed to reset user database:", writeError);
+            throw new Error('Failed to read or reset user data.');
+        }
     }
 }
 
@@ -120,14 +135,44 @@ export async function findUserById(userId: string): Promise<User | null> {
  * @returns A promise that resolves to the User object if credentials are valid, otherwise null.
  */
 export async function verifyUserCredentials(username: string, password: string): Promise<User | null> {
+    console.log(`Verifying credentials for username: "${username}"`);
     const user = await findUserByUsername(username);
-    if (!user || user.role === 'Pending') { // Don't allow pending users to log in
+
+    if (!user) {
+        console.log(`User "${username}" not found.`);
+        return null;
+    }
+    console.log(`User "${username}" found. ID: ${user.id}, Role: ${user.role}`);
+
+    // Ensure user is not pending activation
+    if (user.role === 'Pending') {
+        console.log(`Login failed for ${username}: User is pending activation.`);
         return null;
     }
 
-    const match = await bcrypt.compare(password, user.passwordHash);
-    return match ? user : null;
+    if (!user.passwordHash) {
+         console.error(`Login failed for ${username}: User has no password hash stored.`);
+         return null; // Cannot compare if hash doesn't exist
+    }
+
+    try {
+        console.log(`Comparing provided password with hash for user "${username}"...`);
+        const match = await bcrypt.compare(password, user.passwordHash);
+
+        if (match) {
+            console.log(`Password match successful for user "${username}".`);
+            return user; // Login successful
+        } else {
+            console.log(`Password mismatch for user "${username}".`);
+            return null; // Login failed (wrong password)
+        }
+    } catch (error) {
+        console.error(`Error during password comparison for user "${username}":`, error);
+        // Treat comparison errors as failed login for security
+        return null;
+    }
 }
+
 
 /**
  * Creates a new user account from Google Sign-In, stores it (pending activation),
@@ -223,14 +268,15 @@ export async function addUser(userData: AddUserData): Promise<User> {
 
 
 /**
- * Activates a pending user account.
+ * Activates a pending user account and assigns the specified role.
  *
  * @param userId The ID of the user to activate.
+ * @param role The role to assign to the activated user.
  * @returns A promise that resolves when the operation is complete.
  * @throws An error if the user is not found or cannot be activated.
  */
-export async function activateUser(userId: string): Promise<void> {
-    console.log(`Attempting to activate user with ID: ${userId}`);
+export async function activateUser(userId: string, role: string): Promise<void> {
+    console.log(`Attempting to activate user ID: ${userId} with role: ${role}`);
     let users = await readUsers();
     const userIndex = users.findIndex(u => u.id === userId);
 
@@ -241,19 +287,19 @@ export async function activateUser(userId: string): Promise<void> {
 
     const user = users[userIndex];
     if (user.role !== 'Pending') {
-        console.warn(`User "${userId}" is not in Pending state (current role: ${user.role}).`);
+        console.warn(`User "${userId}" is not in Pending state (current role: ${user.role}). Cannot activate.`);
         // Decide if you want to throw an error or just log and return
         throw new Error('USER_NOT_PENDING');
     }
 
-    // Update the user's role (e.g., to 'Arsitek')
-    users[userIndex] = { ...user, role: 'Arsitek' }; // Example default active role
+    // Update the user's role
+    users[userIndex] = { ...user, role: role };
     await writeUsers(users);
 
     // Notify user (Simulated)
-    console.log(`Simulating notification to user ${userId} about account activation.`);
+    console.log(`Simulating notification to user ${userId} about account activation with role ${role}.`);
 
-    console.log(`User ${userId} activated successfully.`);
+    console.log(`User ${userId} activated successfully with role ${role}.`);
 }
 
 /**
@@ -336,14 +382,19 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
 
     // If currentPassword is provided, verify it (user-initiated change)
     if (updateData.currentPassword) {
+         if (!user.passwordHash) {
+             console.error(`Password update failed for ${updateData.userId}: User has no password hash.`);
+             throw new Error('PASSWORD_HASH_MISSING');
+         }
         const match = await bcrypt.compare(updateData.currentPassword, user.passwordHash);
         if (!match) {
             console.error(`Current password mismatch for user ID: ${updateData.userId}`);
             throw new Error('PASSWORD_MISMATCH');
         }
+         console.log(`Current password verified for user ${updateData.userId}.`);
     } else {
-        // If currentPassword is NOT provided, assume it's an admin reset
-        console.log(`Admin password reset initiated for user ID: ${updateData.userId}`);
+        // If currentPassword is NOT provided, assume it's an admin reset (or initial setup)
+        console.log(`Password reset/update initiated for user ID: ${updateData.userId} (current password check skipped).`);
     }
 
     // Hash the new password

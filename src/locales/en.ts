@@ -56,6 +56,8 @@ const en = {
           passwordRequired: 'Password is required',
           confirmPasswordRequired: 'Password confirmation is required',
           usernameRequired: 'Username is required',
+          usernameExists: 'Username already exists.', // Added validation message
+          emailExists: 'Email already exists.', // Added validation message
       }
   },
   // Dashboard Layout (Sidebar/Header)
@@ -242,6 +244,7 @@ const en = {
       usernameMin: 'Username must be at least 3 characters',
       passwordMin: 'Password must be at least 6 characters',
       roleRequired: 'Role is required',
+      usernameExists: 'Username already exists.', // Added validation message
     }
   },
   // Admin Actions Page
@@ -268,9 +271,9 @@ const en = {
     description: 'Manage your account and application settings.',
     profileCardTitle: 'Profile Information',
     usernameLabel: 'Username',
-    usernameHint: 'Username cannot be changed.',
+    usernameHint: 'Enter your desired username', // Updated hint
     usernamePlaceholder: 'Enter new username',
-    updateProfileButton: 'Update Profile',
+    updateProfileButton: 'Update Profile', // Changed button text
     updatingProfileButton: 'Updating...',
     passwordCardTitle: 'Update Password',
     currentPasswordLabel: 'Current Password',
@@ -301,12 +304,14 @@ const en = {
         passwordTooShort: 'New password must be at least 6 characters.',
         passwordUpdated: 'Password updated successfully.',
         passwordUpdateFailed: 'Failed to update password. Check current password.',
-        usernameRequired: 'Username cannot be empty.',
-        usernameTooShort: 'Username must be at least 3 characters.',
+        usernameRequired: 'Username cannot be empty.', // Added for username
+        usernameTooShort: 'Username must be at least 3 characters.', // Added for username
         profileUpdated: 'Profile updated successfully.',
         profileUpdateFailed: 'Failed to update profile.',
         languageChanged: 'Language Changed',
         languageChangedDesc: 'Interface language updated.',
+        passwordMismatchError: 'Current password does not match.', // Added specific error
+        usernameExistsError: 'Username already exists. Please choose another.', // Added specific error
     }
   },
 };
