@@ -14,6 +14,14 @@ import {
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"; // Import Sheet components
+import {
   LayoutDashboard,
   Users,
   ClipboardList,
@@ -21,6 +29,7 @@ import {
   LogOut,
   Building,
   UserCog,
+  PanelRightOpen, // Icon for the new sheet trigger
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button'; // Import Button
@@ -115,12 +124,42 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset className="p-4 md:p-6">
-        <header className="flex items-center justify-between mb-6 md:hidden">
-          <SidebarTrigger />
-           <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-lg text-primary">
-             <Building className="h-6 w-6" />
-             <span>TaskTrackPro</span>
-           </Link>
+        {/* Header within the main content area */}
+        <header className="flex items-center justify-between mb-6">
+           {/* Mobile Sidebar Trigger and Logo (aligned left) */}
+          <div className="flex items-center gap-4">
+            <SidebarTrigger className="md:hidden" /> {/* Mobile sidebar trigger */}
+            <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-lg text-primary md:hidden"> {/* Mobile logo */}
+              <Building className="h-6 w-6" />
+              <span>TaskTrackPro</span>
+            </Link>
+          </div>
+
+          {/* Right-aligned Controls (e.g., the new Sheet trigger) */}
+          <div className="flex items-center gap-4">
+             {/* Add the new Sheet (Blue Box) Trigger */}
+             <Sheet>
+               <SheetTrigger asChild>
+                 <Button variant="outline" size="icon">
+                   <PanelRightOpen className="h-5 w-5" />
+                   <span className="sr-only">Toggle Blue Box</span>
+                 </Button>
+               </SheetTrigger>
+               <SheetContent side="right" className="bg-primary text-primary-foreground border-primary-foreground/20 w-[300px] sm:w-[400px]">
+                 <SheetHeader>
+                   <SheetTitle className="text-primary-foreground">Blue Box Panel</SheetTitle>
+                   <SheetDescription className="text-primary-foreground/80">
+                     This is a hideable blue box content area.
+                   </SheetDescription>
+                 </SheetHeader>
+                 <div className="mt-4 space-y-4">
+                   {/* Add content for the blue box here */}
+                   <p>You can put any components or information needed here.</p>
+                   <Button variant="secondary">Example Button</Button>
+                 </div>
+               </SheetContent>
+             </Sheet>
+          </div>
         </header>
         {children}
       </SidebarInset>
