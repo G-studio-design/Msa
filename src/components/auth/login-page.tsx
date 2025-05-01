@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { LogIn } from 'lucide-react'; // Using Lucide for icon
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 const loginSchema = z.object({
   username: z.string().min(1, 'Username is required'),
@@ -28,6 +29,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const { toast } = useToast();
+  const router = useRouter(); // Initialize router
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -41,19 +43,21 @@ export default function LoginPage() {
     console.log('Login attempt:', data);
     // Simulate login success/failure
     // Replace with actual authentication call
-    if (data.username === 'admin' && data.password === 'password') {
+    // Accept the newly added user 'admin'/'admin'
+    if ((data.username === 'admin' && data.password === 'admin') || (data.username === 'testuser' && data.password === 'password')) { // Added 'admin' user check
       toast({
         title: 'Login Successful',
         description: 'Redirecting to dashboard...',
       });
-      // TODO: Redirect user to dashboard
-      // e.g., router.push('/dashboard');
+      // Redirect user to dashboard
+       router.push('/dashboard');
     } else {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
         description: 'Invalid username or password.',
       });
+       form.resetField('password'); // Clear password field on failure
     }
   };
 
@@ -75,7 +79,7 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your username" {...field} />
+                      <Input placeholder="Enter your username" {...field} autoComplete="username" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -92,14 +96,15 @@ export default function LoginPage() {
                         type="password"
                         placeholder="Enter your password"
                         {...field}
+                        autoComplete="current-password"
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full accent-teal">
-                <LogIn className="mr-2 h-4 w-4" /> Login
+              <Button type="submit" className="w-full accent-teal" disabled={form.formState.isSubmitting}>
+                <LogIn className="mr-2 h-4 w-4" /> {form.formState.isSubmitting ? 'Logging in...' : 'Login'}
               </Button>
             </form>
           </Form>

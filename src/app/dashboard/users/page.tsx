@@ -69,6 +69,7 @@ const initialUsers = [
   { id: 'usr_4', username: 'arch_emily', role: 'Arsitek' },
   { id: 'usr_5', username: 'struct_dave', role: 'Struktur' },
   { id: 'usr_6', username: 'owner_jane', role: 'Owner' },
+  { id: 'usr_7', username: 'admin', role: 'General Admin' }, // Added user: i wayan govina
 ];
 
 const divisions = ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur'];
@@ -265,7 +266,8 @@ export default function ManageUsersPage() {
                        {/* Prevent deleting the currently logged-in admin? */}
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
-                           <Button variant="ghost" size="icon" disabled={user.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1}> {/* Example: Prevent deleting last GA */}
+                           {/* Prevent deleting user 'admin' or the last General Admin */}
+                           <Button variant="ghost" size="icon" disabled={user.username === 'admin' || (user.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1)}>
                              <Trash2 className="h-4 w-4 text-destructive" />
                            </Button>
                         </AlertDialogTrigger>
