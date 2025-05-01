@@ -342,6 +342,10 @@ const id = {
        permissionErrorDesc: "Tidak dapat meminta izin notifikasi.",
        notSupportedTitle: "Notifikasi Tidak Didukung",
        notSupportedDesc: "Browser Anda tidak mendukung notifikasi.",
+       tooltip: "Notifikasi", // Added tooltip text
+       title: "Notifikasi", // Added popover title
+       description: "Pembaruan terkini dan tindakan yang diperlukan.", // Added popover description
+       empty: "Tidak ada notifikasi baru.", // Added empty state text
    },
 };
 

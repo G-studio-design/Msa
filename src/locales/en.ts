@@ -342,6 +342,10 @@ const en = {
       permissionErrorDesc: "Could not request notification permission.",
       notSupportedTitle: "Notifications Not Supported",
       notSupportedDesc: "Your browser does not support notifications.",
+      tooltip: "Notifications", // Added tooltip text
+      title: "Notifications", // Added popover title
+      description: "Recent updates and required actions.", // Added popover description
+      empty: "No new notifications.", // Added empty state text
   },
 };
 

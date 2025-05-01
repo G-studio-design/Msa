@@ -13,6 +13,11 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"; // Import Popover
+import {
   LayoutDashboard,
   Users,
   ClipboardList,
@@ -23,16 +28,37 @@ import {
   PanelRightOpen,
   Code,
   User,
-  Loader2, // Added Loader2 import
+  Loader2,
+  Bell, // Added Bell icon
+  MessageSquareWarning, // Added for empty state
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge'; // Import Badge
 import { Separator } from '@/components/ui/separator';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { useRouter } from 'next/navigation'; // Import useRouter for navigation
+
+// Define a type for notifications
+interface Notification {
+  id: string;
+  message: string;
+  taskId: string; // ID of the task related to the notification
+  timestamp: string; // ISO string
+  isRead: boolean;
+}
+
+// Mock notification data (replace with actual fetching logic)
+const mockNotifications: Notification[] = [
+  { id: 'notif1', message: 'Task "Project Alpha" needs your approval.', taskId: 'task_alpha_id', timestamp: new Date(Date.now() - 3600000).toISOString(), isRead: false },
+  { id: 'notif2', message: 'New files uploaded for "Project Beta".', taskId: 'task_beta_id', timestamp: new Date(Date.now() - 7200000).toISOString(), isRead: false },
+  { id: 'notif3', message: 'Sidang scheduled for "Project Gamma".', taskId: 'task_gamma_id', timestamp: new Date(Date.now() - 86400000).toISOString(), isRead: true },
+];
+
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -41,13 +67,29 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { language } = useLanguage(); // Get current language
   const { currentUser, logout } = useAuth(); // Get current user and logout function from AuthContext
   const { toast } = useToast(); // Initialize toast
+  const router = useRouter(); // Initialize router
   const [isClient, setIsClient] = useState(false); // State to track client-side mount
   const [dict, setDict] = useState(() => getDictionary(language)); // Initialize dict directly
   const layoutDict = dict.dashboardLayout; // Specific dictionary section
+  const [notifications, setNotifications] = useState<Notification[]>([]); // State for notifications
+  const [unreadCount, setUnreadCount] = useState(0); // State for unread count
 
   useEffect(() => {
     setIsClient(true); // Component has mounted client-side
-  }, []);
+    // Simulate fetching notifications
+    if (currentUser) {
+       // In a real app, fetch notifications specific to the currentUser here
+       setNotifications(mockNotifications); // Use mock data for now
+    } else {
+        setNotifications([]); // Clear notifications if no user
+    }
+  }, [currentUser]); // Re-fetch or clear notifications when user changes
+
+  useEffect(() => {
+    // Calculate unread count when notifications change
+    setUnreadCount(notifications.filter(n => !n.isRead).length);
+  }, [notifications]);
+
 
   // Effect to request notification permission on client mount after user is logged in
   useEffect(() => {
@@ -61,21 +103,21 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                       console.log('Notification permission status:', permission);
                       if (permission === 'granted') {
                           toast({
-                              title: 'Notifications Enabled',
-                              description: 'You will now receive notifications.',
+                              title: dict.notifications.permissionGrantedTitle, // Use translated text
+                              description: dict.notifications.permissionGrantedDesc,
                           });
                       } else if (permission === 'denied') {
                            toast({
-                              title: 'Notifications Denied',
-                              description: 'You can enable notifications later in your browser settings.',
+                              title: dict.notifications.permissionDeniedTitle,
+                              description: dict.notifications.permissionDeniedDesc,
                               variant: 'destructive'
                           });
                       }
                   }).catch(err => {
                       console.error('Error requesting notification permission:', err);
                       toast({
-                          title: 'Permission Error',
-                          description: 'Could not request notification permission.',
+                          title: dict.notifications.permissionErrorTitle,
+                          description: dict.notifications.permissionErrorDesc,
                           variant: 'destructive'
                       });
                   });
@@ -87,10 +129,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           } else {
               console.warn('This browser does not support desktop notification');
               // Optionally inform the user that notifications aren't supported
-              // toast({ title: 'Notifications Not Supported', description: 'Your browser does not support notifications.' });
+              // toast({ title: dict.notifications.notSupportedTitle, description: dict.notifications.notSupportedDesc });
           }
       }
-  }, [isClient, currentUser, toast]); // Run when client status or user changes
+  }, [isClient, currentUser, toast, dict.notifications]); // Add dict.notifications to dependencies
 
 
   useEffect(() => {
@@ -143,6 +185,36 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
        return rolesDict[role as keyof typeof rolesDict] || role; // Fallback to original role
    }
 
+    // Helper function to format timestamps relatively (or absolute if needed)
+   const formatTimestamp = (timestamp: string): string => {
+       if (!isClient) return '...';
+       // Example: Simple relative time (could use date-fns for better formatting)
+       const now = new Date();
+       const past = new Date(timestamp);
+       const diffSeconds = Math.round((now.getTime() - past.getTime()) / 1000);
+       const diffMinutes = Math.round(diffSeconds / 60);
+       const diffHours = Math.round(diffMinutes / 60);
+       const diffDays = Math.round(diffHours / 24);
+
+       if (diffSeconds < 60) return `${diffSeconds}s ago`;
+       if (diffMinutes < 60) return `${diffMinutes}m ago`;
+       if (diffHours < 24) return `${diffHours}h ago`;
+       return `${diffDays}d ago`;
+   }
+
+   // Handle notification click
+   const handleNotificationClick = (notification: Notification) => {
+       console.log(`Notification clicked: ${notification.id}, Task ID: ${notification.taskId}`);
+       // Mark notification as read (update state and potentially backend)
+       setNotifications(prev =>
+           prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
+       );
+       // Navigate to the task details page
+       // Assuming task IDs are stable and can be used in URLs
+       router.push(`/dashboard/tasks?taskId=${notification.taskId}`); // Adjust URL structure if needed
+   };
+
+
   return (
     <div className="flex min-h-screen w-full">
       {/* Content Area */}
@@ -155,8 +227,65 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <span>{isClient ? layoutDict.appTitle : defaultDict.dashboardLayout.appTitle}</span>
               </Link>
 
-            {/* Right side actions - Sheet Trigger */}
-            <div className="flex items-center gap-4">
+            {/* Right side actions - Notification Popover and Sheet Trigger */}
+            <div className="flex items-center gap-2"> {/* Reduced gap */}
+              {/* Notification Popover */}
+              <Popover>
+                <PopoverTrigger asChild>
+                   <Button variant="outline" size="icon" className="relative">
+                       <Bell className="h-5 w-5" />
+                       {isClient && unreadCount > 0 && (
+                          <Badge
+                             variant="destructive"
+                             className="absolute -top-1 -right-1 h-4 w-4 p-0 justify-center text-xs"
+                           >
+                             {unreadCount}
+                           </Badge>
+                       )}
+                       <span className="sr-only">{isClient ? dict.notifications.tooltip : defaultDict.notifications.tooltip}</span>
+                   </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0"> {/* Adjusted width and removed padding */}
+                  <div className="p-4 border-b">
+                      <h4 className="font-medium leading-none">{isClient ? dict.notifications.title : defaultDict.notifications.title}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {isClient ? dict.notifications.description : defaultDict.notifications.description}
+                      </p>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto"> {/* Scrollable area */}
+                   {isClient && notifications.length > 0 ? (
+                       notifications.map(notification => (
+                         <div
+                             key={notification.id}
+                             onClick={() => handleNotificationClick(notification)}
+                             className={cn(
+                                 "p-3 flex items-start gap-3 hover:bg-accent cursor-pointer border-b last:border-b-0",
+                                 !notification.isRead && "bg-secondary/50 hover:bg-secondary/70" // Highlight unread
+                             )}
+                         >
+                           {/* Simple visual indicator for read/unread */}
+                           <div className={cn(
+                             "mt-1 h-2 w-2 rounded-full flex-shrink-0",
+                             notification.isRead ? "bg-muted-foreground/30" : "bg-primary"
+                           )}></div>
+                           <div className="flex-1">
+                              <p className="text-sm">{notification.message}</p>
+                              <p className="text-xs text-muted-foreground">{formatTimestamp(notification.timestamp)}</p>
+                           </div>
+                         </div>
+                       ))
+                   ) : (
+                     <div className="p-4 text-center text-sm text-muted-foreground flex flex-col items-center gap-2">
+                       <MessageSquareWarning className="h-6 w-6" />
+                       {isClient ? dict.notifications.empty : defaultDict.notifications.empty}
+                     </div>
+                   )}
+                 </div>
+                </PopoverContent>
+              </Popover>
+
+
+              {/* User Menu Sheet Trigger */}
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="outline" size="icon">
@@ -269,4 +398,3 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
-
