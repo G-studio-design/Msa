@@ -88,5 +88,15 @@
     "displayName": "wayan",
     "createdAt": "2025-05-01T17:20:04.615Z",
     "whatsappNumber": ""
+  },
+  {
+    "id": "usr_1746133383687_vijmn",
+    "username": "sudina",
+    "password": "sudina123",
+    "role": "Owner",
+    "email": "sudina@placeholder.example.com",
+    "whatsappNumber": "",
+    "displayName": "sudina",
+    "createdAt": "2025-05-01T21:03:03.687Z"
   }
 ]
