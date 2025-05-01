@@ -41,20 +41,23 @@ const defaultDict = getDictionary('en');
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { language } = useLanguage(); // Get current language
   const [isClient, setIsClient] = useState(false); // State to track client-side mount
-  const [dict, setDict] = useState(defaultDict); // Initialize with default dict
+  const [dict, setDict] = useState(() => getDictionary(language)); // Initialize dict directly
   const layoutDict = dict.dashboardLayout; // Specific dictionary section
 
   useEffect(() => {
     setIsClient(true); // Component has mounted client-side
-    setDict(getDictionary(language)); // Update dictionary based on context language
-  }, [language]); // Re-run if language changes
+  }, []);
+
+  useEffect(() => {
+    setDict(getDictionary(language)); // Update dictionary when language changes
+  }, [language]);
 
   // TODO: Fetch user data and determine visible menu items based on role
 
   const menuItems = [
     { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur"] },
     { href: "/dashboard/tasks", icon: ClipboardList, labelKey: "tasks", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur"] },
-    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers", roles: ["General Admin"] },
+    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers", roles: ["General Admin", "Owner"] }, // Added Owner
     { href: "/dashboard/admin-actions", icon: UserCog, labelKey: "adminActions", roles: ["Owner", "General Admin", "Admin Proyek"] },
     { href: "/dashboard/settings", icon: Settings, labelKey: "settings", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur"] },
   ];

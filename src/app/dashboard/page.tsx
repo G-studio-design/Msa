@@ -18,17 +18,30 @@ const tasks = [
   { id: 6, title: "Project Zeta - Admin Setup", status: "Pending", progress: 5, assignedDivision: "General Admin", nextAction: "Generate DP Invoice" },
 ];
 
+// Default dictionary for server render / pre-hydration
+const defaultDict = getDictionary('en');
+
 export default function DashboardPage() {
   const { language } = useLanguage(); // Get current language
-  const dict = getDictionary(language); // Get dictionary for the current language
+  const [isClient, setIsClient] = React.useState(false);
+  const [dict, setDict] = React.useState(() => getDictionary(language));
   const dashboardDict = dict.dashboardPage; // Specific dictionary section
+
+  React.useEffect(() => {
+      setIsClient(true);
+  }, []);
+
+  React.useEffect(() => {
+      setDict(getDictionary(language));
+  }, [language]);
 
   // TODO: Fetch tasks based on user role (Admin sees all, others see relevant tasks)
   const userRole = "General Admin"; // Replace with actual role
 
   // Helper function to get status icon and color using translated status
   const getStatusBadge = (status: string) => {
-    const statusKey = status.toLowerCase().replace(' ', '') as keyof typeof dashboardDict.status;
+    // Ensure statusKey is valid before accessing translation
+    const statusKey = status.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
     const translatedStatus = dashboardDict.status[statusKey] || status; // Fallback to original if no translation
 
     switch (status.toLowerCase()) {
@@ -44,6 +57,8 @@ export default function DashboardPage() {
          return <Badge variant="destructive"><XCircle className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
        case 'pending':
           return <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
+        case 'scheduled': // Added case for scheduled
+          return <Badge variant="secondary" className="bg-purple-500 text-white hover:bg-purple-600"><Clock className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
       default:
         return <Badge>{translatedStatus}</Badge>;
     }
@@ -61,38 +76,40 @@ export default function DashboardPage() {
 
   return (
     <div className="container mx-auto py-4">
-      <h1 className="text-3xl font-bold mb-6 text-primary">{dashboardDict.title}</h1>
+      <h1 className="text-3xl font-bold mb-6 text-primary">
+        {isClient ? dashboardDict.title : defaultDict.dashboardPage.title}
+      </h1>
 
        {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{dashboardDict.activeTasks}</CardTitle>
+            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.activeTasks : defaultDict.dashboardPage.activeTasks}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeTasks.length}</div>
-            <p className="text-xs text-muted-foreground">{dashboardDict.activeTasksDesc}</p>
+            <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.activeTasksDesc : defaultDict.dashboardPage.activeTasksDesc}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{dashboardDict.completedTasks}</CardTitle>
+            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.completedTasks : defaultDict.dashboardPage.completedTasks}</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{completedTasksCount}</div>
-             <p className="text-xs text-muted-foreground">{dashboardDict.completedTasksDesc}</p>
+             <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.completedTasksDesc : defaultDict.dashboardPage.completedTasksDesc}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{dashboardDict.pendingActions}</CardTitle>
+            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.pendingActions : defaultDict.dashboardPage.pendingActions}</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{pendingTasksCount}</div>
-            <p className="text-xs text-muted-foreground">{dashboardDict.pendingActionsDesc}</p>
+            <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.pendingActionsDesc : defaultDict.dashboardPage.pendingActionsDesc}</p>
           </CardContent>
         </Card>
       </div>
@@ -100,17 +117,17 @@ export default function DashboardPage() {
        {/* Task List */}
       <Card>
          <CardHeader>
-           <CardTitle>{dashboardDict.taskOverview}</CardTitle>
+           <CardTitle>{isClient ? dashboardDict.taskOverview : defaultDict.dashboardPage.taskOverview}</CardTitle>
            <CardDescription>
-             {userRole === 'General Admin' || userRole === 'Owner'
+             {isClient ? (userRole === 'General Admin' || userRole === 'Owner'
                 ? dashboardDict.allTasksDesc
-                : dashboardDict.divisionTasksDesc.replace('{division}', userRole)}
+                : dashboardDict.divisionTasksDesc.replace('{division}', userRole)) : ''}
            </CardDescription>
          </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {filteredTasks.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">{dashboardDict.noTasks}</p>
+              <p className="text-muted-foreground text-center py-4">{isClient ? dashboardDict.noTasks : defaultDict.dashboardPage.noTasks}</p>
             ) : (
               filteredTasks.map((task) => (
                 <Card key={task.id} className="hover:shadow-md transition-shadow">
@@ -118,20 +135,25 @@ export default function DashboardPage() {
                      <div>
                        <CardTitle className="text-lg">{task.title}</CardTitle>
                        <CardDescription className="text-xs text-muted-foreground">
-                         {dashboardDict.assignedTo}: {task.assignedDivision} {task.nextAction ? `| ${dashboardDict.nextAction}: ${task.nextAction}` : ''}
+                         {isClient ? `${dashboardDict.assignedTo}: ${task.assignedDivision} ${task.nextAction ? `| ${dashboardDict.nextAction}: ${task.nextAction}` : ''}` : ''}
                        </CardDescription>
                      </div>
-                    {getStatusBadge(task.status)}
+                     {/* Render badge only on client */}
+                     {isClient && getStatusBadge(task.status)}
                   </CardHeader>
                   <CardContent>
                      {task.status !== 'Canceled' && (
                        <>
                           <Progress value={task.progress} className="w-full h-2 mb-1" />
-                          <span className="text-xs text-muted-foreground">{dashboardDict.progress.replace('{progress}', task.progress.toString())}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {isClient ? dashboardDict.progress.replace('{progress}', task.progress.toString()) : ''}
+                          </span>
                        </>
                      )}
                      {task.status === 'Canceled' && (
-                        <p className="text-sm text-destructive font-medium">{dashboardDict.taskCanceled}</p>
+                        <p className="text-sm text-destructive font-medium">
+                          {isClient ? dashboardDict.taskCanceled : ''}
+                        </p>
                      )}
                   </CardContent>
                 </Card>

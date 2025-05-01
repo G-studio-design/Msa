@@ -71,14 +71,17 @@ const currentUser = {
   role: 'Architect', // Should match assignedDivision for actionability
 };
 
-type WorkflowHistoryEntry = typeof initialTask.workflowHistory[0] & { formattedTimestamp?: string };
-type FileEntry = typeof initialTask.files[0] & { formattedTimestamp?: string };
+type WorkflowHistoryEntry = typeof initialTask.workflowHistory[0];
+type FileEntry = typeof initialTask.files[0];
 
+// Default dictionary for server render / pre-hydration
+const defaultDict = getDictionary('en');
 
 export default function TasksPage() {
   const { toast } = useToast();
   const { language } = useLanguage(); // Get current language
-  const dict = getDictionary(language); // Get dictionary for the current language
+  const [isClient, setIsClient] = React.useState(false); // State to track client-side mount
+  const [dict, setDict] = React.useState(() => getDictionary(language)); // Initialize dict directly
   const tasksDict = dict.tasksPage; // Specific dictionary section
 
   const [task, setTask] = React.useState(initialTask); // In a real app, fetch this based on ID or context
@@ -88,29 +91,32 @@ export default function TasksPage() {
   const [scheduleDate, setScheduleDate] = React.useState('');
   const [scheduleTime, setScheduleTime] = React.useState('');
   const [scheduleLocation, setScheduleLocation] = React.useState('');
-  const [formattedHistory, setFormattedHistory] = React.useState<WorkflowHistoryEntry[]>([]);
-  const [formattedFiles, setFormattedFiles] = React.useState<FileEntry[]>([]);
-  const [isClient, setIsClient] = React.useState(false); // State to track client-side mount
 
-   // Format dates client-side to avoid hydration mismatch
    React.useEffect(() => {
       setIsClient(true); // Component has mounted client-side
-      // Use locale from language context for formatting
-      const locale = language === 'id' ? 'id-ID' : 'en-US';
+   }, []);
 
-      setFormattedHistory(
-        task.workflowHistory.map(entry => ({
-          ...entry,
-          formattedTimestamp: new Date(entry.timestamp).toLocaleString(locale),
-        }))
-      );
-      setFormattedFiles(
-        task.files.map(file => ({
-           ...file,
-           formattedTimestamp: new Date(file.timestamp).toLocaleDateString(locale), // Use toLocaleDateString for files list
-        }))
-      );
-    }, [task.workflowHistory, task.files, language]); // Re-run if history, files, or language change
+   React.useEffect(() => {
+        setDict(getDictionary(language)); // Update dictionary when language changes
+   }, [language]);
+
+   // Helper function to format dates client-side
+   const formatTimestamp = (timestamp: string): string => {
+       if (!isClient) return '...'; // Avoid rendering incorrect date on server
+       const locale = language === 'id' ? 'id-ID' : 'en-US';
+       return new Date(timestamp).toLocaleString(locale, {
+           year: 'numeric', month: 'numeric', day: 'numeric',
+           hour: 'numeric', minute: 'numeric', second: 'numeric',
+       });
+   };
+
+   const formatDateOnly = (timestamp: string): string => {
+      if (!isClient) return '...'; // Avoid rendering incorrect date on server
+      const locale = language === 'id' ? 'id-ID' : 'en-US';
+       return new Date(timestamp).toLocaleDateString(locale, {
+            year: 'numeric', month: 'short', day: 'numeric',
+       });
+   }
 
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,7 +133,9 @@ export default function TasksPage() {
 
   // Helper to get translated status
     const getTranslatedStatus = (statusKey: keyof typeof dict.dashboardPage.status): string => {
-        return dict.dashboardPage.status[statusKey] || statusKey;
+        // Ensure statusKey is valid before accessing translation
+        const key = statusKey.toLowerCase().replace(/ /g,'') as keyof typeof dict.dashboardPage.status;
+        return dict.dashboardPage.status[key] || statusKey; // Fallback to original key if not found
     }
 
   const handleProgressSubmit = async () => {
@@ -321,7 +329,7 @@ export default function TasksPage() {
 
      // TODO: API Call to save schedule to DB
      new Promise(resolve => setTimeout(resolve, 1000)).then(() => {
-        const historyEntry = { division: currentUser.role, action: `Scheduled Sidang for ${sidangDateTime.toLocaleString()}`, timestamp: new Date().toISOString() };
+        const historyEntry = { division: currentUser.role, action: `Scheduled Sidang for ${sidangDateTime.toISOString()}`, timestamp: new Date().toISOString() };
         setTask(prev => ({
              ...prev,
              status: 'Scheduled',
@@ -344,13 +352,17 @@ export default function TasksPage() {
         return;
       }
         // Find the scheduling entry in the original history to get the timestamp
-        const schedulingEntry = task.workflowHistory.find(entry => entry.action.startsWith('Scheduled Sidang'));
+        // Look for the specific action string
+        const schedulingEntry = task.workflowHistory.find(entry => entry.action.startsWith('Scheduled Sidang for '));
         if (!schedulingEntry) {
              toast({ variant: 'destructive', title: tasksDict.toast.errorFindingSchedule, description: tasksDict.toast.couldNotFindSchedule });
              return;
         }
 
-         const scheduledDateTime = new Date(schedulingEntry.timestamp); // Use the original accurate timestamp
+         // Extract the ISO string from the action
+         const isoString = schedulingEntry.action.replace('Scheduled Sidang for ', '');
+         const scheduledDateTime = new Date(isoString);
+
          // Estimate end time (e.g., 1 hour later) - Adjust as needed
          const endTime = new Date(scheduledDateTime.getTime() + 60 * 60 * 1000);
 
@@ -383,7 +395,7 @@ export default function TasksPage() {
    const showCalendarButton = task.status === 'Scheduled' && ['Owner', 'General Admin'].includes(currentUser.role);
    const showSidangOutcomeSection = task.status === 'Scheduled' && currentUser.role === 'Owner';
 
-   const translatedTaskStatus = dict.dashboardPage.status[task.status.toLowerCase().replace(' ','') as keyof typeof dict.dashboardPage.status] || task.status;
+   const translatedTaskStatus = isClient ? (getTranslatedStatus(task.status as keyof typeof dict.dashboardPage.status)) : defaultDict.dashboardPage.status[task.status.toLowerCase().replace(/ /g,'') as keyof typeof defaultDict.dashboardPage.status];
 
   return (
     <div className="container mx-auto py-4 space-y-6">
@@ -394,23 +406,23 @@ export default function TasksPage() {
                {/* TODO: Allow editing title for Owner, GA, PA */}
                 <CardTitle className="text-2xl">{task.title}</CardTitle>
                 <CardDescription>
-                    {tasksDict.statusLabel}: <Badge variant={
+                    {isClient ? tasksDict.statusLabel : defaultDict.tasksPage.statusLabel}: <Badge variant={
                         task.status === 'Completed' ? 'default' :
                         task.status === 'Canceled' ? 'destructive' : 'secondary'
-                      }>{translatedTaskStatus}</Badge> | {tasksDict.nextActionLabel}: {task.nextAction || tasksDict.none} | {tasksDict.assignedLabel}: {task.assignedDivision || tasksDict.none}
+                      }>{translatedTaskStatus || task.status}</Badge> | {isClient ? tasksDict.nextActionLabel : defaultDict.tasksPage.nextActionLabel}: {task.nextAction || (isClient ? tasksDict.none : defaultDict.tasksPage.none)} | {isClient ? tasksDict.assignedLabel : defaultDict.tasksPage.assignedLabel}: {task.assignedDivision || (isClient ? tasksDict.none : defaultDict.tasksPage.none)}
                 </CardDescription>
               </div>
                 <div className="text-right">
-                    <div className="text-sm font-medium">{tasksDict.progressLabel}</div>
+                    <div className="text-sm font-medium">{isClient ? tasksDict.progressLabel : defaultDict.tasksPage.progressLabel}</div>
                     <Progress value={task.progress} className="w-32 h-2 mt-1" />
-                    <span className="text-xs text-muted-foreground">{dict.dashboardPage.progress.replace('{progress}', task.progress.toString())}</span>
+                    <span className="text-xs text-muted-foreground">{isClient ? dict.dashboardPage.progress.replace('{progress}', task.progress.toString()) : ''}</span>
                 </div>
           </div>
         </CardHeader>
 
         {/* Action Section */}
         <CardContent>
-          {showUploadSection && (
+          {isClient && showUploadSection && (
             <div className="space-y-4 border-t pt-4">
               <h3 className="text-lg font-semibold">{tasksDict.uploadProgressTitle.replace('{role}', currentUser.role)}</h3>
               <div className="grid w-full items-center gap-1.5">
@@ -449,7 +461,7 @@ export default function TasksPage() {
             </div>
           )}
 
-           {showOwnerDecisionSection && (
+           {isClient && showOwnerDecisionSection && (
              <div className="space-y-4 border-t pt-4">
                <h3 className="text-lg font-semibold">{tasksDict.ownerActionTitle}</h3>
                <p className="text-sm text-muted-foreground">{tasksDict.ownerActionDesc}</p>
@@ -487,7 +499,7 @@ export default function TasksPage() {
              </div>
            )}
 
-            {showSchedulingSection && (
+            {isClient && showSchedulingSection && (
                  <div className="space-y-4 border-t pt-4">
                    <h3 className="text-lg font-semibold">{tasksDict.scheduleSidangTitle.replace('{role}', currentUser.role)}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -511,7 +523,7 @@ export default function TasksPage() {
                  </div>
                )}
 
-            {showCalendarButton && (
+            {isClient && showCalendarButton && (
                 <div className="border-t pt-4 mt-4">
                    <Button onClick={handleAddToCalendar} disabled={isSubmitting} variant="outline">
                         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> :
@@ -523,7 +535,7 @@ export default function TasksPage() {
             )}
 
 
-           {showSidangOutcomeSection && (
+           {isClient && showSidangOutcomeSection && (
                 <div className="space-y-4 border-t pt-4">
                   <h3 className="text-lg font-semibold">{tasksDict.sidangOutcomeTitle}</h3>
                    <p className="text-sm text-muted-foreground">{tasksDict.sidangOutcomeDesc}</p>
@@ -543,13 +555,13 @@ export default function TasksPage() {
              )}
 
 
-           {task.status === 'Completed' && (
+           {isClient && task.status === 'Completed' && (
               <div className="border-t pt-4 text-center">
                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
                  <p className="font-semibold text-lg text-green-600">{tasksDict.completedMessage}</p>
               </div>
            )}
-            {task.status === 'Canceled' && (
+            {isClient && task.status === 'Canceled' && (
                <div className="border-t pt-4 text-center">
                   <XCircle className="h-12 w-12 text-destructive mx-auto mb-2" />
                   <p className="font-semibold text-lg text-destructive">{tasksDict.canceledMessage}</p>
@@ -562,24 +574,24 @@ export default function TasksPage() {
       {/* File List Card */}
        <Card>
            <CardHeader>
-             <CardTitle>{tasksDict.uploadedFilesTitle}</CardTitle>
-             <CardDescription>{tasksDict.uploadedFilesDesc}</CardDescription>
+             <CardTitle>{isClient ? tasksDict.uploadedFilesTitle : defaultDict.tasksPage.uploadedFilesTitle}</CardTitle>
+             <CardDescription>{isClient ? tasksDict.uploadedFilesDesc : defaultDict.tasksPage.uploadedFilesDesc}</CardDescription>
            </CardHeader>
            <CardContent>
              {!isClient ? (
-                 <p className="text-sm text-muted-foreground">{tasksDict.loadingFiles}</p>
-             ) : formattedFiles.length === 0 ? (
+                 <p className="text-sm text-muted-foreground">{defaultDict.tasksPage.loadingFiles}</p>
+             ) : task.files.length === 0 ? (
                 <p className="text-sm text-muted-foreground">{tasksDict.noFiles}</p>
              ) : (
                <ul className="space-y-2">
-                  {formattedFiles.map((file, index) => (
+                  {task.files.map((file, index) => (
                    <li key={index} className="flex items-center justify-between p-2 border rounded-md hover:bg-secondary/50">
                       <div className="flex items-center gap-2">
                           <FileText className="h-5 w-5 text-primary" />
                           <span className="text-sm font-medium">{file.name}</span>
                       </div>
                       <div className="text-xs text-muted-foreground">
-                         {tasksDict.uploadedByOn.replace('{user}', file.uploadedBy).replace('{date}', file.formattedTimestamp || '...')}
+                         {tasksDict.uploadedByOn.replace('{user}', file.uploadedBy).replace('{date}', formatDateOnly(file.timestamp))}
                       </div>
                    </li>
                   ))}
@@ -592,23 +604,23 @@ export default function TasksPage() {
       {/* Workflow History Card */}
       <Card>
         <CardHeader>
-          <CardTitle>{tasksDict.workflowHistoryTitle}</CardTitle>
-          <CardDescription>{tasksDict.workflowHistoryDesc}</CardDescription>
+          <CardTitle>{isClient ? tasksDict.workflowHistoryTitle : defaultDict.tasksPage.workflowHistoryTitle}</CardTitle>
+          <CardDescription>{isClient ? tasksDict.workflowHistoryDesc : defaultDict.tasksPage.workflowHistoryDesc}</CardDescription>
         </CardHeader>
         <CardContent>
             {!isClient ? (
-                <p className="text-sm text-muted-foreground">{tasksDict.loadingHistory}</p>
+                <p className="text-sm text-muted-foreground">{defaultDict.tasksPage.loadingHistory}</p>
             ) : (
                 <ul className="space-y-3">
-                {formattedHistory.map((entry, index) => (
+                {task.workflowHistory.map((entry, index) => (
                     <li key={index} className="flex items-start gap-3">
-                    <div className={`mt-1 h-3 w-3 rounded-full ${index === formattedHistory.length - 1 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
-                    <div>
-                        <p className="text-sm font-medium">
-                            {tasksDict.historyActionBy.replace('{action}', entry.action).replace('{division}', entry.division)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{entry.formattedTimestamp || '...'}</p> {/* Display formatted date or loading */}
-                    </div>
+                        <div className={`mt-1 h-3 w-3 rounded-full ${index === task.workflowHistory.length - 1 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
+                        <div>
+                            <p className="text-sm font-medium">
+                                {tasksDict.historyActionBy.replace('{action}', entry.action).replace('{division}', entry.division)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{formatTimestamp(entry.timestamp)}</p> {/* Use helper function */}
+                        </div>
                     </li>
                 ))}
                 </ul>
