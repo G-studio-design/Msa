@@ -166,7 +166,16 @@ export default function AdminActionsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tasks.length === 0 ? (
+              {isLoadingTasks ? (
+                 [...Array(3)].map((_, i) => (
+                     <TableRow key={`skel-${i}`}>
+                         <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                         <TableCell><Skeleton className="h-4 w-3/4" /></TableCell>
+                         <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                         <TableCell className="text-right"><Skeleton className="h-8 w-8 inline-block" /></TableCell>
+                     </TableRow>
+                 ))
+               ) : tasks.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center text-muted-foreground">
                     {isClient ? adminDict.noTasks : defaultDict.adminActionsPage.noTasks}
@@ -188,7 +197,7 @@ export default function AdminActionsPage() {
                         task.title
                       )}
                     </TableCell>
-                     <TableCell>{getTranslatedStatus(task.status)}</TableCell> {/* Use translated status */}
+                    <TableCell>{getTranslatedStatus(task.status)}</TableCell> {/* Use translated status */}
                     <TableCell className="text-right space-x-2">
                       {editingTaskId === task.id ? (
                         <>
@@ -215,5 +224,3 @@ export default function AdminActionsPage() {
     </div>
   );
 }
- 
-    
