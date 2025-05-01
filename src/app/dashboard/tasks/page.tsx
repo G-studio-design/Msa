@@ -161,7 +161,7 @@ export default function TasksPage() {
 
   // Helper to get translated status
     const getTranslatedStatus = (statusKey: string): string => {
-        if (!isClient) return '...';
+        if (!isClient || !dashboardDict || !dashboardDict.status) return '...';
         const key = statusKey?.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
         return dashboardDict.status[key] || statusKey; // Fallback to original key if not found
     }
@@ -970,3 +970,4 @@ export default function TasksPage() {
     </div>
   );
 }
+
