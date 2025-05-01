@@ -38,6 +38,8 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { scheduleEvent } from '@/services/google-calendar'; // Import the service
+import { useLanguage } from '@/context/LanguageContext'; // Import language context
+import { getDictionary } from '@/lib/translations'; // Import translation helper
 
 // Mock data - Replace with actual task data fetching and state management
 const initialTask = {
@@ -70,9 +72,15 @@ const currentUser = {
 };
 
 type WorkflowHistoryEntry = typeof initialTask.workflowHistory[0] & { formattedTimestamp?: string };
+type FileEntry = typeof initialTask.files[0] & { formattedTimestamp?: string };
+
 
 export default function TasksPage() {
   const { toast } = useToast();
+  const { language } = useLanguage(); // Get current language
+  const dict = getDictionary(language); // Get dictionary for the current language
+  const tasksDict = dict.tasksPage; // Specific dictionary section
+
   const [task, setTask] = React.useState(initialTask); // In a real app, fetch this based on ID or context
   const [description, setDescription] = React.useState('');
   const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);
@@ -81,26 +89,28 @@ export default function TasksPage() {
   const [scheduleTime, setScheduleTime] = React.useState('');
   const [scheduleLocation, setScheduleLocation] = React.useState('');
   const [formattedHistory, setFormattedHistory] = React.useState<WorkflowHistoryEntry[]>([]);
-  const [formattedFiles, setFormattedFiles] = React.useState<typeof initialTask.files & { formattedTimestamp?: string }[]>([]);
+  const [formattedFiles, setFormattedFiles] = React.useState<FileEntry[]>([]);
   const [isClient, setIsClient] = React.useState(false); // State to track client-side mount
 
    // Format dates client-side to avoid hydration mismatch
    React.useEffect(() => {
       setIsClient(true); // Component has mounted client-side
+      // Use locale from language context for formatting
+      const locale = language === 'id' ? 'id-ID' : 'en-US';
 
       setFormattedHistory(
         task.workflowHistory.map(entry => ({
           ...entry,
-          formattedTimestamp: new Date(entry.timestamp).toLocaleString(),
+          formattedTimestamp: new Date(entry.timestamp).toLocaleString(locale),
         }))
       );
       setFormattedFiles(
         task.files.map(file => ({
            ...file,
-           formattedTimestamp: new Date(file.timestamp).toLocaleDateString(), // Use toLocaleDateString for files list
+           formattedTimestamp: new Date(file.timestamp).toLocaleDateString(locale), // Use toLocaleDateString for files list
         }))
       );
-    }, [task.workflowHistory, task.files]); // Re-run if history or files change
+    }, [task.workflowHistory, task.files, language]); // Re-run if history, files, or language change
 
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,13 +125,18 @@ export default function TasksPage() {
 
   const canPerformAction = currentUser.role === task.assignedDivision;
 
+  // Helper to get translated status
+    const getTranslatedStatus = (statusKey: keyof typeof dict.dashboardPage.status): string => {
+        return dict.dashboardPage.status[statusKey] || statusKey;
+    }
+
   const handleProgressSubmit = async () => {
     if (!canPerformAction) {
-      toast({ variant: 'destructive', title: 'Permission Denied', description: 'Not your turn to update progress.' });
+      toast({ variant: 'destructive', title: tasksDict.toast.permissionDenied, description: tasksDict.toast.notYourTurn });
       return;
     }
     if (!description && uploadedFiles.length === 0 && task.status !== 'Pending Scheduling' && !['Owner', 'General Admin'].includes(currentUser.role)) {
-       toast({ variant: 'destructive', title: 'Missing Input', description: 'Please provide a description or upload files.' });
+       toast({ variant: 'destructive', title: tasksDict.toast.missingInput, description: tasksDict.toast.provideDescOrFile });
        return;
      }
 
@@ -223,12 +238,12 @@ export default function TasksPage() {
     setDescription('');
     setUploadedFiles([]);
     setIsSubmitting(false);
-    toast({ title: 'Progress Submitted', description: `Notified ${nextDivision} for next step.` });
+    toast({ title: tasksDict.toast.progressSubmitted, description: tasksDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
   };
 
   const handleDecision = (decision: 'continue' | 'cancel') => {
      if (currentUser.role !== 'Owner') {
-       toast({ variant: 'destructive', title: 'Permission Denied', description: 'Only Owner can make this decision.' });
+       toast({ variant: 'destructive', title: tasksDict.toast.permissionDenied, description: tasksDict.toast.onlyOwnerDecision });
        return;
      }
      setIsSubmitting(true);
@@ -247,7 +262,7 @@ export default function TasksPage() {
          nextDivision = ''; // No one assigned
          nextActionDescription = '';
           historyEntry.action = 'Canceled Progress';
-         toast({ variant: 'destructive', title: 'Progress Canceled' });
+         toast({ variant: 'destructive', title: tasksDict.toast.progressCanceled });
        } else {
          // Logic for continuing based on the current approval step
          if (task.status === 'Pending Approval') {
@@ -257,14 +272,14 @@ export default function TasksPage() {
                  newProgress = 25; // Progress slightly after approval
                  nextActionDescription = 'Generate DP Invoice';
                   historyEntry.action = 'Approved Offer';
-                 toast({ title: 'Offer Approved', description: 'General Admin notified for DP Invoice.' });
+                 toast({ title: tasksDict.toast.offerApproved, description: tasksDict.toast.offerApprovedDesc });
             } else if (task.progress === 30) { // After DP Invoice
                  nextStatus = 'Pending Admin Files';
                  nextDivision = 'Project Admin';
                  newProgress = 40; // Progress slightly after approval
                  nextActionDescription = 'Upload Admin Files';
                   historyEntry.action = 'Approved DP Invoice';
-                 toast({ title: 'DP Invoice Approved', description: 'Project Admin notified for Admin Files.' });
+                 toast({ title: tasksDict.toast.dpApproved, description: tasksDict.toast.dpApprovedDesc });
             }
          } else if (task.status === 'Scheduled') { // After Sidang outcome
              nextStatus = 'Completed'; // Assuming success for now
@@ -272,7 +287,7 @@ export default function TasksPage() {
              newProgress = 100;
              nextActionDescription = '';
              historyEntry.action = 'Marked as Completed';
-             toast({ title: 'Progress Completed Successfully!' });
+             toast({ title: tasksDict.toast.progressCompleted });
              // Add a "Fail" button/option as well
          }
        }
@@ -292,11 +307,11 @@ export default function TasksPage() {
 
   const handleScheduleSubmit = () => {
      if (!['Owner', 'General Admin'].includes(currentUser.role)) {
-       toast({ variant: 'destructive', title: 'Permission Denied' });
+       toast({ variant: 'destructive', title: tasksDict.toast.permissionDenied });
        return;
      }
      if (!scheduleDate || !scheduleTime || !scheduleLocation) {
-         toast({ variant: 'destructive', title: 'Missing Schedule Info', description: 'Please provide date, time, and location.' });
+         toast({ variant: 'destructive', title: tasksDict.toast.missingScheduleInfo, description: tasksDict.toast.provideDateTimeLoc });
          return;
      }
 
@@ -319,19 +334,19 @@ export default function TasksPage() {
         setScheduleDate('');
         setScheduleTime('');
         setScheduleLocation('');
-        toast({ title: 'Sidang Scheduled', description: 'All relevant parties notified.' });
+        toast({ title: tasksDict.toast.sidangScheduled, description: tasksDict.toast.sidangScheduledDesc });
      });
   };
 
     const handleAddToCalendar = async () => {
       if (task.status !== 'Scheduled') {
-        toast({ variant: 'destructive', title: 'Cannot Add Yet', description: 'Sidang must be scheduled first.' });
+        toast({ variant: 'destructive', title: tasksDict.toast.cannotAddCalendarYet, description: tasksDict.toast.mustScheduleFirst });
         return;
       }
         // Find the scheduling entry in the original history to get the timestamp
         const schedulingEntry = task.workflowHistory.find(entry => entry.action.startsWith('Scheduled Sidang'));
         if (!schedulingEntry) {
-             toast({ variant: 'destructive', title: 'Error', description: 'Could not find scheduling information.' });
+             toast({ variant: 'destructive', title: tasksDict.toast.errorFindingSchedule, description: tasksDict.toast.couldNotFindSchedule });
              return;
         }
 
@@ -350,10 +365,10 @@ export default function TasksPage() {
       try {
         setIsSubmitting(true);
         const eventId = await scheduleEvent(eventDetails);
-        toast({ title: 'Added to Google Calendar', description: `Event ID: ${eventId}` });
+        toast({ title: tasksDict.toast.addedToCalendar, description: tasksDict.toast.eventId.replace('{id}', eventId) });
       } catch (error) {
         console.error("Error scheduling event:", error);
-        toast({ variant: 'destructive', title: 'Calendar Error', description: 'Could not add event to Google Calendar.' });
+        toast({ variant: 'destructive', title: tasksDict.toast.calendarError, description: tasksDict.toast.couldNotAddEvent });
       } finally {
         setIsSubmitting(false);
       }
@@ -368,6 +383,7 @@ export default function TasksPage() {
    const showCalendarButton = task.status === 'Scheduled' && ['Owner', 'General Admin'].includes(currentUser.role);
    const showSidangOutcomeSection = task.status === 'Scheduled' && currentUser.role === 'Owner';
 
+   const translatedTaskStatus = dict.dashboardPage.status[task.status.toLowerCase().replace(' ','') as keyof typeof dict.dashboardPage.status] || task.status;
 
   return (
     <div className="container mx-auto py-4 space-y-6">
@@ -377,16 +393,17 @@ export default function TasksPage() {
              <div>
                {/* TODO: Allow editing title for Owner, GA, PA */}
                 <CardTitle className="text-2xl">{task.title}</CardTitle>
-                <CardDescription>Status: <Badge variant={
-                    task.status === 'Completed' ? 'default' :
-                    task.status === 'Canceled' ? 'destructive' : 'secondary'
-                  }>{task.status}</Badge> | Next Action: {task.nextAction || 'None'} | Assigned: {task.assignedDivision || 'None'}
+                <CardDescription>
+                    {tasksDict.statusLabel}: <Badge variant={
+                        task.status === 'Completed' ? 'default' :
+                        task.status === 'Canceled' ? 'destructive' : 'secondary'
+                      }>{translatedTaskStatus}</Badge> | {tasksDict.nextActionLabel}: {task.nextAction || tasksDict.none} | {tasksDict.assignedLabel}: {task.assignedDivision || tasksDict.none}
                 </CardDescription>
               </div>
                 <div className="text-right">
-                    <div className="text-sm font-medium">Progress</div>
+                    <div className="text-sm font-medium">{tasksDict.progressLabel}</div>
                     <Progress value={task.progress} className="w-32 h-2 mt-1" />
-                    <span className="text-xs text-muted-foreground">{task.progress}% Complete</span>
+                    <span className="text-xs text-muted-foreground">{dict.dashboardPage.progress.replace('{progress}', task.progress.toString())}</span>
                 </div>
           </div>
         </CardHeader>
@@ -395,24 +412,24 @@ export default function TasksPage() {
         <CardContent>
           {showUploadSection && (
             <div className="space-y-4 border-t pt-4">
-              <h3 className="text-lg font-semibold">Upload Progress ({currentUser.role})</h3>
+              <h3 className="text-lg font-semibold">{tasksDict.uploadProgressTitle.replace('{role}', currentUser.role)}</h3>
               <div className="grid w-full items-center gap-1.5">
-                <Label htmlFor="description">Description / Notes</Label>
+                <Label htmlFor="description">{tasksDict.descriptionLabel}</Label>
                 <Textarea
                   id="description"
-                  placeholder={`Provide details for the ${task.assignedDivision} stage...`}
+                  placeholder={tasksDict.descriptionPlaceholder.replace('{division}', task.assignedDivision)}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   disabled={isSubmitting}
                 />
               </div>
               <div className="grid w-full items-center gap-1.5">
-                <Label htmlFor="picture">Attach Files</Label>
+                <Label htmlFor="picture">{tasksDict.attachFilesLabel}</Label>
                 <Input id="picture" type="file" multiple onChange={handleFileChange} disabled={isSubmitting} />
               </div>
               {uploadedFiles.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Selected files:</Label>
+                  <Label>{tasksDict.selectedFilesLabel}</Label>
                   <ul className="list-disc list-inside text-sm space-y-1">
                     {uploadedFiles.map((file, index) => (
                       <li key={index} className="flex items-center justify-between">
@@ -427,44 +444,44 @@ export default function TasksPage() {
               )}
               <Button onClick={handleProgressSubmit} disabled={isSubmitting || (!description && uploadedFiles.length === 0)}>
                  {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                 {isSubmitting ? 'Submitting...' : 'Submit Progress'}
+                 {isSubmitting ? tasksDict.submittingButton : tasksDict.submitButton}
               </Button>
             </div>
           )}
 
            {showOwnerDecisionSection && (
              <div className="space-y-4 border-t pt-4">
-               <h3 className="text-lg font-semibold">Owner Action Required</h3>
-               <p className="text-sm text-muted-foreground">Review the submitted documents and decide whether to proceed.</p>
+               <h3 className="text-lg font-semibold">{tasksDict.ownerActionTitle}</h3>
+               <p className="text-sm text-muted-foreground">{tasksDict.ownerActionDesc}</p>
                 <div className="flex gap-4">
                    <AlertDialog>
                      <AlertDialogTrigger asChild>
                        <Button variant="outline" disabled={isSubmitting}>
-                         <XCircle className="mr-2 h-4 w-4" /> Cancel Progress
+                         <XCircle className="mr-2 h-4 w-4" /> {tasksDict.cancelProgressButton}
                        </Button>
                      </AlertDialogTrigger>
                      <AlertDialogContent>
                        <AlertDialogHeader>
-                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                         <AlertDialogTitle>{tasksDict.cancelDialogTitle}</AlertDialogTitle>
                          <AlertDialogDescription>
-                           Canceling this progress cannot be undone. The status will be marked as Canceled.
+                          {tasksDict.cancelDialogDesc}
                          </AlertDialogDescription>
                        </AlertDialogHeader>
                        <AlertDialogFooter>
-                         <AlertDialogCancel disabled={isSubmitting}>Back</AlertDialogCancel>
+                         <AlertDialogCancel disabled={isSubmitting}>{tasksDict.cancelDialogCancel}</AlertDialogCancel>
                          <AlertDialogAction
                             className="bg-destructive hover:bg-destructive/90"
                             onClick={() => handleDecision('cancel')}
                             disabled={isSubmitting}>
                              {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                             Confirm Cancelation
+                             {tasksDict.cancelDialogConfirm}
                          </AlertDialogAction>
                        </AlertDialogFooter>
                      </AlertDialogContent>
                    </AlertDialog>
                    <Button onClick={() => handleDecision('continue')} disabled={isSubmitting} className="accent-teal">
                       {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
-                      Continue Progress
+                      {tasksDict.continueProgressButton}
                    </Button>
                  </div>
              </div>
@@ -472,24 +489,24 @@ export default function TasksPage() {
 
             {showSchedulingSection && (
                  <div className="space-y-4 border-t pt-4">
-                   <h3 className="text-lg font-semibold">Schedule Sidang ({currentUser.role})</h3>
+                   <h3 className="text-lg font-semibold">{tasksDict.scheduleSidangTitle.replace('{role}', currentUser.role)}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
-                         <Label htmlFor="scheduleDate">Date</Label>
+                         <Label htmlFor="scheduleDate">{tasksDict.dateLabel}</Label>
                          <Input id="scheduleDate" type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} disabled={isSubmitting} />
                       </div>
                        <div className="space-y-1.5">
-                          <Label htmlFor="scheduleTime">Time</Label>
+                          <Label htmlFor="scheduleTime">{tasksDict.timeLabel}</Label>
                           <Input id="scheduleTime" type="time" value={scheduleTime} onChange={e => setScheduleTime(e.target.value)} disabled={isSubmitting} />
                        </div>
                        <div className="space-y-1.5">
-                          <Label htmlFor="scheduleLocation">Location</Label>
-                          <Input id="scheduleLocation" placeholder="e.g., Main Conference Room" value={scheduleLocation} onChange={e => setScheduleLocation(e.target.value)} disabled={isSubmitting} />
+                          <Label htmlFor="scheduleLocation">{tasksDict.locationLabel}</Label>
+                          <Input id="scheduleLocation" placeholder={tasksDict.locationPlaceholder} value={scheduleLocation} onChange={e => setScheduleLocation(e.target.value)} disabled={isSubmitting} />
                        </div>
                     </div>
                    <Button onClick={handleScheduleSubmit} disabled={isSubmitting || !scheduleDate || !scheduleTime || !scheduleLocation}>
                       {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarClock className="mr-2 h-4 w-4" />}
-                     {isSubmitting ? 'Scheduling...' : 'Confirm Schedule'}
+                     {isSubmitting ? tasksDict.schedulingButton : tasksDict.confirmScheduleButton}
                    </Button>
                  </div>
                )}
@@ -500,7 +517,7 @@ export default function TasksPage() {
                         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> :
                            <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><line x1="12" y1="14" x2="12" y2="18"></line><line x1="10" y1="16" x2="14" y2="16"></line></svg>
                         }
-                       {isSubmitting ? 'Adding...' : 'Add Sidang to Google Calendar'}
+                       {isSubmitting ? tasksDict.addingCalendarButton : tasksDict.addCalendarButton}
                     </Button>
                 </div>
             )}
@@ -508,18 +525,18 @@ export default function TasksPage() {
 
            {showSidangOutcomeSection && (
                 <div className="space-y-4 border-t pt-4">
-                  <h3 className="text-lg font-semibold">Declare Sidang Outcome</h3>
-                   <p className="text-sm text-muted-foreground">Mark the progress as completed successfully or failed based on the sidang results.</p>
+                  <h3 className="text-lg font-semibold">{tasksDict.sidangOutcomeTitle}</h3>
+                   <p className="text-sm text-muted-foreground">{tasksDict.sidangOutcomeDesc}</p>
                    <div className="flex gap-4">
                       {/* For simplicity, using the same 'continue' logic for success */}
                       <Button onClick={() => handleDecision('continue')} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white">
                          {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
-                         Mark as Success
+                         {tasksDict.markSuccessButton}
                       </Button>
                       {/* TODO: Add a "Fail" button and logic */}
-                       <Button variant="destructive" onClick={() => { /* Implement fail logic */ toast({title: "Fail logic not implemented yet."})}} disabled={isSubmitting}>
+                       <Button variant="destructive" onClick={() => { /* Implement fail logic */ toast({title: tasksDict.toast.failNotImplemented})}} disabled={isSubmitting}>
                          {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
-                         Mark as Fail
+                         {tasksDict.markFailButton}
                        </Button>
                    </div>
                 </div>
@@ -529,13 +546,13 @@ export default function TasksPage() {
            {task.status === 'Completed' && (
               <div className="border-t pt-4 text-center">
                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
-                 <p className="font-semibold text-lg text-green-600">Progress Completed Successfully!</p>
+                 <p className="font-semibold text-lg text-green-600">{tasksDict.completedMessage}</p>
               </div>
            )}
             {task.status === 'Canceled' && (
                <div className="border-t pt-4 text-center">
                   <XCircle className="h-12 w-12 text-destructive mx-auto mb-2" />
-                  <p className="font-semibold text-lg text-destructive">Progress Canceled</p>
+                  <p className="font-semibold text-lg text-destructive">{tasksDict.canceledMessage}</p>
                </div>
             )}
 
@@ -545,14 +562,14 @@ export default function TasksPage() {
       {/* File List Card */}
        <Card>
            <CardHeader>
-             <CardTitle>Uploaded Files</CardTitle>
-             <CardDescription>History of files uploaded during the process.</CardDescription>
+             <CardTitle>{tasksDict.uploadedFilesTitle}</CardTitle>
+             <CardDescription>{tasksDict.uploadedFilesDesc}</CardDescription>
            </CardHeader>
            <CardContent>
              {!isClient ? (
-                 <p className="text-sm text-muted-foreground">Loading file list...</p>
+                 <p className="text-sm text-muted-foreground">{tasksDict.loadingFiles}</p>
              ) : formattedFiles.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No files uploaded yet.</p>
+                <p className="text-sm text-muted-foreground">{tasksDict.noFiles}</p>
              ) : (
                <ul className="space-y-2">
                   {formattedFiles.map((file, index) => (
@@ -562,7 +579,7 @@ export default function TasksPage() {
                           <span className="text-sm font-medium">{file.name}</span>
                       </div>
                       <div className="text-xs text-muted-foreground">
-                         Uploaded by {file.uploadedBy} on {file.formattedTimestamp || '...'}
+                         {tasksDict.uploadedByOn.replace('{user}', file.uploadedBy).replace('{date}', file.formattedTimestamp || '...')}
                       </div>
                    </li>
                   ))}
@@ -575,19 +592,21 @@ export default function TasksPage() {
       {/* Workflow History Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Workflow History</CardTitle>
-          <CardDescription>Timeline of actions taken.</CardDescription>
+          <CardTitle>{tasksDict.workflowHistoryTitle}</CardTitle>
+          <CardDescription>{tasksDict.workflowHistoryDesc}</CardDescription>
         </CardHeader>
         <CardContent>
             {!isClient ? (
-                <p className="text-sm text-muted-foreground">Loading history...</p>
+                <p className="text-sm text-muted-foreground">{tasksDict.loadingHistory}</p>
             ) : (
                 <ul className="space-y-3">
                 {formattedHistory.map((entry, index) => (
                     <li key={index} className="flex items-start gap-3">
                     <div className={`mt-1 h-3 w-3 rounded-full ${index === formattedHistory.length - 1 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
                     <div>
-                        <p className="text-sm font-medium">{entry.action} <span className="text-muted-foreground">by {entry.division}</span></p>
+                        <p className="text-sm font-medium">
+                            {tasksDict.historyActionBy.replace('{action}', entry.action).replace('{division}', entry.division)}
+                        </p>
                         <p className="text-xs text-muted-foreground">{entry.formattedTimestamp || '...'}</p> {/* Display formatted date or loading */}
                     </div>
                     </li>

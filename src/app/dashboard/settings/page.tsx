@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -14,14 +13,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useLanguage } from '@/context/LanguageContext'; // Import language context
+import { getDictionary } from '@/lib/translations'; // Import translation helper
 
 export default function SettingsPage() {
-  // TODO: Implement actual settings logic (e.g., profile update, notification prefs, language persistence)
-  const [language, setLanguage] = React.useState('en'); // Default language 'en'
+   const { language, setLanguage } = useLanguage(); // Get language state and setter
+   const dict = getDictionary(language); // Get dictionary for the current language
+   const settingsDict = dict.settingsPage; // Specific dictionary section
+
+  // TODO: Implement actual settings logic (e.g., profile update, notification prefs)
 
   const handleLanguageChange = (value: string) => {
-    setLanguage(value);
-    // TODO: Add logic to actually change the app language (e.g., using i18n library)
+     // Type assertion as the SelectItem values are guaranteed to be 'en' or 'id'
+    setLanguage(value as 'en' | 'id');
     console.log("Language selected:", value);
   };
 
@@ -29,55 +33,55 @@ export default function SettingsPage() {
     <div className="container mx-auto py-4 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Settings</CardTitle>
-          <CardDescription>Manage your account and application settings.</CardDescription>
+          <CardTitle className="text-2xl">{settingsDict.title}</CardTitle>
+          <CardDescription>{settingsDict.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
             <Card>
                  <CardHeader>
-                    <CardTitle className="text-lg">Profile Information</CardTitle>
+                    <CardTitle className="text-lg">{settingsDict.profileCardTitle}</CardTitle>
                  </CardHeader>
                  <CardContent className="space-y-4">
                     <div className="space-y-1">
-                        <Label htmlFor="username">Username</Label>
+                        <Label htmlFor="username">{settingsDict.usernameLabel}</Label>
                         <Input id="username" defaultValue="current_username" disabled />
-                         <p className="text-xs text-muted-foreground">Username cannot be changed.</p>
+                         <p className="text-xs text-muted-foreground">{settingsDict.usernameHint}</p>
                     </div>
                      <div className="space-y-1">
-                        <Label htmlFor="current-password">Current Password</Label>
-                        <Input id="current-password" type="password" placeholder="Enter current password" />
+                        <Label htmlFor="current-password">{settingsDict.currentPasswordLabel}</Label>
+                        <Input id="current-password" type="password" placeholder={settingsDict.currentPasswordPlaceholder} />
                     </div>
                      <div className="space-y-1">
-                        <Label htmlFor="new-password">New Password</Label>
-                        <Input id="new-password" type="password" placeholder="Enter new password" />
+                        <Label htmlFor="new-password">{settingsDict.newPasswordLabel}</Label>
+                        <Input id="new-password" type="password" placeholder={settingsDict.newPasswordPlaceholder} />
                     </div>
                      <div className="space-y-1">
-                        <Label htmlFor="confirm-password">Confirm New Password</Label>
-                        <Input id="confirm-password" type="password" placeholder="Confirm new password" />
+                        <Label htmlFor="confirm-password">{settingsDict.confirmPasswordLabel}</Label>
+                        <Input id="confirm-password" type="password" placeholder={settingsDict.confirmPasswordPlaceholder} />
                     </div>
-                    <Button disabled>Update Password</Button> {/* TODO: Enable and add logic */}
+                    <Button disabled>{settingsDict.updatePasswordButton}</Button> {/* TODO: Enable and add logic */}
                  </CardContent>
             </Card>
 
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-lg">Notification Preferences</CardTitle>
+                    <CardTitle className="text-lg">{settingsDict.notificationsCardTitle}</CardTitle>
                  </CardHeader>
                  <CardContent className="space-y-4">
                     <div className="flex items-center justify-between space-x-2">
                         <Label htmlFor="email-notifications" className="flex flex-col space-y-1">
-                            <span>Email Notifications</span>
+                            <span>{settingsDict.emailNotificationsLabel}</span>
                             <span className="font-normal leading-snug text-muted-foreground">
-                            Receive email updates for task assignments and status changes.
+                               {settingsDict.emailNotificationsHint}
                             </span>
                         </Label>
                         <Switch id="email-notifications" defaultChecked disabled /> {/* TODO: Enable and add logic */}
                     </div>
                      <div className="flex items-center justify-between space-x-2">
                         <Label htmlFor="in-app-notifications" className="flex flex-col space-y-1">
-                            <span>In-App Notifications</span>
+                            <span>{settingsDict.inAppNotificationsLabel}</span>
                             <span className="font-normal leading-snug text-muted-foreground">
-                            Show notifications within the TaskTrackPro application.
+                                {settingsDict.inAppNotificationsHint}
                             </span>
                         </Label>
                         <Switch id="in-app-notifications" defaultChecked disabled /> {/* TODO: Enable and add logic */}
@@ -87,25 +91,23 @@ export default function SettingsPage() {
 
              <Card>
                  <CardHeader>
-                    <CardTitle className="text-lg">Language Settings</CardTitle>
-                    <CardDescription>Choose your preferred display language.</CardDescription>
+                    <CardTitle className="text-lg">{settingsDict.languageCardTitle}</CardTitle>
+                    <CardDescription>{settingsDict.languageCardDescription}</CardDescription>
                  </CardHeader>
                  <CardContent className="space-y-4">
                     <div className="space-y-1">
-                        <Label htmlFor="language-select">Display Language</Label>
+                        <Label htmlFor="language-select">{settingsDict.languageSelectLabel}</Label>
                          <Select value={language} onValueChange={handleLanguageChange}>
                             <SelectTrigger id="language-select" className="w-[280px]">
-                              <SelectValue placeholder="Select language" />
+                              <SelectValue placeholder={settingsDict.languageSelectPlaceholder} />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="en">English</SelectItem>
-                              <SelectItem value="id">Bahasa Indonesia</SelectItem>
+                              <SelectItem value="en">{settingsDict.languageEnglish}</SelectItem>
+                              <SelectItem value="id">{settingsDict.languageIndonesian}</SelectItem>
                             </SelectContent>
                           </Select>
-                         <p className="text-xs text-muted-foreground">Select the language for the application interface.</p>
+                         <p className="text-xs text-muted-foreground">{settingsDict.languageSelectHint}</p>
                     </div>
-                    {/* Button might not be needed if language changes immediately on select */}
-                    {/* <Button disabled>Save Language Preference</Button> */}
                  </CardContent>
             </Card>
         </CardContent>

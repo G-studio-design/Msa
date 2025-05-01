@@ -59,6 +59,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { useLanguage } from '@/context/LanguageContext'; // Import language context
+import { getDictionary } from '@/lib/translations'; // Import translation helper
 
 
 // Mock user data - Replace with actual user data fetching and state management
@@ -74,18 +76,27 @@ const initialUsers = [
 
 const divisions = ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur'];
 
-const userSchema = z.object({
-  username: z.string().min(3, 'Username must be at least 3 characters'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  role: z.enum(divisions as [string, ...string[]], { required_error: 'Role is required' }), // Ensure role is one of the defined divisions
+// Define schema using a function to access translations
+const getUserSchema = (dictValidation: ReturnType<typeof getDictionary>['manageUsersPage']['validation']) => z.object({
+    username: z.string().min(3, dictValidation.usernameMin),
+    password: z.string().min(6, dictValidation.passwordMin),
+    role: z.enum(divisions as [string, ...string[]], { required_error: dictValidation.roleRequired }),
 });
 
-type UserFormValues = z.infer<typeof userSchema>;
 
 export default function ManageUsersPage() {
   const { toast } = useToast();
+  const { language } = useLanguage(); // Get current language
+  const dict = getDictionary(language); // Get dictionary for the current language
+  const usersDict = dict.manageUsersPage; // Specific dictionary section
+
   const [users, setUsers] = React.useState(initialUsers);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = React.useState(false);
+
+  // Initialize schema based on current language
+  const userSchema = getUserSchema(usersDict.validation);
+  type UserFormValues = z.infer<typeof userSchema>;
+
 
   // TODO: Check if current user is General Admin, otherwise redirect or show error
 
@@ -104,7 +115,7 @@ export default function ManageUsersPage() {
     return new Promise<boolean>(resolve => setTimeout(() => {
         // Check for duplicate username (simple check)
         if (users.some(u => u.username === data.username)) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Username already exists.' });
+            toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.usernameExists });
             resolve(false); // Indicate failure
             return;
         }
@@ -116,7 +127,7 @@ export default function ManageUsersPage() {
       };
       // TODO: Implement actual API call to add user
       setUsers([...users, newUser]);
-      toast({ title: 'User Added', description: `User ${data.username} created successfully.` });
+      toast({ title: usersDict.toast.userAdded, description: usersDict.toast.userAddedDesc.replace('{username}', data.username) });
       form.reset(); // Reset form after successful submission
       resolve(true); // Indicate success
     }, 1000));
@@ -128,8 +139,11 @@ export default function ManageUsersPage() {
     // Simulate API call to delete user
     new Promise(resolve => setTimeout(resolve, 500)).then(() => {
       // TODO: Implement actual API call to delete user
+      const deletedUser = users.find(user => user.id === userId);
       setUsers(users.filter((user) => user.id !== userId));
-      toast({ title: 'User Deleted', description: `User with ID ${userId} removed.` });
+       if (deletedUser) {
+          toast({ title: usersDict.toast.userDeleted, description: usersDict.toast.userDeletedDesc.replace('{id}', deletedUser.username) }); // Show username instead of ID
+       }
     });
   };
 
@@ -157,20 +171,20 @@ export default function ManageUsersPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-2xl">Manage Users</CardTitle>
-            <CardDescription>Add or remove user accounts for all divisions.</CardDescription>
+            <CardTitle className="text-2xl">{usersDict.title}</CardTitle>
+            <CardDescription>{usersDict.description}</CardDescription>
           </div>
           <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
             <DialogTrigger asChild>
               <Button className="accent-teal">
-                <PlusCircle className="mr-2 h-4 w-4" /> Add User
+                <PlusCircle className="mr-2 h-4 w-4" /> {usersDict.addUserButton}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>Add New User</DialogTitle>
+                <DialogTitle>{usersDict.addUserDialogTitle}</DialogTitle>
                 <DialogDescription>
-                  Enter the details for the new user account.
+                 {usersDict.addUserDialogDesc}
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
@@ -180,9 +194,9 @@ export default function ManageUsersPage() {
                       name="username"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Username</FormLabel>
+                          <FormLabel>{usersDict.usernameLabel}</FormLabel>
                           <FormControl>
-                            <Input placeholder="e.g., john_doe" {...field} />
+                            <Input placeholder={usersDict.usernamePlaceholder} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -193,9 +207,9 @@ export default function ManageUsersPage() {
                         name="password"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Password</FormLabel>
+                            <FormLabel>{usersDict.passwordLabel}</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder="Enter secure password" {...field} />
+                              <Input type="password" placeholder={usersDict.passwordPlaceholder} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -206,16 +220,17 @@ export default function ManageUsersPage() {
                         name="role"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Role / Division</FormLabel>
+                            <FormLabel>{usersDict.roleLabel}</FormLabel>
                              <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
-                                    <SelectValue placeholder="Select a division" />
+                                    <SelectValue placeholder={usersDict.rolePlaceholder} />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
                                   {divisions.map((division) => (
                                     <SelectItem key={division} value={division}>
+                                      {/* Consider translating division names if needed */}
                                       {division}
                                     </SelectItem>
                                   ))}
@@ -226,9 +241,9 @@ export default function ManageUsersPage() {
                         )}
                       />
                     <DialogFooter>
-                         <Button type="button" variant="outline" onClick={() => setIsAddUserDialogOpen(false)}>Cancel</Button>
+                         <Button type="button" variant="outline" onClick={() => setIsAddUserDialogOpen(false)}>{usersDict.cancelButton}</Button>
                          <Button type="submit" className="accent-teal" disabled={form.formState.isSubmitting}>
-                           {form.formState.isSubmitting ? 'Adding...' : 'Add User'}
+                           {form.formState.isSubmitting ? usersDict.addingUserButton : usersDict.addUserSubmitButton}
                          </Button>
                      </DialogFooter>
                   </form>
@@ -240,16 +255,16 @@ export default function ManageUsersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Username</TableHead>
-                <TableHead>Role / Division</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{usersDict.tableHeaderUsername}</TableHead>
+                <TableHead>{usersDict.tableHeaderRole}</TableHead>
+                <TableHead className="text-right">{usersDict.tableHeaderActions}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={3} className="text-center text-muted-foreground">
-                    No users found.
+                   {usersDict.noUsers}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -259,6 +274,7 @@ export default function ManageUsersPage() {
                     <TableCell>
                         <div className="flex items-center gap-2">
                             {getRoleIcon(user.role)}
+                             {/* Consider translating role names if needed */}
                             <span>{user.role}</span>
                         </div>
                     </TableCell>
@@ -273,17 +289,17 @@ export default function ManageUsersPage() {
                         </AlertDialogTrigger>
                          <AlertDialogContent>
                            <AlertDialogHeader>
-                             <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                             <AlertDialogTitle>{usersDict.deleteDialogTitle}</AlertDialogTitle>
                              <AlertDialogDescription>
-                               Are you sure you want to delete user "{user.username}"? This action cannot be undone.
+                                {usersDict.deleteDialogDesc.replace('{username}', user.username)}
                              </AlertDialogDescription>
                            </AlertDialogHeader>
                            <AlertDialogFooter>
-                             <AlertDialogCancel>Cancel</AlertDialogCancel>
+                             <AlertDialogCancel>{usersDict.deleteDialogCancel}</AlertDialogCancel>
                              <AlertDialogAction
                                 className="bg-destructive hover:bg-destructive/90"
                                 onClick={() => handleDeleteUser(user.id)}>
-                               Delete User
+                               {usersDict.deleteDialogConfirm}
                              </AlertDialogAction>
                            </AlertDialogFooter>
                          </AlertDialogContent>

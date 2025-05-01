@@ -19,19 +19,30 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { LogIn } from 'lucide-react'; // Using Lucide for icon
 import { useRouter } from 'next/navigation'; // Import useRouter
+import { useLanguage } from '@/context/LanguageContext'; // Import language context
+import { getDictionary } from '@/lib/translations'; // Import translation helper
 
-const loginSchema = z.object({
-  username: z.string().min(1, 'Username is required'),
-  password: z.string().min(1, 'Password is required'),
+// Define schema using a function to access translations
+const getLoginSchema = (dict: ReturnType<typeof getDictionary>['login']) => z.object({
+  username: z.string().min(1, dict.invalidCredentials), // Use translated message
+  password: z.string().min(1, dict.invalidCredentials), // Use translated message
 });
 
-type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const { toast } = useToast();
   const router = useRouter(); // Initialize router
+  const { language } = useLanguage(); // Get current language
+  const dict = getDictionary(language); // Get dictionary for the current language
+  const loginDict = dict.login; // Specific dictionary section for login
+
+  // Initialize schema based on current language
+  const loginSchema = getLoginSchema(loginDict);
+  type LoginFormValues = z.infer<typeof loginSchema>;
+
+
   const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(loginSchema), // Use the dynamic schema
     defaultValues: {
       username: '',
       password: '',
@@ -46,16 +57,16 @@ export default function LoginPage() {
     // Accept the newly added user 'admin'/'admin'
     if ((data.username === 'admin' && data.password === 'admin') || (data.username === 'testuser' && data.password === 'password')) { // Added 'admin' user check
       toast({
-        title: 'Login Successful',
-        description: 'Redirecting to dashboard...',
+        title: loginDict.success,
+        description: loginDict.redirecting,
       });
       // Redirect user to dashboard
        router.push('/dashboard');
     } else {
       toast({
         variant: 'destructive',
-        title: 'Login Failed',
-        description: 'Invalid username or password.',
+        title: loginDict.fail,
+        description: loginDict.invalidCredentials,
       });
        form.resetField('password'); // Clear password field on failure
     }
@@ -66,7 +77,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
           <CardTitle className="text-center text-2xl font-bold text-primary">
-            TaskTrackPro Login
+            {loginDict.title}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -77,9 +88,9 @@ export default function LoginPage() {
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>{loginDict.usernameLabel}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your username" {...field} autoComplete="username" />
+                      <Input placeholder={loginDict.usernamePlaceholder} {...field} autoComplete="username" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -90,11 +101,11 @@ export default function LoginPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{loginDict.passwordLabel}</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Enter your password"
+                        placeholder={loginDict.passwordPlaceholder}
                         {...field}
                         autoComplete="current-password"
                       />
@@ -104,7 +115,7 @@ export default function LoginPage() {
                 )}
               />
               <Button type="submit" className="w-full accent-teal" disabled={form.formState.isSubmitting}>
-                <LogIn className="mr-2 h-4 w-4" /> {form.formState.isSubmitting ? 'Logging in...' : 'Login'}
+                <LogIn className="mr-2 h-4 w-4" /> {form.formState.isSubmitting ? loginDict.loggingIn : loginDict.loginButton}
               </Button>
             </form>
           </Form>

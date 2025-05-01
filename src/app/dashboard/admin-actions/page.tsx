@@ -20,7 +20,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Edit, Save } from 'lucide-react';
+import { Edit, Save, XCircle } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext'; // Import language context
+import { getDictionary } from '@/lib/translations'; // Import translation helper
 
 // Mock data - Replace with actual data fetching based on user role and permissions
 const initialTasks = [
@@ -39,6 +41,11 @@ const currentUser = {
 
 export default function AdminActionsPage() {
   const { toast } = useToast();
+  const { language } = useLanguage(); // Get current language
+  const dict = getDictionary(language); // Get dictionary for the current language
+  const adminDict = dict.adminActionsPage; // Specific dictionary section
+  const dashboardDict = dict.dashboardPage; // For status translation
+
   const [tasks, setTasks] = React.useState(initialTasks);
   const [editingTaskId, setEditingTaskId] = React.useState<number | null>(null);
   const [newTitle, setNewTitle] = React.useState('');
@@ -57,7 +64,7 @@ export default function AdminActionsPage() {
 
   const handleSaveTitle = (taskId: number) => {
     if (!newTitle.trim()) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Title cannot be empty.' });
+      toast({ variant: 'destructive', title: adminDict.toast.error, description: adminDict.toast.titleEmpty });
       return;
     }
 
@@ -70,10 +77,16 @@ export default function AdminActionsPage() {
           task.id === taskId ? { ...task, title: newTitle } : task
         )
       );
-      toast({ title: 'Title Updated', description: `Task ${taskId} title changed successfully.` });
+      toast({ title: adminDict.toast.titleUpdated, description: adminDict.toast.titleUpdatedDesc.replace('{id}', taskId.toString()) });
       handleCancelEdit(); // Exit editing mode
     });
   };
+
+   // Helper function to get translated status
+   const getTranslatedStatus = (status: string): string => {
+        const statusKey = status.toLowerCase().replace(' ','') as keyof typeof dashboardDict.status;
+        return dashboardDict.status[statusKey] || status; // Fallback to original
+    }
 
   // Basic permission check
    const canEdit = ['Owner', 'General Admin', 'Admin Proyek'].includes(currentUser.role);
@@ -83,10 +96,10 @@ export default function AdminActionsPage() {
             <div className="container mx-auto py-4">
                 <Card className="border-destructive">
                      <CardHeader>
-                         <CardTitle className="text-destructive">Access Denied</CardTitle>
+                         <CardTitle className="text-destructive">{adminDict.accessDeniedTitle}</CardTitle>
                      </CardHeader>
                      <CardContent>
-                         <p>You do not have permission to access this page.</p>
+                         <p>{adminDict.accessDeniedDesc}</p>
                      </CardContent>
                 </Card>
             </div>
@@ -97,26 +110,26 @@ export default function AdminActionsPage() {
     <div className="container mx-auto py-4 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Admin Actions - Modify Task Titles</CardTitle>
+          <CardTitle className="text-2xl">{adminDict.title}</CardTitle>
           <CardDescription>
-            Users with appropriate permissions (Owner, General Admin, Admin Proyek) can modify task titles here.
+           {adminDict.description}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Task ID</TableHead>
-                <TableHead>Current Title</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{adminDict.tableHeaderId}</TableHead>
+                <TableHead>{adminDict.tableHeaderTitle}</TableHead>
+                <TableHead>{adminDict.tableHeaderStatus}</TableHead>
+                <TableHead className="text-right">{adminDict.tableHeaderActions}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {tasks.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    No tasks found.
+                    {adminDict.noTasks}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -134,7 +147,7 @@ export default function AdminActionsPage() {
                         task.title
                       )}
                     </TableCell>
-                     <TableCell>{task.status}</TableCell>
+                     <TableCell>{getTranslatedStatus(task.status)}</TableCell> {/* Use translated status */}
                     <TableCell className="text-right space-x-2">
                       {editingTaskId === task.id ? (
                         <>
@@ -142,7 +155,7 @@ export default function AdminActionsPage() {
                             <Save className="h-4 w-4 text-green-600" />
                           </Button>
                           <Button variant="ghost" size="icon" onClick={handleCancelEdit}>
-                             <XCircle className="h-4 w-4 text-muted-foreground" /> {/* Using XCircle from page.tsx import */}
+                             <XCircle className="h-4 w-4 text-muted-foreground" />
                           </Button>
                         </>
                       ) : (
@@ -161,6 +174,3 @@ export default function AdminActionsPage() {
     </div>
   );
 }
-
-// Need to import XCircle if not already available globally or pass down props
-import { XCircle } from 'lucide-react';
