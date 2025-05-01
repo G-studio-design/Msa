@@ -47,6 +47,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider>
+      {/* Sidebar component - uses CSS variables defined in globals.css for colors */}
       <Sidebar>
         <SidebarHeader className="items-center">
            <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-lg text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors">
@@ -123,6 +124,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
         </SidebarFooter>
       </Sidebar>
+
+      {/* Main content area - SidebarInset ensures correct spacing */}
       <SidebarInset className="p-4 md:p-6">
         {/* Header within the main content area */}
         <header className="flex items-center justify-between mb-6">
@@ -145,6 +148,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                    <span className="sr-only">Toggle Blue Box</span>
                  </Button>
                </SheetTrigger>
+               {/* Sheet content - Remains blue */}
                <SheetContent side="right" className="bg-primary text-primary-foreground border-primary-foreground/20 w-[300px] sm:w-[400px]">
                  <SheetHeader>
                    <SheetTitle className="text-primary-foreground">Blue Box Panel</SheetTitle>
