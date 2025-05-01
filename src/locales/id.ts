@@ -1,7 +1,7 @@
 const id = {
   // Login Page
   login: {
-    title: 'Login TaskTrackPro',
+    title: 'Login Manajer Proyek Saya', // Updated title
     usernameLabel: 'Nama Pengguna',
     usernamePlaceholder: 'Masukkan nama pengguna Anda',
     passwordLabel: 'Kata Sandi',
@@ -23,7 +23,7 @@ const id = {
     adminActions: 'Tindakan Admin',
     settings: 'Pengaturan',
     logout: 'Keluar',
-    appTitle: 'TaskTrackPro',
+    appTitle: 'Manajer Proyek Saya', // Updated application title
     toggleMenu: 'Buka/Tutup Panel Menu',
   },
   // Dashboard Page
@@ -229,7 +229,7 @@ const id = {
     emailNotificationsLabel: 'Notifikasi Email',
     emailNotificationsHint: 'Terima pembaruan email untuk penugasan tugas dan perubahan status.',
     inAppNotificationsLabel: 'Notifikasi Dalam Aplikasi',
-    inAppNotificationsHint: 'Tampilkan notifikasi di dalam aplikasi TaskTrackPro.',
+    inAppNotificationsHint: 'Tampilkan notifikasi di dalam aplikasi.', // Petunjuk diperbarui
     languageCardTitle: 'Pengaturan Bahasa',
     languageCardDescription: 'Pilih bahasa tampilan pilihan Anda.',
     languageSelectLabel: 'Bahasa Tampilan',

@@ -7,7 +7,7 @@ import { LanguageProvider } from '@/context/LanguageContext'; // Import Language
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
-  title: 'TaskTrackPro',
+  title: 'My Project Manager', // Updated application title
   description: 'Employee task management application for various divisions.',
 };
 

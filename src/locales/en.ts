@@ -1,7 +1,7 @@
 const en = {
   // Login Page
   login: {
-    title: 'TaskTrackPro Login',
+    title: 'My Project Manager Login', // Updated title
     usernameLabel: 'Username',
     usernamePlaceholder: 'Enter your username',
     passwordLabel: 'Password',
@@ -23,7 +23,7 @@ const en = {
     adminActions: 'Admin Actions',
     settings: 'Settings',
     logout: 'Logout',
-    appTitle: 'TaskTrackPro',
+    appTitle: 'My Project Manager', // Updated application title
     toggleMenu: 'Toggle Menu Panel',
   },
   // Dashboard Page
@@ -229,7 +229,7 @@ const en = {
     emailNotificationsLabel: 'Email Notifications',
     emailNotificationsHint: 'Receive email updates for task assignments and status changes.',
     inAppNotificationsLabel: 'In-App Notifications',
-    inAppNotificationsHint: 'Show notifications within the TaskTrackPro application.',
+    inAppNotificationsHint: 'Show notifications within the application.', // Updated hint
     languageCardTitle: 'Language Settings',
     languageCardDescription: 'Choose your preferred display language.',
     languageSelectLabel: 'Display Language',
