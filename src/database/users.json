@@ -54,5 +54,14 @@
     "passwordHash": "$2b$10$somehashplaceholder6",
     "email": "bob.google@example.com",
     "displayName": "Bob Google"
+  },
+  {
+    "id": "usr_1714670431956_abc123",
+    "username": "wayangovina",
+    "role": "Owner",
+    "passwordHash": "$2b$10$NEW_USER_HASH_PLACEHOLDER",
+    "email": "iwayangovina@gmail.com",
+    "displayName": "wayangovina",
+    "createdAt": "2024-08-20T10:00:00Z"
   }
 ]
