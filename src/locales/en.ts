@@ -1,4 +1,3 @@
-
 // src/locales/en.ts
 const en = {
   // Login Page
@@ -135,6 +134,7 @@ const en = {
       notYourTurn: 'Not your turn to update progress.',
       missingInput: 'Missing Input',
       provideDescOrFile: 'Please provide a description or upload files.',
+      provideOfferFile: 'Please upload offer files.',
       progressSubmitted: 'Progress Submitted',
       notifiedNextStep: 'Notified {division} for next step.',
       onlyOwnerDecision: 'Only Owner can make this decision.',

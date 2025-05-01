@@ -1,4 +1,3 @@
-
 // src/app/dashboard/tasks/page.tsx
 'use client';
 
@@ -243,8 +242,14 @@ export default function TasksPage() {
 
 
   const handleProgressSubmit = async () => {
-    if (!currentUser || !selectedTask || !canPerformSelectedTaskAction) { // Check currentUser and selectedTask exist
+    if (!currentUser || !selectedTask) { // Check currentUser and selectedTask exist
       toast({ variant: 'destructive', title: tasksDict.toast.permissionDenied, description: tasksDict.toast.notYourTurn });
+      return;
+    }
+
+    // Admins Proyek MUST upload at least one offer file. Other roles continue to have description as optional
+    if (selectedTask.assignedDivision === 'Admin Proyek' && uploadedFiles.length === 0) {
+      toast({ variant: 'destructive', title: tasksDict.toast.missingInput, description: tasksDict.toast.provideOfferFile });
       return;
     }
     if (!description && uploadedFiles.length === 0 && selectedTask.status !== 'Pending Scheduling' && !['Owner', 'General Admin'].includes(currentUser.role)) {
@@ -535,7 +540,7 @@ export default function TasksPage() {
         toast({ title: tasksDict.toast.addedToCalendar, description: tasksDict.toast.eventId.replace('{id}', eventId) });
       } catch (error) {
         console.error("Error scheduling event:", error);
-        toast({ variant: 'destructive', title: tasksDict.toast.calendarError, description: tasksDict.toast.couldNotAddEvent });
+        toast({ variant: 'destructive', title: tasksDict.toast.calendarError, description: tasksDict.couldNotAddEvent });
       } finally {
         setIsSubmitting(false);
       }
@@ -952,5 +957,3 @@ export default function TasksPage() {
     </div>
   );
 }
-
-    

@@ -1,4 +1,3 @@
-
 // src/locales/id.ts
 const id = {
   // Login Page
@@ -135,6 +134,7 @@ const id = {
         notYourTurn: 'Bukan giliran Anda untuk memperbarui progres.',
         missingInput: 'Input Kurang',
         provideDescOrFile: 'Harap berikan deskripsi atau unggah file.',
+        provideOfferFile: 'Harap unggah file penawaran.',
         progressSubmitted: 'Progres Terkirim',
         notifiedNextStep: 'Memberitahu {division} untuk langkah selanjutnya.',
         onlyOwnerDecision: 'Hanya Pemilik yang dapat membuat keputusan ini.',
@@ -321,23 +321,23 @@ const id = {
     languageEnglish: 'Inggris',
     languageIndonesian: 'Bahasa Indonesia',
     toast: {
-      error: 'Kesalahan',
-      success: 'Berhasil',
-      fieldsRequired: 'Semua kolom kata sandi harus diisi.',
-      requiredFields: 'Nama Pengguna dan Email wajib diisi.',
-      invalidEmail: 'Harap masukkan alamat email yang valid.',
-      passwordsDontMatch: 'Kata sandi baru tidak cocok.',
-      passwordTooShort: 'Kata sandi baru minimal 6 karakter.',
-      passwordUpdated: 'Kata sandi berhasil diperbarui.',
-      passwordUpdateFailed: 'Gagal memperbarui kata sandi. Periksa kata sandi saat ini.',
-      usernameRequired: 'Nama pengguna tidak boleh kosong.',
-      usernameTooShort: 'Nama pengguna minimal 3 karakter.',
-      profileUpdated: 'Profil berhasil diperbarui.',
-      profileUpdateFailed: 'Gagal memperbarui profil.',
-      languageChanged: 'Bahasa Diubah',
-      languageChangedDesc: 'Bahasa antarmuka diperbarui.',
-      passwordMismatchError: 'Kata sandi saat ini tidak cocok.',
-      usernameExistsError: 'Nama pengguna sudah ada. Silakan pilih yang lain.',
+        error: 'Kesalahan',
+        success: 'Berhasil',
+        fieldsRequired: 'Semua kolom kata sandi harus diisi.',
+        requiredFields: 'Nama Pengguna dan Email wajib diisi.',
+        invalidEmail: 'Harap masukkan alamat email yang valid.',
+        passwordsDontMatch: 'Kata sandi baru tidak cocok.',
+        passwordTooShort: 'Kata sandi baru minimal 6 karakter.',
+        passwordUpdated: 'Kata sandi berhasil diperbarui.',
+        passwordUpdateFailed: 'Gagal memperbarui kata sandi. Periksa kata sandi saat ini.',
+        usernameRequired: 'Nama pengguna tidak boleh kosong.',
+        usernameTooShort: 'Nama pengguna minimal 3 karakter.',
+        profileUpdated: 'Profil berhasil diperbarui.',
+        profileUpdateFailed: 'Gagal memperbarui profil.',
+        languageChanged: 'Bahasa Diubah',
+        languageChangedDesc: 'Bahasa antarmuka diperbarui.',
+        passwordMismatchError: 'Kata sandi saat ini tidak cocok.',
+        usernameExistsError: 'Nama pengguna sudah ada. Silakan pilih yang lain.',
     }
   },
    // Notifications (General)
@@ -356,5 +356,3 @@ const id = {
        empty: "Tidak ada notifikasi baru.", // Added empty state text
    },
 };
-
-export default id;
