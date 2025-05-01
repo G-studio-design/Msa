@@ -27,7 +27,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -88,6 +87,9 @@ const currentUser = {
     role: 'General Admin',
 };
 
+// Default dictionary for server render / pre-hydration
+const defaultDict = getDictionary('en');
+
 // Define Zod schemas using functions to access translations
 const getAddUserSchema = (dictValidation: ReturnType<typeof getDictionary>['manageUsersPage']['validation']) => z.object({
     username: z.string().min(3, dictValidation.usernameMin),
@@ -103,13 +105,19 @@ const getEditUserSchema = (dictValidation: ReturnType<typeof getDictionary>['man
 export default function ManageUsersPage() {
   const { toast } = useToast();
   const { language } = useLanguage();
-  const dict = getDictionary(language);
+  const [dict, setDict] = React.useState(defaultDict); // Initialize with default dict
+  const [isClient, setIsClient] = React.useState(false); // State to track client-side mount
   const usersDict = dict.manageUsersPage;
 
   const [users, setUsers] = React.useState<UserType[]>(initialUsers);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = React.useState(false);
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = React.useState(false);
   const [editingUser, setEditingUser] = React.useState<UserType | null>(null);
+
+    React.useEffect(() => {
+        setIsClient(true); // Component has mounted client-side
+        setDict(getDictionary(language)); // Update dictionary based on context language
+    }, [language]); // Re-run if language changes
 
   // Initialize schemas based on current language
   const addUserSchema = getAddUserSchema(usersDict.validation);
@@ -127,6 +135,7 @@ export default function ManageUsersPage() {
       password: '',
       role: undefined,
     },
+     context: { dict }, // Pass dict context if needed (for dynamic error messages)
   });
 
   const editUserForm = useForm<EditUserFormValues>({
@@ -135,6 +144,7 @@ export default function ManageUsersPage() {
       username: '',
       role: undefined,
     },
+     context: { dict }, // Pass dict context if needed (for dynamic error messages)
   });
 
    // Effect to reset edit form when editingUser changes
@@ -148,6 +158,12 @@ export default function ManageUsersPage() {
         editUserForm.reset({ username: '', role: undefined });
       }
     }, [editingUser, editUserForm]);
+
+     // Re-validate forms if language changes
+     React.useEffect(() => {
+         addUserForm.trigger();
+         editUserForm.trigger();
+     }, [dict, addUserForm, editUserForm]);
 
 
   const handleAddUser = (data: AddUserFormValues) => {
@@ -268,10 +284,10 @@ export default function ManageUsersPage() {
           <div className="container mx-auto py-4">
               <Card className="border-destructive">
                    <CardHeader>
-                       <CardTitle className="text-destructive">{dict.adminActionsPage.accessDeniedTitle}</CardTitle> {/* Reusing adminActionsPage translation */}
+                       <CardTitle className="text-destructive">{isClient ? dict.adminActionsPage.accessDeniedTitle : defaultDict.adminActionsPage.accessDeniedTitle}</CardTitle> {/* Reusing adminActionsPage translation */}
                    </CardHeader>
                    <CardContent>
-                       <p>{dict.adminActionsPage.accessDeniedDesc}</p> {/* Reusing adminActionsPage translation */}
+                       <p>{isClient ? dict.adminActionsPage.accessDeniedDesc : defaultDict.adminActionsPage.accessDeniedDesc}</p> {/* Reusing adminActionsPage translation */}
                    </CardContent>
               </Card>
           </div>
@@ -283,21 +299,23 @@ export default function ManageUsersPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-2xl">{usersDict.title}</CardTitle>
-            <CardDescription>{usersDict.description}</CardDescription>
+             {/* Render title only on client to avoid mismatch */}
+            <CardTitle className="text-2xl">{isClient ? usersDict.title : defaultDict.manageUsersPage.title}</CardTitle>
+            <CardDescription>{isClient ? usersDict.description : defaultDict.manageUsersPage.description}</CardDescription>
           </div>
           {/* Add User Dialog Trigger */}
           <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
             <DialogTrigger asChild>
               <Button className="accent-teal">
-                <PlusCircle className="mr-2 h-4 w-4" /> {usersDict.addUserButton}
+                <PlusCircle className="mr-2 h-4 w-4" /> {isClient ? usersDict.addUserButton : defaultDict.manageUsersPage.addUserButton}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>{usersDict.addUserDialogTitle}</DialogTitle>
+                 {/* Render dialog text only on client */}
+                <DialogTitle>{isClient ? usersDict.addUserDialogTitle : defaultDict.manageUsersPage.addUserDialogTitle}</DialogTitle>
                 <DialogDescription>
-                 {usersDict.addUserDialogDesc}
+                 {isClient ? usersDict.addUserDialogDesc : defaultDict.manageUsersPage.addUserDialogDesc}
                 </DialogDescription>
               </DialogHeader>
               <Form {...addUserForm}>
@@ -308,9 +326,11 @@ export default function ManageUsersPage() {
                       name="username"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{usersDict.usernameLabel}</FormLabel>
+                           {/* Render label only on client */}
+                          <FormLabel>{isClient ? usersDict.usernameLabel : defaultDict.manageUsersPage.usernameLabel}</FormLabel>
                           <FormControl>
-                            <Input placeholder={usersDict.usernamePlaceholder} {...field} autoComplete="off" />
+                             {/* Render placeholder only on client */}
+                            <Input placeholder={isClient ? usersDict.usernamePlaceholder : defaultDict.manageUsersPage.usernamePlaceholder} {...field} autoComplete="off" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -322,9 +342,11 @@ export default function ManageUsersPage() {
                         name="password"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{usersDict.passwordLabel}</FormLabel>
+                             {/* Render label only on client */}
+                            <FormLabel>{isClient ? usersDict.passwordLabel : defaultDict.manageUsersPage.passwordLabel}</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder={usersDict.passwordPlaceholder} {...field} autoComplete="new-password" />
+                               {/* Render placeholder only on client */}
+                              <Input type="password" placeholder={isClient ? usersDict.passwordPlaceholder : defaultDict.manageUsersPage.passwordPlaceholder} {...field} autoComplete="new-password" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -336,17 +358,20 @@ export default function ManageUsersPage() {
                         name="role"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{usersDict.roleLabel}</FormLabel>
+                             {/* Render label only on client */}
+                            <FormLabel>{isClient ? usersDict.roleLabel : defaultDict.manageUsersPage.roleLabel}</FormLabel>
                              <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger>
-                                    <SelectValue placeholder={usersDict.rolePlaceholder} />
+                                     {/* Render placeholder only on client */}
+                                    <SelectValue placeholder={isClient ? usersDict.rolePlaceholder : defaultDict.manageUsersPage.rolePlaceholder} />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
                                   {divisions.map((division) => (
                                     <SelectItem key={division} value={division}>
-                                      {usersDict.roles[division as keyof typeof usersDict.roles] || division}
+                                       {/* Render role names only on client */}
+                                      {isClient ? (usersDict.roles[division as keyof typeof usersDict.roles] || division) : (defaultDict.manageUsersPage.roles[division as keyof typeof defaultDict.manageUsersPage.roles] || division)}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
@@ -356,10 +381,12 @@ export default function ManageUsersPage() {
                         )}
                       />
                     <DialogFooter>
-                         <Button type="button" variant="outline" onClick={() => setIsAddUserDialogOpen(false)} disabled={addUserForm.formState.isSubmitting}>{usersDict.cancelButton}</Button>
+                         {/* Render button text only on client */}
+                         <Button type="button" variant="outline" onClick={() => setIsAddUserDialogOpen(false)} disabled={addUserForm.formState.isSubmitting}>{isClient ? usersDict.cancelButton : defaultDict.manageUsersPage.cancelButton}</Button>
                          <Button type="submit" className="accent-teal" disabled={addUserForm.formState.isSubmitting}>
                            {addUserForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                           {addUserForm.formState.isSubmitting ? usersDict.addingUserButton : usersDict.addUserSubmitButton}
+                            {/* Render button text only on client */}
+                           {isClient ? (addUserForm.formState.isSubmitting ? usersDict.addingUserButton : usersDict.addUserSubmitButton) : defaultDict.manageUsersPage.addUserSubmitButton}
                          </Button>
                      </DialogFooter>
                   </form>
@@ -371,16 +398,18 @@ export default function ManageUsersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{usersDict.tableHeaderUsername}</TableHead>
-                <TableHead>{usersDict.tableHeaderRole}</TableHead>
-                <TableHead className="text-right">{usersDict.tableHeaderActions}</TableHead>
+                 {/* Render header text only on client */}
+                <TableHead>{isClient ? usersDict.tableHeaderUsername : defaultDict.manageUsersPage.tableHeaderUsername}</TableHead>
+                <TableHead>{isClient ? usersDict.tableHeaderRole : defaultDict.manageUsersPage.tableHeaderRole}</TableHead>
+                <TableHead className="text-right">{isClient ? usersDict.tableHeaderActions : defaultDict.manageUsersPage.tableHeaderActions}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={3} className="text-center text-muted-foreground">
-                   {usersDict.noUsers}
+                    {/* Render no users text only on client */}
+                    {isClient ? usersDict.noUsers : defaultDict.manageUsersPage.noUsers}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -399,7 +428,8 @@ export default function ManageUsersPage() {
                         <TableCell>
                             <div className="flex items-center gap-2">
                                 {getRoleIcon(user.role)}
-                                <span>{usersDict.roles[user.role as keyof typeof usersDict.roles] || user.role}</span>
+                                 {/* Render role name only on client */}
+                                <span>{isClient ? (usersDict.roles[user.role as keyof typeof usersDict.roles] || user.role) : (defaultDict.manageUsersPage.roles[user.role as keyof typeof defaultDict.manageUsersPage.roles] || user.role)}</span>
                             </div>
                         </TableCell>
                         <TableCell className="text-right space-x-1">
@@ -409,7 +439,8 @@ export default function ManageUsersPage() {
                                 size="icon"
                                 onClick={() => openEditDialog(user)}
                                 disabled={disableEdit}
-                                aria-label={usersDict.editUserButtonLabel}
+                                 // Render aria-label only on client
+                                aria-label={isClient ? usersDict.editUserButtonLabel : defaultDict.manageUsersPage.editUserButtonLabel}
                            >
                                <Edit className="h-4 w-4 text-blue-500" />
                            </Button>
@@ -417,23 +448,27 @@ export default function ManageUsersPage() {
                            {/* Delete User Button */}
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" disabled={disableDelete} aria-label={usersDict.deleteUserButtonLabel}>
+                               {/* Render aria-label only on client */}
+                              <Button variant="ghost" size="icon" disabled={disableDelete} aria-label={isClient ? usersDict.deleteUserButtonLabel : defaultDict.manageUsersPage.deleteUserButtonLabel}>
                                  <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>{usersDict.deleteDialogTitle}</AlertDialogTitle>
+                                 {/* Render dialog text only on client */}
+                                <AlertDialogTitle>{isClient ? usersDict.deleteDialogTitle : defaultDict.manageUsersPage.deleteDialogTitle}</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                   {usersDict.deleteDialogDesc.replace('{username}', user.username)}
+                                   {isClient ? usersDict.deleteDialogDesc.replace('{username}', user.username) : defaultDict.manageUsersPage.deleteDialogDesc.replace('{username}', user.username)}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>{usersDict.deleteDialogCancel}</AlertDialogCancel>
+                                 {/* Render button text only on client */}
+                                <AlertDialogCancel>{isClient ? usersDict.deleteDialogCancel : defaultDict.manageUsersPage.deleteDialogCancel}</AlertDialogCancel>
                                 <AlertDialogAction
                                    className="bg-destructive hover:bg-destructive/90"
                                    onClick={() => handleDeleteUser(user.id)}>
-                                  {usersDict.deleteDialogConfirm}
+                                   {/* Render button text only on client */}
+                                  {isClient ? usersDict.deleteDialogConfirm : defaultDict.manageUsersPage.deleteDialogConfirm}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -452,8 +487,9 @@ export default function ManageUsersPage() {
       <Dialog open={isEditUserDialogOpen} onOpenChange={(open) => { setIsEditUserDialogOpen(open); if (!open) setEditingUser(null); }}>
           <DialogContent className="sm:max-w-[425px]">
                <DialogHeader>
-                  <DialogTitle>{usersDict.editUserDialogTitle.replace('{username}', editingUser?.username || '')}</DialogTitle>
-                  <DialogDescription>{usersDict.editUserDialogDesc}</DialogDescription>
+                   {/* Render dialog text only on client */}
+                  <DialogTitle>{isClient ? usersDict.editUserDialogTitle.replace('{username}', editingUser?.username || '') : defaultDict.manageUsersPage.editUserDialogTitle.replace('{username}', editingUser?.username || '')}</DialogTitle>
+                  <DialogDescription>{isClient ? usersDict.editUserDialogDesc : defaultDict.manageUsersPage.editUserDialogDesc}</DialogDescription>
                </DialogHeader>
                <Form {...editUserForm}>
                     <form onSubmit={editUserForm.handleSubmit(onEditSubmit)} className="space-y-4 py-4">
@@ -463,9 +499,11 @@ export default function ManageUsersPage() {
                           name="username"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{usersDict.usernameLabel}</FormLabel>
+                               {/* Render label only on client */}
+                              <FormLabel>{isClient ? usersDict.usernameLabel : defaultDict.manageUsersPage.usernameLabel}</FormLabel>
                               <FormControl>
-                                <Input placeholder={usersDict.usernamePlaceholder} {...field} autoComplete="off" />
+                                 {/* Render placeholder only on client */}
+                                <Input placeholder={isClient ? usersDict.usernamePlaceholder : defaultDict.manageUsersPage.usernamePlaceholder} {...field} autoComplete="off" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -477,7 +515,8 @@ export default function ManageUsersPage() {
                             name="role"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{usersDict.roleLabel}</FormLabel>
+                                 {/* Render label only on client */}
+                                <FormLabel>{isClient ? usersDict.roleLabel : defaultDict.manageUsersPage.roleLabel}</FormLabel>
                                 <Select
                                    onValueChange={field.onChange}
                                    defaultValue={field.value}
@@ -486,13 +525,15 @@ export default function ManageUsersPage() {
                                 >
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder={usersDict.rolePlaceholder} />
+                                             {/* Render placeholder only on client */}
+                                            <SelectValue placeholder={isClient ? usersDict.rolePlaceholder : defaultDict.manageUsersPage.rolePlaceholder} />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {divisions.map((division) => (
                                             <SelectItem key={division} value={division}>
-                                                {usersDict.roles[division as keyof typeof usersDict.roles] || division}
+                                                {/* Render role names only on client */}
+                                                {isClient ? (usersDict.roles[division as keyof typeof usersDict.roles] || division) : (defaultDict.manageUsersPage.roles[division as keyof typeof defaultDict.manageUsersPage.roles] || division)}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -500,17 +541,20 @@ export default function ManageUsersPage() {
                                 <FormMessage />
                                 {/* Add a hint if the role is disabled */}
                                 {(currentUser.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1) && (
-                                    <p className="text-xs text-muted-foreground">{usersDict.cannotChangeLastAdminRoleHint}</p>
+                                     /* Render hint only on client */
+                                    <p className="text-xs text-muted-foreground">{isClient ? usersDict.cannotChangeLastAdminRoleHint : defaultDict.manageUsersPage.cannotChangeLastAdminRoleHint}</p>
                                 )}
                               </FormItem>
                             )}
                         />
                          {/* Optional: Add password change fields here if needed */}
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => {setIsEditUserDialogOpen(false); setEditingUser(null);}} disabled={editUserForm.formState.isSubmitting}>{usersDict.cancelButton}</Button>
+                            {/* Render button text only on client */}
+                            <Button type="button" variant="outline" onClick={() => {setIsEditUserDialogOpen(false); setEditingUser(null);}} disabled={editUserForm.formState.isSubmitting}>{isClient ? usersDict.cancelButton : defaultDict.manageUsersPage.cancelButton}</Button>
+                             {/* Render button text only on client */}
                             <Button type="submit" className="accent-teal" disabled={editUserForm.formState.isSubmitting || !editUserForm.formState.isDirty}>
                                 {editUserForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                {editUserForm.formState.isSubmitting ? usersDict.editingUserButton : usersDict.editUserSubmitButton}
+                                {isClient ? (editUserForm.formState.isSubmitting ? usersDict.editingUserButton : usersDict.editUserSubmitButton) : defaultDict.manageUsersPage.editUserSubmitButton}
                              </Button>
                         </DialogFooter>
                    </form>
