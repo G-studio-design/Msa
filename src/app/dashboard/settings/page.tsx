@@ -112,6 +112,7 @@ export default function SettingsPage() {
            // Check if FileReader is available
            if (typeof window !== 'undefined' && window.FileReader) {
                const reader = new FileReader();
+                console.log("FileReader instance created:", reader); // Debug log
 
                reader.onloadend = () => {
                    // Ensure result is a string before setting state
@@ -132,8 +133,14 @@ export default function SettingsPage() {
                };
 
                try {
-                   // Attempt to read the file
-                   reader.readDataURL(file);
+                   // Explicitly check if readDataURL is a function on the instance
+                    if (typeof reader.readDataURL === 'function') {
+                        console.log("Attempting to call reader.readDataURL..."); // Debug log
+                        reader.readDataURL(file);
+                    } else {
+                        console.error("reader.readDataURL is not a function on the FileReader instance.");
+                        throw new Error("FileReader.readDataURL is not available.");
+                    }
                } catch (e) {
                    console.error("Error calling readDataURL:", e);
                    setProfilePicturePreview(null); // Reset preview on error
