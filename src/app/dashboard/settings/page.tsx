@@ -27,33 +27,6 @@ import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
 
-// Simple function to simulate image compression and upload
-async function simulateUploadAndCompress(file: File): Promise<string> {
-  console.log(`Simulating compression for ${file.name}...`);
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-
-  // Simulate potential failure
-  if (Math.random() < 0.2) { // Simulate failure 20% of the time
-      console.error("Simulated upload failed!");
-      throw new Error("Simulated upload error");
-  }
-
-
-  // In a real app:
-  // 1. Use a library like browser-image-compression to compress the file.
-  // 2. Upload the compressed file to a storage service (Firebase Storage, S3, etc.).
-  // 3. Return the public URL of the uploaded file.
-
-  // For simulation, we'll generate a placeholder URL based on the file name/time
-  // Using a fixed seed but varying path based on filename for more stable simulation
-  // Use timestamp in seed for slightly better simulation of uniqueness
-  const simulatedUrl = `https://picsum.photos/seed/${file.name}${Date.now()}/200`;
-  console.log(`Simulated upload complete. URL: ${simulatedUrl}`);
-  return simulatedUrl;
-}
-
-
 export default function SettingsPage() {
    const { language, setLanguage } = useLanguage(); // Get language state and setter
    const { currentUser, setCurrentUser: updateAuthContextUser } = useAuth(); // Get current user from AuthContext
@@ -192,21 +165,21 @@ export default function SettingsPage() {
     try {
         // --- Simulate Image Upload and Compression ---
         if (selectedFile) {
-            try {
-                uploadedPictureUrl = await simulateUploadAndCompress(selectedFile);
-                 console.log("Simulated URL obtained:", uploadedPictureUrl);
-            } catch (uploadError) {
-                console.error("Profile picture upload error:", uploadError);
-                // Display "Coming Soon" toast on upload failure
-                 toast({ variant: 'default', title: 'Feature Coming Soon', description: 'Profile picture upload is under development. Please try again later.' });
-                 setIsUploading(false);
-                 setIsUpdatingProfile(false);
-                 setSelectedFile(null); // Clear selected file on failure
-                 setProfilePicturePreview(null); // Clear preview on failure
-                 return; // Stop profile update if upload fails
-            } finally {
-                setIsUploading(false); // Upload finished (success or simulation fail)
-            }
+             console.log(`Simulating compression for ${selectedFile.name}...`);
+             console.warn("Image compression is not implemented. Using placeholder URL.");
+             // Simulate network delay
+             await new Promise(resolve => setTimeout(resolve, 800));
+
+              // Simulate potential failure (less likely now as we're not really uploading)
+              // if (Math.random() < 0.1) { // Lower failure rate for simulation
+              //     console.error("Simulated upload step failed!");
+              //     throw new Error("Simulated upload error");
+              // }
+
+             // Generate a placeholder URL based on the file name/time for simulation
+             uploadedPictureUrl = `https://picsum.photos/seed/${selectedFile.name}${Date.now()}/200`;
+             console.log(`Simulated upload complete. Using placeholder URL: ${uploadedPictureUrl}`);
+              setIsUploading(false); // Upload step finished (success or simulation fail)
         }
         // --- End Simulation ---
 
@@ -248,16 +221,25 @@ export default function SettingsPage() {
         toast({ title: settingsDict.toast.success, description: settingsDict.toast.profileUpdated });
 
     } catch (error: any) {
-        console.error("Profile update error (excluding upload):", error);
-        let description = settingsDict.toast.profileUpdateFailed;
-        if (error.message === 'USERNAME_EXISTS') {
-            description = settingsDict.toast.usernameExistsError;
-        } else if (error.message === 'USER_NOT_FOUND') {
-            description = 'User not found.'; // Should ideally not happen here
+        console.error("Profile update error:", error);
+
+        // Handle specific upload simulation errors
+        if (error.message === "Simulated upload error") {
+             toast({ variant: 'default', title: 'Feature Coming Soon', description: 'Profile picture upload is under development. Please try again later.' });
+             setSelectedFile(null); // Clear selected file on failure
+             setProfilePicturePreview(null); // Clear preview on failure
         } else {
-            description = error.message || description;
+            // Handle general profile update errors
+            let description = settingsDict.toast.profileUpdateFailed;
+            if (error.message === 'USERNAME_EXISTS') {
+                description = settingsDict.toast.usernameExistsError;
+            } else if (error.message === 'USER_NOT_FOUND') {
+                description = 'User not found.'; // Should ideally not happen here
+            } else {
+                description = error.message || description;
+            }
+            toast({ variant: 'destructive', title: settingsDict.toast.error, description: description });
         }
-        toast({ variant: 'destructive', title: settingsDict.toast.error, description: description });
     } finally {
         setIsUploading(false); // Ensure upload state is reset
         setIsUpdatingProfile(false);
@@ -620,5 +602,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    
