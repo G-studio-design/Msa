@@ -150,8 +150,11 @@ const id = {
     addUserSubmitButton: 'Tambah Pengguna',
     addingUserButton: 'Menambahkan...',
     tableHeaderUsername: 'Nama Pengguna',
+    tableHeaderPassword: 'Kata Sandi', // Ditambahkan header Kata Sandi
     tableHeaderRole: 'Peran / Divisi',
     tableHeaderActions: 'Tindakan',
+    showPasswordButtonLabel: 'Tampilkan Kata Sandi', // Ditambahkan
+    hidePasswordButtonLabel: 'Sembunyikan Kata Sandi', // Ditambahkan
     noUsers: 'Tidak ada pengguna ditemukan.',
     deleteUserButtonLabel: 'Hapus Pengguna', // Ditambahkan
     deleteDialogTitle: 'Konfirmasi Penghapusan',

@@ -37,7 +37,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, User, UserCog, Edit, Loader2 } from 'lucide-react'; // Added Edit, Loader2
+import { PlusCircle, Trash2, User, UserCog, Edit, Loader2, Eye, EyeOff } from 'lucide-react'; // Added Edit, Loader2, Eye, EyeOff
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -68,23 +68,27 @@ interface UserType {
     id: string;
     username: string;
     role: string;
+    password?: string; // Added password (optional for display purposes) - INSECURE IN REAL APP
 }
+// !! IMPORTANT: Storing plain text passwords like this is highly insecure !!
+// This is only for demonstrating the requested functionality with mock data.
+// In a real application, passwords MUST be securely hashed.
 const initialUsers: UserType[] = [
-  { id: 'usr_1', username: 'owner_john', role: 'Owner' },
-  { id: 'usr_2', username: 'genadmin_sara', role: 'General Admin' },
-  { id: 'usr_3', username: 'projadmin_mike', role: 'Admin Proyek' },
-  { id: 'usr_4', username: 'arch_emily', role: 'Arsitek' },
-  { id: 'usr_5', username: 'struct_dave', role: 'Struktur' },
-  { id: 'usr_6', username: 'owner_jane', role: 'Owner' },
-  { id: 'usr_7', username: 'admin', role: 'General Admin' },
+  { id: 'usr_1', username: 'owner_john', role: 'Owner', password: 'owner_password1' },
+  { id: 'usr_2', username: 'genadmin_sara', role: 'General Admin', password: 'ga_password2' },
+  { id: 'usr_3', username: 'projadmin_mike', role: 'Admin Proyek', password: 'pa_password3' },
+  { id: 'usr_4', username: 'arch_emily', role: 'Arsitek', password: 'arch_password4' },
+  { id: 'usr_5', username: 'struct_dave', role: 'Struktur', password: 'struct_password5' },
+  { id: 'usr_6', username: 'owner_jane', role: 'Owner', password: 'owner_password6' },
+  { id: 'usr_7', username: 'admin', role: 'General Admin', password: 'admin' }, // Added admin user with password
 ];
 
 const divisions = ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur'];
 
 // Mock current logged-in user - Replace with actual auth context data
 const currentUser = {
-    id: 'usr_2', // Example: Logged in as genadmin_sara
-    username: 'genadmin_sara',
+    id: 'usr_7', // Example: Logged in as admin
+    username: 'admin',
     role: 'General Admin',
 };
 
@@ -101,6 +105,7 @@ const getAddUserSchema = (dictValidation: ReturnType<typeof getDictionary>['mana
 const getEditUserSchema = (dictValidation: ReturnType<typeof getDictionary>['manageUsersPage']['validation']) => z.object({
     username: z.string().min(3, dictValidation.usernameMin),
     role: z.enum(divisions as [string, ...string[]], { required_error: dictValidation.roleRequired }),
+    // Password is not edited here by default, maybe add a separate 'change password' functionality
 });
 
 export default function ManageUsersPage() {
@@ -114,6 +119,7 @@ export default function ManageUsersPage() {
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = React.useState(false);
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = React.useState(false);
   const [editingUser, setEditingUser] = React.useState<UserType | null>(null);
+  const [visiblePasswords, setVisiblePasswords] = React.useState<Record<string, boolean>>({}); // State to track password visibility
 
     React.useEffect(() => {
         setIsClient(true); // Component has mounted client-side
@@ -177,11 +183,12 @@ export default function ManageUsersPage() {
             resolve(false);
             return;
         }
-      // TODO: Implement actual API call to add user with hashed password
+      // TODO: Implement actual API call to add user with HASHED password
       const newUser: UserType = {
         id: `usr_${Date.now()}`,
         username: data.username,
         role: data.role,
+        password: data.password, // !! STORE HASHED PASSWORD IN REAL APP !!
       };
       setUsers([...users, newUser]);
       toast({ title: usersDict.toast.userAdded, description: usersDict.toast.userAddedDesc.replace('{username}', data.username) });
@@ -213,6 +220,7 @@ export default function ManageUsersPage() {
                  }
              }
             // TODO: Implement actual API call to update user (username, role)
+            // Password is not updated here. Add separate logic if needed.
             setUsers(users.map(u => u.id === editingUser.id ? { ...u, username: data.username, role: data.role } : u));
             toast({ title: usersDict.toast.userUpdated, description: usersDict.toast.userUpdatedDesc.replace('{username}', data.username) });
              editUserForm.reset(); // Reset form is handled by closing the dialog
@@ -244,6 +252,12 @@ export default function ManageUsersPage() {
     new Promise(resolve => setTimeout(resolve, 500)).then(() => {
       // TODO: Implement actual API call to delete user
       setUsers(users.filter((user) => user.id !== userId));
+      // Remove password visibility state for deleted user
+      setVisiblePasswords(prev => {
+          const newState = {...prev};
+          delete newState[userId];
+          return newState;
+      });
       toast({ title: usersDict.toast.userDeleted, description: usersDict.toast.userDeletedDesc.replace('{username}', userToDelete.username) });
     });
   };
@@ -267,6 +281,13 @@ export default function ManageUsersPage() {
         setEditingUser(user);
         setIsEditUserDialogOpen(true);
     };
+
+   const togglePasswordVisibility = (userId: string) => {
+        setVisiblePasswords(prev => ({
+           ...prev,
+           [userId]: !prev[userId]
+        }));
+   };
 
   const getRoleIcon = (role: string) => {
       switch(role) {
@@ -401,6 +422,7 @@ export default function ManageUsersPage() {
               <TableRow>
                  {/* Render header text only on client */}
                 <TableHead>{isClient ? usersDict.tableHeaderUsername : defaultDict.manageUsersPage.tableHeaderUsername}</TableHead>
+                <TableHead>{isClient ? usersDict.tableHeaderPassword : defaultDict.manageUsersPage.tableHeaderPassword}</TableHead> {/* Added Password Header */}
                 <TableHead>{isClient ? usersDict.tableHeaderRole : defaultDict.manageUsersPage.tableHeaderRole}</TableHead>
                 <TableHead className="text-right">{isClient ? usersDict.tableHeaderActions : defaultDict.manageUsersPage.tableHeaderActions}</TableHead>
               </TableRow>
@@ -408,7 +430,7 @@ export default function ManageUsersPage() {
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground">
+                  <TableCell colSpan={4} className="text-center text-muted-foreground"> {/* Updated colSpan */}
                     {/* Render no users text only on client */}
                     {isClient ? usersDict.noUsers : defaultDict.manageUsersPage.noUsers}
                   </TableCell>
@@ -419,13 +441,31 @@ export default function ManageUsersPage() {
                     const isLastGeneralAdmin = user.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1;
                     // Disable delete for self (if GA), and for the last GA (if current user is GA)
                     const disableDelete = (isSelf && currentUser.role === 'General Admin') || (isLastGeneralAdmin && currentUser.role === 'General Admin');
-                    // Disable edit for self (if GA), and for the last GA (if current user is GA - cannot change role)
+                    // Disable edit for self (if GA)
                     const disableEdit = isSelf && currentUser.role === 'General Admin'; // Can't edit own role/username if GA
-
+                    const isPasswordVisible = visiblePasswords[user.id] || false;
 
                     return (
                       <TableRow key={user.id}>
                         <TableCell className="font-medium">{user.username}</TableCell>
+                         {/* Password Cell - Visible only to GA/Owner */}
+                         <TableCell>
+                           <div className="flex items-center gap-1">
+                             <span className={`font-mono text-xs ${isPasswordVisible ? 'text-foreground' : 'text-muted-foreground'}`}>
+                               {isPasswordVisible ? (user.password || 'N/A') : '••••••••'}
+                             </span>
+                              {/* Toggle visibility button */}
+                               <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6"
+                                  onClick={() => togglePasswordVisibility(user.id)}
+                                  aria-label={isClient ? (isPasswordVisible ? usersDict.hidePasswordButtonLabel : usersDict.showPasswordButtonLabel) : 'Toggle Password'}
+                                >
+                                  {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </Button>
+                           </div>
+                         </TableCell>
                         <TableCell>
                             <div className="flex items-center gap-2">
                                 {getRoleIcon(user.role)}
@@ -548,7 +588,7 @@ export default function ManageUsersPage() {
                               </FormItem>
                             )}
                         />
-                         {/* Optional: Add password change fields here if needed */}
+                         {/* Optional: Add password change fields here if needed (e.g., trigger reset email) */}
                         <DialogFooter>
                             {/* Render button text only on client */}
                             <Button type="button" variant="outline" onClick={() => {setIsEditUserDialogOpen(false); setEditingUser(null);}} disabled={editUserForm.formState.isSubmitting}>{isClient ? usersDict.cancelButton : defaultDict.manageUsersPage.cancelButton}</Button>

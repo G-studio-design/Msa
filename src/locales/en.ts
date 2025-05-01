@@ -150,8 +150,11 @@ const en = {
     addUserSubmitButton: 'Add User',
     addingUserButton: 'Adding...',
     tableHeaderUsername: 'Username',
+    tableHeaderPassword: 'Password', // Added Password header
     tableHeaderRole: 'Role / Division',
     tableHeaderActions: 'Actions',
+    showPasswordButtonLabel: 'Show Password', // Added
+    hidePasswordButtonLabel: 'Hide Password', // Added
     noUsers: 'No users found.',
     deleteUserButtonLabel: 'Delete User', // Added
     deleteDialogTitle: 'Confirm Deletion',
