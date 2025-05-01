@@ -1,3 +1,4 @@
+
 // src/locales/en.ts
 const en = {
   // Login Page
@@ -177,6 +178,7 @@ const en = {
     showPasswordButtonLabel: 'Show Password', // Updated Label
     hidePasswordButtonLabel: 'Hide Password', // Updated Label
     passwordHidden: 'Hidden', // Added translation for hidden password
+    passwordNotSet: 'Not Set', // Added translation for when password field is empty
     noUsers: 'No users found.',
     deleteUserButtonLabel: 'Delete User',
     deleteDialogTitle: 'Confirm Deletion',

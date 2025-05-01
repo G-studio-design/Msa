@@ -556,9 +556,10 @@ export default function ManageUsersPage() {
 
 
                     const isPasswordVisible = visiblePasswords[user.id] || false;
-                    // Owner and GA can see passwords. Admin Dev can see passwords except for Owner/GA.
-                    const canViewPassword = currentUser.role === 'Owner' || currentUser.role === 'General Admin' ||
-                                           (currentUser.role === 'Admin Developer' && !['Owner', 'General Admin'].includes(user.role));
+                    // Owner and GA can always see passwords. Admin Dev can see passwords except for Owner/GA.
+                    const alwaysShowPassword = ['Owner', 'General Admin'].includes(currentUser.role);
+                    const showPasswordForDev = currentUser.role === 'Admin Developer' && !['Owner', 'General Admin'].includes(user.role);
+                    const canViewPassword = alwaysShowPassword || showPasswordForDev;
 
                     return (
                       <TableRow key={user.id} className={user.role === 'Pending' ? 'bg-yellow-100/30 dark:bg-yellow-900/30 hover:bg-yellow-100/50 dark:hover:bg-yellow-900/50' : ''}>
@@ -566,21 +567,28 @@ export default function ManageUsersPage() {
                          <TableCell>
                             {canViewPassword ? (
                                <div className="flex items-center gap-1">
-                                 {/* SECURITY RISK: Displaying plain text password or dots */}
-                                 <span className={`font-mono text-xs break-all ${isPasswordVisible ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                   {isPasswordVisible ? user.password : '••••••••'} {/* Show plain password or dots */}
+                                 {/* SECURITY RISK: Displaying plain text password */}
+                                 <span className="font-mono text-xs break-all text-foreground">
+                                   {user.password || (isClient ? usersDict.passwordNotSet : defaultDict.manageUsersPage.passwordNotSet)} {/* Show plain password or "Not Set" */}
                                  </span>
-                                   <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-6 w-6 flex-shrink-0" // Added flex-shrink-0
-                                      onClick={() => togglePasswordVisibility(user.id)}
-                                      aria-label={isClient ? (isPasswordVisible ? usersDict.hidePasswordButtonLabel : usersDict.showPasswordButtonLabel) : 'Toggle Password'}
-                                      disabled={isProcessing || !user.password} // Disable if no password set or processing
-                                      title={isClient ? (isPasswordVisible ? usersDict.hidePasswordButtonLabel : usersDict.showPasswordButtonLabel) : 'Toggle Password'}
-                                    >
-                                      {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                    </Button>
+                                   {/* Show/Hide button only relevant for Admin Dev viewing non-Owner/GA passwords */}
+                                   {showPasswordForDev && user.password && (
+                                       <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-6 w-6 flex-shrink-0"
+                                          onClick={() => togglePasswordVisibility(user.id)}
+                                          aria-label={isClient ? (isPasswordVisible ? usersDict.hidePasswordButtonLabel : usersDict.showPasswordButtonLabel) : 'Toggle Password'}
+                                          disabled={isProcessing}
+                                          title={isClient ? (isPasswordVisible ? usersDict.hidePasswordButtonLabel : usersDict.showPasswordButtonLabel) : 'Toggle Password'}
+                                        >
+                                          {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </Button>
+                                   )}
+                                   {/* If always showing password, don't show toggle button */}
+                                   {alwaysShowPassword && !user.password && (
+                                        <span className="text-xs text-muted-foreground italic ml-1">({isClient ? usersDict.passwordNotSet : defaultDict.manageUsersPage.passwordNotSet})</span>
+                                   )}
                                </div>
                              ) : (
                                 <span className="text-xs text-muted-foreground italic">{isClient ? usersDict.passwordHidden : defaultDict.manageUsersPage.passwordHidden}</span>

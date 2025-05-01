@@ -1,3 +1,4 @@
+
 // src/locales/id.ts
 const id = {
   // Login Page
@@ -177,6 +178,7 @@ const id = {
     showPasswordButtonLabel: 'Tampilkan Kata Sandi', // Updated Label
     hidePasswordButtonLabel: 'Sembunyikan Kata Sandi', // Updated Label
     passwordHidden: 'Tersembunyi', // Added translation for hidden password
+    passwordNotSet: 'Belum Diatur', // Added translation for when password field is empty
     noUsers: 'Tidak ada pengguna ditemukan.',
     deleteUserButtonLabel: 'Hapus Pengguna',
     deleteDialogTitle: 'Konfirmasi Penghapusan',
