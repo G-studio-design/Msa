@@ -1,4 +1,6 @@
 import type { Config } from "tailwindcss";
+import { fontFamily } from "tailwindcss/defaultTheme";
+
 
 export default {
     darkMode: ["class"],
@@ -8,7 +10,17 @@ export default {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    container: {
+       center: true,
+       padding: "2rem",
+       screens: {
+         "2xl": "1400px",
+       },
+     },
   	extend: {
+       fontFamily: {
+        sans: ["var(--font-sans)", ...fontFamily.sans],
+       },
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
@@ -40,9 +52,10 @@ export default {
   				DEFAULT: 'hsl(var(--destructive))',
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
+            'accent-teal': 'hsl(187 100% 42%)', // Direct Teal color
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
-  			ring: 'hsl(var(--ring))',
+  			ring: 'hsl(var(--ring))', // Keep ring as Teal
   			chart: {
   				'1': 'hsl(var(--chart-1))',
   				'2': 'hsl(var(--chart-2))',
@@ -66,7 +79,16 @@ export default {
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
   		},
+       spacing: {
+          'sidebar-width': 'var(--sidebar-width)',
+          'sidebar-width-icon': 'var(--sidebar-width-icon)',
+          'sidebar-width-mobile': 'var(--sidebar-width-mobile)',
+       },
   		keyframes: {
+         "caret-blink": {
+           "0%,70%,100%": { opacity: "1" },
+           "20%,50%": { opacity: "0" },
+         },
   			'accordion-down': {
   				from: {
   					height: '0'
@@ -85,6 +107,7 @@ export default {
   			}
   		},
   		animation: {
+         "caret-blink": "caret-blink 1.25s ease-out infinite",
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
   		}
