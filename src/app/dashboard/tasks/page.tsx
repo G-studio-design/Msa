@@ -27,6 +27,7 @@ import {
   AlertTriangle,
   ListFilter,
   ArrowRight, // Added for linking
+  Clock, // Import Clock icon
 } from 'lucide-react';
 import Link from 'next/link'; // Added Link
 import { useToast } from '@/hooks/use-toast';
@@ -545,9 +546,9 @@ export default function TasksPage() {
         if (!currentUser || !isClient || isLoadingTasks) return [];
 
         let roleFilteredTasks = allTasks;
-         // Owner, General Admin, Admin Developer see all tasks
-         // Other roles see tasks where they are the assignedDivision or where their role is mentioned in nextAction
-         if (!['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role)) {
+         // Owner, General Admin, Admin Developer, Admin Proyek see all tasks
+         if (!['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'].includes(currentUser.role)) {
+             // Other specific roles (Arsitek, Struktur) see tasks where they are assigned or next action applies
              roleFilteredTasks = allTasks.filter(task =>
                  task.assignedDivision === currentUser.role ||
                  (task.nextAction && task.nextAction.toLowerCase().includes(currentUser.role.toLowerCase()))
@@ -559,7 +560,7 @@ export default function TasksPage() {
              return roleFilteredTasks.filter(task => statusFilter.includes(task.status));
          }
 
-         return roleFilteredTasks; // Return role-filtered if no status filter applied
+         return roleFilteredTasks; // Return role-filtered (or all) if no status filter applied
     }, [currentUser, allTasks, isClient, isLoadingTasks, statusFilter]);
 
     // Toggle status filter
@@ -951,3 +952,5 @@ export default function TasksPage() {
     </div>
   );
 }
+
+    
