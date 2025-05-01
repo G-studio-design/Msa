@@ -1,7 +1,8 @@
+// src/locales/en.ts
 const en = {
   // Login Page
   login: {
-    title: 'Msaarch APP Login', // Updated title
+    title: 'Msaarch APP Login',
     usernameLabel: 'Username',
     usernamePlaceholder: 'Enter your username',
     passwordLabel: 'Password',
@@ -12,6 +13,42 @@ const en = {
     redirecting: 'Redirecting to dashboard...',
     fail: 'Login Failed',
     invalidCredentials: 'Invalid username or password.',
+    googleSignInButton: 'Sign in with Google', // Added
+    googleLoading: 'Signing in...', // Added
+    googleSuccess: 'Google Sign-In Successful', // Added
+    googleSetupPrompt: 'Please set up your account details.', // Added
+    googleFail: 'Google Sign-In Failed', // Added
+    googleErrorDefault: 'An error occurred during Google Sign-In.', // Added
+    validation: { // Added validation structure
+        usernameRequired: 'Username is required.',
+        passwordRequired: 'Password is required.',
+    }
+  },
+  // Account Setup Page
+  accountSetup: { // Added section
+      title: 'Set Up Your Account',
+      welcomeMessage: 'Welcome, {displayName}! Please complete your account setup.', // Use {displayName}
+      info: 'You signed in with Google ({email}). Now, create a username and password for Msaarch APP.', // Use {email}
+      usernameLabel: 'Choose Username',
+      usernamePlaceholder: 'Enter your desired username',
+      passwordLabel: 'Choose Password',
+      passwordPlaceholder: 'Enter a secure password',
+      confirmPasswordLabel: 'Confirm Password',
+      confirmPasswordPlaceholder: 'Re-enter your password',
+      submitButton: 'Complete Setup',
+      submittingButton: 'Setting Up...',
+      successTitle: 'Setup Complete',
+      successDescription: 'Your account is pending activation. Admins have been notified.',
+      failTitle: 'Setup Failed',
+      usernameExists: 'This username is already taken. Please choose another.',
+      passwordMismatch: 'Passwords do not match.',
+      validation: {
+          usernameMin: 'Username must be at least 3 characters',
+          passwordMin: 'Password must be at least 6 characters',
+          passwordRequired: 'Password is required',
+          confirmPasswordRequired: 'Password confirmation is required',
+          usernameRequired: 'Username is required',
+      }
   },
   // Dashboard Layout (Sidebar/Header)
   dashboardLayout: {
@@ -23,7 +60,7 @@ const en = {
     adminActions: 'Admin Actions',
     settings: 'Settings',
     logout: 'Logout',
-    appTitle: 'Msaarch APP', // Updated application title
+    appTitle: 'Msaarch APP',
     toggleMenu: 'Toggle Menu Panel',
   },
   // Dashboard Page
@@ -37,21 +74,21 @@ const en = {
     pendingActionsDesc: 'Tasks awaiting approval or next step',
     taskOverview: 'Task Overview',
     allTasksDesc: 'All tasks across divisions.',
-    divisionTasksDesc: 'Tasks relevant to the {division} division.', // Use {division} as placeholder
+    divisionTasksDesc: 'Tasks relevant to the {division} division.',
     noTasks: 'No tasks found.',
     assignedTo: 'Assigned to',
     nextAction: 'Next',
     taskCanceled: 'This task was canceled.',
     status: {
       completed: 'Completed',
-      inprogress: 'In Progress', // Corrected key
-      pendingapproval: 'Pending Approval', // Corrected key
+      inprogress: 'In Progress',
+      pendingapproval: 'Pending Approval',
       delayed: 'Delayed',
       canceled: 'Canceled',
       pending: 'Pending',
-      scheduled: 'Scheduled', // Added status
+      scheduled: 'Scheduled',
     },
-    progress: '{progress}% Complete', // Use {progress} as placeholder
+    progress: '{progress}% Complete',
   },
   // Tasks Page
   tasksPage: {
@@ -60,9 +97,9 @@ const en = {
     assignedLabel: 'Assigned',
     progressLabel: 'Progress',
     none: 'None',
-    uploadProgressTitle: 'Upload Progress ({role})', // Use {role}
+    uploadProgressTitle: 'Upload Progress ({role})',
     descriptionLabel: 'Description / Notes',
-    descriptionPlaceholder: 'Provide details for the {division} stage...', // Use {division}
+    descriptionPlaceholder: 'Provide details for the {division} stage...',
     attachFilesLabel: 'Attach Files',
     selectedFilesLabel: 'Selected files:',
     submitButton: 'Submit Progress',
@@ -75,7 +112,7 @@ const en = {
     cancelDialogDesc: 'Canceling this progress cannot be undone. The status will be marked as Canceled.',
     cancelDialogCancel: 'Back',
     cancelDialogConfirm: 'Confirm Cancelation',
-    scheduleSidangTitle: 'Schedule Sidang ({role})', // Use {role}
+    scheduleSidangTitle: 'Schedule Sidang ({role})',
     dateLabel: 'Date',
     timeLabel: 'Time',
     locationLabel: 'Location',
@@ -87,25 +124,25 @@ const en = {
     sidangOutcomeTitle: 'Declare Sidang Outcome',
     sidangOutcomeDesc: 'Mark the progress as completed successfully or failed based on the sidang results.',
     markSuccessButton: 'Mark as Success',
-    markFailButton: 'Mark as Fail', // Added Fail button text
+    markFailButton: 'Mark as Fail',
     completedMessage: 'Progress Completed Successfully!',
     canceledMessage: 'Progress Canceled',
     uploadedFilesTitle: 'Uploaded Files',
     uploadedFilesDesc: 'History of files uploaded during the process.',
     loadingFiles: 'Loading file list...',
     noFiles: 'No files uploaded yet.',
-    uploadedByOn: 'Uploaded by {user} on {date}', // Use {user}, {date}
+    uploadedByOn: 'Uploaded by {user} on {date}',
     workflowHistoryTitle: 'Workflow History',
     workflowHistoryDesc: 'Timeline of actions taken.',
     loadingHistory: 'Loading history...',
-    historyActionBy: '{action} by {division}', // Use {action}, {division}
+    historyActionBy: '{action} by {division}',
     toast: {
       permissionDenied: 'Permission Denied',
       notYourTurn: 'Not your turn to update progress.',
       missingInput: 'Missing Input',
       provideDescOrFile: 'Please provide a description or upload files.',
       progressSubmitted: 'Progress Submitted',
-      notifiedNextStep: 'Notified {division} for next step.', // Use {division}
+      notifiedNextStep: 'Notified {division} for next step.',
       onlyOwnerDecision: 'Only Owner can make this decision.',
       progressCanceled: 'Progress Canceled',
       offerApproved: 'Offer Approved',
@@ -113,7 +150,7 @@ const en = {
       dpApproved: 'DP Invoice Approved',
       dpApprovedDesc: 'Project Admin notified for Admin Files.',
       progressCompleted: 'Progress Completed Successfully!',
-      failNotImplemented: 'Fail logic not implemented yet.', // Added Fail logic message
+      failNotImplemented: 'Fail logic not implemented yet.',
       missingScheduleInfo: 'Missing Schedule Info',
       provideDateTimeLoc: 'Please provide date, time, and location.',
       sidangScheduled: 'Sidang Scheduled',
@@ -123,7 +160,7 @@ const en = {
       calendarError: 'Calendar Error',
       couldNotAddEvent: 'Could not add event to Google Calendar.',
       addedToCalendar: 'Added to Google Calendar',
-      eventId: 'Event ID: {id}', // Use {id}
+      eventId: 'Event ID: {id}',
       errorFindingSchedule: 'Error',
       couldNotFindSchedule: 'Could not find scheduling information.',
     }
@@ -131,15 +168,15 @@ const en = {
   // Manage Users Page
   manageUsersPage: {
     title: 'Manage Users',
-    description: 'Add, edit, or remove user accounts for all divisions (Owner/GA only).', // Updated description
+    description: 'Add, edit, or remove user accounts for all divisions (Owner/GA only).',
     addUserButton: 'Add User',
     addUserDialogTitle: 'Add New User',
     addUserDialogDesc: 'Enter the details for the new user account.',
-    editUserButtonLabel: 'Edit User', // Added
-    editUserDialogTitle: 'Edit User: {username}', // Added {username}
-    editUserDialogDesc: 'Update the username or role for this user.', // Added
-    editUserSubmitButton: 'Save Changes', // Added
-    editingUserButton: 'Saving...', // Added
+    editUserButtonLabel: 'Edit User',
+    editUserDialogTitle: 'Edit User: {username}',
+    editUserDialogDesc: 'Update the username or role for this user.',
+    editUserSubmitButton: 'Save Changes',
+    editingUserButton: 'Saving...',
     usernameLabel: 'Username',
     usernamePlaceholder: 'e.g., john_doe',
     passwordLabel: 'Password',
@@ -150,37 +187,42 @@ const en = {
     addUserSubmitButton: 'Add User',
     addingUserButton: 'Adding...',
     tableHeaderUsername: 'Username',
-    tableHeaderPassword: 'Password', // Added Password header
+    tableHeaderPassword: 'Password',
     tableHeaderRole: 'Role / Division',
     tableHeaderActions: 'Actions',
-    showPasswordButtonLabel: 'Show Password', // Added
-    hidePasswordButtonLabel: 'Hide Password', // Added
+    showPasswordButtonLabel: 'Show Password',
+    hidePasswordButtonLabel: 'Hide Password',
     noUsers: 'No users found.',
-    deleteUserButtonLabel: 'Delete User', // Added
+    deleteUserButtonLabel: 'Delete User',
     deleteDialogTitle: 'Confirm Deletion',
-    deleteDialogDesc: 'Are you sure you want to delete user "{username}"? This action cannot be undone.', // Use {username}
+    deleteDialogDesc: 'Are you sure you want to delete user "{username}"? This action cannot be undone.',
     deleteDialogCancel: 'Cancel',
     deleteDialogConfirm: 'Delete User',
-    cannotChangeLastAdminRoleHint: 'Cannot change the role of the last General Admin.', // Added
-    roles: { // Added role translations
+    cannotChangeLastAdminRoleHint: 'Cannot change the role of the last General Admin.',
+    roles: {
       Owner: 'Owner',
       'General Admin': 'General Admin',
       'Admin Proyek': 'Project Admin',
       Arsitek: 'Architect',
       Struktur: 'Structure',
+      Pending: 'Pending Activation', // Added Pending role
     },
     toast: {
       userAdded: 'User Added',
-      userAddedDesc: 'User {username} created successfully.', // Use {username}
-      userUpdated: 'User Updated', // Added
-      userUpdatedDesc: 'User {username} updated successfully.', // Added {username}
+      userAddedDesc: 'User {username} created successfully.',
+      userUpdated: 'User Updated',
+      userUpdatedDesc: 'User {username} updated successfully.',
       userDeleted: 'User Deleted',
-      userDeletedDesc: 'User {username} removed.', // Use {username} instead of ID
+      userDeletedDesc: 'User {username} removed.',
       error: 'Error',
       usernameExists: 'Username already exists.',
-      cannotDeleteSelf: 'You cannot delete your own account.', // Added
-      cannotDeleteLastAdmin: 'Cannot delete the last General Admin.', // Added
-      cannotChangeLastAdminRole: 'Cannot change the role of the last General Admin.', // Added
+      cannotDeleteSelf: 'You cannot delete your own account.',
+      cannotDeleteLastAdmin: 'Cannot delete the last General Admin.',
+      cannotChangeLastAdminRole: 'Cannot change the role of the last General Admin.',
+      activateUserSuccess: 'User Activated', // Added
+      activateUserDesc: 'User {username} has been activated.', // Added
+      activateUserError: 'Activation Failed', // Added
+      activateUserErrorDesc: 'Could not activate user {username}.', // Added
     },
     validation: {
       usernameMin: 'Username must be at least 3 characters',
@@ -188,7 +230,7 @@ const en = {
       roleRequired: 'Role is required',
     }
   },
-  // Admin Actions Page (Reusing some strings here for access denied)
+  // Admin Actions Page
   adminActionsPage: {
       title: 'Admin Actions - Modify Task Titles',
       description: 'Users with appropriate permissions (Owner, General Admin, Admin Proyek) can modify task titles here.',
@@ -201,7 +243,7 @@ const en = {
           error: 'Error',
           titleEmpty: 'Title cannot be empty.',
           titleUpdated: 'Title Updated',
-          titleUpdatedDesc: 'Task {id} title changed successfully.', // Use {id}
+          titleUpdatedDesc: 'Task {id} title changed successfully.',
       },
        accessDeniedTitle: 'Access Denied',
        accessDeniedDesc: 'You do not have permission to access this page.',
@@ -212,11 +254,11 @@ const en = {
     description: 'Manage your account and application settings.',
     profileCardTitle: 'Profile Information',
     usernameLabel: 'Username',
-    usernameHint: 'Username cannot be changed.', // Kept for reference, but now editable
-    usernamePlaceholder: 'Enter new username', // Added placeholder
-    updateProfileButton: 'Update Profile', // Added button text
-    updatingProfileButton: 'Updating...', // Added button loading state text
-    passwordCardTitle: 'Update Password', // Changed title
+    usernameHint: 'Username cannot be changed.',
+    usernamePlaceholder: 'Enter new username',
+    updateProfileButton: 'Update Profile',
+    updatingProfileButton: 'Updating...',
+    passwordCardTitle: 'Update Password',
     currentPasswordLabel: 'Current Password',
     currentPasswordPlaceholder: 'Enter current password',
     newPasswordLabel: 'New Password',
@@ -224,12 +266,12 @@ const en = {
     confirmPasswordLabel: 'Confirm New Password',
     confirmPasswordPlaceholder: 'Confirm new password',
     updatePasswordButton: 'Update Password',
-    updatingPasswordButton: 'Updating...', // Added state for button
+    updatingPasswordButton: 'Updating...',
     notificationsCardTitle: 'Notification Preferences',
     emailNotificationsLabel: 'Email Notifications',
     emailNotificationsHint: 'Receive email updates for task assignments and status changes.',
     inAppNotificationsLabel: 'In-App Notifications',
-    inAppNotificationsHint: 'Show notifications within the application.', // Updated hint
+    inAppNotificationsHint: 'Show notifications within the application.',
     languageCardTitle: 'Language Settings',
     languageCardDescription: 'Choose your preferred display language.',
     languageSelectLabel: 'Display Language',
@@ -245,12 +287,12 @@ const en = {
         passwordTooShort: 'New password must be at least 6 characters.',
         passwordUpdated: 'Password updated successfully.',
         passwordUpdateFailed: 'Failed to update password. Check current password.',
-        usernameRequired: 'Username cannot be empty.', // Added username validation
-        usernameTooShort: 'Username must be at least 3 characters.', // Added username validation
-        profileUpdated: 'Profile updated successfully.', // Added profile success message
-        profileUpdateFailed: 'Failed to update profile.', // Added profile error message
-        languageChanged: 'Language Changed', // Added language change toast title
-        languageChangedDesc: 'Interface language updated.', // Added language change toast description
+        usernameRequired: 'Username cannot be empty.',
+        usernameTooShort: 'Username must be at least 3 characters.',
+        profileUpdated: 'Profile updated successfully.',
+        profileUpdateFailed: 'Failed to update profile.',
+        languageChanged: 'Language Changed',
+        languageChangedDesc: 'Interface language updated.',
     }
   },
 };

@@ -1,7 +1,8 @@
+// src/locales/id.ts
 const id = {
   // Login Page
   login: {
-    title: 'Login Msaarch APP', // Updated title
+    title: 'Login Msaarch APP',
     usernameLabel: 'Nama Pengguna',
     usernamePlaceholder: 'Masukkan nama pengguna Anda',
     passwordLabel: 'Kata Sandi',
@@ -12,6 +13,42 @@ const id = {
     redirecting: 'Mengalihkan ke dasbor...',
     fail: 'Login Gagal',
     invalidCredentials: 'Nama pengguna atau kata sandi salah.',
+    googleSignInButton: 'Masuk dengan Google', // Added
+    googleLoading: 'Sedang masuk...', // Added
+    googleSuccess: 'Masuk dengan Google Berhasil', // Added
+    googleSetupPrompt: 'Harap lengkapi detail akun Anda.', // Added
+    googleFail: 'Masuk dengan Google Gagal', // Added
+    googleErrorDefault: 'Terjadi kesalahan saat Masuk dengan Google.', // Added
+     validation: { // Added validation structure
+        usernameRequired: 'Nama pengguna wajib diisi.',
+        passwordRequired: 'Kata sandi wajib diisi.',
+     }
+  },
+  // Account Setup Page
+  accountSetup: { // Added section
+      title: 'Siapkan Akun Anda',
+      welcomeMessage: 'Selamat datang, {displayName}! Harap lengkapi pengaturan akun Anda.', // Use {displayName}
+      info: 'Anda masuk dengan Google ({email}). Sekarang, buat nama pengguna dan kata sandi untuk Msaarch APP.', // Use {email}
+      usernameLabel: 'Pilih Nama Pengguna',
+      usernamePlaceholder: 'Masukkan nama pengguna yang diinginkan',
+      passwordLabel: 'Pilih Kata Sandi',
+      passwordPlaceholder: 'Masukkan kata sandi yang aman',
+      confirmPasswordLabel: 'Konfirmasi Kata Sandi',
+      confirmPasswordPlaceholder: 'Masukkan ulang kata sandi Anda',
+      submitButton: 'Selesaikan Pengaturan',
+      submittingButton: 'Menyiapkan...',
+      successTitle: 'Pengaturan Selesai',
+      successDescription: 'Akun Anda menunggu aktivasi. Admin telah diberitahu.',
+      failTitle: 'Pengaturan Gagal',
+      usernameExists: 'Nama pengguna ini sudah digunakan. Silakan pilih yang lain.',
+      passwordMismatch: 'Kata sandi tidak cocok.',
+      validation: {
+          usernameMin: 'Nama pengguna minimal 3 karakter',
+          passwordMin: 'Kata sandi minimal 6 karakter',
+          passwordRequired: 'Kata sandi wajib diisi',
+          confirmPasswordRequired: 'Konfirmasi kata sandi wajib diisi',
+          usernameRequired: 'Nama pengguna wajib diisi',
+      }
   },
   // Dashboard Layout (Sidebar/Header)
   dashboardLayout: {
@@ -23,7 +60,7 @@ const id = {
     adminActions: 'Tindakan Admin',
     settings: 'Pengaturan',
     logout: 'Keluar',
-    appTitle: 'Msaarch APP', // Updated application title
+    appTitle: 'Msaarch APP',
     toggleMenu: 'Buka/Tutup Panel Menu',
   },
   // Dashboard Page
@@ -37,21 +74,21 @@ const id = {
     pendingActionsDesc: 'Tugas menunggu persetujuan atau langkah selanjutnya',
     taskOverview: 'Gambaran Tugas',
     allTasksDesc: 'Semua tugas di seluruh divisi.',
-    divisionTasksDesc: 'Tugas yang relevan dengan divisi {division}.', // Gunakan {division}
+    divisionTasksDesc: 'Tugas yang relevan dengan divisi {division}.',
     noTasks: 'Tidak ada tugas ditemukan.',
     assignedTo: 'Ditugaskan ke',
     nextAction: 'Berikutnya',
     taskCanceled: 'Tugas ini dibatalkan.',
     status: {
       completed: 'Selesai',
-      inprogress: 'Sedang Berjalan', // Corrected key
-      pendingapproval: 'Menunggu Persetujuan', // Corrected key
+      inprogress: 'Sedang Berjalan',
+      pendingapproval: 'Menunggu Persetujuan',
       delayed: 'Tertunda',
       canceled: 'Dibatalkan',
       pending: 'Tertunda',
-      scheduled: 'Terjadwal', // Added status
+      scheduled: 'Terjadwal',
     },
-     progress: '{progress}% Selesai', // Gunakan {progress}
+     progress: '{progress}% Selesai',
   },
   // Tasks Page
   tasksPage: {
@@ -60,9 +97,9 @@ const id = {
     assignedLabel: 'Ditugaskan',
     progressLabel: 'Progres',
     none: 'Tidak Ada',
-    uploadProgressTitle: 'Unggah Progres ({role})', // Gunakan {role}
+    uploadProgressTitle: 'Unggah Progres ({role})',
     descriptionLabel: 'Deskripsi / Catatan',
-    descriptionPlaceholder: 'Berikan detail untuk tahap {division}...', // Gunakan {division}
+    descriptionPlaceholder: 'Berikan detail untuk tahap {division}...',
     attachFilesLabel: 'Lampirkan File',
     selectedFilesLabel: 'File terpilih:',
     submitButton: 'Kirim Progres',
@@ -75,7 +112,7 @@ const id = {
     cancelDialogDesc: 'Membatalkan progres ini tidak dapat dibatalkan. Status akan ditandai sebagai Dibatalkan.',
     cancelDialogCancel: 'Kembali',
     cancelDialogConfirm: 'Konfirmasi Pembatalan',
-    scheduleSidangTitle: 'Jadwalkan Sidang ({role})', // Gunakan {role}
+    scheduleSidangTitle: 'Jadwalkan Sidang ({role})',
     dateLabel: 'Tanggal',
     timeLabel: 'Waktu',
     locationLabel: 'Lokasi',
@@ -87,25 +124,25 @@ const id = {
     sidangOutcomeTitle: 'Nyatakan Hasil Sidang',
     sidangOutcomeDesc: 'Tandai progres sebagai berhasil diselesaikan atau gagal berdasarkan hasil sidang.',
     markSuccessButton: 'Tandai sebagai Berhasil',
-    markFailButton: 'Tandai sebagai Gagal', // Teks tombol Gagal
+    markFailButton: 'Tandai sebagai Gagal',
     completedMessage: 'Progres Berhasil Diselesaikan!',
     canceledMessage: 'Progres Dibatalkan',
     uploadedFilesTitle: 'File Terunggah',
     uploadedFilesDesc: 'Riwayat file yang diunggah selama proses.',
     loadingFiles: 'Memuat daftar file...',
     noFiles: 'Belum ada file yang diunggah.',
-    uploadedByOn: 'Diunggah oleh {user} pada {date}', // Gunakan {user}, {date}
+    uploadedByOn: 'Diunggah oleh {user} pada {date}',
     workflowHistoryTitle: 'Riwayat Alur Kerja',
     workflowHistoryDesc: 'Garis waktu tindakan yang diambil.',
     loadingHistory: 'Memuat riwayat...',
-    historyActionBy: '{action} oleh {division}', // Gunakan {action}, {division}
+    historyActionBy: '{action} oleh {division}',
      toast: {
         permissionDenied: 'Izin Ditolak',
         notYourTurn: 'Bukan giliran Anda untuk memperbarui progres.',
         missingInput: 'Input Kurang',
         provideDescOrFile: 'Harap berikan deskripsi atau unggah file.',
         progressSubmitted: 'Progres Terkirim',
-        notifiedNextStep: 'Memberitahu {division} untuk langkah selanjutnya.', // Use {division}
+        notifiedNextStep: 'Memberitahu {division} untuk langkah selanjutnya.',
         onlyOwnerDecision: 'Hanya Pemilik yang dapat membuat keputusan ini.',
         progressCanceled: 'Progres Dibatalkan',
         offerApproved: 'Penawaran Disetujui',
@@ -113,7 +150,7 @@ const id = {
         dpApproved: 'Faktur DP Disetujui',
         dpApprovedDesc: 'Admin Proyek diberitahu untuk File Admin.',
         progressCompleted: 'Progres Berhasil Diselesaikan!',
-        failNotImplemented: 'Logika gagal belum diimplementasikan.', // Pesan logika Gagal
+        failNotImplemented: 'Logika gagal belum diimplementasikan.',
         missingScheduleInfo: 'Info Jadwal Kurang',
         provideDateTimeLoc: 'Harap berikan tanggal, waktu, dan lokasi.',
         sidangScheduled: 'Sidang Dijadwalkan',
@@ -123,7 +160,7 @@ const id = {
         calendarError: 'Kesalahan Kalender',
         couldNotAddEvent: 'Tidak dapat menambahkan acara ke Google Kalender.',
         addedToCalendar: 'Ditambahkan ke Google Kalender',
-        eventId: 'ID Acara: {id}', // Gunakan {id}
+        eventId: 'ID Acara: {id}',
         errorFindingSchedule: 'Kesalahan',
         couldNotFindSchedule: 'Tidak dapat menemukan informasi penjadwalan.',
       }
@@ -131,15 +168,15 @@ const id = {
   // Manage Users Page
   manageUsersPage: {
     title: 'Kelola Pengguna',
-    description: 'Tambah, ubah, atau hapus akun pengguna untuk semua divisi (Hanya Pemilik/Admin Umum).', // Deskripsi diperbarui
+    description: 'Tambah, ubah, atau hapus akun pengguna untuk semua divisi (Hanya Pemilik/Admin Umum).',
     addUserButton: 'Tambah Pengguna',
     addUserDialogTitle: 'Tambah Pengguna Baru',
     addUserDialogDesc: 'Masukkan detail untuk akun pengguna baru.',
-    editUserButtonLabel: 'Ubah Pengguna', // Ditambahkan
-    editUserDialogTitle: 'Ubah Pengguna: {username}', // Ditambahkan {username}
-    editUserDialogDesc: 'Perbarui nama pengguna atau peran untuk pengguna ini.', // Ditambahkan
-    editUserSubmitButton: 'Simpan Perubahan', // Ditambahkan
-    editingUserButton: 'Menyimpan...', // Ditambahkan
+    editUserButtonLabel: 'Ubah Pengguna',
+    editUserDialogTitle: 'Ubah Pengguna: {username}',
+    editUserDialogDesc: 'Perbarui nama pengguna atau peran untuk pengguna ini.',
+    editUserSubmitButton: 'Simpan Perubahan',
+    editingUserButton: 'Menyimpan...',
     usernameLabel: 'Nama Pengguna',
     usernamePlaceholder: 'cth., john_doe',
     passwordLabel: 'Kata Sandi',
@@ -150,37 +187,42 @@ const id = {
     addUserSubmitButton: 'Tambah Pengguna',
     addingUserButton: 'Menambahkan...',
     tableHeaderUsername: 'Nama Pengguna',
-    tableHeaderPassword: 'Kata Sandi', // Ditambahkan header Kata Sandi
+    tableHeaderPassword: 'Kata Sandi',
     tableHeaderRole: 'Peran / Divisi',
     tableHeaderActions: 'Tindakan',
-    showPasswordButtonLabel: 'Tampilkan Kata Sandi', // Ditambahkan
-    hidePasswordButtonLabel: 'Sembunyikan Kata Sandi', // Ditambahkan
+    showPasswordButtonLabel: 'Tampilkan Kata Sandi',
+    hidePasswordButtonLabel: 'Sembunyikan Kata Sandi',
     noUsers: 'Tidak ada pengguna ditemukan.',
-    deleteUserButtonLabel: 'Hapus Pengguna', // Ditambahkan
+    deleteUserButtonLabel: 'Hapus Pengguna',
     deleteDialogTitle: 'Konfirmasi Penghapusan',
-    deleteDialogDesc: 'Apakah Anda yakin ingin menghapus pengguna "{username}"? Tindakan ini tidak dapat dibatalkan.', // Gunakan {username}
+    deleteDialogDesc: 'Apakah Anda yakin ingin menghapus pengguna "{username}"? Tindakan ini tidak dapat dibatalkan.',
     deleteDialogCancel: 'Batal',
     deleteDialogConfirm: 'Hapus Pengguna',
-    cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin Umum terakhir.', // Ditambahkan
-    roles: { // Terjemahan peran ditambahkan
+    cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin Umum terakhir.',
+    roles: {
        Owner: 'Pemilik',
        'General Admin': 'Admin Umum',
        'Admin Proyek': 'Admin Proyek',
        Arsitek: 'Arsitek',
        Struktur: 'Struktur',
+       Pending: 'Menunggu Aktivasi', // Added Pending role
      },
     toast: {
         userAdded: 'Pengguna Ditambahkan',
-        userAddedDesc: 'Pengguna {username} berhasil dibuat.', // Use {username}
-        userUpdated: 'Pengguna Diperbarui', // Ditambahkan
-        userUpdatedDesc: 'Pengguna {username} berhasil diperbarui.', // Ditambahkan {username}
+        userAddedDesc: 'Pengguna {username} berhasil dibuat.',
+        userUpdated: 'Pengguna Diperbarui',
+        userUpdatedDesc: 'Pengguna {username} berhasil diperbarui.',
         userDeleted: 'Pengguna Dihapus',
-        userDeletedDesc: 'Pengguna {username} dihapus.', // Use {username} instead of ID
+        userDeletedDesc: 'Pengguna {username} dihapus.',
         error: 'Kesalahan',
         usernameExists: 'Nama pengguna sudah ada.',
-        cannotDeleteSelf: 'Anda tidak dapat menghapus akun Anda sendiri.', // Ditambahkan
-        cannotDeleteLastAdmin: 'Tidak dapat menghapus Admin Umum terakhir.', // Ditambahkan
-        cannotChangeLastAdminRole: 'Tidak dapat mengubah peran Admin Umum terakhir.', // Ditambahkan
+        cannotDeleteSelf: 'Anda tidak dapat menghapus akun Anda sendiri.',
+        cannotDeleteLastAdmin: 'Tidak dapat menghapus Admin Umum terakhir.',
+        cannotChangeLastAdminRole: 'Tidak dapat mengubah peran Admin Umum terakhir.',
+        activateUserSuccess: 'Pengguna Diaktifkan', // Added
+        activateUserDesc: 'Pengguna {username} telah diaktifkan.', // Added
+        activateUserError: 'Aktivasi Gagal', // Added
+        activateUserErrorDesc: 'Tidak dapat mengaktifkan pengguna {username}.', // Added
     },
     validation: {
        usernameMin: 'Nama pengguna minimal 3 karakter',
@@ -188,7 +230,7 @@ const id = {
        roleRequired: 'Peran diperlukan',
     }
   },
-   // Admin Actions Page (Menggunakan beberapa string di sini untuk akses ditolak)
+   // Admin Actions Page
    adminActionsPage: {
        title: 'Tindakan Admin - Ubah Judul Tugas',
        description: 'Pengguna dengan izin yang sesuai (Pemilik, Admin Umum, Admin Proyek) dapat mengubah judul tugas di sini.',
@@ -201,7 +243,7 @@ const id = {
            error: 'Kesalahan',
            titleEmpty: 'Judul tidak boleh kosong.',
            titleUpdated: 'Judul Diperbarui',
-           titleUpdatedDesc: 'Judul tugas {id} berhasil diubah.', // Use {id}
+           titleUpdatedDesc: 'Judul tugas {id} berhasil diubah.',
        },
        accessDeniedTitle: 'Akses Ditolak',
        accessDeniedDesc: 'Anda tidak memiliki izin untuk mengakses halaman ini.',
@@ -212,11 +254,11 @@ const id = {
     description: 'Kelola akun dan pengaturan aplikasi Anda.',
     profileCardTitle: 'Informasi Profil',
     usernameLabel: 'Nama Pengguna',
-    usernameHint: 'Nama pengguna tidak dapat diubah.', // Dipertahankan untuk referensi, tapi sekarang bisa diedit
-    usernamePlaceholder: 'Masukkan nama pengguna baru', // Placeholder ditambahkan
-    updateProfileButton: 'Perbarui Profil', // Teks tombol ditambahkan
-    updatingProfileButton: 'Memperbarui...', // Teks status pemuatan tombol ditambahkan
-    passwordCardTitle: 'Perbarui Kata Sandi', // Judul diubah
+    usernameHint: 'Nama pengguna tidak dapat diubah.',
+    usernamePlaceholder: 'Masukkan nama pengguna baru',
+    updateProfileButton: 'Perbarui Profil',
+    updatingProfileButton: 'Memperbarui...',
+    passwordCardTitle: 'Perbarui Kata Sandi',
     currentPasswordLabel: 'Kata Sandi Saat Ini',
     currentPasswordPlaceholder: 'Masukkan kata sandi saat ini',
     newPasswordLabel: 'Kata Sandi Baru',
@@ -224,12 +266,12 @@ const id = {
     confirmPasswordLabel: 'Konfirmasi Kata Sandi Baru',
     confirmPasswordPlaceholder: 'Konfirmasi kata sandi baru',
     updatePasswordButton: 'Perbarui Kata Sandi',
-    updatingPasswordButton: 'Memperbarui...', // Added state for button
+    updatingPasswordButton: 'Memperbarui...',
     notificationsCardTitle: 'Preferensi Notifikasi',
     emailNotificationsLabel: 'Notifikasi Email',
     emailNotificationsHint: 'Terima pembaruan email untuk penugasan tugas dan perubahan status.',
     inAppNotificationsLabel: 'Notifikasi Dalam Aplikasi',
-    inAppNotificationsHint: 'Tampilkan notifikasi di dalam aplikasi.', // Petunjuk diperbarui
+    inAppNotificationsHint: 'Tampilkan notifikasi di dalam aplikasi.',
     languageCardTitle: 'Pengaturan Bahasa',
     languageCardDescription: 'Pilih bahasa tampilan pilihan Anda.',
     languageSelectLabel: 'Bahasa Tampilan',
@@ -245,12 +287,12 @@ const id = {
       passwordTooShort: 'Kata sandi baru minimal 6 karakter.',
       passwordUpdated: 'Kata sandi berhasil diperbarui.',
       passwordUpdateFailed: 'Gagal memperbarui kata sandi. Periksa kata sandi saat ini.',
-      usernameRequired: 'Nama pengguna tidak boleh kosong.', // Validasi username ditambahkan
-      usernameTooShort: 'Nama pengguna minimal 3 karakter.', // Validasi username ditambahkan
-      profileUpdated: 'Profil berhasil diperbarui.', // Pesan sukses profil ditambahkan
-      profileUpdateFailed: 'Gagal memperbarui profil.', // Pesan error profil ditambahkan
-      languageChanged: 'Bahasa Diubah', // Judul toast perubahan bahasa ditambahkan
-      languageChangedDesc: 'Bahasa antarmuka diperbarui.', // Deskripsi toast perubahan bahasa ditambahkan
+      usernameRequired: 'Nama pengguna tidak boleh kosong.',
+      usernameTooShort: 'Nama pengguna minimal 3 karakter.',
+      profileUpdated: 'Profil berhasil diperbarui.',
+      profileUpdateFailed: 'Gagal memperbarui profil.',
+      languageChanged: 'Bahasa Diubah',
+      languageChangedDesc: 'Bahasa antarmuka diperbarui.',
     }
   },
 };
