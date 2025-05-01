@@ -39,7 +39,8 @@ async function simulateUploadAndCompress(file: File): Promise<string> {
   // 3. Return the public URL of the uploaded file.
 
   // For simulation, we'll generate a placeholder URL based on the file name/time
-  const simulatedUrl = `https://picsum.photos/seed/${Date.now()}/${file.name}/200`;
+  // Using a fixed seed but varying path based on filename for more stable simulation
+  const simulatedUrl = `https://picsum.photos/seed/${file.name}/${Date.now()}/200`;
   console.log(`Simulated upload complete. URL: ${simulatedUrl}`);
   return simulatedUrl;
 }
@@ -57,7 +58,8 @@ export default function SettingsPage() {
    const [username, setUsername] = React.useState('');
    const [email, setEmail] = React.useState('');
    const [whatsappNumber, setWhatsappNumber] = React.useState('');
-   const [profilePictureUrl, setProfilePictureUrl] = React.useState<string | undefined>(undefined);
+   // Use local state for profile picture URL to reflect changes immediately
+   const [currentProfilePictureUrl, setCurrentProfilePictureUrl] = React.useState<string | undefined>(undefined);
    const [profilePicturePreview, setProfilePicturePreview] = React.useState<string | null>(null); // For previewing selected image
    const [isUploading, setIsUploading] = React.useState(false); // For upload loading state
    const [selectedFile, setSelectedFile] = React.useState<File | null>(null); // Store the selected file
@@ -76,7 +78,7 @@ export default function SettingsPage() {
             setUsername(currentUser.username);
             setEmail(currentUser.email || '');
             setWhatsappNumber(currentUser.whatsappNumber || '');
-            setProfilePictureUrl(currentUser.profilePictureUrl);
+            setCurrentProfilePictureUrl(currentUser.profilePictureUrl); // Initialize local state
             setProfilePicturePreview(null); // Reset preview on user change
             setSelectedFile(null); // Reset selected file
             // setDisplayName(currentUser.displayName || currentUser.username); // Initialize display name
@@ -111,7 +113,7 @@ export default function SettingsPage() {
            reader.onloadend = () => {
                setProfilePicturePreview(reader.result as string);
            };
-           reader.readAsDataURL(file);
+           reader.readDataURL(file);
        } else {
             setSelectedFile(null);
             setProfilePicturePreview(null);
@@ -135,15 +137,16 @@ export default function SettingsPage() {
     setIsUploading(!!selectedFile); // Set uploading state if file is selected
     console.log(`Attempting profile update for user ID: ${currentUser.id}`);
 
-    let newPictureUrl = profilePictureUrl; // Start with current URL
+    let newPictureUrl = currentProfilePictureUrl; // Start with current local state URL
 
     try {
         // --- Simulate Image Upload and Compression ---
         if (selectedFile) {
             try {
                 newPictureUrl = await simulateUploadAndCompress(selectedFile);
-                // Update state immediately for UI feedback, though final update happens later
-                setProfilePictureUrl(newPictureUrl);
+                // Update local state immediately for UI feedback, final context/DB update happens after profile save
+                 setCurrentProfilePictureUrl(newPictureUrl);
+                 console.log("Simulated URL obtained:", newPictureUrl);
             } catch (uploadError) {
                 console.error("Simulated upload error:", uploadError);
                  toast({ variant: 'destructive', title: 'Upload Failed', description: 'Could not simulate image upload.' });
@@ -156,6 +159,7 @@ export default function SettingsPage() {
         }
         // --- End Simulation ---
 
+        // Prepare payload with potentially updated picture URL
         const updatedUserData = {
             userId: currentUser.id,
             username: username,
@@ -169,10 +173,19 @@ export default function SettingsPage() {
         // TODO: Call notification service before updating profile
         // await notifyAdminsOfProfileChange(currentUser.username, updatedUserData);
 
+        console.log("Calling updateUserProfile with data:", updatedUserData);
         await updateUserProfile(updatedUserData);
+        console.log("updateUserProfile successful.");
 
-        // Update AuthContext with the new user data (excluding password)
-        updateAuthContextUser(prev => prev ? { ...prev, ...updatedUserData } : null);
+        // Update AuthContext with the new user data AFTER successful DB update
+        updateAuthContextUser(prev => prev ? {
+             ...prev,
+             username: updatedUserData.username,
+             email: updatedUserData.email,
+             whatsappNumber: updatedUserData.whatsappNumber,
+             displayName: updatedUserData.displayName,
+             profilePictureUrl: updatedUserData.profilePictureUrl // Update URL in context
+            } : null);
 
         // Reset preview and selected file state after successful update
         setProfilePicturePreview(null);
@@ -341,8 +354,10 @@ export default function SettingsPage() {
                      <div className="flex items-center space-x-4">
                           <Avatar className="h-20 w-20 border-2 border-primary/30">
                               <AvatarImage
-                                  // Show preview if available, otherwise show the current stored URL
-                                  src={profilePicturePreview || profilePictureUrl || `https://picsum.photos/seed/${currentUser.id}/100`}
+                                  // Show preview if available, otherwise show the current stored URL from local state
+                                  src={profilePicturePreview || currentProfilePictureUrl || `https://picsum.photos/seed/${currentUser.id}/100`}
+                                  // Force re-render if URL changes by using key
+                                  key={profilePicturePreview || currentProfilePictureUrl}
                                   alt={currentUser.displayName || currentUser.username}
                                   data-ai-hint="user avatar placeholder" // AI Hint
                               />
@@ -427,7 +442,7 @@ export default function SettingsPage() {
                     </div>
 
                     <Button onClick={handleProfileUpdate} disabled={isUpdatingProfile || isUploading}>
-                         {isUpdatingProfile || isUploading ? (
+                         {(isUpdatingProfile || isUploading) ? (
                              <>
                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                  {isClient ? settingsDict.updatingProfileButton : defaultDict.settingsPage.updatingProfileButton}

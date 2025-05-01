@@ -34,7 +34,7 @@ interface UpdateProfileData {
     role: string; // Keep role here for admin updates, but settings page won't change it
     email?: string; // Make email optional for update data
     whatsappNumber?: string; // Make WhatsApp optional
-    profilePictureUrl?: string; // Make profile picture optional
+    profilePictureUrl?: string | null; // Allow setting to null/undefined explicitly
     displayName?: string; // Allow explicit displayName update
 }
 
@@ -106,6 +106,7 @@ async function writeUsers(users: User[]): Promise<void> {
             return userWithoutHash;
         });
         await fs.writeFile(DB_PATH, JSON.stringify(usersToWrite, null, 2), 'utf8');
+        console.log("User data written to DB_PATH successfully."); // Log success
     } catch (error) {
         console.error("Error writing user database:", error);
         throw new Error('Failed to save user data.');
@@ -169,7 +170,7 @@ export async function verifyUserCredentials(username: string, password: string):
         const { password: _p, ...userWithoutPassword } = user;
         return userWithoutPassword;
     } else {
-        console.log(`Password mismatch for user "${username}".`);
+        console.log(`Password mismatch for user "${username}". Stored: "${user.password}", Provided: "${password}"`);
         return null;
     }
 }
@@ -241,6 +242,7 @@ export async function deleteUser(userId: string): Promise<void> {
  */
 export async function updateUserProfile(updateData: UpdateProfileData): Promise<void> {
     console.log(`Attempting to update profile for user ID: ${updateData.userId}`);
+    console.log("Update data received:", updateData); // Log received update data
     let users = await readUsers();
     const userIndex = users.findIndex(u => u.id === updateData.userId);
 
@@ -265,7 +267,11 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
     if (updateData.role) updatedUser.role = updateData.role; // Allow role update (e.g., from admin page)
     if (updateData.email !== undefined) updatedUser.email = updateData.email; // Allow setting email to empty string
     if (updateData.whatsappNumber !== undefined) updatedUser.whatsappNumber = updateData.whatsappNumber;
-    if (updateData.profilePictureUrl !== undefined) updatedUser.profilePictureUrl = updateData.profilePictureUrl;
+    if (updateData.profilePictureUrl !== undefined) {
+        // Handle null or undefined to potentially remove the picture
+        updatedUser.profilePictureUrl = updateData.profilePictureUrl || undefined;
+         console.log(`Updating profilePictureUrl for ${updateData.userId} to: ${updatedUser.profilePictureUrl}`);
+    }
 
     // Update displayName if username changes and displayName wasn't explicitly updated
     if (updateData.username && updateData.username !== users[userIndex].username && !updateData.displayName) {
@@ -276,9 +282,10 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
 
 
     users[userIndex] = updatedUser;
+     console.log(`User object for ${updateData.userId} prepared for writing:`, users[userIndex]);
 
     await writeUsers(users);
-    console.log(`User profile for ${updateData.userId} updated successfully.`);
+    console.log(`User profile for ${updateData.userId} updated successfully in database file.`);
 }
 
 
