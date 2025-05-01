@@ -266,7 +266,8 @@ const en = {
     whatsappLabel: 'WhatsApp Number',
     whatsappPlaceholder: 'Enter WhatsApp number (optional)',
     changePictureButton: 'Change Picture',
-    pictureHint: 'Upload a new profile picture (JPG, PNG).',
+    uploadingPictureButton: 'Uploading...', // Added
+    pictureHint: 'Upload a new profile picture (PNG, JPG). Max 2MB.', // Updated hint
     updateProfileButton: 'Update Profile',
     updatingProfileButton: 'Updating...',
     passwordCardTitle: 'Update Password',

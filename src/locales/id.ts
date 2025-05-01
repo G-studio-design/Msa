@@ -266,7 +266,8 @@ const id = {
     whatsappLabel: 'Nomor WhatsApp',
     whatsappPlaceholder: 'Masukkan nomor WhatsApp (opsional)',
     changePictureButton: 'Ubah Foto',
-    pictureHint: 'Unggah foto profil baru (JPG, PNG).',
+    uploadingPictureButton: 'Mengunggah...', // Added
+    pictureHint: 'Unggah foto profil baru (PNG, JPG). Maks 2MB.', // Updated hint
     updateProfileButton: 'Perbarui Profil',
     updatingProfileButton: 'Memperbarui...',
     passwordCardTitle: 'Perbarui Kata Sandi',

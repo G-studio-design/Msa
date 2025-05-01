@@ -27,6 +27,24 @@ import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
 
+// Simple function to simulate image compression and upload
+async function simulateUploadAndCompress(file: File): Promise<string> {
+  console.log(`Simulating compression for ${file.name}...`);
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 800));
+
+  // In a real app:
+  // 1. Use a library like browser-image-compression to compress the file.
+  // 2. Upload the compressed file to a storage service (Firebase Storage, S3, etc.).
+  // 3. Return the public URL of the uploaded file.
+
+  // For simulation, we'll generate a placeholder URL based on the file name/time
+  const simulatedUrl = `https://picsum.photos/seed/${Date.now()}/${file.name}/200`;
+  console.log(`Simulated upload complete. URL: ${simulatedUrl}`);
+  return simulatedUrl;
+}
+
+
 export default function SettingsPage() {
    const { language, setLanguage } = useLanguage(); // Get language state and setter
    const { currentUser, setCurrentUser: updateAuthContextUser } = useAuth(); // Get current user from AuthContext
@@ -40,6 +58,9 @@ export default function SettingsPage() {
    const [email, setEmail] = React.useState('');
    const [whatsappNumber, setWhatsappNumber] = React.useState('');
    const [profilePictureUrl, setProfilePictureUrl] = React.useState<string | undefined>(undefined);
+   const [profilePicturePreview, setProfilePicturePreview] = React.useState<string | null>(null); // For previewing selected image
+   const [isUploading, setIsUploading] = React.useState(false); // For upload loading state
+   const [selectedFile, setSelectedFile] = React.useState<File | null>(null); // Store the selected file
    // const [displayName, setDisplayName] = React.useState(''); // Explicit state for display name if needed
    const [isUpdatingProfile, setIsUpdatingProfile] = React.useState(false);
 
@@ -56,6 +77,8 @@ export default function SettingsPage() {
             setEmail(currentUser.email || '');
             setWhatsappNumber(currentUser.whatsappNumber || '');
             setProfilePictureUrl(currentUser.profilePictureUrl);
+            setProfilePicturePreview(null); // Reset preview on user change
+            setSelectedFile(null); // Reset selected file
             // setDisplayName(currentUser.displayName || currentUser.username); // Initialize display name
        }
    }, [currentUser]);
@@ -76,18 +99,25 @@ export default function SettingsPage() {
     toast({ title: settingsDict.toast.languageChanged, description: settingsDict.toast.languageChangedDesc });
   };
 
-  // Handle profile picture change (future implementation)
+  // Handle profile picture change
    const handleProfilePictureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
        const file = event.target.files?.[0];
        if (file) {
            console.log("New profile picture selected:", file.name);
-           // TODO: Implement image upload logic here
-           // 1. Upload file to storage (e.g., Firebase Storage, Cloudinary)
-           // 2. Get the public URL of the uploaded image
-           // 3. Update the `profilePictureUrl` state with the new URL
-           // 4. Include the new URL in the `handleProfileUpdate` payload
-           toast({ title: 'Feature Coming Soon', description: 'Profile picture upload is not yet implemented.' });
+           setSelectedFile(file); // Store the file object
+
+           // Create a preview URL
+           const reader = new FileReader();
+           reader.onloadend = () => {
+               setProfilePicturePreview(reader.result as string);
+           };
+           reader.readAsDataURL(file);
+       } else {
+            setSelectedFile(null);
+            setProfilePicturePreview(null);
        }
+        // Reset the input value to allow selecting the same file again if needed
+        event.target.value = '';
    };
 
   const handleProfileUpdate = async () => {
@@ -102,9 +132,30 @@ export default function SettingsPage() {
      }
 
     setIsUpdatingProfile(true);
+    setIsUploading(!!selectedFile); // Set uploading state if file is selected
     console.log(`Attempting profile update for user ID: ${currentUser.id}`);
 
+    let newPictureUrl = profilePictureUrl; // Start with current URL
+
     try {
+        // --- Simulate Image Upload and Compression ---
+        if (selectedFile) {
+            try {
+                newPictureUrl = await simulateUploadAndCompress(selectedFile);
+                // Update state immediately for UI feedback, though final update happens later
+                setProfilePictureUrl(newPictureUrl);
+            } catch (uploadError) {
+                console.error("Simulated upload error:", uploadError);
+                 toast({ variant: 'destructive', title: 'Upload Failed', description: 'Could not simulate image upload.' });
+                 setIsUploading(false);
+                 setIsUpdatingProfile(false);
+                 return; // Stop profile update if upload fails
+            } finally {
+                setIsUploading(false); // Upload finished (success or fail)
+            }
+        }
+        // --- End Simulation ---
+
         const updatedUserData = {
             userId: currentUser.id,
             username: username,
@@ -112,7 +163,7 @@ export default function SettingsPage() {
             email: email,
             whatsappNumber: whatsappNumber,
             displayName: username, // Assume displayName should match username for simplicity here
-            // profilePictureUrl: newUploadedUrl || profilePictureUrl, // Add logic if implementing uploads
+            profilePictureUrl: newPictureUrl, // Use the new URL (or original if no upload)
         };
 
         // TODO: Call notification service before updating profile
@@ -121,9 +172,11 @@ export default function SettingsPage() {
         await updateUserProfile(updatedUserData);
 
         // Update AuthContext with the new user data (excluding password)
-        // Use functional update to ensure we're updating based on the latest previous state
-        updateAuthContextUser(prev => prev ? { ...prev, ...updatedUserData, profilePictureUrl: profilePictureUrl } : null); // Include profilePic
+        updateAuthContextUser(prev => prev ? { ...prev, ...updatedUserData } : null);
 
+        // Reset preview and selected file state after successful update
+        setProfilePicturePreview(null);
+        setSelectedFile(null);
 
         toast({ title: settingsDict.toast.success, description: settingsDict.toast.profileUpdated });
 
@@ -139,6 +192,7 @@ export default function SettingsPage() {
         }
         toast({ variant: 'destructive', title: settingsDict.toast.error, description: description });
     } finally {
+        setIsUploading(false); // Ensure upload state is reset
         setIsUpdatingProfile(false);
     }
   };
@@ -272,22 +326,23 @@ export default function SettingsPage() {
     <div className="container mx-auto py-4 space-y-6">
       <Card>
         <CardHeader>
-            <CardTitle className="text-2xl">{settingsDict.title}</CardTitle>
-            <CardDescription>{settingsDict.description}</CardDescription>
+            <CardTitle className="text-2xl">{isClient ? settingsDict.title : defaultDict.settingsPage.title}</CardTitle>
+            <CardDescription>{isClient ? settingsDict.description : defaultDict.settingsPage.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
 
              {/* Profile Info Card - Updated */}
             <Card>
                  <CardHeader>
-                    <CardTitle className="text-lg">{settingsDict.profileCardTitle}</CardTitle>
+                    <CardTitle className="text-lg">{isClient ? settingsDict.profileCardTitle : defaultDict.settingsPage.profileCardTitle}</CardTitle>
                  </CardHeader>
                  <CardContent className="space-y-4">
                      {/* Profile Picture Section */}
                      <div className="flex items-center space-x-4">
                           <Avatar className="h-20 w-20 border-2 border-primary/30">
                               <AvatarImage
-                                  src={profilePictureUrl || `https://picsum.photos/seed/${currentUser.id}/100`} // Use context user ID for seed
+                                  // Show preview if available, otherwise show the current stored URL
+                                  src={profilePicturePreview || profilePictureUrl || `https://picsum.photos/seed/${currentUser.id}/100`}
                                   alt={currentUser.displayName || currentUser.username}
                                   data-ai-hint="user avatar placeholder" // AI Hint
                               />
@@ -297,10 +352,11 @@ export default function SettingsPage() {
                           </Avatar>
                          <div>
                              <Label htmlFor="profile-picture-upload" className="cursor-pointer">
-                                 <Button asChild variant="outline" size="sm" disabled={isUpdatingProfile}>
+                                  {/* Disable button while uploading OR updating profile */}
+                                 <Button asChild variant="outline" size="sm" disabled={isUploading || isUpdatingProfile}>
                                       <span>
-                                        <Upload className="mr-2 h-4 w-4" />
-                                        {settingsDict.changePictureButton}
+                                          {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                                          {isUploading ? (isClient ? settingsDict.uploadingPictureButton : 'Uploading...') : (isClient ? settingsDict.changePictureButton : defaultDict.settingsPage.changePictureButton)}
                                       </span>
                                  </Button>
                              </Label>
@@ -309,29 +365,35 @@ export default function SettingsPage() {
                                  id="profile-picture-upload"
                                  type="file"
                                  className="hidden"
-                                 accept="image/*"
+                                 accept="image/png, image/jpeg" // Specify accepted image types
                                  onChange={handleProfilePictureChange} // Add onChange handler
-                                 disabled={isUpdatingProfile}
+                                 disabled={isUploading || isUpdatingProfile} // Disable while uploading/updating
                               />
-                             <p className="text-xs text-muted-foreground mt-1">{settingsDict.pictureHint}</p>
+                             <p className="text-xs text-muted-foreground mt-1">{isClient ? settingsDict.pictureHint : defaultDict.settingsPage.pictureHint}</p>
+                             {/* Display selected file name if any */}
+                              {selectedFile && !isUploading && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    Selected: {selectedFile.name}
+                                </p>
+                              )}
                          </div>
                      </div>
 
                      {/* User Info Fields */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div className="space-y-1">
-                             <Label htmlFor="username">{settingsDict.usernameLabel}</Label>
+                             <Label htmlFor="username">{isClient ? settingsDict.usernameLabel : defaultDict.settingsPage.usernameLabel}</Label>
                              <Input
                                 id="username"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
-                                placeholder={settingsDict.usernamePlaceholder}
-                                disabled={isUpdatingProfile}
+                                placeholder={isClient ? settingsDict.usernamePlaceholder : defaultDict.settingsPage.usernamePlaceholder}
+                                disabled={isUpdatingProfile || isUploading}
                              />
                          </div>
                          <div className="space-y-1">
                             {/* Display Name - Display only for now, assuming tied to username */}
-                            <Label htmlFor="display-name">{settingsDict.displayNameLabel}</Label>
+                            <Label htmlFor="display-name">{isClient ? settingsDict.displayNameLabel : defaultDict.settingsPage.displayNameLabel}</Label>
                              <Input
                                 id="display-name"
                                 value={currentUser?.displayName || ''} // Display from context
@@ -341,37 +403,37 @@ export default function SettingsPage() {
                              />
                          </div>
                          <div className="space-y-1">
-                            <Label htmlFor="email">{settingsDict.emailLabel}</Label>
+                            <Label htmlFor="email">{isClient ? settingsDict.emailLabel : defaultDict.settingsPage.emailLabel}</Label>
                              <Input
                                 id="email"
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder={settingsDict.emailPlaceholder}
-                                disabled={isUpdatingProfile}
+                                placeholder={isClient ? settingsDict.emailPlaceholder : defaultDict.settingsPage.emailPlaceholder}
+                                disabled={isUpdatingProfile || isUploading}
                              />
                          </div>
                          <div className="space-y-1">
-                            <Label htmlFor="whatsapp">{settingsDict.whatsappLabel}</Label>
+                            <Label htmlFor="whatsapp">{isClient ? settingsDict.whatsappLabel : defaultDict.settingsPage.whatsappLabel}</Label>
                              <Input
                                 id="whatsapp"
                                 type="tel"
                                 value={whatsappNumber}
                                 onChange={(e) => setWhatsappNumber(e.target.value)}
-                                placeholder={settingsDict.whatsappPlaceholder}
-                                disabled={isUpdatingProfile}
+                                placeholder={isClient ? settingsDict.whatsappPlaceholder : defaultDict.settingsPage.whatsappPlaceholder}
+                                disabled={isUpdatingProfile || isUploading}
                              />
                          </div>
                     </div>
 
-                    <Button onClick={handleProfileUpdate} disabled={isUpdatingProfile}>
-                         {isUpdatingProfile ? (
+                    <Button onClick={handleProfileUpdate} disabled={isUpdatingProfile || isUploading}>
+                         {isUpdatingProfile || isUploading ? (
                              <>
                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                 {settingsDict.updatingProfileButton}
+                                 {isClient ? settingsDict.updatingProfileButton : defaultDict.settingsPage.updatingProfileButton}
                              </>
                          ) : (
-                            settingsDict.updateProfileButton
+                           isClient ? settingsDict.updateProfileButton : defaultDict.settingsPage.updateProfileButton
                          )}
                     </Button>
                  </CardContent>
@@ -381,15 +443,15 @@ export default function SettingsPage() {
             {/* Password Update Card */}
             <Card>
                  <CardHeader>
-                    <CardTitle className="text-lg">{settingsDict.passwordCardTitle}</CardTitle>
+                    <CardTitle className="text-lg">{isClient ? settingsDict.passwordCardTitle : defaultDict.settingsPage.passwordCardTitle}</CardTitle>
                  </CardHeader>
                  <CardContent className="space-y-4">
                      <div className="space-y-1">
-                        <Label htmlFor="current-password">{settingsDict.currentPasswordLabel}</Label>
+                        <Label htmlFor="current-password">{isClient ? settingsDict.currentPasswordLabel : defaultDict.settingsPage.currentPasswordLabel}</Label>
                         <Input
                            id="current-password"
                            type="password"
-                           placeholder={settingsDict.currentPasswordPlaceholder}
+                           placeholder={isClient ? settingsDict.currentPasswordPlaceholder : defaultDict.settingsPage.currentPasswordPlaceholder}
                            value={currentPassword}
                            onChange={(e) => setCurrentPassword(e.target.value)}
                            disabled={isUpdatingPassword}
@@ -397,11 +459,11 @@ export default function SettingsPage() {
                         />
                     </div>
                      <div className="space-y-1">
-                        <Label htmlFor="new-password">{settingsDict.newPasswordLabel}</Label>
+                        <Label htmlFor="new-password">{isClient ? settingsDict.newPasswordLabel : defaultDict.settingsPage.newPasswordLabel}</Label>
                         <Input
                            id="new-password"
                            type="password"
-                           placeholder={settingsDict.newPasswordPlaceholder}
+                           placeholder={isClient ? settingsDict.newPasswordPlaceholder : defaultDict.settingsPage.newPasswordPlaceholder}
                            value={newPassword}
                            onChange={(e) => setNewPassword(e.target.value)}
                            disabled={isUpdatingPassword}
@@ -409,11 +471,11 @@ export default function SettingsPage() {
                         />
                     </div>
                      <div className="space-y-1">
-                        <Label htmlFor="confirm-password">{settingsDict.confirmPasswordLabel}</Label>
+                        <Label htmlFor="confirm-password">{isClient ? settingsDict.confirmPasswordLabel : defaultDict.settingsPage.confirmPasswordLabel}</Label>
                         <Input
                            id="confirm-password"
                            type="password"
-                           placeholder={settingsDict.confirmPasswordPlaceholder}
+                           placeholder={isClient ? settingsDict.confirmPasswordPlaceholder : defaultDict.settingsPage.confirmPasswordPlaceholder}
                            value={confirmPassword}
                            onChange={(e) => setConfirmPassword(e.target.value)}
                            disabled={isUpdatingPassword}
@@ -424,10 +486,10 @@ export default function SettingsPage() {
                         {isUpdatingPassword ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                {settingsDict.updatingPasswordButton}
+                                {isClient ? settingsDict.updatingPasswordButton : defaultDict.settingsPage.updatingPasswordButton}
                             </>
                         ) : (
-                           settingsDict.updatePasswordButton
+                           isClient ? settingsDict.updatePasswordButton : defaultDict.settingsPage.updatePasswordButton
                         )}
                     </Button>
                  </CardContent>
@@ -436,14 +498,14 @@ export default function SettingsPage() {
             {/* Notifications Card */}
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-lg">{settingsDict.notificationsCardTitle}</CardTitle>
+                    <CardTitle className="text-lg">{isClient ? settingsDict.notificationsCardTitle : defaultDict.settingsPage.notificationsCardTitle}</CardTitle>
                  </CardHeader>
                  <CardContent className="space-y-4">
                     <div className="flex items-center justify-between space-x-2">
                         <Label htmlFor="email-notifications" className="flex flex-col space-y-1">
-                            <span>{settingsDict.emailNotificationsLabel}</span>
+                            <span>{isClient ? settingsDict.emailNotificationsLabel : defaultDict.settingsPage.emailNotificationsLabel}</span>
                             <span className="font-normal leading-snug text-muted-foreground">
-                               {settingsDict.emailNotificationsHint}
+                               {isClient ? settingsDict.emailNotificationsHint : defaultDict.settingsPage.emailNotificationsHint}
                             </span>
                         </Label>
                         {/* TODO: Implement notification preference logic */}
@@ -451,9 +513,9 @@ export default function SettingsPage() {
                     </div>
                      <div className="flex items-center justify-between space-x-2">
                         <Label htmlFor="in-app-notifications" className="flex flex-col space-y-1">
-                            <span>{settingsDict.inAppNotificationsLabel}</span>
+                            <span>{isClient ? settingsDict.inAppNotificationsLabel : defaultDict.settingsPage.inAppNotificationsLabel}</span>
                             <span className="font-normal leading-snug text-muted-foreground">
-                                {settingsDict.inAppNotificationsHint}
+                                {isClient ? settingsDict.inAppNotificationsHint : defaultDict.settingsPage.inAppNotificationsHint}
                             </span>
                         </Label>
                          {/* TODO: Implement notification preference logic */}
@@ -465,22 +527,22 @@ export default function SettingsPage() {
              {/* Language Card */}
              <Card>
                  <CardHeader>
-                    <CardTitle className="text-lg">{settingsDict.languageCardTitle}</CardTitle>
-                    <CardDescription>{settingsDict.languageCardDescription}</CardDescription>
+                    <CardTitle className="text-lg">{isClient ? settingsDict.languageCardTitle : defaultDict.settingsPage.languageCardTitle}</CardTitle>
+                    <CardDescription>{isClient ? settingsDict.languageCardDescription : defaultDict.settingsPage.languageCardDescription}</CardDescription>
                  </CardHeader>
                  <CardContent className="space-y-4">
                     <div className="space-y-1">
-                        <Label htmlFor="language-select">{settingsDict.languageSelectLabel}</Label>
+                        <Label htmlFor="language-select">{isClient ? settingsDict.languageSelectLabel : defaultDict.settingsPage.languageSelectLabel}</Label>
                          <Select value={language} onValueChange={handleLanguageChange}>
                             <SelectTrigger id="language-select" className="w-[280px]">
-                              <SelectValue placeholder={settingsDict.languageSelectPlaceholder} />
+                              <SelectValue placeholder={isClient ? settingsDict.languageSelectPlaceholder : defaultDict.settingsPage.languageSelectPlaceholder} />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="en">{settingsDict.languageEnglish}</SelectItem>
-                              <SelectItem value="id">{settingsDict.languageIndonesian}</SelectItem>
+                              <SelectItem value="en">{isClient ? settingsDict.languageEnglish : defaultDict.settingsPage.languageEnglish}</SelectItem>
+                              <SelectItem value="id">{isClient ? settingsDict.languageIndonesian : defaultDict.settingsPage.languageIndonesian}</SelectItem>
                             </SelectContent>
                           </Select>
-                         <p className="text-xs text-muted-foreground">{settingsDict.languageSelectHint}</p>
+                         <p className="text-xs text-muted-foreground">{isClient ? settingsDict.languageSelectHint : defaultDict.settingsPage.languageSelectHint}</p>
                     </div>
                  </CardContent>
             </Card>
