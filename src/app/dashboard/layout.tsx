@@ -20,7 +20,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"; // Import Sheet components
+} from "@/components/ui/sheet";
 import {
   LayoutDashboard,
   Users,
@@ -29,10 +29,10 @@ import {
   LogOut,
   Building,
   UserCog,
-  PanelRightOpen, // Icon for the new sheet trigger
+  PanelRightOpen,
 } from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button'; // Import Button
+import { Button } from '@/components/ui/button';
 
 // Mock user data - replace with actual user data from auth context
 const user = {
@@ -46,13 +46,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   // TODO: Fetch user data and determine visible menu items based on role
 
   return (
-    <SidebarProvider>
-      {/* Sidebar component - uses CSS variables defined in globals.css for colors */}
+    // Pass collapsible, variant, and side props here
+    <SidebarProvider collapsible="icon" variant="sidebar" side="left">
+      {/* Sidebar component now inherits these props from the provider */}
       <Sidebar>
         <SidebarHeader className="items-center">
            <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-lg text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors">
             <Building className="h-6 w-6" />
-            {/* Use span to hide text when collapsed */}
             <span className="group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden">TaskTrackPro</span>
           </Link>
         </SidebarHeader>
@@ -62,7 +62,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <SidebarMenuButton asChild tooltip="Dashboard">
                 <Link href="/dashboard">
                   <LayoutDashboard />
-                   {/* Use span to hide text when collapsed */}
                    <span className="group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden">Dashboard</span>
                 </Link>
               </SidebarMenuButton>
@@ -113,7 +112,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               <AvatarImage src={user.avatarUrl} alt={user.name} />
               <AvatarFallback>{user.initials}</AvatarFallback>
             </Avatar>
-             {/* Hide text and logout button when collapsed */}
             <div className="flex flex-col overflow-hidden group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden">
                <span className="text-sm font-medium truncate text-sidebar-foreground">{user.name}</span>
                <span className="text-xs text-sidebar-foreground/70 truncate">{user.role}</span>
@@ -132,20 +130,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <SidebarInset>
         {/* Header within the main content area */}
         <header className="flex items-center justify-between mb-6 p-4 md:p-6">
-           {/* Mobile Sidebar Trigger and Logo (aligned left) */}
           <div className="flex items-center gap-4">
-            <SidebarTrigger className="md:hidden" /> {/* Mobile sidebar trigger */}
-            {/* Desktop Sidebar Trigger (always visible on desktop) */}
+            <SidebarTrigger className="md:hidden" />
              <SidebarTrigger className="hidden md:flex" />
-            <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-lg text-primary md:hidden"> {/* Mobile logo */}
+            <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-lg text-primary md:hidden">
               <Building className="h-6 w-6" />
               <span>TaskTrackPro</span>
             </Link>
           </div>
 
-          {/* Right-aligned Controls (e.g., the new Sheet trigger) */}
           <div className="flex items-center gap-4">
-             {/* Add the new Sheet (Blue Box) Trigger */}
              <Sheet>
                <SheetTrigger asChild>
                  <Button variant="outline" size="icon">
@@ -153,7 +147,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                    <span className="sr-only">Toggle Blue Box</span>
                  </Button>
                </SheetTrigger>
-               {/* Sheet content - Remains blue */}
                <SheetContent side="right" className="bg-primary text-primary-foreground border-primary-foreground/20 w-[300px] sm:w-[400px]">
                  <SheetHeader>
                    <SheetTitle className="text-primary-foreground">Blue Box Panel</SheetTitle>
@@ -162,7 +155,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                    </SheetDescription>
                  </SheetHeader>
                  <div className="mt-4 space-y-4">
-                   {/* Add content for the blue box here */}
                    <p>You can put any components or information needed here.</p>
                    <Button variant="secondary">Example Button</Button>
                  </div>
@@ -170,7 +162,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
              </Sheet>
           </div>
         </header>
-         {/* Apply padding to the main content area */}
          <div className="p-4 md:p-6 pt-0">
            {children}
          </div>
