@@ -67,7 +67,7 @@ import {
     addUser,
     updateUserProfile,
     deleteUser,
-    activateUser,
+    // activateUser, // Removed activateUser import
     type User as UserType // Import the type from service
 } from '@/services/user-service';
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
@@ -99,9 +99,10 @@ const getEditUserSchema = (dictValidation: ReturnType<typeof getDictionary>['man
     // Password is not edited here by default
 });
 
-const getActivateUserSchema = (dictValidation: ReturnType<typeof getDictionary>['manageUsersPage']['validation']) => z.object({
-     role: z.enum(divisions as [string, ...string[]], { required_error: dictValidation.roleRequired }),
-});
+// Activate User Schema removed as activation flow is removed
+// const getActivateUserSchema = (dictValidation: ReturnType<typeof getDictionary>['manageUsersPage']['validation']) => z.object({
+//      role: z.enum(divisions as [string, ...string[]], { required_error: dictValidation.roleRequired }),
+// });
 
 
 export default function ManageUsersPage() {
@@ -116,9 +117,9 @@ export default function ManageUsersPage() {
   const [isProcessing, setIsProcessing] = React.useState(false); // General processing state for buttons
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = React.useState(false);
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = React.useState(false);
-  const [isActivateUserDialogOpen, setIsActivateUserDialogOpen] = React.useState(false); // State for activation dialog
+  // isActivateUserDialogOpen state removed
   const [editingUser, setEditingUser] = React.useState<UserType | null>(null);
-  const [activatingUser, setActivatingUser] = React.useState<UserType | null>(null); // User being activated
+  // activatingUser state removed
   const [visiblePasswords, setVisiblePasswords] = React.useState<Record<string, boolean>>({}); // State for password visibility
 
   // Fetch users on component mount
@@ -146,11 +147,11 @@ export default function ManageUsersPage() {
   // Initialize schemas based on current language
   const addUserSchema = getAddUserSchema(usersDict.validation);
   const editUserSchema = getEditUserSchema(usersDict.validation);
-  const activateUserSchema = getActivateUserSchema(usersDict.validation); // Schema for activation form
+  // activateUserSchema removed
 
   type AddUserFormValues = z.infer<typeof addUserSchema>;
   type EditUserFormValues = z.infer<typeof editUserSchema>;
-  type ActivateUserFormValues = z.infer<typeof activateUserSchema>; // Type for activation form
+  // ActivateUserFormValues removed
 
   // Check if current user has permission (Owner or General Admin)
   const canManageUsers = ['Owner', 'General Admin'].includes(currentUser.role);
@@ -174,13 +175,7 @@ export default function ManageUsersPage() {
      context: { dict: usersDict.validation },
   });
 
-   const activateUserForm = useForm<ActivateUserFormValues>({ // Form for activation dialog
-     resolver: zodResolver(activateUserSchema),
-     defaultValues: {
-       role: undefined,
-     },
-     context: { dict: usersDict.validation },
-   });
+   // activateUserForm removed
 
    // Effect to reset edit form when editingUser changes
    React.useEffect(() => {
@@ -195,22 +190,16 @@ export default function ManageUsersPage() {
       }
     }, [editingUser, editUserForm]);
 
-    // Effect to reset activate form when activatingUser changes
-    React.useEffect(() => {
-       if (!activatingUser) {
-           activateUserForm.reset({ role: undefined });
-       }
-    }, [activatingUser, activateUserForm]);
-
+    // Effect to reset activate form removed
 
      // Re-validate forms if language changes
      React.useEffect(() => {
          if(isClient) {
              addUserForm.trigger();
              editUserForm.trigger();
-             activateUserForm.trigger();
+             // activateUserForm trigger removed
          }
-     }, [dict, addUserForm, editUserForm, activateUserForm, isClient]);
+     }, [dict, addUserForm, editUserForm, /* activateUserForm removed */, isClient]);
 
 
   const handleAddUser = async (data: AddUserFormValues) => {
@@ -322,40 +311,7 @@ export default function ManageUsersPage() {
     }
   };
 
-  const handleActivateUser = async (data: ActivateUserFormValues) => {
-       if (!activatingUser) return;
-       setIsProcessing(true);
-       activateUserForm.clearErrors();
-       console.log(`Activating user ${activatingUser.id} with role ${data.role}`);
-
-       try {
-           // Pass both userId and the selected role to the service function
-           await activateUser(activatingUser.id, data.role);
-           // Update local state to reflect activation and assigned role
-           setUsers(users.map(u => u.id === activatingUser.id ? { ...u, role: data.role } : u));
-           toast({ title: usersDict.toast.activateUserSuccess, description: usersDict.toast.activateUserDesc.replace('{username}', activatingUser.username) });
-           setIsActivateUserDialogOpen(false);
-           setActivatingUser(null);
-       } catch (error: any) {
-           console.error("Activation error:", error);
-            let errorDesc = usersDict.toast.activateUserErrorDesc.replace('{username}', activatingUser.username);
-            if (error.message === 'USER_NOT_FOUND') {
-                errorDesc += ' User not found.';
-            } else if (error.message === 'USER_NOT_PENDING') {
-                 errorDesc += ' User is not in pending state.';
-            } else {
-                 errorDesc += ` (${error.message || 'Unknown error'})`;
-            }
-           toast({
-               variant: 'destructive',
-               title: usersDict.toast.activateUserError,
-               description: errorDesc,
-           });
-       } finally {
-           setIsProcessing(false);
-       }
-   };
-
+  // handleActivateUser function removed
 
    const onAddSubmit = (data: AddUserFormValues) => {
        handleAddUser(data); // No need for async/await check here, handled internally
@@ -365,13 +321,10 @@ export default function ManageUsersPage() {
        handleEditUser(data); // No need for async/await check here, handled internally
    };
 
-   const onActivateSubmit = (data: ActivateUserFormValues) => {
-       handleActivateUser(data); // Handle activation submission
-   };
-
+   // onActivateSubmit function removed
 
    const openEditDialog = (user: UserType) => {
-        // Prevent editing 'Pending' users directly in this dialog
+        // Prevent editing 'Pending' users directly in this dialog (though 'Pending' state should not be reachable now)
         if (user.role === 'Pending') {
              toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotEditPending});
              return;
@@ -380,15 +333,7 @@ export default function ManageUsersPage() {
         setIsEditUserDialogOpen(true);
     };
 
-    const openActivateDialog = (user: UserType) => {
-        if (user.role !== 'Pending') {
-            // Should not happen if button is shown correctly, but good to check
-            console.warn(`Attempted to open activate dialog for non-pending user: ${user.id}`);
-            return;
-        }
-        setActivatingUser(user);
-        setIsActivateUserDialogOpen(true);
-    };
+    // openActivateDialog function removed
 
    const togglePasswordVisibility = (userId: string) => {
         setVisiblePasswords(prev => ({
@@ -404,7 +349,7 @@ export default function ManageUsersPage() {
           case 'Admin Proyek': return <UserCog className="h-4 w-4 text-orange-600" />;
           case 'Arsitek': return <User className="h-4 w-4 text-green-600" />;
           case 'Struktur': return <User className="h-4 w-4 text-yellow-600" />;
-          case 'Pending': return <ShieldAlert className="h-4 w-4 text-yellow-500" />; // Use ShieldAlert for Pending
+          case 'Pending': return <ShieldAlert className="h-4 w-4 text-yellow-500" />; // Keep for consistency if pending data exists
           default: return <User className="h-4 w-4 text-muted-foreground" />;
       }
   }
@@ -549,7 +494,7 @@ export default function ManageUsersPage() {
                    const isSelf = user.id === currentUser.id;
                     const isLastGeneralAdmin = user.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1;
                     const disableDelete = (isSelf && currentUser.role === 'General Admin') || (isLastGeneralAdmin && currentUser.role === 'General Admin');
-                    const disableEdit = (currentUser.role !== 'General Admin' && currentUser.role !== 'Owner') || user.role === 'Pending'; // Disable edit if not GA/Owner or if user is Pending
+                    const disableEdit = (currentUser.role !== 'General Admin' && currentUser.role !== 'Owner') || user.role === 'Pending'; // Keep pending check just in case
                     const isPasswordVisible = visiblePasswords[user.id] || false;
                     const canViewPassword = currentUser.role === 'Owner' || currentUser.role === 'General Admin'; // Only Owner/GA can see passwords
 
@@ -584,19 +529,7 @@ export default function ManageUsersPage() {
                             </div>
                         </TableCell>
                         <TableCell className="text-right space-x-1">
-                           {/* Activate Button (only for Pending users and if manager) */}
-                           {user.role === 'Pending' && canManageUsers && (
-                               <Button
-                                   variant="ghost"
-                                   size="icon"
-                                   onClick={() => openActivateDialog(user)}
-                                   disabled={isProcessing} // Disable if any processing is ongoing
-                                   aria-label={isClient ? usersDict.activateUserButtonLabel : defaultDict.manageUsersPage.activateUserButtonLabel}
-                                   title={isClient ? usersDict.activateUserButtonLabel : defaultDict.manageUsersPage.activateUserButtonLabel}
-                               >
-                                   <CheckCircle className="h-4 w-4 text-green-600" />
-                               </Button>
-                           )}
+                           {/* Activate Button removed */}
 
                            {/* Edit User Button (not for Pending users, only for managers) */}
                             {user.role !== 'Pending' && canManageUsers && (
@@ -717,55 +650,7 @@ export default function ManageUsersPage() {
           </DialogContent>
        </Dialog>
 
-       {/* Activate User Dialog */}
-       <Dialog open={isActivateUserDialogOpen} onOpenChange={(open) => { setIsActivateUserDialogOpen(open); if (!open) setActivatingUser(null); }}>
-         <DialogContent className="sm:max-w-[425px]">
-           <DialogHeader>
-             <DialogTitle>{isClient ? usersDict.activateUserDialogTitle : defaultDict.manageUsersPage.activateUserDialogTitle}</DialogTitle>
-             <DialogDescription>
-                 {isClient ? usersDict.activateUserDialogDesc.replace('{username}', activatingUser?.username || '') : defaultDict.manageUsersPage.activateUserDialogDesc.replace('{username}', activatingUser?.username || '')}
-             </DialogDescription>
-           </DialogHeader>
-           <Form {...activateUserForm}>
-             <form onSubmit={activateUserForm.handleSubmit(onActivateSubmit)} className="space-y-4 py-4">
-               {/* Role Field for Activation */}
-               <FormField
-                   control={activateUserForm.control}
-                   name="role"
-                   render={({ field }) => (
-                     <FormItem>
-                       <FormLabel>{isClient ? usersDict.roleLabel : defaultDict.manageUsersPage.roleLabel}</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                           <FormControl>
-                             <SelectTrigger>
-                               <SelectValue placeholder={isClient ? usersDict.rolePlaceholder : defaultDict.manageUsersPage.rolePlaceholder} />
-                             </SelectTrigger>
-                           </FormControl>
-                           <SelectContent>
-                             {divisions.map((division) => ( // Assign from standard roles
-                               <SelectItem key={division} value={division}>
-                                 {isClient ? (usersDict.roles[division as keyof typeof usersDict.roles] || division) : (defaultDict.manageUsersPage.roles[division as keyof typeof defaultDict.manageUsersPage.roles] || division)}
-                               </SelectItem>
-                             ))}
-                           </SelectContent>
-                         </Select>
-                       <FormMessage />
-                     </FormItem>
-                   )}
-                 />
-               <DialogFooter>
-                 <Button type="button" variant="outline" onClick={() => { setIsActivateUserDialogOpen(false); setActivatingUser(null); }} disabled={isProcessing}>{isClient ? usersDict.cancelButton : defaultDict.manageUsersPage.cancelButton}</Button>
-                 <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white" disabled={isProcessing}>
-                   {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                   {isClient ? (isProcessing ? usersDict.activatingUserButton : usersDict.activateUserSubmitButton) : defaultDict.manageUsersPage.activateUserSubmitButton}
-                 </Button>
-               </DialogFooter>
-             </form>
-           </Form>
-         </DialogContent>
-       </Dialog>
-
-
+       {/* Activate User Dialog removed */}
     </div>
   );
 }

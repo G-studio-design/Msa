@@ -12,19 +12,19 @@ export interface User {
     role: string;
     passwordHash: string; // Store hashed password
     email?: string;
-    googleUid?: string;
+    googleUid?: string; // Keep for potential future use, though functionality is removed
     displayName?: string;
     createdAt?: string; // Use ISO string for dates
 }
 
-// Define the structure for creating a new user
-interface NewUserData {
-    username: string;
-    password: string; // Plain password received from form
-    email: string;
-    googleUid: string;
-    displayName: string;
-}
+// // Define the structure for creating a new user (Removed as Google Sign-In is removed)
+// interface NewUserData {
+//     username: string;
+//     password: string; // Plain password received from form
+//     email: string;
+//     googleUid: string;
+//     displayName: string;
+// }
 
 // Define the structure for updating a user's password
 interface UpdatePasswordData {
@@ -144,7 +144,7 @@ export async function verifyUserCredentials(username: string, password: string):
     }
     console.log(`User "${username}" found. ID: ${user.id}, Role: ${user.role}`);
 
-    // Ensure user is not pending activation
+    // Ensure user is not pending activation (though this state is now unlikely without Google Sign-In)
     if (user.role === 'Pending') {
         console.log(`Login failed for ${username}: User is pending activation.`);
         return null;
@@ -174,57 +174,9 @@ export async function verifyUserCredentials(username: string, password: string):
 }
 
 
-/**
- * Creates a new user account from Google Sign-In, stores it (pending activation),
- * and notifies administrators.
- *
- * @param userData The data for the new user.
- * @returns A promise that resolves when the operation is complete.
- * @throws An error if the username already exists or another issue occurs.
- */
-export async function createUserAccount(userData: NewUserData): Promise<void> {
-    console.log('Attempting to create user account:', userData.username, userData.email);
-    const users = await readUsers();
+// // Function createUserAccount removed as Google Sign-In is removed.
+// export async function createUserAccount(userData: NewUserData): Promise<void> { ... }
 
-    // 1. Check if username exists
-    const usernameExists = users.some(u => u.username.toLowerCase() === userData.username.toLowerCase());
-    if (usernameExists) {
-        console.error(`Username "${userData.username}" already exists.`);
-        throw new Error('USERNAME_EXISTS');
-    }
-     // Check if email exists (optional, but good practice)
-     const emailExists = users.some(u => u.email?.toLowerCase() === userData.email?.toLowerCase());
-     if (emailExists) {
-         console.error(`Email "${userData.email}" is already associated with an account.`);
-         // Consider a different error code if needed, e.g., EMAIL_EXISTS
-         throw new Error('EMAIL_EXISTS'); // Or a more generic error
-     }
-
-    // 2. Hash the password
-    const hashedPassword = await bcrypt.hash(userData.password, SALT_ROUNDS);
-
-    // 3. Prepare new user object
-    const newUser: User = {
-        id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`, // Generate a unique ID
-        username: userData.username,
-        passwordHash: hashedPassword,
-        email: userData.email,
-        googleUid: userData.googleUid,
-        displayName: userData.displayName,
-        role: 'Pending', // Start as Pending
-        createdAt: new Date().toISOString(),
-    };
-
-    // 4. Add user and write back to file
-    users.push(newUser);
-    await writeUsers(users);
-
-    // 5. Notify Admins (Simulated)
-    console.log(`Simulating notification to Admins about new user "${newUser.username}" pending activation.`);
-    // await sendAdminNotification(`New user "${newUser.username}" (${newUser.email}) requires activation.`);
-
-    console.log(`User account for "${newUser.username}" created successfully (pending activation).`);
-}
 
 /**
  * Adds a new user directly (typically by an admin).
@@ -267,40 +219,8 @@ export async function addUser(userData: AddUserData): Promise<User> {
 }
 
 
-/**
- * Activates a pending user account and assigns the specified role.
- *
- * @param userId The ID of the user to activate.
- * @param role The role to assign to the activated user.
- * @returns A promise that resolves when the operation is complete.
- * @throws An error if the user is not found or cannot be activated.
- */
-export async function activateUser(userId: string, role: string): Promise<void> {
-    console.log(`Attempting to activate user ID: ${userId} with role: ${role}`);
-    let users = await readUsers();
-    const userIndex = users.findIndex(u => u.id === userId);
-
-    if (userIndex === -1) {
-        console.error(`User with ID "${userId}" not found for activation.`);
-        throw new Error('USER_NOT_FOUND');
-    }
-
-    const user = users[userIndex];
-    if (user.role !== 'Pending') {
-        console.warn(`User "${userId}" is not in Pending state (current role: ${user.role}). Cannot activate.`);
-        // Decide if you want to throw an error or just log and return
-        throw new Error('USER_NOT_PENDING');
-    }
-
-    // Update the user's role
-    users[userIndex] = { ...user, role: role };
-    await writeUsers(users);
-
-    // Notify user (Simulated)
-    console.log(`Simulating notification to user ${userId} about account activation with role ${role}.`);
-
-    console.log(`User ${userId} activated successfully with role ${role}.`);
-}
+// // Function activateUser removed as Google Sign-In flow is removed.
+// export async function activateUser(userId: string, role: string): Promise<void> { ... }
 
 /**
  * Deletes a user account.
@@ -416,45 +336,12 @@ export async function getAllUsers(): Promise<User[]> {
     return readUsers();
 }
 
-/**
- * Resets the password for all users to a specified default password.
- * USE WITH CAUTION - Primarily for development or testing.
- * @param defaultPassword The new password to set for all users.
- * @returns A promise that resolves when all passwords have been updated.
- */
-export async function resetAllPasswords(defaultPassword: string): Promise<void> {
-    console.warn(`--- WARNING: Resetting passwords for ALL users to "${defaultPassword}" ---`);
-    let users = await readUsers();
+// // Function resetAllPasswords removed as it was primarily for development/debug with previous changes.
+// export async function resetAllPasswords(defaultPassword: string): Promise<void> { ... }
 
-    const newHashedPassword = await bcrypt.hash(defaultPassword, SALT_ROUNDS);
-
-    users = users.map(user => ({
-        ...user,
-        passwordHash: newHashedPassword,
-    }));
-
-    await writeUsers(users);
-    console.warn(`--- All user passwords have been reset. ---`);
-}
-
-
-// Example function to simulate sending notifications (replace with actual implementation)
-// async function sendAdminNotification(message: string) {
-//     console.log("--- ADMIN NOTIFICATION ---");
-//     console.log(message);
-//     console.log("--------------------------");
-//     // Implement actual email sending or push notification logic here
-// }
+// // Example function to simulate sending notifications removed
+// async function sendAdminNotification(message: string) { ... }
 
 // --- Development/Debug Function ---
-// Uncomment and run this function manually if needed to reset passwords
-// (e.g., by calling it from a script or temporarily in an API route)
-// async function runPasswordReset() {
-//   try {
-//     await resetAllPasswords('admin123');
-//     console.log('Password reset script completed successfully.');
-//   } catch (error) {
-//     console.error('Password reset script failed:', error);
-//   }
-// }
-// runPasswordReset(); // DO NOT leave this uncommented in production code
+// Can be added back if needed for specific testing scenarios
+// async function runPasswordReset() { ... }

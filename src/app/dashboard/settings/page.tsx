@@ -18,7 +18,7 @@ import { useLanguage } from '@/context/LanguageContext'; // Import language cont
 import { getDictionary } from '@/lib/translations'; // Import translation helper
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { Loader2 } from 'lucide-react'; // Import Loader2 icon
-import { updatePassword } from '@/services/user-service'; // Import the local service function
+import { updatePassword, updateUserProfile } from '@/services/user-service'; // Import the local service function
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -28,6 +28,7 @@ const defaultDict = getDictionary('en');
 const currentUser = {
     id: 'usr_7', // Example: Logged in as admin - REPLACE WITH ACTUAL USER ID
     username: 'admin', // Example - REPLACE WITH ACTUAL USERNAME
+    role: 'General Admin', // Add role for completeness
 };
 
 export default function SettingsPage() {
@@ -147,7 +148,6 @@ export default function SettingsPage() {
                          <p className="text-xs text-muted-foreground">{isClient ? settingsDict.usernameHint : defaultDict.settingsPage.usernameHint}</p>
                     </div>
                      {/* Update Profile Button Removed */}
-                     {/* <Button onClick={handleProfileUpdate} disabled={isUpdatingProfile || !username.trim()}>...</Button> */}
                  </CardContent>
             </Card>
 

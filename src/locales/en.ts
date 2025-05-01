@@ -13,55 +13,16 @@ const en = {
     redirecting: 'Redirecting to dashboard...',
     fail: 'Login Failed',
     invalidCredentials: 'Invalid username or password.',
-    googleSignInButton: 'Sign in with Google',
-    googleLoading: 'Signing in...',
-    googleSuccess: 'Google Sign-In Successful',
-    googleSetupPrompt: 'Please set up your account details.',
-    googleFail: 'Google Sign-In Failed',
-    googleErrorDefault: 'An error occurred during Google Sign-In.',
-    googlePopupClosed: 'Sign-in popup closed by user.',
-    googlePopupCancelled: 'Sign-in popup request cancelled.',
-    firebaseConfigError: 'Google Sign-In is unavailable due to a configuration issue. Please contact support.', // Kept for potential future use
-    firebaseErrorTitle: 'Configuration Error', // Kept for potential future use
-    googleSignInDisabled: 'Google Sign-In is currently disabled.', // Added
-    googleSignInHint: 'Google Sign-In is disabled. Please use username/password.', // Added hint
+    // Google related translations removed
     validation: {
         usernameRequired: 'Username is required.',
         passwordRequired: 'Password is required.',
     }
   },
-  // Account Setup Page
-  accountSetup: {
-      title: 'Set Up Your Account',
-      welcomeMessage: 'Welcome, {displayName}! Please complete your account setup.', // Use {displayName}
-      info: 'You signed in with Google ({email}). Now, create a username and password for Msaarch APP.', // Use {email}
-      usernameLabel: 'Choose Username',
-      usernamePlaceholder: 'Enter your desired username',
-      passwordLabel: 'Choose Password',
-      passwordPlaceholder: 'Enter a secure password',
-      confirmPasswordLabel: 'Confirm Password',
-      confirmPasswordPlaceholder: 'Re-enter your password',
-      submitButton: 'Complete Setup',
-      submittingButton: 'Setting Up...',
-      successTitle: 'Setup Complete',
-      successDescription: 'Your account is pending activation. Admins have been notified.',
-      failTitle: 'Setup Failed',
-      failDescription: 'An unknown error occurred during setup.', // Added default fail description
-      usernameExists: 'This username is already taken. Please choose another.',
-      emailExists: 'This email address is already associated with an account.', // Added
-      passwordMismatch: 'Passwords do not match.',
-      validation: {
-          usernameMin: 'Username must be at least 3 characters',
-          passwordMin: 'Password must be at least 6 characters',
-          passwordRequired: 'Password is required',
-          confirmPasswordRequired: 'Password confirmation is required',
-          usernameRequired: 'Username is required',
-          usernameExists: 'Username already exists.', // Added validation message
-          emailExists: 'Email already exists.', // Added validation message
-      }
-  },
-  // Dashboard Layout (Sidebar/Header)
-  dashboardLayout: {
+  // Account Setup Page translations removed
+  // dashboardLayout, dashboardPage, tasksPage, manageUsersPage, adminActionsPage, settingsPage remain the same
+   // Dashboard Layout (Sidebar/Header)
+   dashboardLayout: {
     menuTitle: 'Menu',
     menuDescription: 'Navigation and user options.',
     dashboard: 'Dashboard',
@@ -209,18 +170,18 @@ const en = {
     deleteDialogCancel: 'Cancel',
     deleteDialogConfirm: 'Delete User',
     cannotChangeLastAdminRoleHint: 'Cannot change the role of the last General Admin.',
-    activateUserButtonLabel: 'Activate User', // Added
-    activateUserDialogTitle: 'Activate User', // Added
-    activateUserDialogDesc: 'Assign a role to activate user "{username}".', // Added
-    activateUserSubmitButton: 'Activate User', // Added
-    activatingUserButton: 'Activating...', // Added
+    activateUserButtonLabel: 'Activate User', // Kept for potential future use if activation logic returns
+    activateUserDialogTitle: 'Activate User', // Kept
+    activateUserDialogDesc: 'Assign a role to activate user "{username}".', // Kept
+    activateUserSubmitButton: 'Activate User', // Kept
+    activatingUserButton: 'Activating...', // Kept
     roles: {
       Owner: 'Owner',
       'General Admin': 'General Admin',
       'Admin Proyek': 'Project Admin',
       Arsitek: 'Architect',
       Struktur: 'Structure',
-      Pending: 'Pending Activation',
+      Pending: 'Pending Activation', // Kept as role might exist even if creation flow is gone
     },
     toast: {
       userAdded: 'User Added',
@@ -234,11 +195,11 @@ const en = {
       cannotDeleteSelf: 'You cannot delete your own account.',
       cannotDeleteLastAdmin: 'Cannot delete the last General Admin.',
       cannotChangeLastAdminRole: 'Cannot change the role of the last General Admin.',
-      activateUserSuccess: 'User Activated',
-      activateUserDesc: 'User {username} has been activated.',
-      activateUserError: 'Activation Failed',
-      activateUserErrorDesc: 'Could not activate user {username}.',
-      cannotEditPending: 'Activate the user first before editing.', // Added
+      activateUserSuccess: 'User Activated', // Kept
+      activateUserDesc: 'User {username} has been activated.', // Kept
+      activateUserError: 'Activation Failed', // Kept
+      activateUserErrorDesc: 'Could not activate user {username}.', // Kept
+      cannotEditPending: 'Activate the user first before editing.', // Kept
     },
     validation: {
       usernameMin: 'Username must be at least 3 characters',
@@ -271,10 +232,10 @@ const en = {
     description: 'Manage your account and application settings.',
     profileCardTitle: 'Profile Information',
     usernameLabel: 'Username',
-    usernameHint: 'Enter your desired username', // Updated hint
-    usernamePlaceholder: 'Enter new username',
-    updateProfileButton: 'Update Profile', // Changed button text
-    updatingProfileButton: 'Updating...',
+    usernameHint: 'Username cannot be changed.', // Updated hint
+    usernamePlaceholder: 'Enter new username', // Placeholder text (field is disabled)
+    updateProfileButton: 'Update Profile', // Button removed
+    updatingProfileButton: 'Updating...', // Button removed
     passwordCardTitle: 'Update Password',
     currentPasswordLabel: 'Current Password',
     currentPasswordPlaceholder: 'Enter current password',
@@ -304,14 +265,14 @@ const en = {
         passwordTooShort: 'New password must be at least 6 characters.',
         passwordUpdated: 'Password updated successfully.',
         passwordUpdateFailed: 'Failed to update password. Check current password.',
-        usernameRequired: 'Username cannot be empty.', // Added for username
-        usernameTooShort: 'Username must be at least 3 characters.', // Added for username
-        profileUpdated: 'Profile updated successfully.',
-        profileUpdateFailed: 'Failed to update profile.',
+        usernameRequired: 'Username cannot be empty.', // Kept for validation consistency if needed elsewhere
+        usernameTooShort: 'Username must be at least 3 characters.', // Kept for validation consistency
+        profileUpdated: 'Profile updated successfully.', // Not currently possible
+        profileUpdateFailed: 'Failed to update profile.', // Not currently possible
         languageChanged: 'Language Changed',
         languageChangedDesc: 'Interface language updated.',
         passwordMismatchError: 'Current password does not match.', // Added specific error
-        usernameExistsError: 'Username already exists. Please choose another.', // Added specific error
+        usernameExistsError: 'Username already exists. Please choose another.', // Kept for validation consistency
     }
   },
 };

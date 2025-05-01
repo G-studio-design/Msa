@@ -13,55 +13,16 @@ const id = {
     redirecting: 'Mengalihkan ke dasbor...',
     fail: 'Login Gagal',
     invalidCredentials: 'Nama pengguna atau kata sandi salah.',
-    googleSignInButton: 'Masuk dengan Google',
-    googleLoading: 'Sedang masuk...',
-    googleSuccess: 'Masuk dengan Google Berhasil',
-    googleSetupPrompt: 'Harap lengkapi detail akun Anda.',
-    googleFail: 'Masuk dengan Google Gagal',
-    googleErrorDefault: 'Terjadi kesalahan saat Masuk dengan Google.',
-    googlePopupClosed: 'Popup masuk ditutup oleh pengguna.',
-    googlePopupCancelled: 'Permintaan popup masuk dibatalkan.',
-    firebaseConfigError: 'Masuk dengan Google tidak tersedia karena masalah konfigurasi. Silakan hubungi dukungan.', // Kept for potential future use
-    firebaseErrorTitle: 'Kesalahan Konfigurasi', // Kept for potential future use
-    googleSignInDisabled: 'Masuk dengan Google saat ini dinonaktifkan.', // Added
-    googleSignInHint: 'Masuk Google dinonaktifkan. Silakan gunakan nama pengguna/kata sandi.', // Added hint
+    // Google related translations removed
      validation: {
         usernameRequired: 'Nama pengguna wajib diisi.',
         passwordRequired: 'Kata sandi wajib diisi.',
      }
   },
-  // Account Setup Page
-  accountSetup: {
-      title: 'Siapkan Akun Anda',
-      welcomeMessage: 'Selamat datang, {displayName}! Harap lengkapi pengaturan akun Anda.', // Use {displayName}
-      info: 'Anda masuk dengan Google ({email}). Sekarang, buat nama pengguna dan kata sandi untuk Msaarch APP.', // Use {email}
-      usernameLabel: 'Pilih Nama Pengguna',
-      usernamePlaceholder: 'Masukkan nama pengguna yang diinginkan',
-      passwordLabel: 'Pilih Kata Sandi',
-      passwordPlaceholder: 'Masukkan kata sandi yang aman',
-      confirmPasswordLabel: 'Konfirmasi Kata Sandi',
-      confirmPasswordPlaceholder: 'Masukkan ulang kata sandi Anda',
-      submitButton: 'Selesaikan Pengaturan',
-      submittingButton: 'Menyiapkan...',
-      successTitle: 'Pengaturan Selesai',
-      successDescription: 'Akun Anda menunggu aktivasi. Admin telah diberitahu.',
-      failTitle: 'Pengaturan Gagal',
-      failDescription: 'Terjadi kesalahan yang tidak diketahui saat pengaturan.', // Added default fail description
-      usernameExists: 'Nama pengguna ini sudah digunakan. Silakan pilih yang lain.',
-      emailExists: 'Alamat email ini sudah terkait dengan akun lain.', // Added
-      passwordMismatch: 'Kata sandi tidak cocok.',
-      validation: {
-          usernameMin: 'Nama pengguna minimal 3 karakter',
-          passwordMin: 'Kata sandi minimal 6 karakter',
-          passwordRequired: 'Kata sandi wajib diisi',
-          confirmPasswordRequired: 'Konfirmasi kata sandi wajib diisi',
-          usernameRequired: 'Nama pengguna wajib diisi',
-          usernameExists: 'Nama pengguna sudah ada.', // Added validation message
-          emailExists: 'Email sudah ada.', // Added validation message
-      }
-  },
-  // Dashboard Layout (Sidebar/Header)
-  dashboardLayout: {
+  // Account Setup Page translations removed
+  // dashboardLayout, dashboardPage, tasksPage, manageUsersPage, adminActionsPage, settingsPage remain the same
+   // Dashboard Layout (Sidebar/Header)
+   dashboardLayout: {
     menuTitle: 'Menu',
     menuDescription: 'Navigasi dan opsi pengguna.',
     dashboard: 'Dasbor',
@@ -209,18 +170,18 @@ const id = {
     deleteDialogCancel: 'Batal',
     deleteDialogConfirm: 'Hapus Pengguna',
     cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin Umum terakhir.',
-    activateUserButtonLabel: 'Aktifkan Pengguna', // Added
-    activateUserDialogTitle: 'Aktifkan Pengguna', // Added
-    activateUserDialogDesc: 'Tetapkan peran untuk mengaktifkan pengguna "{username}".', // Added
-    activateUserSubmitButton: 'Aktifkan Pengguna', // Added
-    activatingUserButton: 'Mengaktifkan...', // Added
+    activateUserButtonLabel: 'Aktifkan Pengguna', // Kept
+    activateUserDialogTitle: 'Aktifkan Pengguna', // Kept
+    activateUserDialogDesc: 'Tetapkan peran untuk mengaktifkan pengguna "{username}".', // Kept
+    activateUserSubmitButton: 'Aktifkan Pengguna', // Kept
+    activatingUserButton: 'Mengaktifkan...', // Kept
     roles: {
        Owner: 'Pemilik',
        'General Admin': 'Admin Umum',
        'Admin Proyek': 'Admin Proyek',
        Arsitek: 'Arsitek',
        Struktur: 'Struktur',
-       Pending: 'Menunggu Aktivasi',
+       Pending: 'Menunggu Aktivasi', // Kept
      },
     toast: {
         userAdded: 'Pengguna Ditambahkan',
@@ -234,11 +195,11 @@ const id = {
         cannotDeleteSelf: 'Anda tidak dapat menghapus akun Anda sendiri.',
         cannotDeleteLastAdmin: 'Tidak dapat menghapus Admin Umum terakhir.',
         cannotChangeLastAdminRole: 'Tidak dapat mengubah peran Admin Umum terakhir.',
-        activateUserSuccess: 'Pengguna Diaktifkan',
-        activateUserDesc: 'Pengguna {username} telah diaktifkan.',
-        activateUserError: 'Aktivasi Gagal',
-        activateUserErrorDesc: 'Tidak dapat mengaktifkan pengguna {username}.',
-        cannotEditPending: 'Aktifkan pengguna terlebih dahulu sebelum mengubah.', // Added
+        activateUserSuccess: 'Pengguna Diaktifkan', // Kept
+        activateUserDesc: 'Pengguna {username} telah diaktifkan.', // Kept
+        activateUserError: 'Aktivasi Gagal', // Kept
+        activateUserErrorDesc: 'Tidak dapat mengaktifkan pengguna {username}.', // Kept
+        cannotEditPending: 'Aktifkan pengguna terlebih dahulu sebelum mengubah.', // Kept
     },
     validation: {
        usernameMin: 'Nama pengguna minimal 3 karakter',
@@ -271,10 +232,10 @@ const id = {
     description: 'Kelola akun dan pengaturan aplikasi Anda.',
     profileCardTitle: 'Informasi Profil',
     usernameLabel: 'Nama Pengguna',
-    usernameHint: 'Masukkan nama pengguna yang Anda inginkan', // Updated hint
-    usernamePlaceholder: 'Masukkan nama pengguna baru',
-    updateProfileButton: 'Perbarui Profil', // Changed button text
-    updatingProfileButton: 'Memperbarui...',
+    usernameHint: 'Nama pengguna tidak dapat diubah.', // Updated hint
+    usernamePlaceholder: 'Masukkan nama pengguna baru', // Placeholder text (field is disabled)
+    updateProfileButton: 'Perbarui Profil', // Button removed
+    updatingProfileButton: 'Memperbarui...', // Button removed
     passwordCardTitle: 'Perbarui Kata Sandi',
     currentPasswordLabel: 'Kata Sandi Saat Ini',
     currentPasswordPlaceholder: 'Masukkan kata sandi saat ini',
@@ -304,14 +265,14 @@ const id = {
       passwordTooShort: 'Kata sandi baru minimal 6 karakter.',
       passwordUpdated: 'Kata sandi berhasil diperbarui.',
       passwordUpdateFailed: 'Gagal memperbarui kata sandi. Periksa kata sandi saat ini.',
-      usernameRequired: 'Nama pengguna tidak boleh kosong.', // Added for username
-      usernameTooShort: 'Nama pengguna minimal 3 karakter.', // Added for username
-      profileUpdated: 'Profil berhasil diperbarui.',
-      profileUpdateFailed: 'Gagal memperbarui profil.',
+      usernameRequired: 'Nama pengguna tidak boleh kosong.', // Kept
+      usernameTooShort: 'Nama pengguna minimal 3 karakter.', // Kept
+      profileUpdated: 'Profil berhasil diperbarui.', // Not possible
+      profileUpdateFailed: 'Gagal memperbarui profil.', // Not possible
       languageChanged: 'Bahasa Diubah',
       languageChangedDesc: 'Bahasa antarmuka diperbarui.',
       passwordMismatchError: 'Kata sandi saat ini tidak cocok.', // Added specific error
-      usernameExistsError: 'Nama pengguna sudah ada. Silakan pilih yang lain.', // Added specific error
+      usernameExistsError: 'Nama pengguna sudah ada. Silakan pilih yang lain.', // Kept
     }
   },
 };

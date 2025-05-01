@@ -4,17 +4,16 @@
     "id": "usr_7",
     "username": "admin",
     "role": "General Admin",
-    "passwordHash": "$2b$10$4a6Y/b7J7uQ7X/X8hY/Y3uF7Z8a7h7N9J8L9g8M7f7N8i7k7l7M8k",
+    "passwordHash": "$2b$10$IfM7fyrq03o827fT./EaKuJ599fH.Lgq3xQ1X2Z4fJ8Y7z3y4D9vG",
     "email": "admin@example.com",
     "displayName": "Admin User"
   },
   {
-    "id": "usr_1746119653792_y0qj5",
-    "username": "wayangovina",
-    "passwordHash": "$2b$10$4a6Y/b7J7uQ7X/X8hY/Y3uF7Z8a7h7N9J8L9g8M7f7N8i7k7l7M8k",
+    "id": "usr_1",
+    "username": "owner_john",
     "role": "Owner",
-    "email": "iwayangovina@gmail.com",
-    "displayName": "wayangovina",
-    "createdAt": "2025-05-01T18:07:33.792Z"
+    "passwordHash": "$2b$10$somehashplaceholder1",
+    "email": "john@example.com",
+    "displayName": "John Owner"
   }
 ]
