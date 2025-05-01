@@ -131,10 +131,15 @@ const en = {
   // Manage Users Page
   manageUsersPage: {
     title: 'Manage Users',
-    description: 'Add or remove user accounts for all divisions.',
+    description: 'Add, edit, or remove user accounts for all divisions (Owner/GA only).', // Updated description
     addUserButton: 'Add User',
     addUserDialogTitle: 'Add New User',
     addUserDialogDesc: 'Enter the details for the new user account.',
+    editUserButtonLabel: 'Edit User', // Added
+    editUserDialogTitle: 'Edit User: {username}', // Added {username}
+    editUserDialogDesc: 'Update the username or role for this user.', // Added
+    editUserSubmitButton: 'Save Changes', // Added
+    editingUserButton: 'Saving...', // Added
     usernameLabel: 'Username',
     usernamePlaceholder: 'e.g., john_doe',
     passwordLabel: 'Password',
@@ -148,17 +153,31 @@ const en = {
     tableHeaderRole: 'Role / Division',
     tableHeaderActions: 'Actions',
     noUsers: 'No users found.',
+    deleteUserButtonLabel: 'Delete User', // Added
     deleteDialogTitle: 'Confirm Deletion',
     deleteDialogDesc: 'Are you sure you want to delete user "{username}"? This action cannot be undone.', // Use {username}
     deleteDialogCancel: 'Cancel',
     deleteDialogConfirm: 'Delete User',
+    cannotChangeLastAdminRoleHint: 'Cannot change the role of the last General Admin.', // Added
+    roles: { // Added role translations
+      Owner: 'Owner',
+      'General Admin': 'General Admin',
+      'Admin Proyek': 'Project Admin',
+      Arsitek: 'Architect',
+      Struktur: 'Structure',
+    },
     toast: {
       userAdded: 'User Added',
       userAddedDesc: 'User {username} created successfully.', // Use {username}
+      userUpdated: 'User Updated', // Added
+      userUpdatedDesc: 'User {username} updated successfully.', // Added {username}
       userDeleted: 'User Deleted',
       userDeletedDesc: 'User {username} removed.', // Use {username} instead of ID
       error: 'Error',
       usernameExists: 'Username already exists.',
+      cannotDeleteSelf: 'You cannot delete your own account.', // Added
+      cannotDeleteLastAdmin: 'Cannot delete the last General Admin.', // Added
+      cannotChangeLastAdminRole: 'Cannot change the role of the last General Admin.', // Added
     },
     validation: {
       usernameMin: 'Username must be at least 3 characters',
@@ -166,7 +185,7 @@ const en = {
       roleRequired: 'Role is required',
     }
   },
-  // Admin Actions Page
+  // Admin Actions Page (Reusing some strings here for access denied)
   adminActionsPage: {
       title: 'Admin Actions - Modify Task Titles',
       description: 'Users with appropriate permissions (Owner, General Admin, Admin Proyek) can modify task titles here.',

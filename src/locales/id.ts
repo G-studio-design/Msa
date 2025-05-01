@@ -131,10 +131,15 @@ const id = {
   // Manage Users Page
   manageUsersPage: {
     title: 'Kelola Pengguna',
-    description: 'Tambah atau hapus akun pengguna untuk semua divisi.',
+    description: 'Tambah, ubah, atau hapus akun pengguna untuk semua divisi (Hanya Pemilik/Admin Umum).', // Deskripsi diperbarui
     addUserButton: 'Tambah Pengguna',
     addUserDialogTitle: 'Tambah Pengguna Baru',
     addUserDialogDesc: 'Masukkan detail untuk akun pengguna baru.',
+    editUserButtonLabel: 'Ubah Pengguna', // Ditambahkan
+    editUserDialogTitle: 'Ubah Pengguna: {username}', // Ditambahkan {username}
+    editUserDialogDesc: 'Perbarui nama pengguna atau peran untuk pengguna ini.', // Ditambahkan
+    editUserSubmitButton: 'Simpan Perubahan', // Ditambahkan
+    editingUserButton: 'Menyimpan...', // Ditambahkan
     usernameLabel: 'Nama Pengguna',
     usernamePlaceholder: 'cth., john_doe',
     passwordLabel: 'Kata Sandi',
@@ -148,17 +153,31 @@ const id = {
     tableHeaderRole: 'Peran / Divisi',
     tableHeaderActions: 'Tindakan',
     noUsers: 'Tidak ada pengguna ditemukan.',
+    deleteUserButtonLabel: 'Hapus Pengguna', // Ditambahkan
     deleteDialogTitle: 'Konfirmasi Penghapusan',
     deleteDialogDesc: 'Apakah Anda yakin ingin menghapus pengguna "{username}"? Tindakan ini tidak dapat dibatalkan.', // Gunakan {username}
     deleteDialogCancel: 'Batal',
     deleteDialogConfirm: 'Hapus Pengguna',
+    cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin Umum terakhir.', // Ditambahkan
+    roles: { // Terjemahan peran ditambahkan
+       Owner: 'Pemilik',
+       'General Admin': 'Admin Umum',
+       'Admin Proyek': 'Admin Proyek',
+       Arsitek: 'Arsitek',
+       Struktur: 'Struktur',
+     },
     toast: {
         userAdded: 'Pengguna Ditambahkan',
         userAddedDesc: 'Pengguna {username} berhasil dibuat.', // Use {username}
+        userUpdated: 'Pengguna Diperbarui', // Ditambahkan
+        userUpdatedDesc: 'Pengguna {username} berhasil diperbarui.', // Ditambahkan {username}
         userDeleted: 'Pengguna Dihapus',
         userDeletedDesc: 'Pengguna {username} dihapus.', // Use {username} instead of ID
         error: 'Kesalahan',
         usernameExists: 'Nama pengguna sudah ada.',
+        cannotDeleteSelf: 'Anda tidak dapat menghapus akun Anda sendiri.', // Ditambahkan
+        cannotDeleteLastAdmin: 'Tidak dapat menghapus Admin Umum terakhir.', // Ditambahkan
+        cannotChangeLastAdminRole: 'Tidak dapat mengubah peran Admin Umum terakhir.', // Ditambahkan
     },
     validation: {
        usernameMin: 'Nama pengguna minimal 3 karakter',
@@ -166,7 +185,7 @@ const id = {
        roleRequired: 'Peran diperlukan',
     }
   },
-   // Admin Actions Page
+   // Admin Actions Page (Menggunakan beberapa string di sini untuk akses ditolak)
    adminActionsPage: {
        title: 'Tindakan Admin - Ubah Judul Tugas',
        description: 'Pengguna dengan izin yang sesuai (Pemilik, Admin Umum, Admin Proyek) dapat mengubah judul tugas di sini.',

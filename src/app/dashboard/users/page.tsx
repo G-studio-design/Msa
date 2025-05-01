@@ -1,3 +1,4 @@
+// src/app/dashboard/users/page.tsx
 'use client';
 
 import * as React from 'react';
@@ -36,7 +37,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, User, UserCog } from 'lucide-react';
+import { PlusCircle, Trash2, User, UserCog, Edit, Loader2 } from 'lucide-react'; // Added Edit, Loader2
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -59,49 +60,68 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useLanguage } from '@/context/LanguageContext'; // Import language context
-import { getDictionary } from '@/lib/translations'; // Import translation helper
-
+import { useLanguage } from '@/context/LanguageContext';
+import { getDictionary } from '@/lib/translations';
 
 // Mock user data - Replace with actual user data fetching and state management
-const initialUsers = [
+interface UserType {
+    id: string;
+    username: string;
+    role: string;
+}
+const initialUsers: UserType[] = [
   { id: 'usr_1', username: 'owner_john', role: 'Owner' },
   { id: 'usr_2', username: 'genadmin_sara', role: 'General Admin' },
   { id: 'usr_3', username: 'projadmin_mike', role: 'Admin Proyek' },
   { id: 'usr_4', username: 'arch_emily', role: 'Arsitek' },
   { id: 'usr_5', username: 'struct_dave', role: 'Struktur' },
   { id: 'usr_6', username: 'owner_jane', role: 'Owner' },
-  { id: 'usr_7', username: 'admin', role: 'General Admin' }, // Added user: i wayan govina
+  { id: 'usr_7', username: 'admin', role: 'General Admin' },
 ];
 
 const divisions = ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur'];
 
-// Define schema using a function to access translations
-const getUserSchema = (dictValidation: ReturnType<typeof getDictionary>['manageUsersPage']['validation']) => z.object({
+// Mock current logged-in user - Replace with actual auth context data
+const currentUser = {
+    id: 'usr_2', // Example: Logged in as genadmin_sara
+    username: 'genadmin_sara',
+    role: 'General Admin',
+};
+
+// Define Zod schemas using functions to access translations
+const getAddUserSchema = (dictValidation: ReturnType<typeof getDictionary>['manageUsersPage']['validation']) => z.object({
     username: z.string().min(3, dictValidation.usernameMin),
     password: z.string().min(6, dictValidation.passwordMin),
     role: z.enum(divisions as [string, ...string[]], { required_error: dictValidation.roleRequired }),
 });
 
+const getEditUserSchema = (dictValidation: ReturnType<typeof getDictionary>['manageUsersPage']['validation']) => z.object({
+    username: z.string().min(3, dictValidation.usernameMin),
+    role: z.enum(divisions as [string, ...string[]], { required_error: dictValidation.roleRequired }),
+});
 
 export default function ManageUsersPage() {
   const { toast } = useToast();
-  const { language } = useLanguage(); // Get current language
-  const dict = getDictionary(language); // Get dictionary for the current language
-  const usersDict = dict.manageUsersPage; // Specific dictionary section
+  const { language } = useLanguage();
+  const dict = getDictionary(language);
+  const usersDict = dict.manageUsersPage;
 
-  const [users, setUsers] = React.useState(initialUsers);
+  const [users, setUsers] = React.useState<UserType[]>(initialUsers);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = React.useState(false);
+  const [isEditUserDialogOpen, setIsEditUserDialogOpen] = React.useState(false);
+  const [editingUser, setEditingUser] = React.useState<UserType | null>(null);
 
-  // Initialize schema based on current language
-  const userSchema = getUserSchema(usersDict.validation);
-  type UserFormValues = z.infer<typeof userSchema>;
+  // Initialize schemas based on current language
+  const addUserSchema = getAddUserSchema(usersDict.validation);
+  const editUserSchema = getEditUserSchema(usersDict.validation);
+  type AddUserFormValues = z.infer<typeof addUserSchema>;
+  type EditUserFormValues = z.infer<typeof editUserSchema>;
 
+  // Check if current user has permission (Owner or General Admin)
+  const canManageUsers = ['Owner', 'General Admin'].includes(currentUser.role);
 
-  // TODO: Check if current user is General Admin, otherwise redirect or show error
-
-  const form = useForm<UserFormValues>({
-    resolver: zodResolver(userSchema),
+  const addUserForm = useForm<AddUserFormValues>({
+    resolver: zodResolver(addUserSchema),
     defaultValues: {
       username: '',
       password: '',
@@ -109,50 +129,127 @@ export default function ManageUsersPage() {
     },
   });
 
-  const handleAddUser = (data: UserFormValues) => {
+  const editUserForm = useForm<EditUserFormValues>({
+    resolver: zodResolver(editUserSchema),
+    defaultValues: {
+      username: '',
+      role: undefined,
+    },
+  });
+
+   // Effect to reset edit form when editingUser changes
+   React.useEffect(() => {
+      if (editingUser) {
+        editUserForm.reset({
+          username: editingUser.username,
+          role: editingUser.role,
+        });
+      } else {
+        editUserForm.reset({ username: '', role: undefined });
+      }
+    }, [editingUser, editUserForm]);
+
+
+  const handleAddUser = (data: AddUserFormValues) => {
     console.log('Adding user:', data);
     // Simulate API call to add user
     return new Promise<boolean>(resolve => setTimeout(() => {
         // Check for duplicate username (simple check)
-        if (users.some(u => u.username === data.username)) {
+        if (users.some(u => u.username.toLowerCase() === data.username.toLowerCase())) {
             toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.usernameExists });
-            resolve(false); // Indicate failure
+            resolve(false);
             return;
         }
-
-      const newUser = {
-        id: `usr_${Date.now()}`, // Simple unique ID generation
+      // TODO: Implement actual API call to add user with hashed password
+      const newUser: UserType = {
+        id: `usr_${Date.now()}`,
         username: data.username,
         role: data.role,
       };
-      // TODO: Implement actual API call to add user
       setUsers([...users, newUser]);
       toast({ title: usersDict.toast.userAdded, description: usersDict.toast.userAddedDesc.replace('{username}', data.username) });
-      form.reset(); // Reset form after successful submission
-      resolve(true); // Indicate success
+      addUserForm.reset();
+      resolve(true);
     }, 1000));
-
   };
 
+    const handleEditUser = (data: EditUserFormValues) => {
+        if (!editingUser) return Promise.resolve(false);
+        console.log(`Editing user ${editingUser.id}:`, data);
+
+        // Simulate API call to update user
+        return new Promise<boolean>(resolve => setTimeout(() => {
+            // Check for duplicate username (excluding the current user being edited)
+            if (users.some(u => u.id !== editingUser.id && u.username.toLowerCase() === data.username.toLowerCase())) {
+                 toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.usernameExists });
+                 resolve(false);
+                 return;
+             }
+
+             // Cannot change the role of the last General Admin if the current user is also GA
+             if (currentUser.role === 'General Admin' && editingUser.role === 'General Admin' && data.role !== 'General Admin') {
+                 const gaCount = users.filter(u => u.role === 'General Admin').length;
+                 if (gaCount <= 1) {
+                     toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotChangeLastAdminRole });
+                     resolve(false);
+                     return;
+                 }
+             }
+            // TODO: Implement actual API call to update user (username, role)
+            setUsers(users.map(u => u.id === editingUser.id ? { ...u, username: data.username, role: data.role } : u));
+            toast({ title: usersDict.toast.userUpdated, description: usersDict.toast.userUpdatedDesc.replace('{username}', data.username) });
+             editUserForm.reset(); // Reset form is handled by closing the dialog
+            resolve(true); // Indicate success
+        }, 1000));
+    };
+
   const handleDeleteUser = (userId: string) => {
+    const userToDelete = users.find(user => user.id === userId);
+    if (!userToDelete) return;
+
+     // Prevent deleting self if General Admin
+     if (currentUser.role === 'General Admin' && currentUser.id === userId) {
+       toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotDeleteSelf });
+       return;
+     }
+
+    // Prevent deleting the last General Admin if the current user is also GA
+     if (currentUser.role === 'General Admin' && userToDelete.role === 'General Admin') {
+         const gaCount = users.filter(u => u.role === 'General Admin').length;
+         if (gaCount <= 1) {
+             toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotDeleteLastAdmin });
+             return;
+         }
+     }
+
     console.log('Deleting user:', userId);
     // Simulate API call to delete user
     new Promise(resolve => setTimeout(resolve, 500)).then(() => {
       // TODO: Implement actual API call to delete user
-      const deletedUser = users.find(user => user.id === userId);
       setUsers(users.filter((user) => user.id !== userId));
-       if (deletedUser) {
-          toast({ title: usersDict.toast.userDeleted, description: usersDict.toast.userDeletedDesc.replace('{id}', deletedUser.username) }); // Show username instead of ID
-       }
+      toast({ title: usersDict.toast.userDeleted, description: usersDict.toast.userDeletedDesc.replace('{username}', userToDelete.username) });
     });
   };
 
-    const onSubmit = async (data: UserFormValues) => {
+   const onAddSubmit = async (data: AddUserFormValues) => {
       const success = await handleAddUser(data);
       if (success) {
-        setIsAddUserDialogOpen(false); // Close dialog only on success
+        setIsAddUserDialogOpen(false);
       }
    };
+
+   const onEditSubmit = async (data: EditUserFormValues) => {
+        const success = await handleEditUser(data);
+        if (success) {
+            setIsEditUserDialogOpen(false);
+            setEditingUser(null);
+        }
+    };
+
+   const openEditDialog = (user: UserType) => {
+        setEditingUser(user);
+        setIsEditUserDialogOpen(true);
+    };
 
   const getRoleIcon = (role: string) => {
       switch(role) {
@@ -165,6 +262,21 @@ export default function ManageUsersPage() {
       }
   }
 
+  // Render Access Denied if not Owner or General Admin
+  if (!canManageUsers) {
+      return (
+          <div className="container mx-auto py-4">
+              <Card className="border-destructive">
+                   <CardHeader>
+                       <CardTitle className="text-destructive">{dict.adminActionsPage.accessDeniedTitle}</CardTitle> {/* Reusing adminActionsPage translation */}
+                   </CardHeader>
+                   <CardContent>
+                       <p>{dict.adminActionsPage.accessDeniedDesc}</p> {/* Reusing adminActionsPage translation */}
+                   </CardContent>
+              </Card>
+          </div>
+      );
+  }
 
   return (
     <div className="container mx-auto py-4 space-y-6">
@@ -174,6 +286,7 @@ export default function ManageUsersPage() {
             <CardTitle className="text-2xl">{usersDict.title}</CardTitle>
             <CardDescription>{usersDict.description}</CardDescription>
           </div>
+          {/* Add User Dialog Trigger */}
           <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
             <DialogTrigger asChild>
               <Button className="accent-teal">
@@ -187,36 +300,39 @@ export default function ManageUsersPage() {
                  {usersDict.addUserDialogDesc}
                 </DialogDescription>
               </DialogHeader>
-              <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+              <Form {...addUserForm}>
+                  <form onSubmit={addUserForm.handleSubmit(onAddSubmit)} className="space-y-4 py-4">
+                    {/* Username Field */}
                     <FormField
-                      control={form.control}
+                      control={addUserForm.control}
                       name="username"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>{usersDict.usernameLabel}</FormLabel>
                           <FormControl>
-                            <Input placeholder={usersDict.usernamePlaceholder} {...field} />
+                            <Input placeholder={usersDict.usernamePlaceholder} {...field} autoComplete="off" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                     <FormField
-                        control={form.control}
+                    {/* Password Field */}
+                    <FormField
+                        control={addUserForm.control}
                         name="password"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>{usersDict.passwordLabel}</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder={usersDict.passwordPlaceholder} {...field} />
+                              <Input type="password" placeholder={usersDict.passwordPlaceholder} {...field} autoComplete="new-password" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                     <FormField
-                        control={form.control}
+                    {/* Role Field */}
+                    <FormField
+                        control={addUserForm.control}
                         name="role"
                         render={({ field }) => (
                           <FormItem>
@@ -230,8 +346,7 @@ export default function ManageUsersPage() {
                                 <SelectContent>
                                   {divisions.map((division) => (
                                     <SelectItem key={division} value={division}>
-                                      {/* Consider translating division names if needed */}
-                                      {division}
+                                      {usersDict.roles[division as keyof typeof usersDict.roles] || division}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
@@ -241,9 +356,10 @@ export default function ManageUsersPage() {
                         )}
                       />
                     <DialogFooter>
-                         <Button type="button" variant="outline" onClick={() => setIsAddUserDialogOpen(false)}>{usersDict.cancelButton}</Button>
-                         <Button type="submit" className="accent-teal" disabled={form.formState.isSubmitting}>
-                           {form.formState.isSubmitting ? usersDict.addingUserButton : usersDict.addUserSubmitButton}
+                         <Button type="button" variant="outline" onClick={() => setIsAddUserDialogOpen(false)} disabled={addUserForm.formState.isSubmitting}>{usersDict.cancelButton}</Button>
+                         <Button type="submit" className="accent-teal" disabled={addUserForm.formState.isSubmitting}>
+                           {addUserForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                           {addUserForm.formState.isSubmitting ? usersDict.addingUserButton : usersDict.addUserSubmitButton}
                          </Button>
                      </DialogFooter>
                   </form>
@@ -268,50 +384,140 @@ export default function ManageUsersPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.username}</TableCell>
-                    <TableCell>
-                        <div className="flex items-center gap-2">
-                            {getRoleIcon(user.role)}
-                             {/* Consider translating role names if needed */}
-                            <span>{user.role}</span>
-                        </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                       {/* Prevent deleting the currently logged-in admin? */}
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                           {/* Prevent deleting user 'admin' or the last General Admin */}
-                           <Button variant="ghost" size="icon" disabled={user.username === 'admin' || (user.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1)}>
-                             <Trash2 className="h-4 w-4 text-destructive" />
+                users.map((user) => {
+                   const isSelf = user.id === currentUser.id;
+                    const isLastGeneralAdmin = user.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1;
+                    // Disable delete for self (if GA), and for the last GA (if current user is GA)
+                    const disableDelete = (isSelf && currentUser.role === 'General Admin') || (isLastGeneralAdmin && currentUser.role === 'General Admin');
+                    // Disable edit for self (if GA), and for the last GA (if current user is GA - cannot change role)
+                    const disableEdit = isSelf && currentUser.role === 'General Admin'; // Can't edit own role/username if GA
+
+
+                    return (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">{user.username}</TableCell>
+                        <TableCell>
+                            <div className="flex items-center gap-2">
+                                {getRoleIcon(user.role)}
+                                <span>{usersDict.roles[user.role as keyof typeof usersDict.roles] || user.role}</span>
+                            </div>
+                        </TableCell>
+                        <TableCell className="text-right space-x-1">
+                           {/* Edit User Button */}
+                           <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openEditDialog(user)}
+                                disabled={disableEdit}
+                                aria-label={usersDict.editUserButtonLabel}
+                           >
+                               <Edit className="h-4 w-4 text-blue-500" />
                            </Button>
-                        </AlertDialogTrigger>
-                         <AlertDialogContent>
-                           <AlertDialogHeader>
-                             <AlertDialogTitle>{usersDict.deleteDialogTitle}</AlertDialogTitle>
-                             <AlertDialogDescription>
-                                {usersDict.deleteDialogDesc.replace('{username}', user.username)}
-                             </AlertDialogDescription>
-                           </AlertDialogHeader>
-                           <AlertDialogFooter>
-                             <AlertDialogCancel>{usersDict.deleteDialogCancel}</AlertDialogCancel>
-                             <AlertDialogAction
-                                className="bg-destructive hover:bg-destructive/90"
-                                onClick={() => handleDeleteUser(user.id)}>
-                               {usersDict.deleteDialogConfirm}
-                             </AlertDialogAction>
-                           </AlertDialogFooter>
-                         </AlertDialogContent>
-                      </AlertDialog>
-                    </TableCell>
-                  </TableRow>
-                ))
+
+                           {/* Delete User Button */}
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="icon" disabled={disableDelete} aria-label={usersDict.deleteUserButtonLabel}>
+                                 <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{usersDict.deleteDialogTitle}</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                   {usersDict.deleteDialogDesc.replace('{username}', user.username)}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{usersDict.deleteDialogCancel}</AlertDialogCancel>
+                                <AlertDialogAction
+                                   className="bg-destructive hover:bg-destructive/90"
+                                   onClick={() => handleDeleteUser(user.id)}>
+                                  {usersDict.deleteDialogConfirm}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </TableCell>
+                      </TableRow>
+                    );
+                })
               )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+
+      {/* Edit User Dialog */}
+      <Dialog open={isEditUserDialogOpen} onOpenChange={(open) => { setIsEditUserDialogOpen(open); if (!open) setEditingUser(null); }}>
+          <DialogContent className="sm:max-w-[425px]">
+               <DialogHeader>
+                  <DialogTitle>{usersDict.editUserDialogTitle.replace('{username}', editingUser?.username || '')}</DialogTitle>
+                  <DialogDescription>{usersDict.editUserDialogDesc}</DialogDescription>
+               </DialogHeader>
+               <Form {...editUserForm}>
+                    <form onSubmit={editUserForm.handleSubmit(onEditSubmit)} className="space-y-4 py-4">
+                         {/* Username Field */}
+                        <FormField
+                          control={editUserForm.control}
+                          name="username"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{usersDict.usernameLabel}</FormLabel>
+                              <FormControl>
+                                <Input placeholder={usersDict.usernamePlaceholder} {...field} autoComplete="off" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        {/* Role Field */}
+                        <FormField
+                            control={editUserForm.control}
+                            name="role"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{usersDict.roleLabel}</FormLabel>
+                                <Select
+                                   onValueChange={field.onChange}
+                                   defaultValue={field.value}
+                                   // Disable changing role of the last GA if current user is GA
+                                   disabled={(currentUser.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1)}
+                                >
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder={usersDict.rolePlaceholder} />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {divisions.map((division) => (
+                                            <SelectItem key={division} value={division}>
+                                                {usersDict.roles[division as keyof typeof usersDict.roles] || division}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                {/* Add a hint if the role is disabled */}
+                                {(currentUser.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1) && (
+                                    <p className="text-xs text-muted-foreground">{usersDict.cannotChangeLastAdminRoleHint}</p>
+                                )}
+                              </FormItem>
+                            )}
+                        />
+                         {/* Optional: Add password change fields here if needed */}
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => {setIsEditUserDialogOpen(false); setEditingUser(null);}} disabled={editUserForm.formState.isSubmitting}>{usersDict.cancelButton}</Button>
+                            <Button type="submit" className="accent-teal" disabled={editUserForm.formState.isSubmitting || !editUserForm.formState.isDirty}>
+                                {editUserForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {editUserForm.formState.isSubmitting ? usersDict.editingUserButton : usersDict.editUserSubmitButton}
+                             </Button>
+                        </DialogFooter>
+                   </form>
+               </Form>
+          </DialogContent>
+       </Dialog>
+
     </div>
   );
 }
