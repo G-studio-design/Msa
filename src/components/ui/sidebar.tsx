@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -321,18 +322,28 @@ const SidebarInset = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"main">
 >(({ className, ...props }, ref) => {
+  const { state } = useSidebar(); // Get sidebar state
+
   return (
     <main
       ref={ref}
       className={cn(
-        "relative flex min-h-svh flex-1 flex-col bg-background",
-        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow",
+        "relative flex min-h-svh flex-1 flex-col bg-background transition-[padding-left] duration-200 ease-linear", // Added transition
+        "md:pl-0", // Default padding left for medium screens and up
+        state === "expanded" && "md:pl-sidebar-width", // Adjust padding when sidebar is expanded
+        state === "collapsed" && "md:pl-sidebar-width-icon", // Adjust padding when sidebar is collapsed
+        "peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))]", // Inset variant styles remain
+        "md:peer-data-[variant=inset]:m-2",
+        "md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-[calc(theme(spacing.sidebar-width-icon)_+_theme(spacing.4)_+_2px)]", // Adjusted inset collapsed margin
+        "md:peer-data-[variant=inset]:ml-0",
+        "md:peer-data-[variant=inset]:rounded-xl",
+        "md:peer-data-[variant=inset]:shadow",
         className
       )}
       {...props}
     />
-  )
-})
+  );
+});
 SidebarInset.displayName = "SidebarInset"
 
 const SidebarInput = React.forwardRef<
@@ -764,3 +775,4 @@ export {
   SidebarTrigger,
   useSidebar,
 }
+
