@@ -201,7 +201,7 @@ export default function ManageUsersPage() {
     console.log('Adding user:', data.username);
     try {
         const newUser = await addUser(data); // Use service function
-        setUsers([...users, newUser]); // Add to local state
+        setUsers([...users, newUser as UserType]); // Add to local state, ensure type compatibility if needed
         toast({ title: usersDict.toast.userAdded, description: usersDict.toast.userAddedDesc.replace('{username}', data.username) });
         addUserForm.reset();
         setIsAddUserDialogOpen(false);
@@ -248,7 +248,17 @@ export default function ManageUsersPage() {
 
 
         try {
-            await updateUserProfile({ userId: editingUser.id, username: data.username, role: data.role });
+            // Prepare data for update - ensure displayName is passed if username changes
+            const updatePayload: { userId: string; username: string; role: string; displayName?: string } = {
+                 userId: editingUser.id,
+                 username: data.username,
+                 role: data.role,
+            };
+             if (data.username !== editingUser.username) {
+                 updatePayload.displayName = data.username; // Update displayName when username changes
+             }
+
+            await updateUserProfile(updatePayload);
              // Update local state
             setUsers(users.map(u => u.id === editingUser.id ? { ...u, username: data.username, role: data.role, displayName: data.username } : u));
             toast({ title: usersDict.toast.userUpdated, description: usersDict.toast.userUpdatedDesc.replace('{username}', data.username) });
@@ -722,5 +732,3 @@ export default function ManageUsersPage() {
     </div>
   );
 }
-
-
