@@ -1,3 +1,4 @@
+
 // src/locales/en.ts
 const en = {
   // Login Page
@@ -150,7 +151,7 @@ const en = {
   // Manage Users Page
   manageUsersPage: {
     title: 'Manage Users',
-    description: 'Add, edit, or remove user accounts for all divisions (Owner/GA only).',
+    description: 'Add, edit, or remove user accounts for all divisions (Owner/GA/Admin Developer only).',
     addUserButton: 'Add User',
     addUserDialogTitle: 'Add New User',
     addUserDialogDesc: 'Enter the details for the new user account.',
@@ -169,11 +170,11 @@ const en = {
     addUserSubmitButton: 'Add User',
     addingUserButton: 'Adding...',
     tableHeaderUsername: 'Username',
-    tableHeaderPassword: 'Password',
+    tableHeaderPassword: 'Password (Hashed)', // Indicate it's hashed
     tableHeaderRole: 'Role / Division',
     tableHeaderActions: 'Actions',
-    showPasswordButtonLabel: 'Show Password',
-    hidePasswordButtonLabel: 'Hide Password',
+    showPasswordButtonLabel: 'Show Password Hash',
+    hidePasswordButtonLabel: 'Hide Password Hash',
     noUsers: 'No users found.',
     deleteUserButtonLabel: 'Delete User',
     deleteDialogTitle: 'Confirm Deletion',
@@ -192,6 +193,7 @@ const en = {
       'Admin Proyek': 'Project Admin',
       Arsitek: 'Architect',
       Struktur: 'Structure',
+      'Admin Developer': 'Admin Developer', // Added role
       Pending: 'Pending Activation', // Kept as role might exist even if creation flow is gone
     },
     toast: {

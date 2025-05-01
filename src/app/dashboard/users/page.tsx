@@ -1,3 +1,4 @@
+
 // src/app/dashboard/users/page.tsx
 'use client';
 
@@ -37,7 +38,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, User, UserCog, Edit, Loader2, Eye, EyeOff, CheckCircle, ShieldAlert } from 'lucide-react'; // Added ShieldAlert
+import { PlusCircle, Trash2, User, UserCog, Edit, Loader2, Eye, EyeOff, CheckCircle, ShieldAlert, Code } from 'lucide-react'; // Added Code icon for Dev Admin
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -73,14 +74,15 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 
 // Define available roles for selection (excluding Pending)
-const divisions = ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur'];
+// Now includes Admin Developer
+const divisions = ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur', 'Admin Developer'];
 
 // Mock current logged-in user - Replace with actual auth context data
 // In a real app, fetch this from session/token
 const currentUser = {
     id: 'usr_7', // Example: Logged in as admin
     username: 'admin',
-    role: 'General Admin',
+    role: 'General Admin', // Or dynamically set based on actual login
 };
 
 // Default dictionary for server render / pre-hydration
@@ -153,8 +155,8 @@ export default function ManageUsersPage() {
   type EditUserFormValues = z.infer<typeof editUserSchema>;
   // ActivateUserFormValues removed
 
-  // Check if current user has permission (Owner or General Admin)
-  const canManageUsers = ['Owner', 'General Admin'].includes(currentUser.role);
+  // Check if current user has permission (Owner, GA, or Admin Developer)
+  const canManageUsers = ['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role);
 
   const addUserForm = useForm<AddUserFormValues>({
     resolver: zodResolver(addUserSchema),
@@ -233,8 +235,8 @@ export default function ManageUsersPage() {
         editUserForm.clearErrors();
         console.log(`Editing user ${editingUser.id}:`, data.username, data.role);
 
-        // Prevent changing role of last GA if the current user is GA
-        if (currentUser.role === 'General Admin' && editingUser.role === 'General Admin' && data.role !== 'General Admin') {
+        // Prevent changing role of last GA if the current user is GA (or Admin Dev)
+        if (['General Admin', 'Admin Developer'].includes(currentUser.role) && editingUser.role === 'General Admin' && data.role !== 'General Admin') {
             const gaCount = users.filter(u => u.role === 'General Admin').length;
             if (gaCount <= 1) {
                 toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotChangeLastAdminRole });
@@ -242,6 +244,17 @@ export default function ManageUsersPage() {
                 return;
             }
         }
+
+        // Prevent Admin Dev from changing their own role if they are the last one
+         if (currentUser.role === 'Admin Developer' && editingUser.id === currentUser.id && data.role !== 'Admin Developer') {
+             const devAdminCount = users.filter(u => u.role === 'Admin Developer').length;
+             if (devAdminCount <= 1) {
+                  toast({ variant: 'destructive', title: usersDict.toast.error, description: 'Cannot change the role of the last Admin Developer.' }); // Add translation
+                  setIsProcessing(false);
+                  return;
+             }
+         }
+
 
         try {
             await updateUserProfile({ userId: editingUser.id, username: data.username, role: data.role });
@@ -272,20 +285,30 @@ export default function ManageUsersPage() {
     const userToDelete = users.find(user => user.id === userId);
     if (!userToDelete) return; // Should not happen if UI is correct
 
-     // Prevent deleting self if GA
-     if (currentUser.role === 'General Admin' && currentUser.id === userId) {
+     // Prevent deleting self if GA or Admin Dev
+     if (['General Admin', 'Admin Developer'].includes(currentUser.role) && currentUser.id === userId) {
        toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotDeleteSelf });
        return;
      }
 
-    // Prevent deleting last GA if GA
-     if (currentUser.role === 'General Admin' && userToDelete.role === 'General Admin') {
+    // Prevent deleting last GA if GA or Admin Dev
+     if (['General Admin', 'Admin Developer'].includes(currentUser.role) && userToDelete.role === 'General Admin') {
          const gaCount = users.filter(u => u.role === 'General Admin').length;
          if (gaCount <= 1) {
              toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotDeleteLastAdmin });
              return;
          }
      }
+
+     // Prevent deleting last Admin Dev if Admin Dev or GA
+      if (['General Admin', 'Admin Developer'].includes(currentUser.role) && userToDelete.role === 'Admin Developer') {
+           const devAdminCount = users.filter(u => u.role === 'Admin Developer').length;
+           if (devAdminCount <= 1) {
+               toast({ variant: 'destructive', title: usersDict.toast.error, description: 'Cannot delete the last Admin Developer.' }); // Add translation
+               return;
+           }
+      }
+
 
     setIsProcessing(true); // Indicate processing
     console.log('Attempting to delete user:', userId, username);
@@ -329,6 +352,17 @@ export default function ManageUsersPage() {
              toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotEditPending});
              return;
         }
+        // Admin Dev cannot edit Owner or GA
+         if (currentUser.role === 'Admin Developer' && ['Owner', 'General Admin'].includes(user.role)) {
+              toast({ variant: 'destructive', title: usersDict.toast.permissionDenied, description: 'Admin Developer cannot edit Owner or General Admin.' }); // Add translation
+              return;
+         }
+        // GA cannot edit Owner or Admin Dev
+         if (currentUser.role === 'General Admin' && ['Owner', 'Admin Developer'].includes(user.role)) {
+              toast({ variant: 'destructive', title: usersDict.toast.permissionDenied, description: 'General Admin cannot edit Owner or Admin Developer.' }); // Add translation
+              return;
+         }
+
         setEditingUser(user);
         setIsEditUserDialogOpen(true);
     };
@@ -349,12 +383,13 @@ export default function ManageUsersPage() {
           case 'Admin Proyek': return <UserCog className="h-4 w-4 text-orange-600" />;
           case 'Arsitek': return <User className="h-4 w-4 text-green-600" />;
           case 'Struktur': return <User className="h-4 w-4 text-yellow-600" />;
+          case 'Admin Developer': return <Code className="h-4 w-4 text-red-600" />; // New icon
           case 'Pending': return <ShieldAlert className="h-4 w-4 text-yellow-500" />; // Keep for consistency if pending data exists
           default: return <User className="h-4 w-4 text-muted-foreground" />;
       }
   }
 
-  // Render Access Denied if not Owner or General Admin
+  // Render Access Denied if not Owner, General Admin, or Admin Developer
   if (isClient && !canManageUsers) {
       return (
           <div className="container mx-auto py-4">
@@ -378,86 +413,97 @@ export default function ManageUsersPage() {
             <CardTitle className="text-2xl">{isClient ? usersDict.title : defaultDict.manageUsersPage.title}</CardTitle>
             <CardDescription>{isClient ? usersDict.description : defaultDict.manageUsersPage.description}</CardDescription>
           </div>
-          {/* Add User Dialog Trigger */}
-          <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="accent-teal" disabled={isProcessing || isLoading}>
-                <PlusCircle className="mr-2 h-4 w-4" /> {isClient ? usersDict.addUserButton : defaultDict.manageUsersPage.addUserButton}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>{isClient ? usersDict.addUserDialogTitle : defaultDict.manageUsersPage.addUserDialogTitle}</DialogTitle>
-                <DialogDescription>
-                 {isClient ? usersDict.addUserDialogDesc : defaultDict.manageUsersPage.addUserDialogDesc}
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...addUserForm}>
-                  <form onSubmit={addUserForm.handleSubmit(onAddSubmit)} className="space-y-4 py-4">
-                    {/* Username Field */}
-                    <FormField
-                      control={addUserForm.control}
-                      name="username"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{isClient ? usersDict.usernameLabel : defaultDict.manageUsersPage.usernameLabel}</FormLabel>
-                          <FormControl>
-                            <Input placeholder={isClient ? usersDict.usernamePlaceholder : defaultDict.manageUsersPage.usernamePlaceholder} {...field} autoComplete="off" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    {/* Password Field */}
-                    <FormField
+          {/* Add User Dialog Trigger - only if Owner, GA, or Admin Dev */}
+          {canManageUsers && (
+            <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="accent-teal" disabled={isProcessing || isLoading}>
+                  <PlusCircle className="mr-2 h-4 w-4" /> {isClient ? usersDict.addUserButton : defaultDict.manageUsersPage.addUserButton}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>{isClient ? usersDict.addUserDialogTitle : defaultDict.manageUsersPage.addUserDialogTitle}</DialogTitle>
+                  <DialogDescription>
+                  {isClient ? usersDict.addUserDialogDesc : defaultDict.manageUsersPage.addUserDialogDesc}
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...addUserForm}>
+                    <form onSubmit={addUserForm.handleSubmit(onAddSubmit)} className="space-y-4 py-4">
+                      {/* Username Field */}
+                      <FormField
                         control={addUserForm.control}
-                        name="password"
+                        name="username"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{isClient ? usersDict.passwordLabel : defaultDict.manageUsersPage.passwordLabel}</FormLabel>
+                            <FormLabel>{isClient ? usersDict.usernameLabel : defaultDict.manageUsersPage.usernameLabel}</FormLabel>
                             <FormControl>
-                              <Input type="password" placeholder={isClient ? usersDict.passwordPlaceholder : defaultDict.manageUsersPage.passwordPlaceholder} {...field} autoComplete="new-password" />
+                              <Input placeholder={isClient ? usersDict.usernamePlaceholder : defaultDict.manageUsersPage.usernamePlaceholder} {...field} autoComplete="off" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
-                    {/* Role Field */}
-                    <FormField
-                        control={addUserForm.control}
-                        name="role"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{isClient ? usersDict.roleLabel : defaultDict.manageUsersPage.roleLabel}</FormLabel>
-                             <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder={isClient ? usersDict.rolePlaceholder : defaultDict.manageUsersPage.rolePlaceholder} />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {divisions.map((division) => (
-                                    <SelectItem key={division} value={division}>
-                                      {isClient ? (usersDict.roles[division as keyof typeof usersDict.roles] || division) : (defaultDict.manageUsersPage.roles[division as keyof typeof defaultDict.manageUsersPage.roles] || division)}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    <DialogFooter>
-                         <Button type="button" variant="outline" onClick={() => setIsAddUserDialogOpen(false)} disabled={isProcessing}>{isClient ? usersDict.cancelButton : defaultDict.manageUsersPage.cancelButton}</Button>
-                         <Button type="submit" className="accent-teal" disabled={isProcessing}>
-                           {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                           {isClient ? (isProcessing ? usersDict.addingUserButton : usersDict.addUserSubmitButton) : defaultDict.manageUsersPage.addUserSubmitButton}
-                         </Button>
-                     </DialogFooter>
-                  </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
+                      {/* Password Field */}
+                      <FormField
+                          control={addUserForm.control}
+                          name="password"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{isClient ? usersDict.passwordLabel : defaultDict.manageUsersPage.passwordLabel}</FormLabel>
+                              <FormControl>
+                                <Input type="password" placeholder={isClient ? usersDict.passwordPlaceholder : defaultDict.manageUsersPage.passwordPlaceholder} {...field} autoComplete="new-password" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      {/* Role Field */}
+                      <FormField
+                          control={addUserForm.control}
+                          name="role"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{isClient ? usersDict.roleLabel : defaultDict.manageUsersPage.roleLabel}</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder={isClient ? usersDict.rolePlaceholder : defaultDict.manageUsersPage.rolePlaceholder} />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {divisions
+                                        // Owner can create any role
+                                        // GA can create GA, AP, Arsitek, Struktur
+                                        // Admin Dev can create any role
+                                        .filter(division =>
+                                            currentUser.role === 'Owner' ||
+                                            currentUser.role === 'Admin Developer' ||
+                                            (currentUser.role === 'General Admin' && !['Owner', 'Admin Developer'].includes(division))
+                                        )
+                                        .map((division) => (
+                                            <SelectItem key={division} value={division}>
+                                            {isClient ? (usersDict.roles[division as keyof typeof usersDict.roles] || division) : (defaultDict.manageUsersPage.roles[division as keyof typeof defaultDict.manageUsersPage.roles] || division)}
+                                            </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      <DialogFooter>
+                          <Button type="button" variant="outline" onClick={() => setIsAddUserDialogOpen(false)} disabled={isProcessing}>{isClient ? usersDict.cancelButton : defaultDict.manageUsersPage.cancelButton}</Button>
+                          <Button type="submit" className="accent-teal" disabled={isProcessing}>
+                            {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {isClient ? (isProcessing ? usersDict.addingUserButton : usersDict.addUserSubmitButton) : defaultDict.manageUsersPage.addUserSubmitButton}
+                          </Button>
+                      </DialogFooter>
+                    </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          )}
         </CardHeader>
         <CardContent>
           <Table>
@@ -493,10 +539,22 @@ export default function ManageUsersPage() {
                 users.map((user) => {
                    const isSelf = user.id === currentUser.id;
                     const isLastGeneralAdmin = user.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1;
-                    const disableDelete = (isSelf && currentUser.role === 'General Admin') || (isLastGeneralAdmin && currentUser.role === 'General Admin');
-                    const disableEdit = (currentUser.role !== 'General Admin' && currentUser.role !== 'Owner') || user.role === 'Pending'; // Keep pending check just in case
+                    const isLastAdminDeveloper = user.role === 'Admin Developer' && users.filter(u => u.role === 'Admin Developer').length <= 1;
+
+                     // Determine if delete should be disabled
+                     const disableDelete = (isSelf && ['General Admin', 'Admin Developer'].includes(currentUser.role)) || // Cannot delete self if GA or Dev
+                                            (isLastGeneralAdmin && ['General Admin', 'Admin Developer'].includes(currentUser.role)) || // Cannot delete last GA if GA or Dev
+                                            (isLastAdminDeveloper && ['General Admin', 'Admin Developer'].includes(currentUser.role)); // Cannot delete last Dev if GA or Dev
+
+                      // Determine if edit should be disabled based on permissions
+                      let disableEdit = !canManageUsers || // User cannot manage users at all
+                                        user.role === 'Pending' || // Cannot edit pending users
+                                        (currentUser.role === 'Admin Developer' && ['Owner', 'General Admin'].includes(user.role)) || // Dev cannot edit Owner/GA
+                                        (currentUser.role === 'General Admin' && ['Owner', 'Admin Developer'].includes(user.role)); // GA cannot edit Owner/Dev
+
+
                     const isPasswordVisible = visiblePasswords[user.id] || false;
-                    const canViewPassword = currentUser.role === 'Owner' || currentUser.role === 'General Admin'; // Only Owner/GA can see passwords
+                    const canViewPassword = ['Owner', 'Admin Developer'].includes(currentUser.role); // Only Owner/Admin Developer can see passwords
 
                     return (
                       <TableRow key={user.id} className={user.role === 'Pending' ? 'bg-yellow-100/30 dark:bg-yellow-900/30 hover:bg-yellow-100/50 dark:hover:bg-yellow-900/50' : ''}>
@@ -504,16 +562,17 @@ export default function ManageUsersPage() {
                          <TableCell>
                             {canViewPassword ? (
                                <div className="flex items-center gap-1">
-                                 <span className={`font-mono text-xs ${isPasswordVisible ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                   {isPasswordVisible ? 'HASHED' : '••••••••'} {/* Show "HASHED" instead of actual hash */}
+                                 <span className={`font-mono text-xs break-all ${isPasswordVisible ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                   {isPasswordVisible ? user.passwordHash : '•••••••••••••••••••••'} {/* Show hash or dots */}
                                  </span>
                                    <Button
                                       variant="ghost"
                                       size="icon"
-                                      className="h-6 w-6"
+                                      className="h-6 w-6 flex-shrink-0" // Added flex-shrink-0
                                       onClick={() => togglePasswordVisibility(user.id)}
-                                      aria-label={isClient ? (isPasswordVisible ? usersDict.hidePasswordButtonLabel : usersDict.showPasswordButtonLabel) : 'Toggle Password'}
+                                      aria-label={isClient ? (isPasswordVisible ? usersDict.hidePasswordButtonLabel : usersDict.showPasswordButtonLabel) : 'Toggle Password Hash'}
                                       disabled={isProcessing} // Disable while processing
+                                      title={isClient ? (isPasswordVisible ? usersDict.hidePasswordButtonLabel : usersDict.showPasswordButtonLabel) : 'Toggle Password Hash'}
                                     >
                                       {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                     </Button>
@@ -531,26 +590,26 @@ export default function ManageUsersPage() {
                         <TableCell className="text-right space-x-1">
                            {/* Activate Button removed */}
 
-                           {/* Edit User Button (not for Pending users, only for managers) */}
-                            {user.role !== 'Pending' && canManageUsers && (
+                           {/* Edit User Button (not for Pending users, respecting permissions) */}
+                            {user.role !== 'Pending' && (
                                 <Button
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => openEditDialog(user)}
-                                    disabled={isProcessing || disableEdit} // Also disable during processing
+                                    disabled={isProcessing || disableEdit} // Use combined disable logic
                                     aria-label={isClient ? usersDict.editUserButtonLabel : defaultDict.manageUsersPage.editUserButtonLabel}
                                     title={isClient ? usersDict.editUserButtonLabel : defaultDict.manageUsersPage.editUserButtonLabel}
                                >
-                                   <Edit className="h-4 w-4 text-blue-500" />
+                                   <Edit className={`h-4 w-4 ${disableEdit ? 'text-muted-foreground' : 'text-blue-500'}`} />
                                </Button>
                             )}
 
-                           {/* Delete User Button (only for managers) */}
+                           {/* Delete User Button (respecting permissions) */}
                             {canManageUsers && (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button variant="ghost" size="icon" disabled={isProcessing || disableDelete} aria-label={isClient ? usersDict.deleteUserButtonLabel : defaultDict.manageUsersPage.deleteUserButtonLabel} title={isClient ? usersDict.deleteUserButtonLabel : defaultDict.manageUsersPage.deleteUserButtonLabel}>
-                                     <Trash2 className="h-4 w-4 text-destructive" />
+                                     <Trash2 className={`h-4 w-4 ${disableDelete ? 'text-muted-foreground' : 'text-destructive'}`} />
                                   </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
@@ -616,7 +675,9 @@ export default function ManageUsersPage() {
                                 <Select
                                    onValueChange={field.onChange}
                                    value={field.value} // Use controlled value
-                                   disabled={(currentUser.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1)}
+                                   disabled={(currentUser.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1) ||
+                                             (currentUser.role === 'Admin Developer' && editingUser?.id === currentUser.id && users.filter(u => u.role === 'Admin Developer').length <= 1) || // Prevent last Dev Admin changing own role
+                                              isProcessing } // Disable while processing
                                 >
                                     <FormControl>
                                         <SelectTrigger>
@@ -624,17 +685,28 @@ export default function ManageUsersPage() {
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {divisions.map((division) => ( // Only show selectable roles
-                                            <SelectItem key={division} value={division}>
-                                                {isClient ? (usersDict.roles[division as keyof typeof usersDict.roles] || division) : (defaultDict.manageUsersPage.roles[division as keyof typeof defaultDict.manageUsersPage.roles] || division)}
-                                            </SelectItem>
-                                        ))}
+                                        {divisions
+                                            .filter(division =>
+                                                currentUser.role === 'Owner' || // Owner can edit to any role
+                                                currentUser.role === 'Admin Developer' || // Admin Dev can edit to any role (except Owner/GA - handled in openEditDialog)
+                                                (currentUser.role === 'General Admin' && !['Owner', 'Admin Developer'].includes(division)) // GA can edit to non-Owner/Dev roles
+                                            )
+                                            .map((division) => (
+                                                <SelectItem key={division} value={division}>
+                                                    {isClient ? (usersDict.roles[division as keyof typeof usersDict.roles] || division) : (defaultDict.manageUsersPage.roles[division as keyof typeof defaultDict.manageUsersPage.roles] || division)}
+                                                </SelectItem>
+                                            ))}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
+                                {/* Hint for GA last admin */}
                                 {(currentUser.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1) && (
                                     <p className="text-xs text-muted-foreground">{isClient ? usersDict.cannotChangeLastAdminRoleHint : defaultDict.manageUsersPage.cannotChangeLastAdminRoleHint}</p>
                                 )}
+                                 {/* Hint for Admin Dev last admin */}
+                                 {(currentUser.role === 'Admin Developer' && editingUser?.id === currentUser.id && users.filter(u => u.role === 'Admin Developer').length <= 1) && (
+                                     <p className="text-xs text-muted-foreground">Cannot change the role of the last Admin Developer.</p> // Add translation
+                                 )}
                               </FormItem>
                             )}
                         />

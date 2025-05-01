@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { ReactNode } from 'react';
@@ -20,6 +21,7 @@ import {
   Building,
   UserCog,
   PanelRightOpen,
+  Code, // Added Code icon for Admin Dev
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -30,7 +32,7 @@ import { getDictionary } from '@/lib/translations';
 // Mock user data - replace with actual user data from auth context
 const user = {
   name: 'Admin User',
-  role: 'General Admin', // Example roles: Owner, General Admin, Admin Proyek, Arsitek, Struktur
+  role: 'General Admin', // Example roles: Owner, General Admin, Admin Proyek, Arsitek, Struktur, Admin Developer
   avatarUrl: 'https://picsum.photos/100/100?random=1',
   initials: 'AU',
 };
@@ -55,14 +57,29 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   // TODO: Fetch user data and determine visible menu items based on role
 
   const menuItems = [
-    { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur"] },
-    { href: "/dashboard/tasks", icon: ClipboardList, labelKey: "tasks", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur"] },
-    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers", roles: ["General Admin", "Owner"] }, // Added Owner
-    { href: "/dashboard/admin-actions", icon: UserCog, labelKey: "adminActions", roles: ["Owner", "General Admin", "Admin Proyek"] },
-    { href: "/dashboard/settings", icon: Settings, labelKey: "settings", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur"] },
+    { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
+    { href: "/dashboard/tasks", icon: ClipboardList, labelKey: "tasks", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
+    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers", roles: ["General Admin", "Owner", "Admin Developer"] }, // Added Admin Developer
+    { href: "/dashboard/admin-actions", icon: UserCog, labelKey: "adminActions", roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] }, // Added Admin Developer
+    { href: "/dashboard/settings", icon: Settings, labelKey: "settings", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
   ];
 
   const visibleMenuItems = menuItems.filter(item => item.roles.includes(user.role));
+
+  // Get user role icon based on the getRoleIcon logic from users page
+  const getUserRoleIcon = (role: string) => {
+      switch(role) {
+          case 'Owner': return User;
+          case 'General Admin': return UserCog;
+          case 'Admin Proyek': return UserCog; // Consider a different icon if needed
+          case 'Arsitek': return User;
+          case 'Struktur': return User;
+          case 'Admin Developer': return Code;
+          default: return User;
+      }
+  }
+  const RoleIcon = getUserRoleIcon(user.role);
+
 
   return (
     <div className="flex min-h-screen w-full">
@@ -116,7 +133,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                        </Avatar>
                        <div className="flex flex-col overflow-hidden">
                          <span className="text-sm font-medium truncate text-primary-foreground">{user.name}</span>
-                         <span className="text-xs text-primary-foreground/70 truncate">{user.role}</span>
+                         {/* Render translated role only on client, use icon */}
+                         {isClient && (
+                           <span className="text-xs text-primary-foreground/70 truncate flex items-center gap-1">
+                             <RoleIcon className="h-3 w-3 flex-shrink-0" />
+                             {dict.manageUsersPage.roles[user.role as keyof typeof dict.manageUsersPage.roles] || user.role}
+                           </span>
+                         )}
                        </div>
                      </div>
                     <Button variant="ghost" className="w-full justify-start gap-3 text-primary-foreground/90 hover:bg-primary-foreground/10 hover:text-primary-foreground" asChild>

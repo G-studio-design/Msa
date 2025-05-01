@@ -1,3 +1,4 @@
+
 // src/locales/id.ts
 const id = {
   // Login Page
@@ -150,7 +151,7 @@ const id = {
   // Manage Users Page
   manageUsersPage: {
     title: 'Kelola Pengguna',
-    description: 'Tambah, ubah, atau hapus akun pengguna untuk semua divisi (Hanya Pemilik/Admin Umum).',
+    description: 'Tambah, ubah, atau hapus akun pengguna untuk semua divisi (Hanya Pemilik/Admin Umum/Admin Pengembang).',
     addUserButton: 'Tambah Pengguna',
     addUserDialogTitle: 'Tambah Pengguna Baru',
     addUserDialogDesc: 'Masukkan detail untuk akun pengguna baru.',
@@ -169,11 +170,11 @@ const id = {
     addUserSubmitButton: 'Tambah Pengguna',
     addingUserButton: 'Menambahkan...',
     tableHeaderUsername: 'Nama Pengguna',
-    tableHeaderPassword: 'Kata Sandi',
+    tableHeaderPassword: 'Kata Sandi (Di-hash)', // Menunjukkan di-hash
     tableHeaderRole: 'Peran / Divisi',
     tableHeaderActions: 'Tindakan',
-    showPasswordButtonLabel: 'Tampilkan Kata Sandi',
-    hidePasswordButtonLabel: 'Sembunyikan Kata Sandi',
+    showPasswordButtonLabel: 'Tampilkan Hash Kata Sandi',
+    hidePasswordButtonLabel: 'Sembunyikan Hash Kata Sandi',
     noUsers: 'Tidak ada pengguna ditemukan.',
     deleteUserButtonLabel: 'Hapus Pengguna',
     deleteDialogTitle: 'Konfirmasi Penghapusan',
@@ -192,6 +193,7 @@ const id = {
        'Admin Proyek': 'Admin Proyek',
        Arsitek: 'Arsitek',
        Struktur: 'Struktur',
+       'Admin Developer': 'Admin Pengembang', // Added role
        Pending: 'Menunggu Aktivasi', // Kept
      },
     toast: {
