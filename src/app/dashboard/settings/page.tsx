@@ -109,19 +109,54 @@ export default function SettingsPage() {
            console.log("New profile picture selected:", file.name);
            setSelectedFile(file); // Store the file object
 
-           // Create a preview URL
-           const reader = new FileReader();
-           reader.onloadend = () => {
-               setProfilePicturePreview(reader.result as string);
-           };
-           reader.readDataURL(file);
+           // Check if FileReader is available
+           if (typeof window !== 'undefined' && window.FileReader) {
+               const reader = new FileReader();
+
+               reader.onloadend = () => {
+                   // Ensure result is a string before setting state
+                   if (typeof reader.result === 'string') {
+                       setProfilePicturePreview(reader.result);
+                       console.log("File read successfully, preview set.");
+                   } else {
+                       console.error("FileReader result is not a string:", reader.result);
+                       setProfilePicturePreview(null); // Reset preview on error
+                       toast({ variant: 'destructive', title: 'Error', description: 'Failed to read file for preview.' });
+                   }
+               };
+
+               reader.onerror = (error) => {
+                   console.error("FileReader error:", error);
+                   setProfilePicturePreview(null); // Reset preview on error
+                   toast({ variant: 'destructive', title: 'Error', description: 'Failed to read file.' });
+               };
+
+               try {
+                   // Attempt to read the file
+                   reader.readDataURL(file);
+               } catch (e) {
+                   console.error("Error calling readDataURL:", e);
+                   setProfilePicturePreview(null); // Reset preview on error
+                   toast({ variant: 'destructive', title: 'Error', description: 'Could not process the selected file.' });
+               }
+           } else {
+               // FileReader API not supported
+               console.error("FileReader API is not available in this environment.");
+               setSelectedFile(null); // Reset file selection
+               toast({ variant: 'destructive', title: 'Browser Error', description: 'Your browser does not support file reading for preview.' });
+           }
        } else {
+            // No file selected or selection cancelled
             setSelectedFile(null);
             setProfilePicturePreview(null);
+            console.log("No file selected or selection cancelled.");
        }
         // Reset the input value to allow selecting the same file again if needed
-        event.target.value = '';
+        if (event.target) { // Add null check for event.target
+            event.target.value = '';
+        }
    };
+
 
   const handleProfileUpdate = async () => {
      if (!currentUser) return; // Should not happen if UI is rendered correctly
