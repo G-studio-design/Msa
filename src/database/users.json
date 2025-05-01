@@ -12,8 +12,26 @@
     "id": "usr_1",
     "username": "owner_john",
     "role": "Owner",
-    "passwordHash": "$2b$10$somehashplaceholder1",
+    "passwordHash": "$2b$10$K4c/w8Lz9eG2i.v5D9O6W.6r7m.4E9y.i.u.q.a.S.g.K.q.R.j.Q",
     "email": "john@example.com",
     "displayName": "John Owner"
+  },
+  {
+    "id": "usr_wayangovina",
+    "username": "wayangovina",
+    "passwordHash": "$2b$10$F1ZzE7G9f5yX2d3A6b9C.u0l.O7h4i.P9r.S1t.W2v.X3y.Z4",
+    "role": "Owner",
+    "email": "iwayangovina@gmail.com",
+    "displayName": "wayangovina",
+    "createdAt": "2025-05-01T17:20:04.615Z"
+  },
+  {
+    "id": "usr_wayan",
+    "username": "wayan",
+    "passwordHash": "$2b$10$K4c/w8Lz9eG2i.v5D9O6W.6r7m.4E9y.i.u.q.a.S.g.K.q.R.j.Q",
+    "role": "General Admin",
+    "email": "wayan@example.com",
+    "displayName": "wayan",
+    "createdAt": "2025-05-01T17:20:04.615Z"
   }
 ]
