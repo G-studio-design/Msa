@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -36,14 +37,17 @@ const initialTasks = [
   { id: 6, title: "Project Zeta - Admin Setup", status: "Pending" },
 ];
 
+// Default dictionary for server render / pre-hydration
+const defaultDict = getDictionary('en');
+
 export default function AdminActionsPage() {
   const { toast } = useToast();
   const { language } = useLanguage(); // Get current language
   const { currentUser } = useAuth(); // Get current user from AuthContext
   const [isClient, setIsClient] = React.useState(false); // State to track client-side mount
-  const [dict, setDict] = React.useState(() => getDictionary(language)); // Initialize dict directly
-  const adminDict = dict.adminActionsPage; // Specific dictionary section
-  const dashboardDict = dict.dashboardPage; // For status translation
+  const [dict, setDict] = React.useState(defaultDict); // Initialize with default dict
+  const [adminDict, setAdminDict] = React.useState(defaultDict.adminActionsPage); // Specific dictionary section
+  const [dashboardDict, setDashboardDict] = React.useState(defaultDict.dashboardPage); // For status translation
 
   const [tasks, setTasks] = React.useState(initialTasks); // Replace with fetched data
   const [isLoadingTasks, setIsLoadingTasks] = React.useState(false); // Loading state
@@ -59,7 +63,10 @@ export default function AdminActionsPage() {
    }, []);
 
    React.useEffect(() => {
-        setDict(getDictionary(language)); // Update dictionary when language changes
+        const newDict = getDictionary(language); // Update dictionary when language changes
+        setDict(newDict);
+        setAdminDict(newDict.adminActionsPage);
+        setDashboardDict(newDict.dashboardPage);
    }, [language]);
 
   const handleEditClick = (taskId: number, currentTitle: string) => {
@@ -128,10 +135,10 @@ export default function AdminActionsPage() {
             <div className="container mx-auto py-4">
                 <Card className="border-destructive">
                      <CardHeader>
-                         <CardTitle className="text-destructive">{adminDict.accessDeniedTitle}</CardTitle>
+                         <CardTitle className="text-destructive">{isClient ? adminDict.accessDeniedTitle : defaultDict.adminActionsPage.accessDeniedTitle}</CardTitle>
                      </CardHeader>
                      <CardContent>
-                         <p>{adminDict.accessDeniedDesc}</p>
+                         <p>{isClient ? adminDict.accessDeniedDesc : defaultDict.adminActionsPage.accessDeniedDesc}</p>
                      </CardContent>
                 </Card>
             </div>
@@ -143,26 +150,26 @@ export default function AdminActionsPage() {
     <div className="container mx-auto py-4 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">{adminDict.title}</CardTitle>
+          <CardTitle className="text-2xl">{isClient ? adminDict.title : defaultDict.adminActionsPage.title}</CardTitle>
           <CardDescription>
-           {adminDict.description}
+           {isClient ? adminDict.description : defaultDict.adminActionsPage.description}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>{adminDict.tableHeaderId}</TableHead>
-                <TableHead>{adminDict.tableHeaderTitle}</TableHead>
-                <TableHead>{adminDict.tableHeaderStatus}</TableHead>
-                <TableHead className="text-right">{adminDict.tableHeaderActions}</TableHead>
+                <TableHead>{isClient ? adminDict.tableHeaderId : defaultDict.adminActionsPage.tableHeaderId}</TableHead>
+                <TableHead>{isClient ? adminDict.tableHeaderTitle : defaultDict.adminActionsPage.tableHeaderTitle}</TableHead>
+                <TableHead>{isClient ? adminDict.tableHeaderStatus : defaultDict.adminActionsPage.tableHeaderStatus}</TableHead>
+                <TableHead className="text-right">{isClient ? adminDict.tableHeaderActions : defaultDict.adminActionsPage.tableHeaderActions}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {tasks.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    {adminDict.noTasks}
+                    {isClient ? adminDict.noTasks : defaultDict.adminActionsPage.noTasks}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -208,3 +215,5 @@ export default function AdminActionsPage() {
     </div>
   );
 }
+ 
+    
