@@ -419,10 +419,9 @@ export default function ManageUsersPage() {
         <CardContent>
           <Table>
             <TableHeader>
-              <TableRow>{/* Removed whitespace */}
-                 {/* Render header text only on client */}
+              <TableRow>
                 <TableHead>{isClient ? usersDict.tableHeaderUsername : defaultDict.manageUsersPage.tableHeaderUsername}</TableHead>
-                <TableHead>{isClient ? usersDict.tableHeaderPassword : defaultDict.manageUsersPage.tableHeaderPassword}</TableHead> {/* Added Password Header */}
+                <TableHead>{isClient ? usersDict.tableHeaderPassword : defaultDict.manageUsersPage.tableHeaderPassword}</TableHead>
                 <TableHead>{isClient ? usersDict.tableHeaderRole : defaultDict.manageUsersPage.tableHeaderRole}</TableHead>
                 <TableHead className="text-right">{isClient ? usersDict.tableHeaderActions : defaultDict.manageUsersPage.tableHeaderActions}</TableHead>
               </TableRow>
@@ -430,8 +429,7 @@ export default function ManageUsersPage() {
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground"> {/* Updated colSpan */}
-                    {/* Render no users text only on client */}
+                  <TableCell colSpan={4} className="text-center text-muted-foreground">
                     {isClient ? usersDict.noUsers : defaultDict.manageUsersPage.noUsers}
                   </TableCell>
                 </TableRow>
@@ -446,7 +444,7 @@ export default function ManageUsersPage() {
                     const isPasswordVisible = visiblePasswords[user.id] || false;
 
                     return (
-                      <TableRow key={user.id}>{/* Removed whitespace */}
+                      <TableRow key={user.id}>
                         <TableCell className="font-medium">{user.username}</TableCell>
                          {/* Password Cell - Visible only to GA/Owner */}
                          <TableCell>
