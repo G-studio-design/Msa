@@ -33,16 +33,6 @@ body {
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
-
-    /* Sidebar Light Theme - Dark Gray */
-    --sidebar-background: 210 6% 20%; /* Dark Gray Background */
-    --sidebar-foreground: 0 0% 98%; /* White Text */
-    --sidebar-primary: 0 0% 98%; /* White Primary elements */
-    --sidebar-primary-foreground: 210 6% 20%; /* Dark Gray text on Primary elements */
-    --sidebar-accent: 210 6% 30%; /* Lighter Gray for Accent */
-    --sidebar-accent-foreground: 0 0% 98%; /* White Text on Accent */
-    --sidebar-border: 210 6% 30%; /* Lighter Gray Border */
-    --sidebar-ring: 187 100% 42%; /* Teal Ring */
   }
   .dark {
     --background: 0 0% 3.9%;
@@ -69,16 +59,6 @@ body {
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-
-    /* Sidebar Dark Theme - Very Dark Gray */
-    --sidebar-background: 210 6% 10%; /* Very Dark Gray Background */
-    --sidebar-foreground: 0 0% 98%; /* White Text */
-    --sidebar-primary: 0 0% 98%; /* White Primary elements */
-    --sidebar-primary-foreground: 210 6% 10%; /* Very Dark Gray text on Primary elements */
-    --sidebar-accent: 210 6% 20%; /* Darker Gray Accent */
-    --sidebar-accent-foreground: 0 0% 98%; /* White Text on Accent */
-    --sidebar-border: 210 6% 20%; /* Darker Gray Border */
-    --sidebar-ring: 187 100% 62%; /* Lighter Teal Ring */
   }
 }
 

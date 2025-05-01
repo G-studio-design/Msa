@@ -1,17 +1,4 @@
 import type { ReactNode } from 'react';
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarFooter,
-  SidebarInset,
-  SidebarTrigger,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarSeparator,
-} from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Sheet,
@@ -33,6 +20,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator'; // Import Separator
 
 // Mock user data - replace with actual user data from auth context
 const user = {
@@ -45,127 +33,90 @@ const user = {
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   // TODO: Fetch user data and determine visible menu items based on role
 
+  const menuItems = [
+    { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur"] },
+    { href: "/dashboard/tasks", icon: ClipboardList, label: "Tasks", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur"] },
+    { href: "/dashboard/users", icon: Users, label: "Manage Users", roles: ["General Admin"] },
+    { href: "/dashboard/admin-actions", icon: UserCog, label: "Admin Actions", roles: ["Owner", "General Admin", "Admin Proyek"] },
+    { href: "/dashboard/settings", icon: Settings, label: "Settings", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur"] },
+  ];
+
+  const visibleMenuItems = menuItems.filter(item => item.roles.includes(user.role));
+
   return (
-    // Pass collapsible, variant, and side props here
-    <SidebarProvider collapsible="icon" variant="sidebar" side="left">
-      {/* Sidebar component now inherits these props from the provider */}
-      <Sidebar>
-        <SidebarHeader className="items-center">
-           <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-lg text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors">
+    <div className="flex min-h-screen w-full flex-col">
+      {/* Header for the main content area */}
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6">
+         {/* Left side: App Title/Logo */}
+         <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-lg text-primary">
             <Building className="h-6 w-6" />
-            <span className="group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden">TaskTrackPro</span>
+            <span>TaskTrackPro</span>
           </Link>
-        </SidebarHeader>
-        <SidebarContent className="p-2">
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Dashboard">
-                <Link href="/dashboard">
-                  <LayoutDashboard />
-                   <span className="group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden">Dashboard</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Tasks">
-                <Link href="/dashboard/tasks">
-                  <ClipboardList />
-                  <span className="group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden">Tasks</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            {/* Conditional rendering based on role */}
-            {user.role === 'General Admin' && (
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Manage Users">
-                  <Link href="/dashboard/users">
-                    <Users />
-                    <span className="group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden">Manage Users</span>
+
+        {/* Right side: Panel Trigger */}
+        <div className="flex items-center gap-4">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon">
+                <PanelRightOpen className="h-5 w-5" />
+                <span className="sr-only">Toggle Menu Panel</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="bg-primary text-primary-foreground border-primary-foreground/20 w-[300px] sm:w-[320px] flex flex-col p-4">
+              <SheetHeader className="mb-4 text-left">
+                <SheetTitle className="text-primary-foreground text-xl">Menu</SheetTitle>
+                <SheetDescription className="text-primary-foreground/80">
+                  Navigation and user options.
+                </SheetDescription>
+              </SheetHeader>
+
+               {/* Navigation Menu */}
+              <nav className="flex-1 space-y-2 overflow-y-auto">
+                {visibleMenuItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="flex items-center gap-3 rounded-md px-3 py-2 text-primary-foreground/90 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.label}</span>
                   </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-             {['Owner', 'General Admin', 'Admin Proyek'].includes(user.role) && (
-               <SidebarMenuItem>
-                 <SidebarMenuButton asChild tooltip="Admin Actions">
-                   <Link href="/dashboard/admin-actions">
-                     <UserCog />
-                     <span className="group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden">Admin Actions</span>
-                   </Link>
-                 </SidebarMenuButton>
-               </SidebarMenuItem>
-             )}
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip="Settings">
-                <Link href="/dashboard/settings">
-                  <Settings />
-                  <span className="group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden">Settings</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarSeparator />
-        <SidebarFooter className="p-2">
-          <div className="flex items-center gap-3 rounded-md p-2 hover:bg-sidebar-accent transition-colors group-data-[state=collapsed]:group-data-[collapsible=icon]:p-0 group-data-[state=collapsed]:group-data-[collapsible=icon]:justify-center group-data-[state=collapsed]:group-data-[collapsible=icon]:gap-0">
-            <Avatar className="h-9 w-9 group-data-[state=collapsed]:group-data-[collapsible=icon]:h-8 group-data-[state=collapsed]:group-data-[collapsible=icon]:w-8">
-              <AvatarImage src={user.avatarUrl} alt={user.name} />
-              <AvatarFallback>{user.initials}</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col overflow-hidden group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden">
-               <span className="text-sm font-medium truncate text-sidebar-foreground">{user.name}</span>
-               <span className="text-xs text-sidebar-foreground/70 truncate">{user.role}</span>
-             </div>
-            {/* TODO: Add logout functionality */}
-            <Button variant="ghost" size="icon" className="ml-auto text-sidebar-foreground hover:text-sidebar-accent-foreground group-data-[state=collapsed]:hidden group-data-[collapsible=icon]:hidden" asChild>
-               <Link href="/"> {/* Redirect to login on logout */}
-                <LogOut className="h-5 w-5" />
-               </Link>
-            </Button>
-          </div>
-        </SidebarFooter>
-      </Sidebar>
+                ))}
+              </nav>
 
-      {/* Main content area - SidebarInset handles padding dynamically */}
-      <SidebarInset>
-        {/* Header within the main content area */}
-        <header className="flex items-center justify-between mb-6 p-4 md:p-6">
-          <div className="flex items-center gap-4">
-            <SidebarTrigger className="md:hidden" />
-             <SidebarTrigger className="hidden md:flex" />
-            <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-lg text-primary md:hidden">
-              <Building className="h-6 w-6" />
-              <span>TaskTrackPro</span>
-            </Link>
-          </div>
+               <Separator className="my-4 bg-primary-foreground/20" />
 
-          <div className="flex items-center gap-4">
-             <Sheet>
-               <SheetTrigger asChild>
-                 <Button variant="outline" size="icon">
-                   <PanelRightOpen className="h-5 w-5" />
-                   <span className="sr-only">Toggle Blue Box</span>
-                 </Button>
-               </SheetTrigger>
-               <SheetContent side="right" className="bg-primary text-primary-foreground border-primary-foreground/20 w-[300px] sm:w-[400px]">
-                 <SheetHeader>
-                   <SheetTitle className="text-primary-foreground">Blue Box Panel</SheetTitle>
-                   <SheetDescription className="text-primary-foreground/80">
-                     This is a hideable blue box content area.
-                   </SheetDescription>
-                 </SheetHeader>
-                 <div className="mt-4 space-y-4">
-                   <p>You can put any components or information needed here.</p>
-                   <Button variant="secondary">Example Button</Button>
+              {/* User Info and Logout */}
+               <div className="mt-auto space-y-4">
+                 <div className="flex items-center gap-3 rounded-md p-2">
+                   <Avatar className="h-10 w-10 border-2 border-primary-foreground/30">
+                     <AvatarImage src={user.avatarUrl} alt={user.name} />
+                     <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground">{user.initials}</AvatarFallback>
+                   </Avatar>
+                   <div className="flex flex-col overflow-hidden">
+                     <span className="text-sm font-medium truncate text-primary-foreground">{user.name}</span>
+                     <span className="text-xs text-primary-foreground/70 truncate">{user.role}</span>
+                   </div>
                  </div>
-               </SheetContent>
-             </Sheet>
-          </div>
-        </header>
-         <div className="p-4 md:p-6 pt-0">
-           {children}
-         </div>
-      </SidebarInset>
-    </SidebarProvider>
+                {/* Logout Button */}
+                <Button variant="ghost" className="w-full justify-start gap-3 text-primary-foreground/90 hover:bg-primary-foreground/10 hover:text-primary-foreground" asChild>
+                  <Link href="/"> {/* Redirect to login on logout */}
+                    <LogOut className="h-5 w-5" />
+                    <span>Logout</span>
+                  </Link>
+                </Button>
+               </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </header>
+
+      {/* Main content area */}
+      <div className="flex-1">
+        <div className="p-4 md:p-6">
+          {children}
+        </div>
+      </div>
+    </div>
   );
 }
