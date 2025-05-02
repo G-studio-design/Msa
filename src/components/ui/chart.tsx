@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -31,6 +32,39 @@ function useChart() {
   return context
 }
 
+const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
+  const colorConfig = Object.entries(config).filter(
+    ([_, config]) => config.color || config.theme
+  )
+
+  if (!colorConfig.length) {
+    return null
+  }
+
+  // Fix: Corrected the map logic and CSS variable generation
+  const cssVariables = colorConfig
+    .map(([key, itemConfig]) => {
+      // If theme is defined, use the light theme color as the base variable value.
+      // Dark theme overrides should be handled globally or via a .dark selector in CSS.
+      // If only color is defined, use that.
+      // If neither is explicitly defined, fall back to the default --chart-x variable (defined globally).
+      const colorValue = itemConfig.color || itemConfig.theme?.light; // Use light theme if theme object exists
+      return colorValue
+        ? `  --color-${key}: ${colorValue};`
+        : `  --color-${key}: var(--chart-${key as keyof ChartConfig});` // Fallback
+    })
+    .join("\n");
+
+  const styles = `
+[data-chart=${id}] {
+${cssVariables}
+}
+`;
+
+  return <style dangerouslySetInnerHTML={{ __html: styles }} />
+}
+
+
 const ChartContainer = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
@@ -60,32 +94,6 @@ const ChartContainer = React.forwardRef<
 })
 ChartContainer.displayName = "Chart"
 
-const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfig = Object.entries(config).filter(([_, config]) => config.color || config.theme)
-
-  if (!colorConfig.length) {
-    return null
-  }
-
-  return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: `
-[data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color = itemConfig.theme?.[keyof typeof THEMES] || itemConfig.color
-    return color
-      ? `  --color-${key}: ${color};`
-      : `  --color-${key}: var(--chart-${key as keyof ChartConfig});`
-  })
-  .join("\n")}
-}
-`,
-      }}
-    />
-  )
-}
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
@@ -283,3 +291,4 @@ ChartLegendContent.displayName = "ChartLegend"
 const Chart = ChartContainer
 
 export { Chart, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, ChartContainer }
+
