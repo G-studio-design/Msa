@@ -48,7 +48,7 @@ import { useLanguage } from '@/context/LanguageContext'; // Import language cont
 import { getDictionary } from '@/lib/translations'; // Import translation helper
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
-import { getAllProjects, updateProject, type Project, type WorkflowHistoryEntry, type FileEntry } from '@/services/project-service'; // Renamed import
+import { getAllProjects, updateProject, type Project, type WorkflowHistoryEntry, type FileEntry } from '@/services/project-service';
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -64,25 +64,25 @@ import { notifyUsersByRole } from '@/services/notification-service'; // Import n
 const defaultDict = getDictionary('en');
 
 // Define possible statuses for filtering
-const projectStatuses = [ // Renamed variable
+const projectStatuses = [
     'Pending Input', 'Pending Offer', 'Pending Approval', 'Pending DP Invoice',
     'Pending Admin Files', 'Pending Architect Files', 'Pending Structure Files',
     'Pending Final Check', 'Pending Scheduling', 'Scheduled', 'In Progress',
     'Completed', 'Canceled'
 ];
 
-export default function ProjectsPage() { // Renamed component
+export default function ProjectsPage() {
   const { toast } = useToast();
   const { language } = useLanguage(); // Get current language
   const { currentUser } = useAuth(); // Get current user from AuthContext
   const [isClient, setIsClient] = React.useState(false); // State to track client-side mount
   const [dict, setDict] = React.useState(() => getDictionary(language)); // Initialize dict directly
-  const [projectsDict, setProjectsDict] = React.useState(() => dict.projectsPage); // Renamed dictionary section
+  const [projectsDict, setProjectsDict] = React.useState(() => dict.projectsPage);
   const [dashboardDict, setDashboardDict] = React.useState(() => dict.dashboardPage); // For status translation
 
-  const [allProjects, setAllProjects] = React.useState<Project[]>([]); // Renamed state variable
-  const [isLoadingProjects, setIsLoadingProjects] = React.useState(true); // Renamed state variable
-  const [selectedProject, setSelectedProject] = React.useState<Project | null>(null); // Renamed state variable
+  const [allProjects, setAllProjects] = React.useState<Project[]>([]);
+  const [isLoadingProjects, setIsLoadingProjects] = React.useState(true);
+  const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
 
   const [description, setDescription] = React.useState('');
   const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);
@@ -97,36 +97,36 @@ export default function ProjectsPage() { // Renamed component
   React.useEffect(() => {
     setIsClient(true);
     // Fetch all projects when component mounts and user is available
-    const fetchProjects = async () => { // Renamed function
+    const fetchProjects = async () => {
       if (currentUser) {
-        setIsLoadingProjects(true); // Renamed state variable
+        setIsLoadingProjects(true);
         try {
-          const fetchedProjects = await getAllProjects(); // Renamed service call
-          setAllProjects(fetchedProjects); // Renamed state setter
-          console.log("Fetched projects:", fetchedProjects.length); // Updated log message
+          const fetchedProjects = await getAllProjects();
+          setAllProjects(fetchedProjects);
+          console.log("Fetched projects:", fetchedProjects.length);
         } catch (error) {
-          console.error("Failed to fetch projects:", error); // Updated log message
-          toast({ variant: 'destructive', title: 'Error', description: 'Could not load project data.' }); // Updated toast message
+          console.error("Failed to fetch projects:", error);
+          toast({ variant: 'destructive', title: 'Error', description: 'Could not load project data.' });
         } finally {
-          setIsLoadingProjects(false); // Renamed state setter
+          setIsLoadingProjects(false);
         }
       } else {
-          setIsLoadingProjects(false); // Renamed state setter
+          setIsLoadingProjects(false);
       }
     };
-    fetchProjects(); // Renamed function call
+    fetchProjects();
   }, [currentUser, toast]);
 
   React.useEffect(() => {
       const newDict = getDictionary(language); // Update dictionary when language changes
       setDict(newDict);
-      setProjectsDict(newDict.projectsPage); // Renamed dictionary setter
+      setProjectsDict(newDict.projectsPage);
       setDashboardDict(newDict.dashboardPage);
   }, [language]);
 
 
   // Helper function to format dates client-side
-  const formatTimestamp = (timestamp: string): string => {
+  const formatTimestamp = React.useCallback((timestamp: string): string => {
     if (!isClient) return '...'; // Avoid rendering incorrect date on server
     const locale = language === 'id' ? 'id-ID' : 'en-US';
     try {
@@ -138,9 +138,9 @@ export default function ProjectsPage() { // Renamed component
       console.error("Error formatting timestamp:", timestamp, e);
       return "Invalid Date"; // Fallback for invalid dates
     }
-  };
+  }, [isClient, language]); // Memoize timestamp formatting
 
-   const formatDateOnly = (timestamp: string): string => {
+   const formatDateOnly = React.useCallback((timestamp: string): string => {
       if (!isClient) return '...'; // Avoid rendering incorrect date on server
       const locale = language === 'id' ? 'id-ID' : 'en-US';
       try {
@@ -151,7 +151,7 @@ export default function ProjectsPage() { // Renamed component
             console.error("Error formatting date:", timestamp, e);
             return "Invalid Date"; // Fallback for invalid dates
         }
-   }
+   }, [isClient, language]); // Memoize date only formatting
 
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -164,31 +164,30 @@ export default function ProjectsPage() { // Renamed component
     setUploadedFiles(uploadedFiles.filter((_, i) => i !== index));
   };
 
-  // Determine if the current user (from context) can perform the action on the SELECTED project
-  // This checks if the currentUser's role matches the project's assignedDivision OR if the project is awaiting their input (Pending Offer for Admin Proyek)
-  const canPerformSelectedProjectAction = React.useMemo(() => { // Renamed variable
-    if (!currentUser || !selectedProject) return false; // Renamed state variable
+  // Determine if the current user (from context) can perform the action on the SELECTED project - MEMOIZED
+  const canPerformSelectedProjectAction = React.useMemo(() => {
+    if (!currentUser || !selectedProject) return false;
     // Directly assigned role can act
-    if (currentUser.role === selectedProject.assignedDivision) return true; // Renamed state variable
+    if (currentUser.role === selectedProject.assignedDivision) return true;
     // Specific exception: Admin Proyek can act on 'Pending Offer' even if not assigned (because Owner is assigned technically)
-    if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer') return true; // Renamed state variable
+    if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer') return true;
     return false;
-  }, [currentUser, selectedProject]); // Renamed state variable
+  }, [currentUser, selectedProject]);
 
-  // Helper to get translated status
-    const getTranslatedStatus = (statusKey: string): string => {
+  // Helper to get translated status - MEMOIZED
+    const getTranslatedStatus = React.useCallback((statusKey: string): string => {
         // Check if dashboardDict and dashboardDict.status are available
         if (!isClient || !dashboardDict || !dashboardDict.status) return statusKey; // Return original key if dict not ready
         const key = statusKey?.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
         return dashboardDict.status[key] || statusKey; // Fallback to original key if not found
-    }
+    }, [isClient, dashboardDict]); // Memoize status translation
 
-      // Helper function to get status icon and color using translated status (similar to dashboard)
-  const getStatusBadge = (status: string) => {
+      // Helper function to get status icon and color using translated status (similar to dashboard) - MEMOIZED
+  const getStatusBadge = React.useCallback((status: string) => {
     if (!isClient || !status) return <Skeleton className="h-5 w-20" />; // Skeleton during hydration mismatch check or if status is missing
 
     // Ensure dashboardDict and dashboardDict.status are available
-    if (!isClient || !dashboardDict || !dashboardDict.status) {
+    if (!dashboardDict || !dashboardDict.status) {
       return <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />{status}</Badge>; // Fallback badge
     }
 
@@ -265,39 +264,39 @@ export default function ProjectsPage() { // Renamed component
     }
 
     return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
-  };
+  }, [isClient, dashboardDict]); // Memoize badge generation
 
 
   const handleProgressSubmit = async () => {
-    if (!currentUser || !selectedProject || !canPerformSelectedProjectAction) { // Renamed variables
+    if (!currentUser || !selectedProject || !canPerformSelectedProjectAction) {
       toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.notYourTurn });
       return;
     }
 
     // Admins Proyek MUST upload at least one offer file when in 'Pending Offer' status.
-    if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer' && uploadedFiles.length === 0) { // Renamed state variable
+    if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer' && uploadedFiles.length === 0) {
         toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: projectsDict.toast.provideOfferFile });
         return;
     }
 
     // General validation: Require description or files for most steps (except scheduling or Owner/GA override)
-    if (!description && uploadedFiles.length === 0 && selectedProject.status !== 'Pending Scheduling' && !['Owner', 'General Admin'].includes(currentUser.role) && !(currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer')) { // Renamed state variable
+    if (!description && uploadedFiles.length === 0 && selectedProject.status !== 'Pending Scheduling' && !['Owner', 'General Admin'].includes(currentUser.role) && !(currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer')) {
        toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: projectsDict.toast.provideDescOrFile });
        return;
      }
 
     setIsSubmitting(true);
-    console.log('Submitting Progress for project:', selectedProject.id, { description, files: uploadedFiles.map(f => f.name) }); // Updated log message
+    console.log('Submitting Progress for project:', selectedProject.id, { description, files: uploadedFiles.map(f => f.name) });
 
     // Simulate API call
     // TODO: Implement actual file upload logic here, get URLs/references
     // const uploadedFileEntries = await Promise.all(uploadedFiles.map(file => uploadFile(file)));
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    let nextStatus = selectedProject.status; // Renamed state variable
-    let nextDivision = selectedProject.assignedDivision; // Renamed state variable
-    let newProgress = selectedProject.progress; // Renamed state variable
-    let nextActionDescription = selectedProject.nextAction; // Renamed state variable
+    let nextStatus = selectedProject.status;
+    let nextDivision = selectedProject.assignedDivision;
+    let newProgress = selectedProject.progress;
+    let nextActionDescription = selectedProject.nextAction;
     const historyEntry: WorkflowHistoryEntry = { division: currentUser.role, action: `Submitted Progress`, timestamp: new Date().toISOString() };
     const newFiles: FileEntry[] = uploadedFiles.map(file => ({
         name: file.name,
@@ -316,22 +315,22 @@ export default function ProjectsPage() { // Renamed component
 
         case 'Admin Proyek':
              // --- Specific logic for Admin Proyek submitting Offer ---
-             if (selectedProject.status === 'Pending Offer') { // Renamed state variable
+             if (selectedProject.status === 'Pending Offer') {
                 nextStatus = 'Pending Approval'; // Move to Owner for approval
                 nextDivision = 'Owner'; // Assign to Owner
                 newProgress = 20; // Set progress after offer upload
                 nextActionDescription = 'Approve Offer Document'; // Owner needs to approve
                 historyEntry.action = 'Uploaded Offer Document'; // Specific history action
-                console.log(`Admin Proyek submitted offer for project ${selectedProject.id}. Moving to Pending Approval, assigned to Owner.`); // Updated log message
+                console.log(`Admin Proyek submitted offer for project ${selectedProject.id}. Moving to Pending Approval, assigned to Owner.`);
              }
-              else if (selectedProject.status === 'Pending Admin Files') { // Renamed state variable
+              else if (selectedProject.status === 'Pending Admin Files') {
                 nextStatus = 'Pending Architect Files';
                 nextDivision = 'Arsitek';
                 newProgress = 50;
                 nextActionDescription = 'Upload Architect Files';
                 historyEntry.action = 'Uploaded Admin Files';
               }
-              else if (selectedProject.status === 'Pending Final Check') { // Renamed state variable
+              else if (selectedProject.status === 'Pending Final Check') {
                  nextStatus = 'Pending Scheduling';
                  nextDivision = 'General Admin';
                  newProgress = 90;
@@ -341,18 +340,18 @@ export default function ProjectsPage() { // Renamed component
             break;
 
         case 'General Admin':
-            if (selectedProject.status === 'Pending DP Invoice') { // Renamed state variable
+            if (selectedProject.status === 'Pending DP Invoice') {
                 nextStatus = 'Pending Approval';
                 nextDivision = 'Owner';
                 newProgress = 30;
                 nextActionDescription = 'Approve DP Invoice';
                 historyEntry.action = 'Uploaded DP Invoice';
-            } else if (selectedProject.status === 'Pending Scheduling') { // Renamed state variable
+            } else if (selectedProject.status === 'Pending Scheduling') {
                 // This case is handled by the schedule button directly
             }
             break;
         case 'Arsitek':
-            if (selectedProject.status === 'Pending Architect Files') { // Renamed state variable
+            if (selectedProject.status === 'Pending Architect Files') {
               nextStatus = 'Pending Structure Files';
               nextDivision = 'Struktur';
               newProgress = 70;
@@ -361,7 +360,7 @@ export default function ProjectsPage() { // Renamed component
             }
             break;
         case 'Struktur':
-             if (selectedProject.status === 'Pending Structure Files') { // Renamed state variable
+             if (selectedProject.status === 'Pending Structure Files') {
                nextStatus = 'Pending Final Check';
                nextDivision = 'Admin Proyek';
                newProgress = 80;
@@ -370,48 +369,48 @@ export default function ProjectsPage() { // Renamed component
              }
              break;
         default:
-            historyEntry.action = `Submitted Progress for ${selectedProject.status}`; // Generic action // Renamed state variable
+            historyEntry.action = `Submitted Progress for ${selectedProject.status}`; // Generic action
     }
 
 
     // Prepare updated project data
-    const updatedProjectData: Project = { // Renamed type
-        ...selectedProject, // Renamed state variable
+    const updatedProjectData: Project = {
+        ...selectedProject,
         status: nextStatus,
         assignedDivision: nextDivision,
         progress: newProgress,
         nextAction: nextActionDescription,
-        workflowHistory: [...selectedProject.workflowHistory, historyEntry], // Renamed state variable
-        files: [...selectedProject.files, ...newFiles], // Append new files // Renamed state variable
+        workflowHistory: [...selectedProject.workflowHistory, historyEntry],
+        files: [...selectedProject.files, ...newFiles], // Append new files
       };
 
 
      try {
         // --- Actual API Call ---
-        await updateProject(updatedProjectData); // Renamed service call
+        await updateProject(updatedProjectData);
         // --- End API Call ---
 
         // Update local state AFTER successful update
-        setAllProjects(prev => prev.map(p => p.id === updatedProjectData.id ? updatedProjectData : p)); // Renamed state setter
-        if (selectedProject?.id === updatedProjectData.id) { // Renamed state variable
-             setSelectedProject(updatedProjectData); // Renamed state setter
+        setAllProjects(prev => prev.map(p => p.id === updatedProjectData.id ? updatedProjectData : p));
+        if (selectedProject?.id === updatedProjectData.id) {
+             setSelectedProject(updatedProjectData);
          }
 
         setDescription('');
         setUploadedFiles([]);
         setIsSubmitting(false);
         // Use a specific toast message if it was the offer submission
-        if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer' && nextStatus === 'Pending Approval') { // Renamed state variable
+        if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer' && nextStatus === 'Pending Approval') {
             toast({ title: projectsDict.toast.offerSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
              // Notify Owners only when Offer is submitted by Admin Proyek
-             await notifyUsersByRole('Owner', `Project "${selectedProject.title}" is awaiting your approval for the offer document.`, selectedProject.id); // Updated notification message // Renamed state variable
+             await notifyUsersByRole('Owner', `Project "${selectedProject.title}" is awaiting your approval for the offer document.`, selectedProject.id);
         } else {
             toast({ title: projectsDict.toast.progressSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
              // General notification for other steps (if division changed) is handled within updateProject service
         }
 
       } catch (error) {
-         console.error("Error updating project:", error); // Updated log message
+         console.error("Error updating project:", error);
          toast({ variant: 'destructive', title: 'Update Error', description: 'Failed to submit progress.' });
          setIsSubmitting(false);
       }
@@ -419,40 +418,40 @@ export default function ProjectsPage() { // Renamed component
   };
 
   const handleDecision = (decision: 'continue' | 'cancel') => {
-     if (currentUser?.role !== 'Owner' || !selectedProject) { // Check currentUser exists and project selected // Renamed state variable
+     if (currentUser?.role !== 'Owner' || !selectedProject) { // Check currentUser exists and project selected
        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.onlyOwnerDecision });
        return;
      }
      setIsSubmitting(true);
-     console.log(`Owner decision for project ${selectedProject.id}: ${decision}`); // Updated log message // Renamed state variable
+     console.log(`Owner decision for project ${selectedProject.id}: ${decision}`);
      // Simulate API call
      new Promise(resolve => setTimeout(resolve, 1000)).then(async () => { // Make async
-       let nextStatus = selectedProject.status; // Renamed state variable
-       let nextDivision = selectedProject.assignedDivision; // Renamed state variable
-       let newProgress = selectedProject.progress; // Renamed state variable
-       let nextActionDescription = selectedProject.nextAction; // Renamed state variable
+       let nextStatus = selectedProject.status;
+       let nextDivision = selectedProject.assignedDivision;
+       let newProgress = selectedProject.progress;
+       let nextActionDescription = selectedProject.nextAction;
         const historyEntry: WorkflowHistoryEntry = { division: currentUser!.role, action: '', timestamp: new Date().toISOString() }; // Use non-null assertion
 
 
        if (decision === 'cancel') {
          nextStatus = 'Canceled';
          nextDivision = ''; // No one assigned
-         newProgress = selectedProject.progress; // Keep progress as is? Or set to 0/100? // Renamed state variable
+         newProgress = selectedProject.progress; // Keep progress as is? Or set to 0/100?
          nextActionDescription = '';
           historyEntry.action = 'Canceled Progress';
          toast({ variant: 'destructive', title: projectsDict.toast.progressCanceled });
        } else {
          // Logic for continuing based on the current approval step
-         if (selectedProject.status === 'Pending Approval') { // Renamed state variable
+         if (selectedProject.status === 'Pending Approval') {
             // Check progress to differentiate between Offer Approval and DP Invoice Approval
-            if (selectedProject.progress === 20) { // After Offer Upload (Progress 20) // Renamed state variable
+            if (selectedProject.progress === 20) { // After Offer Upload (Progress 20)
                  nextStatus = 'Pending DP Invoice'; // Move to DP Invoice stage
                  nextDivision = 'General Admin'; // Assign to GA
                  newProgress = 25; // Progress slightly after approval
                  nextActionDescription = 'Generate DP Invoice';
                   historyEntry.action = 'Approved Offer'; // Specific history action
                  toast({ title: projectsDict.toast.offerApproved, description: projectsDict.toast.offerApprovedDesc });
-            } else if (selectedProject.progress === 30) { // After DP Invoice Upload (Progress 30) // Renamed state variable
+            } else if (selectedProject.progress === 30) { // After DP Invoice Upload (Progress 30)
                  nextStatus = 'Pending Admin Files'; // Move to Admin Files stage
                  nextDivision = 'Admin Proyek'; // Assign to Admin Proyek
                  newProgress = 40; // Progress slightly after approval
@@ -460,7 +459,7 @@ export default function ProjectsPage() { // Renamed component
                   historyEntry.action = 'Approved DP Invoice'; // Specific history action
                  toast({ title: projectsDict.toast.dpApproved, description: projectsDict.toast.dpApprovedDesc });
             }
-         } else if (selectedProject.status === 'Scheduled') { // After Sidang outcome // Renamed state variable
+         } else if (selectedProject.status === 'Scheduled') { // After Sidang outcome
              nextStatus = 'Completed'; // Assuming success for now
              nextDivision = '';
              newProgress = 100;
@@ -470,24 +469,24 @@ export default function ProjectsPage() { // Renamed component
          }
        }
 
-       const updatedProjectData: Project = { // Renamed type
-            ...selectedProject, // Renamed state variable
+       const updatedProjectData: Project = {
+            ...selectedProject,
             status: nextStatus,
             assignedDivision: nextDivision,
             progress: newProgress,
             nextAction: nextActionDescription,
-            workflowHistory: [...selectedProject.workflowHistory, historyEntry], // Renamed state variable
+            workflowHistory: [...selectedProject.workflowHistory, historyEntry],
        };
 
         try {
-            await updateProject(updatedProjectData); // Renamed service call
-             setAllProjects(prev => prev.map(p => p.id === updatedProjectData.id ? updatedProjectData : p)); // Renamed state setter
-             if (selectedProject?.id === updatedProjectData.id) { // Renamed state variable
-                setSelectedProject(updatedProjectData); // Renamed state setter
+            await updateProject(updatedProjectData);
+             setAllProjects(prev => prev.map(p => p.id === updatedProjectData.id ? updatedProjectData : p));
+             if (selectedProject?.id === updatedProjectData.id) {
+                setSelectedProject(updatedProjectData);
             }
              setIsSubmitting(false);
         } catch (error) {
-            console.error("Error updating project after decision:", error); // Updated log message
+            console.error("Error updating project after decision:", error);
             toast({ variant: 'destructive', title: 'Update Error', description: 'Failed to process decision.' });
             setIsSubmitting(false);
         }
@@ -496,7 +495,7 @@ export default function ProjectsPage() { // Renamed component
   };
 
   const handleScheduleSubmit = () => {
-     if (!currentUser || !['Owner', 'General Admin'].includes(currentUser.role) || !selectedProject) { // Check currentUser and selectedProject // Renamed state variable
+     if (!currentUser || !['Owner', 'General Admin'].includes(currentUser.role) || !selectedProject) { // Check currentUser and selectedProject
        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied });
        return;
      }
@@ -507,25 +506,25 @@ export default function ProjectsPage() { // Renamed component
 
      setIsSubmitting(true);
      const sidangDateTime = new Date(`${scheduleDate}T${scheduleTime}`);
-     console.log(`Scheduling Sidang for project ${selectedProject.id}:`, { dateTime: sidangDateTime, location: scheduleLocation }); // Updated log message // Renamed state variable
+     console.log(`Scheduling Sidang for project ${selectedProject.id}:`, { dateTime: sidangDateTime, location: scheduleLocation });
 
      // TODO: API Call to save schedule to DB
      new Promise(resolve => setTimeout(resolve, 1000)).then(async () => { // Make async
         const historyEntry: WorkflowHistoryEntry = { division: currentUser!.role, action: `Scheduled Sidang for ${sidangDateTime.toISOString()}`, timestamp: new Date().toISOString() }; // Use non-null assertion
 
-        const updatedProjectData: Project = { // Renamed type
-             ...selectedProject, // Renamed state variable
+        const updatedProjectData: Project = {
+             ...selectedProject,
              status: 'Scheduled',
              assignedDivision: 'Owner', // Owner handles outcome after sidang
              nextAction: 'Declare Sidang Outcome (Success/Fail)',
-             workflowHistory: [...selectedProject.workflowHistory, historyEntry], // Renamed state variable
+             workflowHistory: [...selectedProject.workflowHistory, historyEntry],
            };
 
         try {
-            await updateProject(updatedProjectData); // Renamed service call
-            setAllProjects(prev => prev.map(p => p.id === updatedProjectData.id ? updatedProjectData : p)); // Renamed state setter
-            if (selectedProject?.id === updatedProjectData.id) { // Renamed state variable
-                setSelectedProject(updatedProjectData); // Renamed state setter
+            await updateProject(updatedProjectData);
+            setAllProjects(prev => prev.map(p => p.id === updatedProjectData.id ? updatedProjectData : p));
+            if (selectedProject?.id === updatedProjectData.id) {
+                setSelectedProject(updatedProjectData);
             }
 
             setScheduleDate('');
@@ -534,7 +533,7 @@ export default function ProjectsPage() { // Renamed component
             setIsSubmitting(false);
             toast({ title: projectsDict.toast.sidangScheduled, description: projectsDict.toast.sidangScheduledDesc });
         } catch (error) {
-            console.error("Error updating project after scheduling:", error); // Updated log message
+            console.error("Error updating project after scheduling:", error);
             toast({ variant: 'destructive', title: 'Update Error', description: 'Failed to save schedule.' });
             setIsSubmitting(false);
         }
@@ -542,11 +541,11 @@ export default function ProjectsPage() { // Renamed component
   };
 
     const handleAddToCalendar = async () => {
-      if (!selectedProject || selectedProject.status !== 'Scheduled') { // Renamed state variable
+      if (!selectedProject || selectedProject.status !== 'Scheduled') {
         toast({ variant: 'destructive', title: projectsDict.toast.cannotAddCalendarYet, description: projectsDict.toast.mustScheduleFirst });
         return;
       }
-        const schedulingEntry = selectedProject.workflowHistory.find(entry => entry.action.startsWith('Scheduled Sidang for ')); // Renamed state variable
+        const schedulingEntry = selectedProject.workflowHistory.find(entry => entry.action.startsWith('Scheduled Sidang for '));
         if (!schedulingEntry) {
              toast({ variant: 'destructive', title: projectsDict.toast.errorFindingSchedule, description: projectsDict.couldNotFindSchedule });
              return;
@@ -562,11 +561,11 @@ export default function ProjectsPage() { // Renamed component
          const endTime = new Date(scheduledDateTime.getTime() + 60 * 60 * 1000); // Assume 1 hour duration
 
       const eventDetails = {
-          title: `Sidang: ${selectedProject.title}`, // Renamed state variable
+          title: `Sidang: ${selectedProject.title}`,
           location: location,
           startTime: scheduledDateTime.toISOString(),
           endTime: endTime.toISOString(),
-          description: `Sidang discussion for project: ${selectedProject.title}`, // Renamed state variable
+          description: `Sidang discussion for project: ${selectedProject.title}`,
       };
 
       try {
@@ -581,19 +580,19 @@ export default function ProjectsPage() { // Renamed component
       }
     };
 
-   // Filter projects based on user role and selected status filters
-    const filteredProjects = React.useMemo(() => { // Renamed variable
-        if (!currentUser || !isClient || isLoadingProjects) return []; // Renamed state variable
+   // Filter projects based on user role and selected status filters - MEMOIZED
+    const filteredProjects = React.useMemo(() => {
+        if (!currentUser || !isClient || isLoadingProjects) return [];
 
-        let roleFilteredProjects = allProjects; // Renamed variable // Renamed state variable
+        let roleFilteredProjects = allProjects;
          // Owner, General Admin, Admin Developer see all projects
          // Admin Proyek sees ALL projects
          if (currentUser.role === 'Admin Proyek') {
-              roleFilteredProjects = allProjects; // Renamed variable // Renamed state variable
+              roleFilteredProjects = allProjects;
          }
          // Other specific roles (Arsitek, Struktur) see projects where they are assigned or next action applies
          else if (!['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role)) {
-             roleFilteredProjects = allProjects.filter(project => // Renamed variable // Renamed state variable
+             roleFilteredProjects = allProjects.filter(project =>
                  project.assignedDivision === currentUser.role ||
                  (project.nextAction && project.nextAction.toLowerCase().includes(currentUser.role.toLowerCase()))
              );
@@ -603,11 +602,11 @@ export default function ProjectsPage() { // Renamed component
 
          // Apply status filters if any are selected
          if (statusFilter.length > 0) {
-             return roleFilteredProjects.filter(project => statusFilter.includes(project.status)); // Renamed variable
+             return roleFilteredProjects.filter(project => statusFilter.includes(project.status));
          }
 
-         return roleFilteredProjects; // Return role-filtered (or all) if no status filter applied // Renamed variable
-    }, [currentUser, allProjects, isClient, isLoadingProjects, statusFilter]); // Renamed state variables
+         return roleFilteredProjects; // Return role-filtered (or all) if no status filter applied
+    }, [currentUser, allProjects, isClient, isLoadingProjects, statusFilter]);
 
     // Toggle status filter
     const handleStatusFilterChange = (status: string) => {
@@ -619,26 +618,30 @@ export default function ProjectsPage() { // Renamed component
     };
 
 
-  // Define which actions are available based on status and current user role for the SELECTED project
+  // Define which actions are available based on status and current user role for the SELECTED project - MEMOIZED
    const showUploadSection = React.useMemo(() => {
-        if (!selectedProject || !currentUser) return false; // Renamed state variable
+        if (!selectedProject || !currentUser) return false;
         // Check if the user can perform the action based on role and project status
-        if (!canPerformSelectedProjectAction) return false; // Renamed variable
+        if (!canPerformSelectedProjectAction) return false;
 
         // Allow upload if not in a final/pending state (unless it's Pending Offer for Admin Proyek)
         return (
-            (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer') || // Renamed state variable
-            !['Pending Approval', 'Pending Scheduling', 'Scheduled', 'Completed', 'Canceled'].includes(selectedProject.status) // Renamed state variable
+            (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer') || // Allow Admin Proyek to upload offer
+            (
+                selectedProject.assignedDivision === currentUser.role && // Allow user to act if assigned
+                !['Pending Approval', 'Pending Scheduling', 'Scheduled', 'Completed', 'Canceled'] // AND not in these final/waiting states
+                 .includes(selectedProject.status)
+            )
         );
-   }, [selectedProject, currentUser, canPerformSelectedProjectAction]); // Renamed variables
+   }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
-   const showOwnerDecisionSection = selectedProject && selectedProject.status === 'Pending Approval' && currentUser?.role === 'Owner'; // Renamed state variable
-   const showSchedulingSection = selectedProject && selectedProject.status === 'Pending Scheduling' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role); // Renamed state variable
-   const showCalendarButton = selectedProject && selectedProject.status === 'Scheduled' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role); // Renamed state variable
-   const showSidangOutcomeSection = selectedProject && selectedProject.status === 'Scheduled' && currentUser?.role === 'Owner'; // Renamed state variable
+   const showOwnerDecisionSection = React.useMemo(() => selectedProject && selectedProject.status === 'Pending Approval' && currentUser?.role === 'Owner', [selectedProject, currentUser]);
+   const showSchedulingSection = React.useMemo(() => selectedProject && selectedProject.status === 'Pending Scheduling' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role), [selectedProject, currentUser]);
+   const showCalendarButton = React.useMemo(() => selectedProject && selectedProject.status === 'Scheduled' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role), [selectedProject, currentUser]);
+   const showSidangOutcomeSection = React.useMemo(() => selectedProject && selectedProject.status === 'Scheduled' && currentUser?.role === 'Owner', [selectedProject, currentUser]);
 
    // Loading state for the whole page if project data or user data isn't ready
-    if (!isClient || !currentUser || isLoadingProjects) { // Renamed state variable
+    if (!isClient || !currentUser || isLoadingProjects) {
         return (
             <div className="container mx-auto py-4 space-y-6">
                  <Card>
@@ -652,7 +655,7 @@ export default function ProjectsPage() { // Renamed component
                          </div>
                          <div className="space-y-4">
                              {[...Array(3)].map((_, i) => (
-                                <Card key={`project-skel-${i}`} className="opacity-50"> {/* Updated key */}
+                                <Card key={`project-skel-${i}`} className="opacity-50">
                                     <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                                          <div>
                                              <Skeleton className="h-5 w-3/5 mb-1" />
@@ -679,9 +682,9 @@ export default function ProjectsPage() { // Renamed component
     }
 
   // --- Render Project List View ---
-  const renderProjectList = () => { // Renamed function
+  const renderProjectList = () => {
     // Ensure projectsDict is available before rendering
-    if (!projectsDict || !isClient) { // Renamed dict variable
+    if (!projectsDict || !isClient) {
         return (
             <div className="container mx-auto py-4 space-y-6">
                 <Card><CardHeader><Skeleton className="h-7 w-3/5 mb-2" /></CardHeader></Card>
@@ -695,10 +698,10 @@ export default function ProjectsPage() { // Renamed component
           <div className="flex justify-between items-center">
             <div>
               <CardTitle className="text-2xl">
-                {projectsDict.projectListTitle || 'Project List'} {/* Renamed dict key */}
+                {projectsDict.projectListTitle || 'Project List'}
               </CardTitle>
               <CardDescription>
-                {projectsDict.projectListDescription || 'View and manage ongoing projects.'} {/* Renamed dict key */}
+                {projectsDict.projectListDescription || 'View and manage ongoing projects.'}
               </CardDescription>
             </div>
             {/* Filter Dropdown */}
@@ -706,14 +709,14 @@ export default function ProjectsPage() { // Renamed component
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">
                   <ListFilter className="mr-2 h-4 w-4" />
-                  {projectsDict.filterButton || 'Filter by Status'} {/* Renamed dict key */}
+                  {projectsDict.filterButton || 'Filter by Status'}
                   {statusFilter.length > 0 && ` (${statusFilter.length})`}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>{projectsDict.filterStatusLabel || 'Filter Statuses'}</DropdownMenuLabel> {/* Renamed dict key */}
+                <DropdownMenuLabel>{projectsDict.filterStatusLabel || 'Filter Statuses'}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {projectStatuses.map((status) => ( // Renamed variable
+                {projectStatuses.map((status) => (
                   <DropdownMenuCheckboxItem
                     key={status}
                     checked={statusFilter.includes(status)}
@@ -729,7 +732,7 @@ export default function ProjectsPage() { // Renamed component
                   onCheckedChange={() => setStatusFilter([])}
                   className="text-muted-foreground"
                 >
-                  {projectsDict.filterClear || 'Show All'} {/* Renamed dict key */}
+                  {projectsDict.filterClear || 'Show All'}
                 </DropdownMenuCheckboxItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -737,16 +740,16 @@ export default function ProjectsPage() { // Renamed component
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredProjects.length === 0 ? ( // Renamed variable
+            {filteredProjects.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">
-                {projectsDict.noProjectsFound || 'No projects match the current filters.'} {/* Renamed dict key */}
+                {projectsDict.noProjectsFound || 'No projects match the current filters.'}
               </p>
             ) : (
-              filteredProjects.map((projectItem) => ( // Renamed variable
+              filteredProjects.map((projectItem) => (
                 <Card
                   key={projectItem.id}
                   className="hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => setSelectedProject(projectItem)} // Renamed state setter
+                  onClick={() => setSelectedProject(projectItem)}
                 >
                   <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                     <div>
@@ -774,7 +777,7 @@ export default function ProjectsPage() { // Renamed component
                   </CardContent>
                   <CardFooter className="text-xs text-muted-foreground justify-end">
                     <span className="flex items-center gap-1">
-                      {projectsDict.viewDetails || 'View Details'} <ArrowRight className="h-3 w-3" /> {/* Renamed dict key */}
+                      {projectsDict.viewDetails || 'View Details'} <ArrowRight className="h-3 w-3" />
                     </span>
                   </CardFooter>
                 </Card>
@@ -787,16 +790,16 @@ export default function ProjectsPage() { // Renamed component
   };
 
   // --- Render Selected Project Detail View ---
-  const renderSelectedProjectDetail = (project: Project) => { // Renamed function parameter and type
+  const renderSelectedProjectDetail = (project: Project) => {
       // Ensure projectsDict is available
-       if (!projectsDict || !isClient) { // Renamed dict variable
+       if (!projectsDict || !isClient) {
            return <Skeleton className="h-64 w-full" />; // Or some loading state
        }
 
        return (
            <>
-               <Button variant="outline" onClick={() => setSelectedProject(null)} className="mb-4"> {/* Renamed state setter */}
-                   &larr; {projectsDict.backToList || 'Back to List'} {/* Renamed dict key */}
+               <Button variant="outline" onClick={() => setSelectedProject(null)} className="mb-4">
+                   &larr; {projectsDict.backToList || 'Back to List'}
                </Button>
                <Card>
                    <CardHeader>
@@ -1037,7 +1040,7 @@ export default function ProjectsPage() { // Renamed component
                                     <p className="text-sm font-medium">
                                         {projectsDict.historyActionBy.replace('{action}', entry.action).replace('{division}', entry.division)}
                                     </p>
-                                    <p className="text-xs text-muted-foreground">{formatTimestamp(entry.timestamp)}</p> {/* Use helper function */}
+                                    <p className="text-xs text-muted-foreground">{formatTimestamp(entry.timestamp)}</p> {/* Use memoized helper */}
                                 </div>
                             </li>
                         ))}
@@ -1051,7 +1054,9 @@ export default function ProjectsPage() { // Renamed component
 
   return (
     <div className="container mx-auto py-4 space-y-6">
-      {selectedProject ? renderSelectedProjectDetail(selectedProject) : renderProjectList()} {/* Renamed function calls */}
+      {selectedProject ? renderSelectedProjectDetail(selectedProject) : renderProjectList()}
     </div>
   );
 }
+
+    
