@@ -65,15 +65,20 @@ const en = {
       pendingoffer: 'Pending Offer',
       pendingdpinvoice: 'Pending DP Invoice',
       pendingadminfiles: 'Pending Admin Files',
-      pendingarchitectfiles: 'Pending Architect Files', // Corrected spelling
-      pendingstructurefiles: 'Pending Structure Files', // Corrected spelling
+      pendingarchitectfiles: 'Architect', // Corrected spelling
+      pendingstructurefiles: 'Structure', // Corrected spelling
       pendingfinalcheck: 'Pending Final Check',
       pendingscheduling: 'Pending Scheduling',
+      owner: 'Owner', // Added translation for roles used in 'assignedTo'
+      generaladmin: 'General Admin',
+      adminproyek: 'Project Admin',
+      arsitek: 'Architect',
+      struktur: 'Structure',
+      admindeveloper: 'Admin Developer',
     },
     progress: '{progress}% Complete',
     averageProgressTitle: 'Average Progress',
     averageProgressDesc: 'Average completion rate across all your projects.',
-    // Chart related keys removed
   },
   // Projects Page (Renamed from Tasks Page)
   projectsPage: {

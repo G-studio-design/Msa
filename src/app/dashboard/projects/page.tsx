@@ -59,6 +59,7 @@ import {
 } from "@/components/ui/dropdown-menu"; // Import Dropdown for filtering
 import { cn } from '@/lib/utils'; // Import cn utility
 import { notifyUsersByRole } from '@/services/notification-service'; // Import notification service
+import { useSearchParams, useRouter } from 'next/navigation'; // Import navigation hooks
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -75,6 +76,8 @@ export default function ProjectsPage() {
   const { toast } = useToast();
   const { language } = useLanguage(); // Get current language
   const { currentUser } = useAuth(); // Get current user from AuthContext
+  const searchParams = useSearchParams(); // Hook to read URL search parameters
+  const router = useRouter(); // Hook for navigation
   const [isClient, setIsClient] = React.useState(false); // State to track client-side mount
   const [dict, setDict] = React.useState(() => getDictionary(language)); // Initialize dict directly
   const [projectsDict, setProjectsDict] = React.useState(() => dict.projectsPage);
@@ -94,6 +97,27 @@ export default function ProjectsPage() {
 
   // State for filtering
   const [statusFilter, setStatusFilter] = React.useState<string[]>([]); // Array of statuses to show
+
+  // Effect to select project based on URL parameter
+  React.useEffect(() => {
+      if (isClient && allProjects.length > 0 && !isLoadingProjects) {
+          const projectIdFromUrl = searchParams.get('projectId');
+          if (projectIdFromUrl) {
+              const projectToSelect = allProjects.find(p => p.id === projectIdFromUrl);
+              if (projectToSelect) {
+                  setSelectedProject(projectToSelect);
+                  // Optional: Clear the URL parameter after selecting
+                  // router.replace('/dashboard/projects', { scroll: false });
+              } else {
+                  console.warn(`Project with ID "${projectIdFromUrl}" from URL not found.`);
+                  toast({ variant: 'destructive', title: 'Error', description: 'Project specified in URL not found.' });
+                  // Clear the invalid parameter
+                  router.replace('/dashboard/projects', { scroll: false });
+              }
+          }
+      }
+  }, [searchParams, allProjects, isClient, isLoadingProjects, router, toast]); // Add dependencies
+
 
   React.useEffect(() => {
     setIsClient(true);
@@ -787,7 +811,7 @@ export default function ProjectsPage() {
                     <div>
                       <CardTitle className="text-lg">{projectItem.title}</CardTitle>
                       <CardDescription className="text-xs text-muted-foreground">
-                        {projectsDict.assignedLabel}: {projectItem.assignedDivision || projectsDict.none} {projectItem.nextAction ? `| ${projectsDict.nextActionLabel}: ${projectItem.nextAction}` : ''}
+                        {projectsDict.assignedLabel}: {getTranslatedStatus(projectItem.assignedDivision) || projectsDict.none} {projectItem.nextAction ? `| ${projectsDict.nextActionLabel}: ${projectItem.nextAction}` : ''}
                       </CardDescription>
                     </div>
                     {getStatusBadge(projectItem.status)}
@@ -840,7 +864,7 @@ export default function ProjectsPage() {
                           {/* TODO: Allow editing title for Owner, GA, PA */}
                            <CardTitle className="text-2xl">{project.title}</CardTitle>
                            <CardDescription>
-                               {projectsDict.statusLabel}: {getStatusBadge(project.status)} | {projectsDict.nextActionLabel}: {project.nextAction || projectsDict.none} | {projectsDict.assignedLabel}: {project.assignedDivision || projectsDict.none}
+                               {projectsDict.statusLabel}: {getStatusBadge(project.status)} | {projectsDict.nextActionLabel}: {project.nextAction || projectsDict.none} | {projectsDict.assignedLabel}: {getTranslatedStatus(project.assignedDivision) || projectsDict.none}
                            </CardDescription>
                          </div>
                            <div className="text-right">
@@ -1090,7 +1114,7 @@ export default function ProjectsPage() {
                                 <div className={`mt-1 h-3 w-3 rounded-full flex-shrink-0 ${index === project.workflowHistory.length - 1 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
                                 <div>
                                     <p className="text-sm font-medium">
-                                        {projectsDict.historyActionBy.replace('{action}', entry.action).replace('{division}', entry.division)}
+                                        {projectsDict.historyActionBy.replace('{action}', entry.action).replace('{division}', getTranslatedStatus(entry.division))}
                                     </p>
                                     <p className="text-xs text-muted-foreground">{formatTimestamp(entry.timestamp)}</p> {/* Use memoized helper */}
                                 </div>

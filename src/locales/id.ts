@@ -65,15 +65,20 @@ const id = {
       pendingoffer: 'Menunggu Penawaran',
       pendingdpinvoice: 'Menunggu Faktur DP',
       pendingadminfiles: 'Menunggu File Admin',
-      pendingarchitectfiles: 'Menunggu File Arsitek', // Corrected spelling
-      pendingstructurefiles: 'Menunggu File Struktur', // Corrected spelling
+      pendingarchitectfiles: 'Arsitek', // Corrected spelling
+      pendingstructurefiles: 'Struktur', // Corrected spelling
       pendingfinalcheck: 'Menunggu Pemeriksaan Akhir',
       pendingscheduling: 'Menunggu Penjadwalan',
+      owner: 'Pemilik', // Added translation for roles used in 'assignedTo'
+      generaladmin: 'Admin Umum',
+      adminproyek: 'Admin Proyek',
+      arsitek: 'Arsitek',
+      struktur: 'Struktur',
+      admindeveloper: 'Admin Pengembang',
     },
      progress: '{progress}% Selesai',
      averageProgressTitle: 'Rata-rata Progres',
      averageProgressDesc: 'Tingkat penyelesaian rata-rata di semua proyek Anda.',
-     // Chart related keys removed
   },
   // Projects Page (Renamed from Tasks Page)
   projectsPage: {

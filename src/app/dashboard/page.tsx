@@ -14,7 +14,6 @@ import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 import { getAllProjects, type Project } from '@/services/project-service';
-// Chart imports removed as they are no longer used
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -314,37 +313,39 @@ export default function DashboardPage() {
               <p className="text-muted-foreground text-center py-4">{isClient ? dashboardDict.noProjects : defaultDict.dashboardPage.noProjects}</p>
             ) : (
               filteredProjects.map((project) => (
-                <Card key={project.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                     <div>
-                       <CardTitle className="text-lg">{project.title}</CardTitle>
-                       <CardDescription className="text-xs text-muted-foreground">
-                         {isClient && dashboardDict ? `${dashboardDict.assignedTo}: ${getTranslatedStatus(project.assignedDivision)} ${project.nextAction ? `| ${dashboardDict.nextAction}: ${project.nextAction}` : ''}` : '...'}
-                       </CardDescription>
-                     </div>
-                     {getStatusBadge(project.status)}
-                  </CardHeader>
-                  <CardContent>
-                     {project.status !== 'Canceled' && project.status !== 'Completed' && ( // Don't show progress for completed/canceled
-                       <div className="flex items-center gap-2">
-                          <Progress value={project.progress} className="flex-1 h-2" />
-                          <span className="text-xs text-muted-foreground font-medium">
-                            {project.progress}%
-                          </span>
+                <Link key={project.id} href={`/dashboard/projects?projectId=${project.id}`} passHref>
+                  <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                       <div>
+                         <CardTitle className="text-lg">{project.title}</CardTitle>
+                         <CardDescription className="text-xs text-muted-foreground">
+                           {isClient && dashboardDict ? `${dashboardDict.assignedTo}: ${getTranslatedStatus(project.assignedDivision)} ${project.nextAction ? `| ${dashboardDict.nextAction}: ${project.nextAction}` : ''}` : '...'}
+                         </CardDescription>
                        </div>
-                     )}
-                     {project.status === 'Canceled' && (
-                        <p className="text-sm text-destructive font-medium">
-                          {isClient ? getTranslatedStatus(project.status) : defaultDict.dashboardPage.projectCanceled}
-                        </p>
-                     )}
-                     {project.status === 'Completed' && (
-                         <p className="text-sm text-green-600 font-medium">
-                           {isClient ? getTranslatedStatus(project.status) : defaultDict.dashboardPage.projectCompleted}
-                         </p>
-                      )}
-                  </CardContent>
-                </Card>
+                       {getStatusBadge(project.status)}
+                    </CardHeader>
+                    <CardContent>
+                       {project.status !== 'Canceled' && project.status !== 'Completed' && ( // Don't show progress for completed/canceled
+                         <div className="flex items-center gap-2">
+                            <Progress value={project.progress} className="flex-1 h-2" />
+                            <span className="text-xs text-muted-foreground font-medium">
+                              {project.progress}%
+                            </span>
+                         </div>
+                       )}
+                       {project.status === 'Canceled' && (
+                          <p className="text-sm text-destructive font-medium">
+                            {isClient ? getTranslatedStatus(project.status) : defaultDict.dashboardPage.projectCanceled}
+                          </p>
+                       )}
+                       {project.status === 'Completed' && (
+                           <p className="text-sm text-green-600 font-medium">
+                             {isClient ? getTranslatedStatus(project.status) : defaultDict.dashboardPage.projectCompleted}
+                           </p>
+                        )}
+                    </CardContent>
+                  </Card>
+                </Link>
               ))
             )}
           </div>
