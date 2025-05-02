@@ -42,35 +42,7 @@ import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { useRouter } from 'next/navigation'; // Import useRouter for navigation
 import { cn } from '@/lib/utils'; // Import cn utility
-
-// Define a type for notifications
-interface Notification {
-  id: string;
-  message: string;
-  projectId: string; // ID of the project related to the notification
-  timestamp: string; // ISO string
-  isRead: boolean;
-}
-
-// Mock notification data (replace with actual fetching logic)
-// Updated messages to use project title if available, otherwise ID
-// Let's assume getProjectTitleById is a function that fetches the title (could be cached)
-// For demonstration, we'll just use the ID or a placeholder title
-const getProjectTitle = (projectId: string): string => {
-    // In a real app, fetch the title based on ID, maybe from a cached project list
-    // Example: const project = projects.find(p => p.id === projectId); return project?.title || projectId;
-    if (projectId === 'project_alpha_id') return 'Canggu Residence';
-    if (projectId === 'project_beta_id') return 'Mengwi Villa';
-    if (projectId === 'project_gamma_id') return 'Jimbaran Project';
-    return `Project ID "${projectId}"`; // Fallback to ID
-}
-
-const mockNotifications: Notification[] = [
-  { id: 'notif1', message: `${getProjectTitle('project_alpha_id')} needs your approval.`, projectId: 'project_alpha_id', timestamp: new Date(Date.now() - 3600000).toISOString(), isRead: false },
-  { id: 'notif2', message: `New files uploaded for ${getProjectTitle('project_beta_id')}.`, projectId: 'project_beta_id', timestamp: new Date(Date.now() - 7200000).toISOString(), isRead: false },
-  { id: 'notif3', message: `Sidang scheduled for ${getProjectTitle('project_gamma_id')}.`, projectId: 'project_gamma_id', timestamp: new Date(Date.now() - 86400000).toISOString(), isRead: true },
-];
-
+import { getNotificationsForUser, markNotificationAsRead, type Notification } from '@/services/notification-service'; // Import notification types and functions
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -88,17 +60,32 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setIsClient(true); // Component has mounted client-side
-    // Simulate fetching notifications
-    if (currentUser) {
-       // In a real app, fetch notifications specific to the currentUser here
-       // Example: Fetch notifications using a service function
-       // const fetchedNotifications = await getNotificationsForUser(currentUser.id);
-       // setNotifications(fetchedNotifications);
-       setNotifications(mockNotifications); // Use mock data for now
-    } else {
+
+    const fetchNotifications = async () => {
+      if (currentUser) {
+        try {
+          // Fetch notifications specific to the currentUser
+          const fetchedNotifications = await getNotificationsForUser(currentUser.id);
+          setNotifications(fetchedNotifications);
+          console.log(`Fetched ${fetchedNotifications.length} notifications for user ${currentUser.id}`);
+        } catch (error) {
+           console.error("Failed to fetch notifications:", error);
+           // Optionally show a toast message
+           // toast({ variant: 'destructive', title: 'Error', description: 'Could not load notifications.' });
+        }
+      } else {
         setNotifications([]); // Clear notifications if no user
-    }
-  }, [currentUser]); // Re-fetch or clear notifications when user changes
+        console.log("No current user, clearing notifications.");
+      }
+    };
+
+    fetchNotifications();
+
+    // Optional: Set up polling or WebSocket connection for real-time updates
+    // const intervalId = setInterval(fetchNotifications, 30000); // Example: Fetch every 30s
+    // return () => clearInterval(intervalId); // Cleanup on unmount
+
+  }, [currentUser]); // Re-fetch notifications when user changes
 
   useEffect(() => {
     // Calculate unread count when notifications change
@@ -160,7 +147,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
     { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
     { href: "/dashboard/users", icon: Users, labelKey: "manageUsers", roles: ["Owner", "General Admin", "Admin Developer"] }, // Restricted access
-    { href: "/dashboard/admin-actions", icon: UserCog, labelKey: "adminActions", roles: ["Owner", "General Admin"] },
+    { href: "/dashboard/admin-actions", icon: UserCog, labelKey: "adminActions", roles: ["Owner", "General Admin", "Admin Proyek"] }, // Added Admin Proyek
     { href: "/dashboard/settings", icon: Settings, labelKey: "settings", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
   ];
 
@@ -220,15 +207,28 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
    }
 
    // Handle notification click
-   const handleNotificationClick = (notification: Notification) => {
+   const handleNotificationClick = async (notification: Notification) => {
        console.log(`Notification clicked: ${notification.id}, Project ID: ${notification.projectId}`);
-       // Mark notification as read (update state and potentially backend)
-       setNotifications(prev =>
-           prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
-       );
-       // Navigate to the project details page
-       // Assuming project IDs are stable and can be used in URLs
-       router.push(`/dashboard/projects?projectId=${notification.projectId}`);
+       // Mark notification as read (update state and backend)
+       if (!notification.isRead) {
+           try {
+               await markNotificationAsRead(notification.id);
+               setNotifications(prev =>
+                   prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
+               );
+               console.log(`Notification ${notification.id} marked as read successfully.`);
+           } catch (error) {
+                console.error("Failed to mark notification as read:", error);
+                // Optionally show error toast to user
+           }
+       }
+       // Navigate to the project details page if projectId exists
+       if (notification.projectId) {
+           router.push(`/dashboard/projects?projectId=${notification.projectId}`);
+       } else {
+            console.warn("Notification clicked, but no project ID associated.");
+            // Optionally navigate somewhere else or show a message
+       }
    };
 
 
@@ -416,3 +416,5 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
+    
