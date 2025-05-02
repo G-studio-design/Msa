@@ -793,14 +793,14 @@ export default function ProjectsPage() {
                     {getStatusBadge(projectItem.status)}
                   </CardHeader>
                   <CardContent>
-                    {projectItem.status !== 'Canceled' && projectItem.status !== 'Completed' && (
-                      <>
-                        <Progress value={projectItem.progress} className="w-full h-2 mb-1" />
-                        <span className="text-xs text-muted-foreground">
-                          {dashboardDict?.progress?.replace('{progress}', projectItem.progress.toString()) ?? `${projectItem.progress}%`}
-                        </span>
-                      </>
-                    )}
+                     {projectItem.status !== 'Canceled' && projectItem.status !== 'Completed' && (
+                       <div className="flex items-center gap-2">
+                          <Progress value={projectItem.progress} className="flex-1 h-2" />
+                          <span className="text-xs text-muted-foreground font-medium">
+                            {projectItem.progress}%
+                          </span>
+                       </div>
+                     )}
                     {(projectItem.status === 'Canceled' || projectItem.status === 'Completed') && (
                       <p className={`text-sm font-medium ${projectItem.status === 'Canceled' ? 'text-destructive' : 'text-green-600'}`}>
                         {getTranslatedStatus(projectItem.status)}
@@ -845,10 +845,12 @@ export default function ProjectsPage() {
                          </div>
                            <div className="text-right">
                                <div className="text-sm font-medium">{projectsDict.progressLabel}</div>
-                               <Progress value={project.progress} className="w-32 h-2 mt-1" />
-                               <span className="text-xs text-muted-foreground">
-                                   {dashboardDict?.progress?.replace('{progress}', project.progress.toString()) ?? `${project.progress}%`}
-                               </span>
+                               <div className="flex items-center gap-2 mt-1">
+                                    <Progress value={project.progress} className="w-32 h-2" />
+                                    <span className="text-xs text-muted-foreground font-medium">
+                                        {project.progress}%
+                                    </span>
+                                </div>
                            </div>
                      </div>
                    </CardHeader>

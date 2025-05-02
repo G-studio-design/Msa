@@ -189,7 +189,7 @@ export default function DashboardPage() {
     // Initialize counts for all known statuses and build key map
     Object.entries(dashboardDict.status).forEach(([key, translated]) => {
         statusCounts[translated] = 0; // Use translated status as key for counting display labels
-        statusKeyMap[translated] = key; // Store original key for color lookup
+        statusKeyMap[translated] = key; // Store original key for color mapping
     });
 
     filteredProjects.forEach(project => {
@@ -268,7 +268,7 @@ export default function DashboardPage() {
                      <CardContent>
                           <div className="space-y-4">
                               {[...Array(3)].map((_, i) => (
-                                  <Card key={`project-skel-${i}`} className="opacity-50"> {/* Updated key */}
+                                  <Card key={`project-skel-${i}`}> {/* Updated key */}
                                       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                                            <div>
                                                <Skeleton className="h-5 w-3/5 mb-1" />
@@ -438,12 +438,12 @@ export default function DashboardPage() {
                   </CardHeader>
                   <CardContent>
                      {project.status !== 'Canceled' && project.status !== 'Completed' && ( // Don't show progress for completed/canceled
-                       <>
-                          <Progress value={project.progress} className="w-full h-2 mb-1" />
-                          <span className="text-xs text-muted-foreground">
-                            {isClient && dashboardDict ? dashboardDict.progress.replace('{progress}', project.progress.toString()) : '...'}
+                       <div className="flex items-center gap-2">
+                          <Progress value={project.progress} className="flex-1 h-2" />
+                          <span className="text-xs text-muted-foreground font-medium">
+                            {project.progress}%
                           </span>
-                       </>
+                       </div>
                      )}
                      {project.status === 'Canceled' && (
                         <p className="text-sm text-destructive font-medium">
@@ -465,16 +465,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-                </p>
-                      )}
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
-
