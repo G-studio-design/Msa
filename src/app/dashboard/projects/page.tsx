@@ -86,10 +86,11 @@ export default function ProjectsPage() {
 
   const [description, setDescription] = React.useState('');
   const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false); // General submission loading state
   const [scheduleDate, setScheduleDate] = React.useState('');
   const [scheduleTime, setScheduleTime] = React.useState('');
   const [scheduleLocation, setScheduleLocation] = React.useState('');
+  const [isAddingToCalendar, setIsAddingToCalendar] = React.useState(false); // Specific state for calendar action
 
   // State for filtering
   const [statusFilter, setStatusFilter] = React.useState<string[]>([]); // Array of statuses to show
@@ -167,11 +168,34 @@ export default function ProjectsPage() {
   // Determine if the current user (from context) can perform the action on the SELECTED project - MEMOIZED
   const canPerformSelectedProjectAction = React.useMemo(() => {
     if (!currentUser || !selectedProject) return false;
+
+     // Owner and GA can generally perform most actions (except submitting for specific divisions unless overridden)
+     if (['Owner', 'General Admin'].includes(currentUser.role)) {
+       // Check if they are specifically blocked from submitting for another division (e.g., Architect files)
+       // For now, assume they can act on most steps, except maybe specific division uploads?
+       // If the project is assigned to them, they can definitely act.
+       if (currentUser.role === selectedProject.assignedDivision) return true;
+       // Allow GA/Owner to schedule/approve even if not directly assigned at that step
+       if (selectedProject.status === 'Pending Scheduling' || selectedProject.status === 'Pending Approval') return true;
+       // Allow GA/Owner to declare sidang outcome if assigned to Owner
+       if (selectedProject.status === 'Scheduled' && selectedProject.assignedDivision === 'Owner') return true;
+
+       // Let's generally allow GA/Owner to submit progress unless it's explicitly assigned to a technical role?
+       // This needs refinement based on exact permissions. For now, let's allow them if the step isn't highly specialized.
+       if (!['Arsitek', 'Struktur'].includes(selectedProject.assignedDivision)) {
+            return true;
+        }
+
+     }
+
     // Directly assigned role can act
     if (currentUser.role === selectedProject.assignedDivision) return true;
-    // Specific exception: Admin Proyek can act on 'Pending Offer' even if not assigned (because Owner is assigned technically)
+
+    // Specific exception: Admin Proyek can act on 'Pending Offer' even if not assigned (Owner might be technically assigned)
     if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer') return true;
-    return false;
+
+
+    return false; // Default to false if no condition met
   }, [currentUser, selectedProject]);
 
   // Helper to get translated status - MEMOIZED
@@ -202,7 +226,7 @@ export default function ProjectsPage() {
      switch (status.toLowerCase()) {
         case 'completed':
             variant = 'default';
-            className = 'bg-green-500 hover:bg-green-600';
+            className = 'bg-green-500 hover:bg-green-600 text-white'; // Added text-white
             Icon = CheckCircle;
             break;
         case 'inprogress':
@@ -508,7 +532,7 @@ export default function ProjectsPage() {
      const sidangDateTime = new Date(`${scheduleDate}T${scheduleTime}`);
      console.log(`Scheduling Sidang for project ${selectedProject.id}:`, { dateTime: sidangDateTime, location: scheduleLocation });
 
-     // TODO: API Call to save schedule to DB
+     // TODO: API Call to save schedule to DB (already part of updateProject)
      new Promise(resolve => setTimeout(resolve, 1000)).then(async () => { // Make async
         const historyEntry: WorkflowHistoryEntry = { division: currentUser!.role, action: `Scheduled Sidang for ${sidangDateTime.toISOString()}`, timestamp: new Date().toISOString() }; // Use non-null assertion
 
@@ -532,6 +556,9 @@ export default function ProjectsPage() {
             setScheduleLocation('');
             setIsSubmitting(false);
             toast({ title: projectsDict.toast.sidangScheduled, description: projectsDict.toast.sidangScheduledDesc });
+            // Call Google Calendar Service AFTER successfully updating the project
+            handleAddToCalendar(sidangDateTime, scheduleLocation); // Pass date and location
+
         } catch (error) {
             console.error("Error updating project after scheduling:", error);
             toast({ variant: 'destructive', title: 'Update Error', description: 'Failed to save schedule.' });
@@ -540,43 +567,43 @@ export default function ProjectsPage() {
      });
   };
 
-    const handleAddToCalendar = async () => {
-      if (!selectedProject || selectedProject.status !== 'Scheduled') {
+    const handleAddToCalendar = async (scheduledDateTime: Date, location: string) => {
+      if (!selectedProject || selectedProject.status !== 'Scheduled' || !scheduledDateTime) {
         toast({ variant: 'destructive', title: projectsDict.toast.cannotAddCalendarYet, description: projectsDict.toast.mustScheduleFirst });
         return;
       }
-        const schedulingEntry = selectedProject.workflowHistory.find(entry => entry.action.startsWith('Scheduled Sidang for '));
-        if (!schedulingEntry) {
-             toast({ variant: 'destructive', title: projectsDict.toast.errorFindingSchedule, description: projectsDict.couldNotFindSchedule });
-             return;
-        }
+        // Scheduling entry check can be removed if date is passed directly
 
-         const isoString = schedulingEntry.action.replace('Scheduled Sidang for ', '');
-         const scheduledDateTime = new Date(isoString);
+        // const schedulingEntry = selectedProject.workflowHistory.find(entry => entry.action.startsWith('Scheduled Sidang for '));
+        // if (!schedulingEntry) {
+        //      toast({ variant: 'destructive', title: projectsDict.toast.errorFindingSchedule, description: projectsDict.couldNotFindSchedule });
+        //      return;
+        // }
+        // const isoString = schedulingEntry.action.replace('Scheduled Sidang for ', '');
+        // const scheduledDateTime = new Date(isoString);
 
-         // Find location from the scheduling history or a relevant file/field if stored differently
-         // Placeholder: Assume location is stored in a project field or derived somehow
-         const location = scheduleLocation || "Meeting Room 1"; // Use state or fetch if needed
+        // Location is now passed as an argument
+        const eventLocation = location || "Meeting Room 1"; // Use passed location or default
 
-         const endTime = new Date(scheduledDateTime.getTime() + 60 * 60 * 1000); // Assume 1 hour duration
+        const endTime = new Date(scheduledDateTime.getTime() + 60 * 60 * 1000); // Assume 1 hour duration
 
       const eventDetails = {
           title: `Sidang: ${selectedProject.title}`,
-          location: location,
+          location: eventLocation,
           startTime: scheduledDateTime.toISOString(),
           endTime: endTime.toISOString(),
           description: `Sidang discussion for project: ${selectedProject.title}`,
       };
 
       try {
-        setIsSubmitting(true);
-        const eventId = await scheduleEvent(eventDetails);
+        setIsAddingToCalendar(true); // Use separate loading state
+        const eventId = await scheduleEvent(eventDetails); // Call the service
         toast({ title: projectsDict.toast.addedToCalendar, description: projectsDict.toast.eventId.replace('{id}', eventId) });
       } catch (error) {
         console.error("Error scheduling event:", error);
         toast({ variant: 'destructive', title: projectsDict.toast.calendarError, description: projectsDict.couldNotAddEvent });
       } finally {
-        setIsSubmitting(false);
+        setIsAddingToCalendar(false); // Stop calendar-specific loading
       }
     };
 
@@ -631,7 +658,12 @@ export default function ProjectsPage() {
                 selectedProject.assignedDivision === currentUser.role && // Allow user to act if assigned
                 !['Pending Approval', 'Pending Scheduling', 'Scheduled', 'Completed', 'Canceled'] // AND not in these final/waiting states
                  .includes(selectedProject.status)
-            )
+            ) ||
+             // Allow Owner/GA to submit progress in certain non-technical stages if assigned
+             (['Owner', 'General Admin'].includes(currentUser.role) &&
+                selectedProject.assignedDivision === currentUser.role &&
+                !['Pending Architect Files', 'Pending Structure Files'].includes(selectedProject.status)) // Example: Don't let them upload technical files directly
+
         );
    }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
@@ -950,16 +982,34 @@ export default function ProjectsPage() {
                             </div>
                           )}
 
-                       {showCalendarButton && (
+                        {/* Add to Calendar button only shown after scheduling */}
+                        {showCalendarButton && (
                            <div className="border-t pt-4 mt-4">
-                              <Button onClick={handleAddToCalendar} disabled={isSubmitting} variant="outline">
-                                   {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> :
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><line x1="12" y1="14" x2="12" y2="18"></line><line x1="10" y1="16" x2="14" y2="16"></line></svg>
+                               <Button
+                                   onClick={() => {
+                                        // Find the scheduled date/time from history or state
+                                        const schedulingEntry = project.workflowHistory.find(entry => entry.action.startsWith('Scheduled Sidang for '));
+                                        if (schedulingEntry) {
+                                            const isoString = schedulingEntry.action.replace('Scheduled Sidang for ', '');
+                                            const scheduledDateTime = new Date(isoString);
+                                            // Need location. If not stored directly, might need to extract from history/files or assume default
+                                            const location = "Meeting Room 1"; // Placeholder
+                                            handleAddToCalendar(scheduledDateTime, location);
+                                        } else {
+                                             toast({ variant: 'destructive', title: projectsDict.toast.errorFindingSchedule, description: projectsDict.couldNotFindSchedule });
+                                        }
+                                    }}
+                                    disabled={isAddingToCalendar} // Use separate loading state
+                                    variant="outline"
+                                >
+                                   {isAddingToCalendar ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> :
+                                      // Using SVG for Google Calendar icon as lucide doesn't have it directly
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm4.5-11.5L11 14.01l-2.5-2.51L7 13l4 4 6.5-6.5L16.5 8.5z"></path></svg>
                                    }
-                                  {isSubmitting ? projectsDict.addingCalendarButton : projectsDict.addCalendarButton}
+                                  {isAddingToCalendar ? projectsDict.addingCalendarButton : projectsDict.addCalendarButton}
                                </Button>
                            </div>
-                       )}
+                        )}
 
 
                       {showSidangOutcomeSection && (
@@ -1058,5 +1108,3 @@ export default function ProjectsPage() {
     </div>
   );
 }
-
-    

@@ -166,7 +166,7 @@ const en = {
       missingScheduleInfo: 'Missing Schedule Info',
       provideDateTimeLoc: 'Please provide date, time, and location.',
       sidangScheduled: 'Sidang Scheduled',
-      sidangScheduledDesc: 'All relevant parties notified.',
+      sidangScheduledDesc: 'All relevant parties notified. Attempting to add to calendar.',
       cannotAddCalendarYet: 'Cannot Add Yet',
       mustScheduleFirst: 'Sidang must be scheduled first.',
       calendarError: 'Calendar Error',

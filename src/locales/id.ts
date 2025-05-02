@@ -167,7 +167,7 @@ const id = {
         missingScheduleInfo: 'Info Jadwal Kurang',
         provideDateTimeLoc: 'Harap berikan tanggal, waktu, dan lokasi.',
         sidangScheduled: 'Sidang Dijadwalkan',
-        sidangScheduledDesc: 'Semua pihak terkait diberitahu.',
+        sidangScheduledDesc: 'Semua pihak terkait diberitahu. Mencoba menambahkan ke kalender.',
         cannotAddCalendarYet: 'Belum Bisa Ditambahkan',
         mustScheduleFirst: 'Sidang harus dijadwalkan terlebih dahulu.',
         calendarError: 'Kesalahan Kalender',

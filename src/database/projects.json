@@ -2,10 +2,10 @@
   {
     "id": "project_1746135389371_75z4h",
     "title": "proyek canggu",
-    "status": "Pending Structure Files",
-    "progress": 70,
-    "assignedDivision": "Struktur",
-    "nextAction": "Upload Structure Files",
+    "status": "Scheduled",
+    "progress": 90,
+    "assignedDivision": "Owner",
+    "nextAction": "Declare Sidang Outcome (Success/Fail)",
     "workflowHistory": [
       {
         "division": "sudina",
@@ -51,6 +51,21 @@
         "division": "Arsitek",
         "action": "Uploaded Architect Files",
         "timestamp": "2025-05-02T02:37:50.596Z"
+      },
+      {
+        "division": "Struktur",
+        "action": "Uploaded Structure Files",
+        "timestamp": "2025-05-02T02:43:02.638Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "Completed Final Check",
+        "timestamp": "2025-05-02T02:44:50.190Z"
+      },
+      {
+        "division": "Owner",
+        "action": "Scheduled Sidang for 2025-05-03T03:45:00.000Z",
+        "timestamp": "2025-05-02T02:46:08.505Z"
       }
     ],
     "files": [
@@ -78,6 +93,16 @@
         "name": "CV-ku.jpg",
         "uploadedBy": "arch_wayan",
         "timestamp": "2025-05-02T02:37:50.596Z"
+      },
+      {
+        "name": "cv wayan.pdf",
+        "uploadedBy": "struct_wayan",
+        "timestamp": "2025-05-02T02:43:02.638Z"
+      },
+      {
+        "name": "cv wayan.pdf",
+        "uploadedBy": "komangmerta",
+        "timestamp": "2025-05-02T02:44:50.190Z"
       }
     ],
     "createdAt": "2025-05-01T21:36:29.371Z",
