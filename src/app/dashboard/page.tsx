@@ -1,3 +1,4 @@
+// src/app/dashboard/page.tsx
 'use client';
 
 import * as React from 'react';
@@ -6,15 +7,22 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button'; // Import Button
-import { CheckCircle, XCircle, Clock, AlertTriangle, PlusCircle, Loader2 } from 'lucide-react'; // Import PlusCircle & Loader2
+import { CheckCircle, XCircle, Clock, AlertTriangle, PlusCircle, Loader2, PieChart as PieChartIcon } from 'lucide-react'; // Import PlusCircle, Loader2, PieChartIcon
 import { useLanguage } from '@/context/LanguageContext'; // Import language context
 import { getDictionary } from '@/lib/translations'; // Import translation helper
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 import { getAllTasks, type Task } from '@/services/task-service'; // Import task service
-
-// Mock data removed - will fetch from service
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  type ChartConfig,
+} from "@/components/ui/chart"; // Import Chart components
+import { PieChart, Pie, Cell } from "recharts"; // Import Recharts components
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -25,10 +33,9 @@ export default function DashboardPage() {
   const { toast } = useToast(); // Initialize toast
   const [isClient, setIsClient] = React.useState(false);
   const [dict, setDict] = React.useState(() => getDictionary(language));
-  const dashboardDict = dict.dashboardPage; // Specific dictionary section
+  const [dashboardDict, setDashboardDict] = React.useState(() => dict.dashboardPage); // Initialize specific section
   const [tasks, setTasks] = React.useState<Task[]>([]); // State to hold fetched tasks
   const [isLoadingTasks, setIsLoadingTasks] = React.useState(true); // Loading state for tasks
-
 
   React.useEffect(() => {
       setIsClient(true);
@@ -51,7 +58,9 @@ export default function DashboardPage() {
   }, [currentUser, toast]);
 
   React.useEffect(() => {
-      setDict(getDictionary(language));
+      const newDict = getDictionary(language);
+      setDict(newDict);
+      setDashboardDict(newDict.dashboardPage); // Update specific section
   }, [language]);
 
   // Get user role from context, default to empty string if null/undefined
@@ -60,11 +69,18 @@ export default function DashboardPage() {
   // Check if the current user can add tasks based on role from context
   const canAddTask = ['Owner', 'General Admin'].includes(userRole);
 
-  // Placeholder function removed - button will now be a Link
+  // Helper function to get translated status
+  const getTranslatedStatus = (statusKey: string): string => {
+      if (!isClient || !dashboardDict?.status) return statusKey;
+      const key = statusKey?.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
+      return dashboardDict.status[key] || statusKey;
+  }
 
   // Helper function to get status icon and color using translated status
   const getStatusBadge = (status: string) => {
     if (!isClient) return <Skeleton className="h-5 w-20" />; // Skeleton during hydration mismatch check
+    if (!dashboardDict?.status) return <Badge variant="secondary">{status}</Badge>; // Fallback
+
     const statusKey = status.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
     const translatedStatus = dashboardDict.status[statusKey] || status; // Fallback to original
 
@@ -76,7 +92,7 @@ export default function DashboardPage() {
      switch (status.toLowerCase()) {
         case 'completed':
             variant = 'default';
-            className = 'bg-green-500 hover:bg-green-600';
+            className = 'bg-green-500 hover:bg-green-600 text-white'; // Added text-white for consistency
             Icon = CheckCircle;
             break;
         case 'inprogress':
@@ -105,8 +121,12 @@ export default function DashboardPage() {
         case 'pending':
         case 'pendinginput':
         case 'menunggu input': // Add Indonesian translation
-        case 'pendingoffer':
+        case 'pendingoffer': // Make this stand out slightly?
         case 'menunggu penawaran': // Add Indonesian translation
+            variant = 'outline'; // Example: Use outline for pending offer
+            className = 'border-blue-500 text-blue-600'; // Example: blue outline
+            Icon = Clock;
+            break;
         case 'pendingdpinvoice':
         case 'menunggu faktur dp': // Add Indonesian translation
         case 'pendingadminfiles':
@@ -136,7 +156,6 @@ export default function DashboardPage() {
     return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
   };
 
-
   // Filter tasks based on user role from context
    const filteredTasks = React.useMemo(() => {
         if (!userRole || !isClient || isLoadingTasks) return []; // Don't filter if not client or still loading
@@ -157,7 +176,58 @@ export default function DashboardPage() {
 
   const activeTasks = filteredTasks.filter(task => task.status !== 'Completed' && task.status !== 'Canceled');
   const completedTasksCount = filteredTasks.filter(task => task.status === 'Completed').length;
-  const pendingTasksCount = filteredTasks.filter(task => task.status === 'Pending' || task.status === 'Pending Approval' || task.status === 'Menunggu Persetujuan').length;
+  const pendingTasksCount = filteredTasks.filter(task => task.status === 'Pending' || task.status === 'Pending Approval' || task.status === 'Menunggu Persetujuan' || task.status === 'Pending Input' || task.status === 'Pending Offer' || task.status === 'Pending DP Invoice' || task.status === 'Pending Admin Files' || task.status === 'Pending Architect Files' || task.status === 'Pending Structure Files' || task.status === 'Pending Final Check' || task.status === 'Pending Scheduling').length;
+
+  // --- Chart Data Preparation ---
+  const taskStatusData = React.useMemo(() => {
+    if (!isClient || !dashboardDict?.status || filteredTasks.length === 0) {
+        return [];
+    }
+
+    const statusCounts: { [key: string]: number } = {};
+
+    // Initialize counts for all known statuses to ensure they appear in the legend
+    Object.keys(dashboardDict.status).forEach(key => {
+        // Convert status key back to original English format if needed for lookup, or rely on translation keys
+        // This assumes keys in dashboardDict.status match the keys used in tasks.status (lowercase, no space)
+         const originalStatus = Object.entries(dashboardDict.status).find(([origKey, trans]) => origKey === key)?.[0] ?? key;
+        statusCounts[originalStatus] = 0;
+    });
+
+
+    filteredTasks.forEach(task => {
+        const statusKey = task.status.toLowerCase().replace(/ /g, '');
+        const translatedStatus = dashboardDict.status[statusKey as keyof typeof dashboardDict.status] || task.status;
+        statusCounts[translatedStatus] = (statusCounts[translatedStatus] || 0) + 1;
+    });
+
+    // Filter out statuses with zero counts before creating chart data
+    return Object.entries(statusCounts)
+           .filter(([, count]) => count > 0)
+           .map(([status, count]) => ({
+                status,
+                count,
+                // Define fill color here or in chartConfig
+           }));
+  }, [filteredTasks, isClient, dashboardDict]);
+
+  // --- Chart Configuration ---
+  const chartConfig = React.useMemo(() => {
+      if (!isClient || !dashboardDict?.chartColors) return {} as ChartConfig;
+
+       const config: ChartConfig = {};
+       taskStatusData.forEach((data) => {
+         // Find the key corresponding to the translated status
+         const statusKey = Object.entries(dashboardDict.status).find(([, translated]) => translated === data.status)?.[0];
+          if (statusKey) {
+            config[data.status] = {
+              label: data.status, // Use the translated status as the label
+              color: dashboardDict.chartColors[statusKey as keyof typeof dashboardDict.chartColors] || "#cccccc", // Use color from dict or fallback
+              };
+          }
+       });
+       return config;
+  }, [isClient, dashboardDict, taskStatusData]);
 
 
    // Render loading state if user is not yet available on the client or tasks are loading
@@ -168,12 +238,11 @@ export default function DashboardPage() {
                 <div className="flex justify-between items-center mb-6">
                     <Skeleton className="h-8 w-48" />
                     {/* Skeleton for Add Task Button (if applicable) */}
-                    {/* Show skeleton only if the final state would show the button */}
                     {(currentUser?.role === 'Owner' || currentUser?.role === 'General Admin') && <Skeleton className="h-10 w-32" />}
                 </div>
                {/* Skeleton for Summary Cards */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
-                    {[...Array(3)].map((_, i) => (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6"> {/* Updated grid to 4 cols */}
+                    {[...Array(4)].map((_, i) => (
                          <Card key={`summary-skel-${i}`}>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <Skeleton className="h-4 w-2/4" />
@@ -216,7 +285,6 @@ export default function DashboardPage() {
        );
    }
 
-
   return (
     <div className="container mx-auto py-4 space-y-6">
       <div className="flex justify-between items-center mb-6">
@@ -234,9 +302,8 @@ export default function DashboardPage() {
         )}
       </div>
 
-
-       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
+       {/* Summary Cards & Chart */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6"> {/* Changed to 4 columns */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.activeTasks : defaultDict.dashboardPage.activeTasks}</CardTitle>
@@ -267,6 +334,65 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.pendingActionsDesc : defaultDict.dashboardPage.pendingActionsDesc}</p>
           </CardContent>
         </Card>
+
+        {/* Task Status Distribution Chart Card */}
+        <Card>
+           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+               <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.taskStatusChartTitle : defaultDict.dashboardPage.taskStatusChartTitle}</CardTitle>
+               <PieChartIcon className="h-4 w-4 text-muted-foreground" />
+           </CardHeader>
+           <CardContent>
+             {taskStatusData.length > 0 ? (
+               <ChartContainer config={chartConfig} className="mx-auto aspect-square h-[150px]"> {/* Adjust height */}
+                 <PieChart>
+                   <ChartTooltip
+                      cursor={false}
+                      content={<ChartTooltipContent hideLabel />}
+                    />
+                   <Pie
+                      data={taskStatusData}
+                      dataKey="count"
+                      nameKey="status"
+                      innerRadius={40} // Make it a donut chart
+                      strokeWidth={2}
+                      labelLine={false} // Hide label lines
+                      label={({ percent, x, y, midAngle }) => { // Custom small label inside segment
+                            const RADIAN = Math.PI / 180;
+                            const radius = 15 + 25 * 0.7; // Position label inside
+                            const lx = x + radius * Math.cos(-midAngle * RADIAN);
+                            const ly = y + radius * Math.sin(-midAngle * RADIAN);
+                            return (
+                                <text
+                                    x={lx}
+                                    y={ly}
+                                    fill="white" // White text for contrast
+                                    textAnchor={lx > x ? 'start' : 'end'}
+                                    dominantBaseline="central"
+                                    fontSize="10px" // Smaller font size
+                                    fontWeight="bold"
+                                >
+                                    {`${(percent * 100).toFixed(0)}%`}
+                                </text>
+                            );
+                        }}
+                    >
+                     {taskStatusData.map((entry) => (
+                       <Cell key={entry.status} fill={`var(--color-${entry.status})`} />
+                     ))}
+                   </Pie>
+                   <ChartLegend
+                      content={<ChartLegendContent nameKey="status" />}
+                      className="-translate-y-2 flex-wrap gap-1 [&>*]:basis-1/4 [&>*]:justify-center"
+                    />
+                 </PieChart>
+               </ChartContainer>
+             ) : (
+               <p className="text-xs text-muted-foreground text-center h-[150px] flex items-center justify-center">
+                 {isClient ? dashboardDict.noDataForChart : defaultDict.dashboardPage.noDataForChart}
+               </p>
+             )}
+           </CardContent>
+         </Card>
       </div>
 
        {/* Task List */}
@@ -274,9 +400,9 @@ export default function DashboardPage() {
          <CardHeader>
            <CardTitle>{isClient ? dashboardDict.taskOverview : defaultDict.dashboardPage.taskOverview}</CardTitle>
            <CardDescription>
-             {isClient ? (userRole === 'General Admin' || userRole === 'Owner' || userRole === 'Admin Developer'
+             {isClient ? (userRole === 'General Admin' || userRole === 'Owner' || userRole === 'Admin Developer' || userRole === 'Admin Proyek'
                 ? dashboardDict.allTasksDesc
-                : dashboardDict.divisionTasksDesc.replace('{division}', userRole)) : '...'}
+                : dashboardDict.divisionTasksDesc.replace('{division}', getTranslatedStatus(userRole))) : '...'}
            </CardDescription>
          </CardHeader>
         <CardContent>
@@ -290,7 +416,7 @@ export default function DashboardPage() {
                      <div>
                        <CardTitle className="text-lg">{task.title}</CardTitle>
                        <CardDescription className="text-xs text-muted-foreground">
-                         {isClient ? `${dashboardDict.assignedTo}: ${task.assignedDivision} ${task.nextAction ? `| ${dashboardDict.nextAction}: ${task.nextAction}` : ''}` : '...'}
+                         {isClient && dashboardDict ? `${dashboardDict.assignedTo}: ${getTranslatedStatus(task.assignedDivision)} ${task.nextAction ? `| ${dashboardDict.nextAction}: ${task.nextAction}` : ''}` : '...'}
                        </CardDescription>
                      </div>
                      {getStatusBadge(task.status)}
@@ -300,18 +426,18 @@ export default function DashboardPage() {
                        <>
                           <Progress value={task.progress} className="w-full h-2 mb-1" />
                           <span className="text-xs text-muted-foreground">
-                            {isClient ? dashboardDict.progress.replace('{progress}', task.progress.toString()) : '...'}
+                            {isClient && dashboardDict ? dashboardDict.progress.replace('{progress}', task.progress.toString()) : '...'}
                           </span>
                        </>
                      )}
                      {task.status === 'Canceled' && (
                         <p className="text-sm text-destructive font-medium">
-                          {isClient ? dashboardDict.taskCanceled : defaultDict.dashboardPage.taskCanceled}
+                          {isClient ? getTranslatedStatus(task.status) : defaultDict.dashboardPage.taskCanceled}
                         </p>
                      )}
                      {task.status === 'Completed' && (
                          <p className="text-sm text-green-600 font-medium">
-                           {isClient ? dashboardDict.taskCompleted : defaultDict.dashboardPage.taskCompleted}
+                           {isClient ? getTranslatedStatus(task.status) : defaultDict.dashboardPage.taskCompleted}
                          </p>
                       )}
                   </CardContent>
@@ -324,4 +450,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

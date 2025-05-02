@@ -1,3 +1,4 @@
+// src/components/ui/chart.tsx
 "use client"
 
 import * as React from "react"
@@ -188,7 +189,7 @@ const ChartTooltipContent = React.forwardRef<
           {payload.map((item, index) => {
             const key = `${nameKey || item.name || item.dataKey || "value"}`
             const itemConfig = getPayloadConfigFromPayload(config, item, key)
-            const indicatorColor = color || item.payload.fill || item.color
+            const indicatorColor = color || item.payload.fill || item.color || 'hsl(var(--foreground))'; // Added fallback color
 
             return (
               <div
@@ -238,7 +239,7 @@ const ChartTooltipContent = React.forwardRef<
                           {itemConfig?.label || item.name}
                         </span>
                       </div>
-                      {item.value && (
+                      {item.value != null && ( // Check for null or undefined
                         <span className="font-mono font-medium tabular-nums text-foreground">
                           {item.value.toLocaleString()}
                         </span>
@@ -287,7 +288,9 @@ const ChartLegendContent = React.forwardRef<
       >
         {payload.map((item) => {
           const key = `${nameKey || item.dataKey || "value"}`
-          const itemConfig = getPayloadConfigFromPayload(config, item, key)
+          // Ensure config exists before accessing payload
+          const itemConfig = config ? getPayloadConfigFromPayload(config, item, key) : undefined;
+          const color = item.color || (itemConfig ? itemConfig.color : undefined) || '#cccccc'; // Get color from item or config, fallback
 
           return (
             <div
@@ -302,11 +305,11 @@ const ChartLegendContent = React.forwardRef<
                 <div
                   className="h-2 w-2 shrink-0 rounded-[2px]"
                   style={{
-                    backgroundColor: item.color,
+                    backgroundColor: color, // Use the determined color
                   }}
                 />
               )}
-              {itemConfig?.label}
+              {itemConfig?.label || item.value} {/* Display label from config or fallback to item value */}
             </div>
           )
         })}
@@ -350,9 +353,10 @@ function getPayloadConfigFromPayload(
     ] as string
   }
 
-  return configLabelKey in config
+  // Ensure config is defined before accessing properties
+  return config && configLabelKey in config
     ? config[configLabelKey]
-    : config[key as keyof typeof config]
+    : config && key in config ? config[key as keyof typeof config] : undefined;
 }
 
 export {

@@ -17,14 +17,11 @@ const en = {
     bypassButton: 'Bypass Login as Admin (Dev)',
     bypassTitle: 'Bypass Login',
     bypassing: 'Bypassing...',
-    // Google Sign-In text removed
     validation: {
         usernameRequired: 'Username is required.',
         passwordRequired: 'Password is required.',
     }
   },
-   // Account Setup Dialog Removed
-   // accountSetup: { ... },
   // Dashboard Layout
   dashboardLayout: {
     menuTitle: 'Menu',
@@ -74,6 +71,26 @@ const en = {
       pendingscheduling: 'Pending Scheduling',
     },
     progress: '{progress}% Complete',
+    taskStatusChartTitle: 'Task Status Distribution', // New
+    noDataForChart: 'No task data for chart.', // New
+    // Chart Colors (keyed by the lowercase, no-space status key)
+    chartColors: {
+      completed: 'hsl(120 60% 45%)', // Green
+      inprogress: 'hsl(210 80% 55%)', // Blue
+      pendingapproval: 'hsl(45 100% 50%)', // Yellow
+      delayed: 'hsl(30 90% 50%)', // Orange
+      canceled: 'hsl(0 70% 50%)', // Red
+      pending: 'hsl(240 5% 65%)', // Gray
+      scheduled: 'hsl(270 60% 60%)', // Purple
+      pendinginput: 'hsl(190 70% 50%)', // Cyan
+      pendingoffer: 'hsl(220 70% 60%)', // Indigo
+      pendingdpinvoice: 'hsl(300 60% 55%)', // Magenta
+      pendingadminfiles: 'hsl(150 60% 45%)', // Teal
+      pendingarchitectfiles: 'hsl(90 55% 50%)', // Lime
+      pendingstructurefiles: 'hsl(60 65% 50%)', // Gold
+      pendingfinalcheck: 'hsl(330 70% 55%)', // Pink
+      pendingscheduling: 'hsl(250 70% 60%)', // Violet
+    },
   },
   // Tasks Page
   tasksPage: {
@@ -217,7 +234,6 @@ const en = {
     deleteDialogConfirm: 'Delete User',
     cannotChangeLastAdminRoleHint: 'Cannot change the role of the last General Admin.',
     cannotChangeLastDevAdminRoleHint: 'Cannot change the role of the last Admin Developer.',
-    // Activation buttons/text removed
     roles: {
       Owner: 'Owner',
       'General Admin': 'General Admin',
@@ -225,7 +241,6 @@ const en = {
       Arsitek: 'Architect', // Corrected spelling
       Struktur: 'Structure', // Corrected spelling
       'Admin Developer': 'Admin Developer',
-      // Pending role removed
     },
     toast: {
       userAdded: 'User Added',
@@ -245,8 +260,6 @@ const en = {
       editPermissionDenied: 'You do not have permission to edit this user.',
       devCannotEditOwnerGA: 'Admin Developer cannot edit Owner or General Admin.',
       gaCannotEditOwnerDev: 'General Admin cannot edit Owner or Admin Developer.',
-      // Activation toasts removed
-      cannotEditPending: 'Activate the user first before editing.', // This case should no longer occur
       userNotFound: 'User not found.',
     },
     validation: {

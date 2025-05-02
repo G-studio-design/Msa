@@ -17,14 +17,11 @@ const id = {
     bypassButton: 'Lewati Login sebagai Admin (Dev)',
     bypassTitle: 'Lewati Login',
     bypassing: 'Melewati...',
-    // Google Sign-In text removed
      validation: {
         usernameRequired: 'Nama pengguna wajib diisi.',
         passwordRequired: 'Kata sandi wajib diisi.',
      }
   },
-  // Account Setup Dialog Removed
-   // accountSetup: { ... },
   // Dashboard Layout
    dashboardLayout: {
     menuTitle: 'Menu',
@@ -74,6 +71,27 @@ const id = {
       pendingscheduling: 'Menunggu Penjadwalan',
     },
      progress: '{progress}% Selesai',
+     taskStatusChartTitle: 'Distribusi Status Tugas', // New
+     noDataForChart: 'Tidak ada data tugas untuk grafik.', // New
+     // Chart Colors (keyed by the lowercase, no-space status key)
+     // Ensure these keys match the keys in the 'status' object above
+     chartColors: {
+       completed: 'hsl(120 60% 45%)', // Hijau
+       inprogress: 'hsl(210 80% 55%)', // Biru
+       pendingapproval: 'hsl(45 100% 50%)', // Kuning
+       delayed: 'hsl(30 90% 50%)', // Oranye
+       canceled: 'hsl(0 70% 50%)', // Merah
+       pending: 'hsl(240 5% 65%)', // Abu-abu
+       scheduled: 'hsl(270 60% 60%)', // Ungu
+       pendinginput: 'hsl(190 70% 50%)', // Cyan
+       pendingoffer: 'hsl(220 70% 60%)', // Indigo
+       pendingdpinvoice: 'hsl(300 60% 55%)', // Magenta
+       pendingadminfiles: 'hsl(150 60% 45%)', // Teal
+       pendingarchitectfiles: 'hsl(90 55% 50%)', // Lime
+       pendingstructurefiles: 'hsl(60 65% 50%)', // Gold
+       pendingfinalcheck: 'hsl(330 70% 55%)', // Pink
+       pendingscheduling: 'hsl(250 70% 60%)', // Violet
+     },
   },
   // Tasks Page
   tasksPage: {
@@ -217,7 +235,6 @@ const id = {
     deleteDialogConfirm: 'Hapus Pengguna',
     cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin Umum terakhir.',
     cannotChangeLastDevAdminRoleHint: 'Tidak dapat mengubah peran Admin Pengembang terakhir.',
-    // Activation buttons/text removed
     roles: {
        Owner: 'Pemilik',
        'General Admin': 'Admin Umum',
@@ -225,7 +242,6 @@ const id = {
        Arsitek: 'Arsitek', // Corrected spelling
        Struktur: 'Struktur', // Corrected spelling
        'Admin Developer': 'Admin Pengembang',
-       // Pending role removed
      },
     toast: {
         userAdded: 'Pengguna Ditambahkan',
@@ -245,8 +261,6 @@ const id = {
         editPermissionDenied: 'Anda tidak memiliki izin untuk mengubah pengguna ini.',
         devCannotEditOwnerGA: 'Admin Pengembang tidak dapat mengubah Pemilik atau Admin Umum.',
         gaCannotEditOwnerDev: 'Admin Umum tidak dapat mengubah Pemilik atau Admin Pengembang.',
-        // Activation toasts removed
-        cannotEditPending: 'Aktifkan pengguna terlebih dahulu sebelum mengubah.', // This case should no longer occur
         userNotFound: 'Pengguna tidak ditemukan.',
     },
     validation: {
