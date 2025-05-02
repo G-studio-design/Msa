@@ -181,7 +181,7 @@ export default function DashboardPage() {
    // Render loading state if user is not yet available on the client or projects are loading
    if (!isClient || !currentUser || isLoadingProjects) {
        return (
-           <div className="container mx-auto py-4 space-y-6">
+           <div className="container mx-auto py-4 px-4 md:px-6 space-y-6"> {/* Added responsive padding */}
                {/* Skeleton for Header */}
                 <div className="flex justify-between items-center mb-6">
                     <Skeleton className="h-8 w-48" />
@@ -189,7 +189,7 @@ export default function DashboardPage() {
                     {(currentUser?.role === 'Owner' || currentUser?.role === 'General Admin') && <Skeleton className="h-10 w-32" />}
                 </div>
                {/* Skeleton for Summary Cards */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6"> {/* Updated grid to 4 cols */}
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6"> {/* Updated grid for responsiveness */}
                     {[...Array(4)].map((_, i) => (
                          <Card key={`summary-skel-${i}`}>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -234,14 +234,14 @@ export default function DashboardPage() {
    }
 
   return (
-    <div className="container mx-auto py-4 space-y-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-primary">
+    <div className="container mx-auto py-4 px-4 md:px-6 space-y-6"> {/* Added responsive padding */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"> {/* Flex column on mobile */}
+        <h1 className="text-2xl md:text-3xl font-bold text-primary"> {/* Adjusted font size */}
           {isClient ? dashboardDict.title : defaultDict.dashboardPage.title}
         </h1>
         {/* Conditionally render Add Project Button based on role */}
         {canAddProject && (
-            <Button asChild>
+            <Button asChild className="w-full sm:w-auto"> {/* Full width on mobile */}
                  <Link href="/dashboard/add-project">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     {isClient ? dashboardDict.addNewProject : defaultDict.dashboardPage.addNewProject}
@@ -251,7 +251,7 @@ export default function DashboardPage() {
       </div>
 
        {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6"> {/* Changed to 4 columns */}
+       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6"> {/* Responsive grid */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.activeProjects : defaultDict.dashboardPage.activeProjects}</CardTitle>
@@ -315,14 +315,16 @@ export default function DashboardPage() {
               filteredProjects.map((project) => (
                 <Link key={project.id} href={`/dashboard/projects?projectId=${project.id}`} passHref>
                   <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                       <div>
+                    <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2"> {/* Flex column on mobile */}
+                       <div className="flex-1"> {/* Allow title to take space */}
                          <CardTitle className="text-lg">{project.title}</CardTitle>
-                         <CardDescription className="text-xs text-muted-foreground">
+                         <CardDescription className="text-xs text-muted-foreground mt-1"> {/* Added margin top */}
                            {isClient && dashboardDict ? `${dashboardDict.assignedTo}: ${getTranslatedStatus(project.assignedDivision)} ${project.nextAction ? `| ${dashboardDict.nextAction}: ${project.nextAction}` : ''}` : '...'}
                          </CardDescription>
                        </div>
-                       {getStatusBadge(project.status)}
+                       <div className="flex-shrink-0 mt-2 sm:mt-0"> {/* Prevent badge shrinking */}
+                          {getStatusBadge(project.status)}
+                       </div>
                     </CardHeader>
                     <CardContent>
                        {project.status !== 'Canceled' && project.status !== 'Completed' && ( // Don't show progress for completed/canceled

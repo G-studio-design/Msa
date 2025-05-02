@@ -186,10 +186,10 @@ export default function LoginPage() {
 
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
-      <Card className="w-full max-w-md shadow-lg">
+     <div className="flex min-h-screen items-center justify-center bg-secondary p-4"> {/* Added padding */}
+       <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
-          <CardTitle className="text-center text-2xl font-bold text-primary">
+           <CardTitle className="text-center text-2xl font-bold text-primary">
             {isClient ? dict.title : defaultDict.login.title}
           </CardTitle>
             <CardDescription className="text-center text-muted-foreground">

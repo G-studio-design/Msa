@@ -132,7 +132,7 @@ export default function AddProjectPage() { // Renamed component
   // Loading state or Access Denied
     if (!isClient || !currentUser) {
         return (
-             <div className="container mx-auto py-4">
+              <div className="container mx-auto py-4 px-4 md:px-6"> {/* Added responsive padding */}
                  <Card>
                      <CardHeader>
                          <Skeleton className="h-7 w-1/3 mb-2" />
@@ -153,7 +153,7 @@ export default function AddProjectPage() { // Renamed component
 
     if (!canAddProject) { // Renamed variable
        return (
-         <div className="container mx-auto py-4">
+          <div className="container mx-auto py-4 px-4 md:px-6"> {/* Added responsive padding */}
            <Card className="border-destructive">
              <CardHeader>
                <CardTitle className="text-destructive">{isClient ? dict.manageUsersPage.accessDeniedTitle : defaultDict.manageUsersPage.accessDeniedTitle}</CardTitle>
@@ -168,10 +168,10 @@ export default function AddProjectPage() { // Renamed component
 
 
   return (
-    <div className="container mx-auto py-4">
+     <div className="container mx-auto py-4 px-4 md:px-6"> {/* Added responsive padding */}
       <Card className="w-full max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle className="text-2xl">{isClient ? addProjectDict.title : defaultDict.addProjectPage.title}</CardTitle>
+           <CardTitle className="text-xl md:text-2xl">{isClient ? addProjectDict.title : defaultDict.addProjectPage.title}</CardTitle> {/* Adjusted font size */}
           <CardDescription>{isClient ? addProjectDict.description : defaultDict.addProjectPage.description}</CardDescription>
         </CardHeader>
         <CardContent>
@@ -193,7 +193,7 @@ export default function AddProjectPage() { // Renamed component
 
               <div className="space-y-2">
                  <Label htmlFor="project-files">{isClient ? addProjectDict.filesLabel : defaultDict.addProjectPage.filesLabel}</Label> {/* Updated htmlFor and label */}
-                 <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-center gap-2"> {/* Stack input and icon on mobile */}
                       <Input
                          id="project-files" // Updated id
                          type="file"
@@ -202,7 +202,7 @@ export default function AddProjectPage() { // Renamed component
                          disabled={isLoading}
                          className="flex-grow"
                        />
-                       <Upload className="h-5 w-5 text-muted-foreground" />
+                       <Upload className="h-5 w-5 text-muted-foreground flex-shrink-0" /> {/* Ensure icon doesn't shrink */}
                  </div>
                   <p className="text-xs text-muted-foreground">
                       {isClient ? addProjectDict.filesHint : defaultDict.addProjectPage.filesHint}
@@ -216,7 +216,7 @@ export default function AddProjectPage() { // Renamed component
                      <ul className="list-disc list-inside text-sm space-y-1 max-h-32 overflow-y-auto">
                        {selectedFiles.map((file, index) => (
                          <li key={index} className="flex items-center justify-between group">
-                           <span className="truncate max-w-xs text-muted-foreground group-hover:text-foreground">
+                            <span className="truncate max-w-[calc(100%-4rem)] sm:max-w-xs text-muted-foreground group-hover:text-foreground"> {/* Adjusted max-width for mobile */}
                             {file.name} <span className="text-xs">({(file.size / 1024).toFixed(1)} KB)</span>
                            </span>
                            <Button
@@ -225,7 +225,7 @@ export default function AddProjectPage() { // Renamed component
                                type="button" // Prevent form submission
                                onClick={() => removeFile(index)}
                                disabled={isLoading}
-                               className="opacity-50 group-hover:opacity-100"
+                               className="opacity-50 group-hover:opacity-100 flex-shrink-0" // Prevent button shrinking
                             >
                                <Trash2 className="h-4 w-4 text-destructive" />
                            </Button>
@@ -236,11 +236,11 @@ export default function AddProjectPage() { // Renamed component
                  )}
 
 
-              <div className="flex justify-end gap-2">
-                 <Button type="button" variant="outline" onClick={() => router.back()} disabled={isLoading}>
+               <div className="flex flex-col sm:flex-row justify-end gap-2"> {/* Stack buttons on mobile */}
+                  <Button type="button" variant="outline" onClick={() => router.back()} disabled={isLoading} className="w-full sm:w-auto"> {/* Full width on mobile */}
                     {isClient ? dict.manageUsersPage.cancelButton : defaultDict.manageUsersPage.cancelButton}
                  </Button>
-                 <Button type="submit" className="accent-teal" disabled={isLoading}>
+                  <Button type="submit" className="accent-teal w-full sm:w-auto" disabled={isLoading}> {/* Full width on mobile */}
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     {isClient ? (isLoading ? addProjectDict.creatingButton : addProjectDict.createButton) : defaultDict.addProjectPage.createButton}
                  </Button>

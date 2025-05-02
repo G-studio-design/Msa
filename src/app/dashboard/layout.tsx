@@ -53,11 +53,22 @@ interface Notification {
 }
 
 // Mock notification data (replace with actual fetching logic)
-// Updated messages to be more generic or use project ID
+// Updated messages to use project title if available, otherwise ID
+// Let's assume getProjectTitleById is a function that fetches the title (could be cached)
+// For demonstration, we'll just use the ID or a placeholder title
+const getProjectTitle = (projectId: string): string => {
+    // In a real app, fetch the title based on ID, maybe from a cached project list
+    // Example: const project = projects.find(p => p.id === projectId); return project?.title || projectId;
+    if (projectId === 'project_alpha_id') return 'Canggu Residence';
+    if (projectId === 'project_beta_id') return 'Mengwi Villa';
+    if (projectId === 'project_gamma_id') return 'Jimbaran Project';
+    return `Project ID "${projectId}"`; // Fallback to ID
+}
+
 const mockNotifications: Notification[] = [
-  { id: 'notif1', message: 'Project ID "project_alpha_id" needs your approval.', projectId: 'project_alpha_id', timestamp: new Date(Date.now() - 3600000).toISOString(), isRead: false },
-  { id: 'notif2', message: 'New files uploaded for Project ID "project_beta_id".', projectId: 'project_beta_id', timestamp: new Date(Date.now() - 7200000).toISOString(), isRead: false },
-  { id: 'notif3', message: 'Sidang scheduled for Project ID "project_gamma_id".', projectId: 'project_gamma_id', timestamp: new Date(Date.now() - 86400000).toISOString(), isRead: true },
+  { id: 'notif1', message: `${getProjectTitle('project_alpha_id')} needs your approval.`, projectId: 'project_alpha_id', timestamp: new Date(Date.now() - 3600000).toISOString(), isRead: false },
+  { id: 'notif2', message: `New files uploaded for ${getProjectTitle('project_beta_id')}.`, projectId: 'project_beta_id', timestamp: new Date(Date.now() - 7200000).toISOString(), isRead: false },
+  { id: 'notif3', message: `Sidang scheduled for ${getProjectTitle('project_gamma_id')}.`, projectId: 'project_gamma_id', timestamp: new Date(Date.now() - 86400000).toISOString(), isRead: true },
 ];
 
 
@@ -226,39 +237,40 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* Content Area */}
       <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:px-6">
-             <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-lg text-primary">
-                <Building className="h-6 w-6" />
+           <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b bg-background px-4 sm:px-6"> {/* Reduced gap */}
+             <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-base sm:text-lg text-primary"> {/* Adjusted font size */}
+                <Building className="h-5 w-5 sm:h-6 sm:w-6" /> {/* Adjusted icon size */}
                 {/* Use defaultDict on server, dict on client */}
-                <span>{isClient && layoutDict ? layoutDict.appTitle : defaultDict?.dashboardLayout?.appTitle}</span>
+                 <span className="hidden sm:inline">{isClient && layoutDict ? layoutDict.appTitle : defaultDict?.dashboardLayout?.appTitle}</span> {/* Hide title on small screens */}
+                 <span className="sm:hidden">Msaarch</span> {/* Short title for small screens */}
               </Link>
 
             {/* Right side actions - Notification Popover and Sheet Trigger */}
-            <div className="flex items-center gap-2"> {/* Reduced gap */}
+             <div className="flex items-center gap-2"> {/* Reduced gap */}
               {/* Notification Popover */}
               <Popover>
                 <PopoverTrigger asChild>
-                   <Button variant="outline" size="icon" className="relative">
-                       <Bell className="h-5 w-5" />
+                    <Button variant="outline" size="icon" className="relative h-9 w-9 sm:h-10 sm:w-10"> {/* Adjusted size */}
+                        <Bell className="h-4 w-4 sm:h-5 sm:w-5" /> {/* Adjusted icon size */}
                        {isClient && unreadCount > 0 && (
                           <Badge
                              variant="destructive"
-                             className="absolute -top-1 -right-1 h-4 w-4 p-0 justify-center text-xs"
+                              className="absolute -top-1 -right-1 h-4 w-4 p-0 justify-center text-[10px] sm:text-xs" /* Adjusted badge size/text */
                            >
-                             {unreadCount}
+                             {unreadCount > 9 ? '9+' : unreadCount} {/* Cap count display */}
                            </Badge>
                        )}
-                       <span className="sr-only">{isClient && dict?.notifications ? dict?.notifications?.tooltip : defaultDict?.notifications?.tooltip}</span>
+                        <span className="sr-only">{isClient && dict?.notifications ? dict?.notifications?.tooltip : defaultDict?.notifications?.tooltip}</span>
                    </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-80 p-0"> {/* Adjusted width and removed padding */}
+                 <PopoverContent className="w-80 p-0"> {/* Adjusted width and removed padding */}
                   <div className="p-4 border-b">
                       <h4 className="font-medium leading-none">{isClient && dict?.notifications ? dict?.notifications?.title : defaultDict?.notifications?.title}</h4>
                       <p className="text-sm text-muted-foreground">
                         {isClient && dict?.notifications ? dict?.notifications?.description : defaultDict?.notifications?.description}
                       </p>
                   </div>
-                  <div className="max-h-60 overflow-y-auto"> {/* Scrollable area */}
+                   <div className="max-h-60 overflow-y-auto"> {/* Scrollable area */}
                    {isClient && notifications.length > 0 ? (
                        notifications.map(notification => (
                          <div
@@ -275,7 +287,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                              notification.isRead ? "bg-muted-foreground/30" : "bg-primary"
                            )}></div>
                            <div className="flex-1">
-                              <p className="text-sm">{notification.message}</p>
+                               <p className="text-sm">{notification.message}</p>
                               <p className="text-xs text-muted-foreground">{formatTimestamp(notification.timestamp)}</p>
                            </div>
                          </div>
@@ -294,15 +306,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               {/* User Menu Sheet Trigger */}
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <PanelRightOpen className="h-5 w-5" />
+                   <Button variant="outline" size="icon" className="h-9 w-9 sm:h-10 sm:w-10"> {/* Adjusted size */}
+                     <PanelRightOpen className="h-4 w-4 sm:h-5 sm:w-5" /> {/* Adjusted icon size */}
                     <span className="sr-only">{isClient && layoutDict ? layoutDict.toggleMenu : defaultDict?.dashboardLayout?.toggleMenu}</span>
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="bg-primary text-primary-foreground border-primary-foreground/20 w-[300px] sm:w-[320px] flex flex-col p-4">
+                 <SheetContent side="right" className="bg-primary text-primary-foreground border-primary-foreground/20 w-[80vw] max-w-[300px] sm:max-w-[320px] flex flex-col p-4"> {/* Responsive width */}
                   {/* Sheet Header */}
                   <SheetHeader className="mb-4 text-left">
-                    <SheetTitle className="text-primary-foreground text-xl">{isClient && layoutDict ? layoutDict.menuTitle : defaultDict?.dashboardLayout?.menuTitle}</SheetTitle>
+                     <SheetTitle className="text-primary-foreground text-lg sm:text-xl">{isClient && layoutDict ? layoutDict.menuTitle : defaultDict?.dashboardLayout?.menuTitle}</SheetTitle> {/* Adjusted font size */}
                     <SheetDescription className="text-primary-foreground/80">
                      {isClient && layoutDict ? layoutDict.menuDescription : defaultDict?.dashboardLayout?.menuDescription}
                     </SheetDescription>
@@ -392,10 +404,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 overflow-y-auto p-4 md:p-6">
+           <main className="flex-1 overflow-y-auto p-4 md:p-6"> {/* Adjusted padding */}
             {/* Ensure children only render when user is loaded to prevent unauthorized access flash */}
              {isClient && currentUser ? children : (
-                  <div className="flex justify-center items-center h-[calc(100vh-56px)]"> {/* Adjust height based on header */}
+                   <div className="flex justify-center items-center h-[calc(100vh-56px)]"> {/* Adjust height based on header */}
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
               )}

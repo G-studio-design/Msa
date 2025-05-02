@@ -125,7 +125,7 @@ export default function AdminActionsPage() {
    // Loading state for the page
     if (!isClient || !currentUser || isLoadingProjects) { // Renamed loading state
        return (
-           <div className="container mx-auto py-4 space-y-6">
+            <div className="container mx-auto py-4 px-4 md:px-6 space-y-6"> {/* Added responsive padding */}
                <Card>
                   <CardHeader>
                     <Skeleton className="h-7 w-3/5 mb-2" />
@@ -142,7 +142,7 @@ export default function AdminActionsPage() {
    // Access Denied state
    if (!canEdit) {
        return (
-            <div className="container mx-auto py-4">
+             <div className="container mx-auto py-4 px-4 md:px-6"> {/* Added responsive padding */}
                 <Card className="border-destructive">
                      <CardHeader>
                          <CardTitle className="text-destructive">{isClient ? adminDict.accessDeniedTitle : defaultDict.adminActionsPage.accessDeniedTitle}</CardTitle>
@@ -157,69 +157,71 @@ export default function AdminActionsPage() {
 
   // Render the main content if loading is complete and user has permission
   return (
-    <div className="container mx-auto py-4 space-y-6">
+     <div className="container mx-auto py-4 px-4 md:px-6 space-y-6"> {/* Added responsive padding */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">{isClient ? adminDict.title : defaultDict.adminActionsPage.title}</CardTitle>
+           <CardTitle className="text-xl md:text-2xl">{isClient ? adminDict.title : defaultDict.adminActionsPage.title}</CardTitle> {/* Adjusted font size */}
           <CardDescription>
            {isClient ? adminDict.description : defaultDict.adminActionsPage.description}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{isClient ? adminDict.tableHeaderId : defaultDict.adminActionsPage.tableHeaderId}</TableHead>
-                <TableHead>{isClient ? adminDict.tableHeaderTitle : defaultDict.adminActionsPage.tableHeaderTitle}</TableHead>
-                <TableHead>{isClient ? adminDict.tableHeaderStatus : defaultDict.adminActionsPage.tableHeaderStatus}</TableHead>
-                <TableHead className="text-right">{isClient ? adminDict.tableHeaderActions : defaultDict.adminActionsPage.tableHeaderActions}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {projects.length === 0 ? ( // Renamed state variable
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    {isClient ? adminDict.noProjects : defaultDict.adminActionsPage.noProjects} {/* Updated dict key */}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                projects.map((project) => (
-                  <TableRow key={project.id}>
-                    <TableCell className="text-xs font-mono">{project.id}</TableCell>{/* Display full ID */}
-                    <TableCell className="font-medium">
-                      {editingProjectId === project.id ? ( // Renamed state variable
-                        <Input
-                          value={newTitle}
-                          onChange={(e) => setNewTitle(e.target.value)}
-                          className="h-8"
-                          disabled={isSaving} // Disable input while saving
-                        />
-                      ) : (
-                        project.title
-                      )}
-                    </TableCell>
-                    <TableCell>{getTranslatedStatus(project.status)}</TableCell>{/* Use translated status */}
-                    <TableCell className="text-right space-x-2">
-                      {editingProjectId === project.id ? ( // Renamed state variable
-                        <>
-                          <Button variant="ghost" size="icon" onClick={() => handleSaveTitle(project.id)} disabled={isSaving}>
-                             {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 text-green-600" />}
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={handleCancelEdit} disabled={isSaving}>
-                             <XCircle className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                        </>
-                      ) : (
-                        <Button variant="ghost" size="icon" onClick={() => handleEditClick(project.id, project.title)} disabled={isSaving}>
-                          <Edit className="h-4 w-4 text-primary" />
-                        </Button>
-                      )}
-                    </TableCell>
+           <div className="overflow-x-auto"> {/* Make table scrollable horizontally on small screens */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                     <TableHead className="w-[150px] sm:w-[200px]">{isClient ? adminDict.tableHeaderId : defaultDict.adminActionsPage.tableHeaderId}</TableHead> {/* Fixed width for ID */}
+                    <TableHead>{isClient ? adminDict.tableHeaderTitle : defaultDict.adminActionsPage.tableHeaderTitle}</TableHead>
+                     <TableHead className="w-[120px] sm:w-[150px]">{isClient ? adminDict.tableHeaderStatus : defaultDict.adminActionsPage.tableHeaderStatus}</TableHead> {/* Fixed width for Status */}
+                     <TableHead className="text-right w-[100px] sm:w-[120px]">{isClient ? adminDict.tableHeaderActions : defaultDict.adminActionsPage.tableHeaderActions}</TableHead> {/* Fixed width for Actions */}
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                  {projects.length === 0 ? ( // Renamed state variable
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8"> {/* Added more padding */}
+                        {isClient ? adminDict.noProjects : defaultDict.adminActionsPage.noProjects} {/* Updated dict key */}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    projects.map((project) => (
+                      <TableRow key={project.id}>
+                         <TableCell className="text-xs font-mono break-all">{project.id}</TableCell>{/* Allow ID to break */}
+                        <TableCell className="font-medium">
+                          {editingProjectId === project.id ? ( // Renamed state variable
+                            <Input
+                              value={newTitle}
+                              onChange={(e) => setNewTitle(e.target.value)}
+                              className="h-8 min-w-[150px]" // Ensure input has min width
+                              disabled={isSaving} // Disable input while saving
+                            />
+                          ) : (
+                             <span className="break-words">{project.title}</span> // Allow title to wrap
+                          )}
+                        </TableCell>
+                         <TableCell>{getTranslatedStatus(project.status)}</TableCell>{/* Use translated status */}
+                        <TableCell className="text-right space-x-1 whitespace-nowrap"> {/* Prevent actions wrapping */}
+                          {editingProjectId === project.id ? ( // Renamed state variable
+                            <>
+                              <Button variant="ghost" size="icon" onClick={() => handleSaveTitle(project.id)} disabled={isSaving}>
+                                 {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 text-green-600" />}
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={handleCancelEdit} disabled={isSaving}>
+                                 <XCircle className="h-4 w-4 text-muted-foreground" />
+                              </Button>
+                            </>
+                          ) : (
+                            <Button variant="ghost" size="icon" onClick={() => handleEditClick(project.id, project.title)} disabled={isSaving}>
+                              <Edit className="h-4 w-4 text-primary" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+           </div>
         </CardContent>
       </Card>
     </div>

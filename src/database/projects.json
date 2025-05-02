@@ -180,5 +180,39 @@
     ],
     "createdAt": "2025-05-02T05:58:18.835Z",
     "createdBy": "admin"
+  },
+  {
+    "id": "project_1746167618806_4i10o",
+    "title": "proyek gianyar",
+    "status": "Pending Offer",
+    "progress": 10,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Upload Offer Document",
+    "workflowHistory": [
+      {
+        "division": "admin",
+        "action": "Created Project",
+        "timestamp": "2025-05-02T06:33:38.806Z"
+      },
+      {
+        "division": "admin",
+        "action": "Uploaded initial file: Kisah Dalem Bungkut.pdf",
+        "timestamp": "2025-05-02T06:33:38.806Z"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Upload Offer Document",
+        "timestamp": "2025-05-02T06:33:38.806Z"
+      }
+    ],
+    "files": [
+      {
+        "name": "Kisah Dalem Bungkut.pdf",
+        "uploadedBy": "admin",
+        "timestamp": "2025-05-02T06:33:38.806Z"
+      }
+    ],
+    "createdAt": "2025-05-02T06:33:38.806Z",
+    "createdBy": "admin"
   }
 ]

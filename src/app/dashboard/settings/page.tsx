@@ -316,7 +316,7 @@ export default function SettingsPage() {
   // Loading state while waiting for currentUser from context
   if (!isClient || !currentUser) {
       return (
-          <div className="container mx-auto py-4 space-y-6">
+           <div className="container mx-auto py-4 px-4 md:px-6 space-y-6"> {/* Added responsive padding */}
               {/* Skeleton for main card */}
               <Card>
                   <CardHeader>
@@ -377,10 +377,10 @@ export default function SettingsPage() {
 
   // Render content when user is loaded
   return (
-    <div className="container mx-auto py-4 space-y-6">
+     <div className="container mx-auto py-4 px-4 md:px-6 space-y-6"> {/* Added responsive padding */}
       <Card>
         <CardHeader>
-            <CardTitle className="text-2xl">{isClient ? settingsDict.title : defaultDict.settingsPage.title}</CardTitle>
+             <CardTitle className="text-xl md:text-2xl">{isClient ? settingsDict.title : defaultDict.settingsPage.title}</CardTitle> {/* Adjusted font size */}
             <CardDescription>{isClient ? settingsDict.description : defaultDict.settingsPage.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -388,11 +388,11 @@ export default function SettingsPage() {
              {/* Profile Info Card - Updated */}
             <Card>
                  <CardHeader>
-                    <CardTitle className="text-lg">{isClient ? settingsDict.profileCardTitle : defaultDict.settingsPage.profileCardTitle}</CardTitle>
+                     <CardTitle className="text-lg">{isClient ? settingsDict.profileCardTitle : defaultDict.settingsPage.profileCardTitle}</CardTitle>
                  </CardHeader>
                  <CardContent className="space-y-4">
                      {/* Profile Picture Section */}
-                     <div className="flex items-center space-x-4">
+                      <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4"> {/* Stack on mobile */}
                           <Avatar className="h-20 w-20 border-2 border-primary/30">
                               <AvatarImage
                                   // Show preview if available, otherwise show the current stored URL from local state
@@ -406,7 +406,7 @@ export default function SettingsPage() {
                                   {getUserInitials(currentUser.displayName || currentUser.username)}
                               </AvatarFallback>
                           </Avatar>
-                         <div>
+                          <div className="flex flex-col items-center sm:items-start"> {/* Center items on mobile */}
                              <Label htmlFor="profile-picture-upload" className="cursor-pointer">
                                   {/* Disable button while uploading OR updating profile */}
                                  <Button asChild variant="outline" size="sm" disabled={isUploading || isUpdatingProfile}>
@@ -425,10 +425,10 @@ export default function SettingsPage() {
                                  onChange={handleProfilePictureChange} // Add onChange handler
                                  disabled={isUploading || isUpdatingProfile} // Disable while uploading/updating
                               />
-                             <p className="text-xs text-muted-foreground mt-1">{isClient ? settingsDict.pictureHint : defaultDict.settingsPage.pictureHint}</p>
+                             <p className="text-xs text-muted-foreground mt-1 text-center sm:text-left">{isClient ? settingsDict.pictureHint : defaultDict.settingsPage.pictureHint}</p> {/* Center text on mobile */}
                              {/* Display selected file name if any */}
                               {selectedFile && !isUploading && (
-                                <p className="text-xs text-muted-foreground mt-1">
+                                 <p className="text-xs text-muted-foreground mt-1 text-center sm:text-left"> {/* Center text on mobile */}
                                     Selected: {selectedFile.name}
                                 </p>
                               )}
@@ -436,7 +436,7 @@ export default function SettingsPage() {
                      </div>
 
                      {/* User Info Fields */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t"> {/* Add border top */}
                          <div className="space-y-1">
                              <Label htmlFor="username">{isClient ? settingsDict.usernameLabel : defaultDict.settingsPage.usernameLabel}</Label>
                              <Input
@@ -482,7 +482,7 @@ export default function SettingsPage() {
                          </div>
                     </div>
 
-                    <Button onClick={handleProfileUpdate} disabled={isUpdatingProfile || isUploading}>
+                     <Button onClick={handleProfileUpdate} disabled={isUpdatingProfile || isUploading} className="w-full sm:w-auto"> {/* Full width on mobile */}
                          {(isUpdatingProfile || isUploading) ? (
                              <>
                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -538,7 +538,7 @@ export default function SettingsPage() {
                            autoComplete="new-password" // Helps password managers
                         />
                     </div>
-                    <Button onClick={handlePasswordUpdate} disabled={isUpdatingPassword || !currentPassword || !newPassword || !confirmPassword}>
+                     <Button onClick={handlePasswordUpdate} disabled={isUpdatingPassword || !currentPassword || !newPassword || !confirmPassword} className="w-full sm:w-auto"> {/* Full width on mobile */}
                         {isUpdatingPassword ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -558,7 +558,7 @@ export default function SettingsPage() {
                  </CardHeader>
                  <CardContent className="space-y-4">
                     <div className="flex items-center justify-between space-x-2">
-                        <Label htmlFor="email-notifications" className="flex flex-col space-y-1">
+                        <Label htmlFor="email-notifications" className="flex flex-col space-y-1 flex-1"> {/* Allow label to take space */}
                             <span>{isClient ? settingsDict.emailNotificationsLabel : defaultDict.settingsPage.emailNotificationsLabel}</span>
                             <span className="font-normal leading-snug text-muted-foreground">
                                {isClient ? settingsDict.emailNotificationsHint : defaultDict.settingsPage.emailNotificationsHint}
@@ -568,7 +568,7 @@ export default function SettingsPage() {
                         <Switch id="email-notifications" defaultChecked disabled />
                     </div>
                      <div className="flex items-center justify-between space-x-2">
-                        <Label htmlFor="in-app-notifications" className="flex flex-col space-y-1">
+                        <Label htmlFor="in-app-notifications" className="flex flex-col space-y-1 flex-1"> {/* Allow label to take space */}
                             <span>{isClient ? settingsDict.inAppNotificationsLabel : defaultDict.settingsPage.inAppNotificationsLabel}</span>
                             <span className="font-normal leading-snug text-muted-foreground">
                                 {isClient ? settingsDict.inAppNotificationsHint : defaultDict.settingsPage.inAppNotificationsHint}
@@ -590,7 +590,7 @@ export default function SettingsPage() {
                     <div className="space-y-1">
                         <Label htmlFor="language-select">{isClient ? settingsDict.languageSelectLabel : defaultDict.settingsPage.languageSelectLabel}</Label>
                          <Select value={language} onValueChange={handleLanguageChange}>
-                            <SelectTrigger id="language-select" className="w-[280px]">
+                             <SelectTrigger id="language-select" className="w-full md:w-[280px]"> {/* Full width on mobile */}
                               <SelectValue placeholder={isClient ? settingsDict.languageSelectPlaceholder : defaultDict.settingsPage.languageSelectPlaceholder} />
                             </SelectTrigger>
                             <SelectContent>

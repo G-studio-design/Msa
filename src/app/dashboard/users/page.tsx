@@ -378,7 +378,7 @@ export default function ManageUsersPage() {
       // Show loading skeleton or access denied message
        if (!isClient || isLoading) { // Still loading or hasn't determined user role yet
            return (
-               <div className="container mx-auto py-4">
+                <div className="container mx-auto py-4 px-4 md:px-6 space-y-6"> {/* Added responsive padding */}
                    <Card>
                        <CardHeader>
                            <Skeleton className="h-7 w-1/3 mb-2" />
@@ -392,7 +392,7 @@ export default function ManageUsersPage() {
            );
        } else { // User loaded, but doesn't have permission
             return (
-              <div className="container mx-auto py-4">
+               <div className="container mx-auto py-4 px-4 md:px-6"> {/* Added responsive padding */}
                   <Card className="border-destructive">
                        <CardHeader>
                            <CardTitle className="text-destructive">{isClient ? usersDict.accessDeniedTitle : defaultDict.manageUsersPage.accessDeniedTitle}</CardTitle>
@@ -408,17 +408,17 @@ export default function ManageUsersPage() {
 
   // Render the main content if user has permission
   return (
-    <div className="container mx-auto py-4 space-y-6">
+     <div className="container mx-auto py-4 px-4 md:px-6 space-y-6"> {/* Added responsive padding */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"> {/* Flex column on mobile */}
           <div>
-            <CardTitle className="text-2xl">{isClient ? usersDict.title : defaultDict.manageUsersPage.title}</CardTitle>
+             <CardTitle className="text-xl md:text-2xl">{isClient ? usersDict.title : defaultDict.manageUsersPage.title}</CardTitle> {/* Adjusted font size */}
             <CardDescription>{isClient ? usersDict.description : defaultDict.manageUsersPage.description}</CardDescription>
           </div>
           {/* Add User Dialog Trigger */}
             <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="accent-teal" disabled={isProcessing || isLoading}>
+                 <Button className="accent-teal w-full sm:w-auto" disabled={isProcessing || isLoading}> {/* Full width on mobile */}
                   <PlusCircle className="mr-2 h-4 w-4" /> {isClient ? usersDict.addUserButton : defaultDict.manageUsersPage.addUserButton}
                 </Button>
               </DialogTrigger>
@@ -505,145 +505,145 @@ export default function ManageUsersPage() {
             </Dialog>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{isClient ? usersDict.tableHeaderUsername : defaultDict.manageUsersPage.tableHeaderUsername}</TableHead>
-                <TableHead>{isClient ? usersDict.tableHeaderPassword : defaultDict.manageUsersPage.tableHeaderPassword}</TableHead>
-                <TableHead>{isClient ? usersDict.tableHeaderRole : defaultDict.manageUsersPage.tableHeaderRole}</TableHead>
-                <TableHead className="text-right">{isClient ? usersDict.tableHeaderActions : defaultDict.manageUsersPage.tableHeaderActions}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                  [...Array(5)].map((_, i) => (
-                    <TableRow key={`skeleton-${i}`}>
-                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                        <TableCell className="text-right space-x-1">
-                            <Skeleton className="h-8 w-8 inline-block" />
-                            <Skeleton className="h-8 w-8 inline-block" />
-                        </TableCell>
+           <div className="overflow-x-auto"> {/* Make table scrollable horizontally */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{isClient ? usersDict.tableHeaderUsername : defaultDict.manageUsersPage.tableHeaderUsername}</TableHead>
+                     <TableHead className="hidden sm:table-cell">{isClient ? usersDict.tableHeaderPassword : defaultDict.manageUsersPage.tableHeaderPassword}</TableHead> {/* Hide password column on small screens */}
+                    <TableHead>{isClient ? usersDict.tableHeaderRole : defaultDict.manageUsersPage.tableHeaderRole}</TableHead>
+                    <TableHead className="text-right">{isClient ? usersDict.tableHeaderActions : defaultDict.manageUsersPage.tableHeaderActions}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                      [...Array(5)].map((_, i) => (
+                        <TableRow key={`skeleton-${i}`}>
+                            <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                             <TableCell className="hidden sm:table-cell"><Skeleton className="h-4 w-32" /></TableCell> {/* Hide skeleton cell */}
+                            <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                            <TableCell className="text-right space-x-1">
+                                <Skeleton className="h-8 w-8 inline-block" />
+                                <Skeleton className="h-8 w-8 inline-block" />
+                            </TableCell>
+                        </TableRow>
+                      ))
+                  ) : users.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8"> {/* Added more padding */}
+                        {isClient ? usersDict.noUsers : defaultDict.manageUsersPage.noUsers}
+                      </TableCell>
                     </TableRow>
-                  ))
-              ) : users.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    {isClient ? usersDict.noUsers : defaultDict.manageUsersPage.noUsers}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                users.map((user) => {
-                   const isSelf = user.id === currentUser?.id; // Check against context user ID
-                    const isLastGeneralAdmin = user.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1;
-                    const isLastAdminDeveloper = user.role === 'Admin Developer' && users.filter(u => u.role === 'Admin Developer').length <= 1;
+                  ) : (
+                    users.map((user) => {
+                       const isSelf = user.id === currentUser?.id; // Check against context user ID
+                        const isLastGeneralAdmin = user.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1;
+                        const isLastAdminDeveloper = user.role === 'Admin Developer' && users.filter(u => u.role === 'Admin Developer').length <= 1;
 
-                     const disableDelete = !canManageUsers ||
-                                            (isSelf && ['General Admin', 'Admin Developer'].includes(currentUser?.role || '')) ||
-                                            (isLastGeneralAdmin && ['General Admin', 'Admin Developer'].includes(currentUser?.role || '')) ||
-                                            (isLastAdminDeveloper && ['General Admin', 'Admin Developer'].includes(currentUser?.role || ''));
+                         const disableDelete = !canManageUsers ||
+                                                (isSelf && ['General Admin', 'Admin Developer'].includes(currentUser?.role || '')) ||
+                                                (isLastGeneralAdmin && ['General Admin', 'Admin Developer'].includes(currentUser?.role || '')) ||
+                                                (isLastAdminDeveloper && ['General Admin', 'Admin Developer'].includes(currentUser?.role || ''));
 
-                      let disableEdit = !canManageUsers ||
-                                        // user.role === 'Pending' || // Removed Pending check
-                                        (currentUser?.role === 'General Admin' && user.role === 'Owner') ||
-                                        (currentUser?.role === 'Admin Developer' && ['Owner', 'General Admin'].includes(user.role));
+                          let disableEdit = !canManageUsers ||
+                                            // user.role === 'Pending' || // Removed Pending check
+                                            (currentUser?.role === 'General Admin' && user.role === 'Owner') ||
+                                            (currentUser?.role === 'Admin Developer' && ['Owner', 'General Admin'].includes(user.role));
 
 
-                    const isPasswordVisible = visiblePasswords[user.id] || false;
-                    const canViewPassword = canManageUsers && (
-                        currentUser?.role === 'Owner' ||
-                        currentUser?.role === 'General Admin' ||
-                        (currentUser?.role === 'Admin Developer' && !['Owner', 'General Admin'].includes(user.role))
-                    );
+                        const isPasswordVisible = visiblePasswords[user.id] || false;
+                        const canViewPassword = canManageUsers && (
+                            currentUser?.role === 'Owner' ||
+                            currentUser?.role === 'General Admin' ||
+                            (currentUser?.role === 'Admin Developer' && !['Owner', 'General Admin'].includes(user.role))
+                        );
 
 
-                    return (
-                      // Removed Pending styling
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.username}</TableCell>
-                         <TableCell>
-                            {canViewPassword ? (
-                               <div className="flex items-center gap-1">
-                                 <span className="font-mono text-xs break-all text-foreground">
-                                   {isPasswordVisible ? (user.password || (isClient ? usersDict.passwordNotSet : defaultDict.manageUsersPage.passwordNotSet)) : '••••••••'}
-                                 </span>
-                                   {user.password && (
-                                       <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-6 w-6 flex-shrink-0"
-                                          onClick={() => togglePasswordVisibility(user.id)}
-                                          aria-label={isPasswordVisible ? (isClient ? usersDict.hidePasswordButtonLabel : 'Hide') : (isClient ? usersDict.showPasswordButtonLabel : 'Show')}
-                                          disabled={isProcessing}
-                                          title={isPasswordVisible ? (isClient ? usersDict.hidePasswordButtonLabel : 'Hide') : (isClient ? usersDict.showPasswordButtonLabel : 'Show')}
-                                        >
-                                          {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                        </Button>
-                                   )}
-                                   {!user.password && (
-                                        <span className="text-xs text-muted-foreground italic ml-1">({isClient ? usersDict.passwordNotSet : defaultDict.manageUsersPage.passwordNotSet})</span>
-                                   )}
-                               </div>
-                             ) : (
-                                <span className="text-xs text-muted-foreground italic">{isClient ? usersDict.passwordHidden : defaultDict.manageUsersPage.passwordHidden}</span>
-                             )}
-                         </TableCell>
-                        <TableCell>
-                            <div className="flex items-center gap-2">
-                                {getRoleIcon(user.role)}
-                                <span>{(usersDict.roles as any)[user.role] || user.role}</span>
-                            </div>
-                        </TableCell>
-                        <TableCell className="text-right space-x-1">
-                           {/* Edit User Button */}
-                           {/* user.role !== 'Pending' check removed */}
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => openEditDialog(user)}
-                                    disabled={isProcessing || disableEdit}
-                                    aria-label={isClient ? usersDict.editUserButtonLabel : 'Edit User'}
-                                    title={isClient ? usersDict.editUserButtonLabel : 'Edit User'}
-                               >
-                                   <Edit className={`h-4 w-4 ${disableEdit ? 'text-muted-foreground' : 'text-blue-500'}`} />
-                               </Button>
+                        return (
+                          // Removed Pending styling
+                          <TableRow key={user.id}>
+                            <TableCell className="font-medium break-words">{user.username}</TableCell> {/* Allow username to wrap */}
+                             <TableCell className="hidden sm:table-cell"> {/* Hide password cell on small screens */}
+                                {canViewPassword ? (
+                                   <div className="flex items-center gap-1">
+                                     <span className="font-mono text-xs break-all text-foreground">
+                                       {isPasswordVisible ? (user.password || (isClient ? usersDict.passwordNotSet : defaultDict.manageUsersPage.passwordNotSet)) : '••••••••'}
+                                     </span>
+                                       {user.password && (
+                                           <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-6 w-6 flex-shrink-0"
+                                              onClick={() => togglePasswordVisibility(user.id)}
+                                              aria-label={isPasswordVisible ? (isClient ? usersDict.hidePasswordButtonLabel : 'Hide') : (isClient ? usersDict.showPasswordButtonLabel : 'Show')}
+                                              disabled={isProcessing}
+                                              title={isPasswordVisible ? (isClient ? usersDict.hidePasswordButtonLabel : 'Hide') : (isClient ? usersDict.showPasswordButtonLabel : 'Show')}
+                                            >
+                                              {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                            </Button>
+                                       )}
+                                       {!user.password && (
+                                            <span className="text-xs text-muted-foreground italic ml-1">({isClient ? usersDict.passwordNotSet : defaultDict.manageUsersPage.passwordNotSet})</span>
+                                       )}
+                                   </div>
+                                 ) : (
+                                    <span className="text-xs text-muted-foreground italic">{isClient ? usersDict.passwordHidden : defaultDict.manageUsersPage.passwordHidden}</span>
+                                 )}
+                             </TableCell>
+                            <TableCell>
+                                <div className="flex items-center gap-2">
+                                    {getRoleIcon(user.role)}
+                                    <span className="whitespace-nowrap">{(usersDict.roles as any)[user.role] || user.role}</span> {/* Prevent role wrap */}
+                                </div>
+                            </TableCell>
+                            <TableCell className="text-right space-x-0 sm:space-x-1 whitespace-nowrap"> {/* Adjust spacing and prevent wrap */}
+                               {/* Edit User Button */}
+                               {/* user.role !== 'Pending' check removed */}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => openEditDialog(user)}
+                                        disabled={isProcessing || disableEdit}
+                                        aria-label={isClient ? usersDict.editUserButtonLabel : 'Edit User'}
+                                        title={isClient ? usersDict.editUserButtonLabel : 'Edit User'}
+                                   >
+                                       <Edit className={`h-4 w-4 ${disableEdit ? 'text-muted-foreground' : 'text-blue-500'}`} />
+                                   </Button>
 
-                           {/* Delete User Button */}
-                            {
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button variant="ghost" size="icon" disabled={isProcessing || disableDelete} aria-label={isClient ? usersDict.deleteUserButtonLabel : 'Delete User'} title={isClient ? usersDict.deleteUserButtonLabel : 'Delete User'}>
-                                     <Trash2 className={`h-4 w-4 ${disableDelete ? 'text-muted-foreground' : 'text-destructive'}`} />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>{isClient ? usersDict.deleteDialogTitle : defaultDict.manageUsersPage.deleteDialogTitle}</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                       {(isClient ? usersDict.deleteDialogDesc : defaultDict.manageUsersPage.deleteDialogDesc).replace('{username}', user.username)}
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel disabled={isProcessing}>{isClient ? usersDict.deleteDialogCancel : defaultDict.manageUsersPage.deleteDialogCancel}</AlertDialogCancel>
-                                    <AlertDialogAction
-                                       className="bg-destructive hover:bg-destructive/90"
-                                       onClick={() => handleDeleteUser(user.id, user.username)}
-                                       disabled={isProcessing}>
-                                        {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                      {isClient ? usersDict.deleteDialogConfirm : defaultDict.manageUsersPage.deleteDialogConfirm}
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                             }
-                        </TableCell>
-                      </TableRow>
-                    );
-                })
-              )}
-            </TableBody>
-          </Table>
+                               {/* Delete User Button */}
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button variant="ghost" size="icon" disabled={isProcessing || disableDelete} aria-label={isClient ? usersDict.deleteUserButtonLabel : 'Delete User'} title={isClient ? usersDict.deleteUserButtonLabel : 'Delete User'}>
+                                         <Trash2 className={`h-4 w-4 ${disableDelete ? 'text-muted-foreground' : 'text-destructive'}`} />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>{isClient ? usersDict.deleteDialogTitle : defaultDict.manageUsersPage.deleteDialogTitle}</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                           {(isClient ? usersDict.deleteDialogDesc : defaultDict.manageUsersPage.deleteDialogDesc).replace('{username}', user.username)}
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel disabled={isProcessing}>{isClient ? usersDict.deleteDialogCancel : defaultDict.manageUsersPage.deleteDialogCancel}</AlertDialogCancel>
+                                        <AlertDialogAction
+                                           className="bg-destructive hover:bg-destructive/90"
+                                           onClick={() => handleDeleteUser(user.id, user.username)}
+                                           disabled={isProcessing}>
+                                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                          {isClient ? usersDict.deleteDialogConfirm : defaultDict.manageUsersPage.deleteDialogConfirm}
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                            </TableCell>
+                          </TableRow>
+                        );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+           </div>
         </CardContent>
       </Card>
 

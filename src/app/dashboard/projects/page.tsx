@@ -27,6 +27,7 @@ import {
   ListFilter,
   ArrowRight, // Added for linking
   Clock, // Import Clock icon
+  ArrowLeft, // Import ArrowLeft icon
 } from 'lucide-react';
 import Link from 'next/link'; // Added Link
 import { useToast } from '@/hooks/use-toast';
@@ -699,7 +700,7 @@ export default function ProjectsPage() {
    // Loading state for the whole page if project data or user data isn't ready
     if (!isClient || !currentUser || isLoadingProjects) {
         return (
-            <div className="container mx-auto py-4 space-y-6">
+            <div className="container mx-auto py-4 px-4 md:px-6 space-y-6"> {/* Added responsive padding */}
                  <Card>
                      <CardHeader>
                          <Skeleton className="h-7 w-3/5 mb-2" />
@@ -742,7 +743,7 @@ export default function ProjectsPage() {
     // Ensure projectsDict is available before rendering
     if (!projectsDict || !isClient) {
         return (
-            <div className="container mx-auto py-4 space-y-6">
+            <div className="container mx-auto py-4 px-4 md:px-6 space-y-6"> {/* Added responsive padding */}
                 <Card><CardHeader><Skeleton className="h-7 w-3/5 mb-2" /></CardHeader></Card>
             </div>
         ); // Or some other loading state
@@ -751,9 +752,9 @@ export default function ProjectsPage() {
     return (
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"> {/* Flex column on mobile */}
             <div>
-              <CardTitle className="text-2xl">
+              <CardTitle className="text-xl md:text-2xl"> {/* Adjusted font size */}
                 {projectsDict.projectListTitle || 'Project List'}
               </CardTitle>
               <CardDescription>
@@ -763,13 +764,13 @@ export default function ProjectsPage() {
             {/* Filter Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline">
+                 <Button variant="outline" className="w-full sm:w-auto"> {/* Full width on mobile */}
                   <ListFilter className="mr-2 h-4 w-4" />
-                  {projectsDict.filterButton || 'Filter by Status'}
+                   <span className="truncate">{projectsDict.filterButton || 'Filter by Status'}</span> {/* Allow text truncation */}
                   {statusFilter.length > 0 && ` (${statusFilter.length})`}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
+               <DropdownMenuContent className="w-56">
                 <DropdownMenuLabel>{projectsDict.filterStatusLabel || 'Filter Statuses'}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {projectStatuses.map((status) => (
@@ -807,14 +808,16 @@ export default function ProjectsPage() {
                   className="hover:shadow-md transition-shadow cursor-pointer"
                   onClick={() => setSelectedProject(projectItem)}
                 >
-                  <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                    <div>
+                  <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2"> {/* Flex column on mobile */}
+                    <div className="flex-1"> {/* Allow title to take space */}
                       <CardTitle className="text-lg">{projectItem.title}</CardTitle>
-                      <CardDescription className="text-xs text-muted-foreground">
+                      <CardDescription className="text-xs text-muted-foreground mt-1"> {/* Added margin top */}
                         {projectsDict.assignedLabel}: {getTranslatedStatus(projectItem.assignedDivision) || projectsDict.none} {projectItem.nextAction ? `| ${projectsDict.nextActionLabel}: ${projectItem.nextAction}` : ''}
                       </CardDescription>
                     </div>
-                    {getStatusBadge(projectItem.status)}
+                     <div className="flex-shrink-0 mt-2 sm:mt-0"> {/* Prevent badge shrinking */}
+                        {getStatusBadge(projectItem.status)}
+                     </div>
                   </CardHeader>
                   <CardContent>
                      {projectItem.status !== 'Canceled' && projectItem.status !== 'Completed' && (
@@ -855,22 +858,23 @@ export default function ProjectsPage() {
        return (
            <>
                <Button variant="outline" onClick={() => setSelectedProject(null)} className="mb-4">
-                   &larr; {projectsDict.backToList || 'Back to List'}
+                   <ArrowLeft className="mr-2 h-4 w-4" /> {/* Use ArrowLeft icon */}
+                   {projectsDict.backToList || 'Back to List'}
                </Button>
                <Card>
                    <CardHeader>
-                     <div className="flex justify-between items-start">
-                        <div>
+                     <div className="flex flex-col md:flex-row justify-between items-start gap-4"> {/* Stack on mobile */}
+                        <div className="flex-1"> {/* Allow title to grow */}
                           {/* TODO: Allow editing title for Owner, GA, PA */}
-                           <CardTitle className="text-2xl">{project.title}</CardTitle>
-                           <CardDescription>
+                           <CardTitle className="text-xl md:text-2xl">{project.title}</CardTitle> {/* Responsive title */}
+                           <CardDescription className="mt-1"> {/* Add margin */}
                                {projectsDict.statusLabel}: {getStatusBadge(project.status)} | {projectsDict.nextActionLabel}: {project.nextAction || projectsDict.none} | {projectsDict.assignedLabel}: {getTranslatedStatus(project.assignedDivision) || projectsDict.none}
                            </CardDescription>
                          </div>
-                           <div className="text-right">
+                           <div className="text-left md:text-right w-full md:w-auto mt-2 md:mt-0"> {/* Align right on medium+ */}
                                <div className="text-sm font-medium">{projectsDict.progressLabel}</div>
                                <div className="flex items-center gap-2 mt-1">
-                                    <Progress value={project.progress} className="w-32 h-2" />
+                                    <Progress value={project.progress} className="w-full md:w-32 h-2" /> {/* Full width on mobile */}
                                     <span className="text-xs text-muted-foreground font-medium">
                                         {project.progress}%
                                     </span>
@@ -938,6 +942,7 @@ export default function ProjectsPage() {
                                         !description && uploadedFiles.length === 0 // Require desc or file otherwise
                                     )
                                 }
+                                className="w-full sm:w-auto" // Full width on mobile
                             >
                                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                                 {isSubmitting ? projectsDict.submittingButton : projectsDict.submitButton}
@@ -950,10 +955,10 @@ export default function ProjectsPage() {
                         <div className="space-y-4 border-t pt-4">
                           <h3 className="text-lg font-semibold">{projectsDict.ownerActionTitle}</h3>
                           <p className="text-sm text-muted-foreground">{projectsDict.ownerActionDesc}</p>
-                           <div className="flex gap-4">
+                           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4"> {/* Stack on mobile */}
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <Button variant="outline" disabled={isSubmitting}>
+                                  <Button variant="outline" disabled={isSubmitting} className="w-full sm:w-auto"> {/* Full width on mobile */}
                                     <XCircle className="mr-2 h-4 w-4" /> {projectsDict.cancelProgressButton}
                                   </Button>
                                 </AlertDialogTrigger>
@@ -976,7 +981,7 @@ export default function ProjectsPage() {
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
                               </AlertDialog>
-                              <Button onClick={() => handleDecision('continue')} disabled={isSubmitting} className="accent-teal">
+                              <Button onClick={() => handleDecision('continue')} disabled={isSubmitting} className="accent-teal w-full sm:w-auto"> {/* Full width on mobile */}
                                  {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
                                  {projectsDict.continueProgressButton}
                               </Button>
@@ -1001,7 +1006,7 @@ export default function ProjectsPage() {
                                      <Input id="scheduleLocation" placeholder={projectsDict.locationPlaceholder} value={scheduleLocation} onChange={e => setScheduleLocation(e.target.value)} disabled={isSubmitting} />
                                   </div>
                                </div>
-                              <Button onClick={handleScheduleSubmit} disabled={isSubmitting || !scheduleDate || !scheduleTime || !scheduleLocation}>
+                               <Button onClick={handleScheduleSubmit} disabled={isSubmitting || !scheduleDate || !scheduleTime || !scheduleLocation} className="w-full sm:w-auto"> {/* Full width on mobile */}
                                  {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarClock className="mr-2 h-4 w-4" />}
                                 {isSubmitting ? projectsDict.schedulingButton : projectsDict.confirmScheduleButton}
                               </Button>
@@ -1027,6 +1032,7 @@ export default function ProjectsPage() {
                                     }}
                                     disabled={isAddingToCalendar} // Use separate loading state
                                     variant="outline"
+                                    className="w-full sm:w-auto" // Full width on mobile
                                 >
                                    {isAddingToCalendar ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> :
                                       // Using SVG for Google Calendar icon as lucide doesn't have it directly
@@ -1042,13 +1048,13 @@ export default function ProjectsPage() {
                            <div className="space-y-4 border-t pt-4">
                              <h3 className="text-lg font-semibold">{projectsDict.sidangOutcomeTitle}</h3>
                               <p className="text-sm text-muted-foreground">{projectsDict.sidangOutcomeDesc}</p>
-                              <div className="flex gap-4">
+                               <div className="flex flex-col sm:flex-row gap-2 sm:gap-4"> {/* Stack on mobile */}
                                  {/* For simplicity, using the same 'continue' logic for success */}
-                                 <Button onClick={() => handleDecision('continue')} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white">
+                                 <Button onClick={() => handleDecision('continue')} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"> {/* Full width on mobile */}
                                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
                                     {projectsDict.markSuccessButton}
                                  </Button>
-                                  <Button variant="destructive" onClick={() => { /* Implement fail logic */ toast({title: projectsDict.toast.failNotImplemented})}} disabled={isSubmitting}>
+                                   <Button variant="destructive" onClick={() => { /* Implement fail logic */ toast({title: projectsDict.toast.failNotImplemented})}} disabled={isSubmitting} className="w-full sm:w-auto"> {/* Full width on mobile */}
                                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
                                     {projectsDict.markFailButton}
                                   </Button>
@@ -1085,12 +1091,12 @@ export default function ProjectsPage() {
                          ) : (
                            <ul className="space-y-2">
                               {project.files.map((file, index) => (
-                               <li key={index} className="flex items-center justify-between p-2 border rounded-md hover:bg-secondary/50">
+                               <li key={index} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 border rounded-md hover:bg-secondary/50 gap-2 sm:gap-0"> {/* Stack on mobile */}
                                   <div className="flex items-center gap-2">
-                                      <FileText className="h-5 w-5 text-primary" />
-                                      <span className="text-sm font-medium">{file.name}</span>
+                                      <FileText className="h-5 w-5 text-primary flex-shrink-0" /> {/* Ensure icon doesn't shrink */}
+                                      <span className="text-sm font-medium break-all">{file.name}</span> {/* Allow file name break */}
                                   </div>
-                                  <div className="text-xs text-muted-foreground">
+                                  <div className="text-xs text-muted-foreground text-left sm:text-right w-full sm:w-auto mt-1 sm:mt-0"> {/* Align appropriately */}
                                      {projectsDict.uploadedByOn.replace('{user}', file.uploadedBy).replace('{date}', formatDateOnly(file.timestamp))}
                                   </div>
                                </li>
@@ -1129,7 +1135,7 @@ export default function ProjectsPage() {
 
 
   return (
-    <div className="container mx-auto py-4 space-y-6">
+    <div className="container mx-auto py-4 px-4 md:px-6 space-y-6"> {/* Added responsive padding */}
       {selectedProject ? renderSelectedProjectDetail(selectedProject) : renderProjectList()}
     </div>
   );
