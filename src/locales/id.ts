@@ -71,27 +71,9 @@ const id = {
       pendingscheduling: 'Menunggu Penjadwalan',
     },
      progress: '{progress}% Selesai',
-     projectStatusChartTitle: 'Distribusi Status Proyek', // Renamed
-     noDataForChart: 'Tidak ada data proyek untuk grafik.', // Renamed
-     // Chart Colors (keyed by the lowercase, no-space status key)
-     // Ensure these keys match the keys in the 'status' object above
-     chartColors: {
-       completed: 'hsl(120 60% 45%)', // Hijau
-       inprogress: 'hsl(210 80% 55%)', // Biru
-       pendingapproval: 'hsl(45 100% 50%)', // Kuning
-       delayed: 'hsl(30 90% 50%)', // Oranye
-       canceled: 'hsl(0 70% 50%)', // Merah
-       pending: 'hsl(240 5% 65%)', // Abu-abu
-       scheduled: 'hsl(270 60% 60%)', // Ungu
-       pendinginput: 'hsl(190 70% 50%)', // Cyan
-       pendingoffer: 'hsl(220 70% 60%)', // Indigo
-       pendingdpinvoice: 'hsl(300 60% 55%)', // Magenta
-       pendingadminfiles: 'hsl(150 60% 45%)', // Teal
-       pendingarchitectfiles: 'hsl(90 55% 50%)', // Lime
-       pendingstructurefiles: 'hsl(60 65% 50%)', // Gold
-       pendingfinalcheck: 'hsl(330 70% 55%)', // Pink
-       pendingscheduling: 'hsl(250 70% 60%)', // Violet
-     },
+     averageProgressTitle: 'Rata-rata Progres',
+     averageProgressDesc: 'Tingkat penyelesaian rata-rata di semua proyek Anda.',
+     // Chart related keys removed
   },
   // Projects Page (Renamed from Tasks Page)
   projectsPage: {

@@ -7,22 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button'; // Import Button
-import { CheckCircle, XCircle, Clock, AlertTriangle, PlusCircle, Loader2, PieChart as PieChartIcon } from 'lucide-react'; // Import PlusCircle, Loader2, PieChartIcon
+import { CheckCircle, XCircle, Clock, AlertTriangle, PlusCircle, Loader2, TrendingUp } from 'lucide-react'; // Import PlusCircle, Loader2, TrendingUp
 import { useLanguage } from '@/context/LanguageContext'; // Import language context
 import { getDictionary } from '@/lib/translations'; // Import translation helper
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 import { getAllProjects, type Project } from '@/services/project-service';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
-  type ChartConfig,
-} from "@/components/ui/chart"; // Import Chart components
-import { PieChart, Pie, Cell } from "recharts"; // Import Recharts components
+// Chart imports removed as they are no longer used
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -177,61 +169,14 @@ export default function DashboardPage() {
   const completedProjectsCount = React.useMemo(() => filteredProjects.filter(project => project.status === 'Completed').length, [filteredProjects]);
   const pendingProjectsCount = React.useMemo(() => filteredProjects.filter(project => project.status === 'Pending' || project.status === 'Pending Approval' || project.status === 'Menunggu Persetujuan' || project.status === 'Pending Input' || project.status === 'Pending Offer' || project.status === 'Pending DP Invoice' || project.status === 'Pending Admin Files' || project.status === 'Pending Architect Files' || project.status === 'Pending Structure Files' || project.status === 'Pending Final Check' || project.status === 'Pending Scheduling').length, [filteredProjects]);
 
-  // --- Chart Data Preparation - MEMOIZED ---
-  const projectStatusData = React.useMemo(() => {
-    if (!isClient || !dashboardDict?.status || filteredProjects.length === 0) {
-        return [];
+  // --- Average Progress Calculation - MEMOIZED ---
+  const averageProgress = React.useMemo(() => {
+    if (!filteredProjects || filteredProjects.length === 0) {
+      return 0;
     }
-
-    const statusCounts: { [key: string]: number } = {};
-    const statusKeyMap: { [key: string]: string } = {}; // Map translated status back to original key
-
-    // Initialize counts for all known statuses and build key map
-    Object.entries(dashboardDict.status).forEach(([key, translated]) => {
-        statusCounts[translated] = 0; // Use translated status as key for counting display labels
-        statusKeyMap[translated] = key; // Store original key for color mapping
-    });
-
-    filteredProjects.forEach(project => {
-        const statusKey = project.status.toLowerCase().replace(/ /g, '');
-        const translatedStatus = dashboardDict.status[statusKey as keyof typeof dashboardDict.status] || project.status;
-        if (statusCounts.hasOwnProperty(translatedStatus)) {
-           statusCounts[translatedStatus]++;
-        } else {
-            // Handle unexpected status if necessary (optional)
-             console.warn(`Unexpected project status found: ${project.status}`);
-             // Initialize count for unexpected status if you want to display it
-             // statusCounts[translatedStatus] = 1;
-             // statusKeyMap[translatedStatus] = statusKey; // Map it if needed
-        }
-    });
-
-    // Filter out statuses with zero counts before creating chart data
-    return Object.entries(statusCounts)
-           .filter(([, count]) => count > 0)
-           .map(([status, count]) => ({
-                status, // Translated status for display
-                count,
-                originalKey: statusKeyMap[status] || '', // Original key for color mapping
-           }));
-  }, [filteredProjects, isClient, dashboardDict]);
-
-  // --- Chart Configuration - MEMOIZED ---
-  const chartConfig = React.useMemo(() => {
-      if (!isClient || !dashboardDict?.chartColors) return {} as ChartConfig;
-
-       const config: ChartConfig = {};
-       projectStatusData.forEach((data) => {
-          if (data.originalKey) { // Ensure we have the original key
-            config[data.status] = { // Keyed by translated status (used in Pie data)
-              label: data.status, // Use the translated status as the label
-              // Use color from dict based on originalKey, or fallback
-              color: dashboardDict.chartColors[data.originalKey as keyof typeof dashboardDict.chartColors] || "#cccccc",
-            };
-          }
-       });
-       return config;
-  }, [isClient, dashboardDict, projectStatusData]);
+    const totalProgress = filteredProjects.reduce((sum, project) => sum + project.progress, 0);
+    return Math.round(totalProgress / filteredProjects.length);
+  }, [filteredProjects]);
 
 
    // Render loading state if user is not yet available on the client or projects are loading
@@ -268,7 +213,7 @@ export default function DashboardPage() {
                      <CardContent>
                           <div className="space-y-4">
                               {[...Array(3)].map((_, i) => (
-                                  <Card key={`project-skel-${i}`}> {/* Updated key */}
+                                  <Card key={`project-skel-${i}`} > {/* Updated key */}
                                       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                                            <div>
                                                <Skeleton className="h-5 w-3/5 mb-1" />
@@ -285,16 +230,6 @@ export default function DashboardPage() {
                           </div>
                       </CardContent>
                   </Card>
-                   {/* Skeleton for Project Chart */}
-                   <Card className="mt-6">
-                       <CardHeader>
-                           <Skeleton className="h-6 w-1/3 mb-2" />
-                           <Skeleton className="h-4 w-2/3" />
-                       </CardHeader>
-                       <CardContent className="flex justify-center items-center h-[200px]">
-                           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                       </CardContent>
-                    </Card>
            </div>
        );
    }
@@ -316,7 +251,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-       {/* Summary Cards & Chart */}
+       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6"> {/* Changed to 4 columns */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -349,63 +284,16 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Project Status Distribution Chart Card */}
-        <Card>
+         {/* Average Project Progress Card */}
+         <Card>
            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-               <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.projectStatusChartTitle : defaultDict.dashboardPage.projectStatusChartTitle}</CardTitle>
-               <PieChartIcon className="h-4 w-4 text-muted-foreground" />
+             <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.averageProgressTitle : defaultDict.dashboardPage.averageProgressTitle}</CardTitle>
+             <TrendingUp className="h-4 w-4 text-muted-foreground" />
            </CardHeader>
            <CardContent>
-             {projectStatusData.length > 0 ? (
-               <ChartContainer config={chartConfig} className="mx-auto aspect-square h-[150px]"> {/* Adjust height */}
-                 <PieChart>
-                   <ChartTooltip
-                      cursor={false}
-                      content={<ChartTooltipContent hideLabel />}
-                    />
-                   <Pie
-                      data={projectStatusData}
-                      dataKey="count"
-                      nameKey="status" // Use translated status for the name key
-                      innerRadius={40} // Make it a donut chart
-                      strokeWidth={2}
-                      labelLine={false} // Hide label lines
-                      label={({ percent, x, y, midAngle }) => { // Custom small label inside segment
-                            const RADIAN = Math.PI / 180;
-                            const radius = 15 + 25 * 0.7; // Position label inside
-                            const lx = x + radius * Math.cos(-midAngle * RADIAN);
-                            const ly = y + radius * Math.sin(-midAngle * RADIAN);
-                            return (
-                                <text
-                                    x={lx}
-                                    y={ly}
-                                    fill="white" // White text for contrast
-                                    textAnchor={lx > x ? 'start' : 'end'}
-                                    dominantBaseline="central"
-                                    fontSize="10px" // Smaller font size
-                                    fontWeight="bold"
-                                >
-                                    {`${(percent * 100).toFixed(0)}%`}
-                                </text>
-                            );
-                        }}
-                    >
-                     {projectStatusData.map((entry) => (
-                        // Fill based on the entry's translated status (which is the key in chartConfig)
-                       <Cell key={entry.status} fill={`var(--color-${entry.status})`} />
-                     ))}
-                   </Pie>
-                   <ChartLegend
-                      content={<ChartLegendContent nameKey="status" />} // Use translated status for legend labels
-                      className="-translate-y-2 flex-wrap gap-1 [&>*]:basis-1/4 [&>*]:justify-center"
-                    />
-                 </PieChart>
-               </ChartContainer>
-             ) : (
-               <p className="text-xs text-muted-foreground text-center h-[150px] flex items-center justify-center">
-                 {isClient ? dashboardDict.noDataForChart : defaultDict.dashboardPage.noDataForChart}
-               </p>
-             )}
+             <div className="text-2xl font-bold mb-2">{averageProgress}%</div>
+             <Progress value={averageProgress} className="h-2" />
+             <p className="text-xs text-muted-foreground mt-2">{isClient ? dashboardDict.averageProgressDesc : defaultDict.dashboardPage.averageProgressDesc}</p>
            </CardContent>
          </Card>
       </div>
