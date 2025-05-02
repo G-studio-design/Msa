@@ -185,7 +185,7 @@ export default function AdminActionsPage() {
               ) : (
                 projects.map((project) => (
                   <TableRow key={project.id}>
-                    <TableCell className="text-xs font-mono">{project.id}</TableCell> {/* Display full ID */}
+                    <TableCell className="text-xs font-mono">{project.id}</TableCell>{/* Display full ID */}
                     <TableCell className="font-medium">
                       {editingProjectId === project.id ? ( // Renamed state variable
                         <Input
@@ -198,7 +198,7 @@ export default function AdminActionsPage() {
                         project.title
                       )}
                     </TableCell>
-                    <TableCell>{getTranslatedStatus(project.status)}</TableCell> {/* Use translated status */}
+                    <TableCell>{getTranslatedStatus(project.status)}</TableCell>{/* Use translated status */}
                     <TableCell className="text-right space-x-2">
                       {editingProjectId === project.id ? ( // Renamed state variable
                         <>
