@@ -40,10 +40,17 @@ const PIE_COLORS = {
 
 // Function to get color based on status
 const getPieColor = (status: string): string => {
-    const normalizedStatus = status.replace(/ /g, ''); // Remove spaces for key matching
-    const key = Object.keys(PIE_COLORS).find(k => k.replace(/ /g, '') === normalizedStatus);
-    return key ? PIE_COLORS[key as keyof typeof PIE_COLORS] : PIE_COLORS['Default'];
+    // Try matching based on English status first for consistency
+    const key = Object.keys(PIE_COLORS).find(k => k.toLowerCase() === status.toLowerCase());
+    if (key) return PIE_COLORS[key as keyof typeof PIE_COLORS];
+
+    // If no English match, try matching based on translated status (less reliable for colors)
+    // This requires reversing the translation, which is complex.
+    // A better approach is to always use the English status key for color mapping.
+    // For now, fallback to default if no direct English key match.
+    return PIE_COLORS['Default'];
 };
+
 
 export default function DashboardPage() {
   const { language } = useLanguage(); // Get current language
@@ -91,6 +98,10 @@ export default function DashboardPage() {
   // Helper function to get translated status
   const getTranslatedStatus = React.useCallback((statusKey: string): string => {
        if (!isClient || !dashboardDict?.status || !statusKey) return statusKey;
+       // Try to find the English key corresponding to the translated value (if possible)
+       // This is complex. It's better to store status consistently (e.g., always English keys)
+       // and translate only for display.
+       // Assuming statusKey is the *key* (like 'inprogress')
        const key = statusKey.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
        return dashboardDict.status[key] || statusKey;
   }, [isClient, dashboardDict]); // Memoize this helper
@@ -108,6 +119,7 @@ export default function DashboardPage() {
     let className = "";
     let Icon = Clock;
 
+     // Use the original English status key for logic, translate only for display text
      switch (status.toLowerCase()) {
         case 'completed':
             variant = 'default';
@@ -115,54 +127,41 @@ export default function DashboardPage() {
             Icon = CheckCircle;
             break;
         case 'inprogress':
-        case 'sedang berjalan': // Add Indonesian translation
             variant = 'secondary';
             className = 'bg-blue-500 text-white hover:bg-blue-600';
             Icon = Clock;
             break;
         case 'pendingapproval':
-        case 'menunggu persetujuan': // Add Indonesian translation
             variant = 'outline';
             className = 'border-yellow-500 text-yellow-600';
             Icon = AlertTriangle;
             break;
         case 'delayed':
-        case 'tertunda': // Add Indonesian translation
              variant = 'destructive'; // Use destructive for delay color, but style it orange
              className = 'bg-orange-500 text-white hover:bg-orange-600 border-orange-500'; // Custom orange style
              Icon = Clock;
              break;
         case 'canceled':
-        case 'dibatalkan': // Add Indonesian translation
              variant = 'destructive';
              Icon = XCircle;
              break;
         case 'pending':
         case 'pendinginput':
-        case 'menunggu input': // Add Indonesian translation
-        case 'pendingoffer': // Make this stand out slightly?
-        case 'menunggu penawaran': // Add Indonesian translation
+        case 'pendingoffer':
             variant = 'outline'; // Example: Use outline for pending offer
             className = 'border-blue-500 text-blue-600'; // Example: blue outline
             Icon = Clock;
             break;
         case 'pendingdpinvoice':
-        case 'menunggu faktur dp': // Add Indonesian translation
         case 'pendingadminfiles':
-        case 'menunggu file admin': // Add Indonesian translation
         case 'pendingarchitectfiles':
-        case 'menunggu file arsitek': // Add Indonesian translation
         case 'pendingstructurefiles':
-        case 'menunggu file struktur': // Add Indonesian translation
         case 'pendingfinalcheck':
-        case 'menunggu pemeriksaan akhir': // Add Indonesian translation
         case 'pendingscheduling':
-        case 'menunggu penjadwalan': // Add Indonesian translation
             variant = 'secondary';
             Icon = Clock;
             break;
         case 'scheduled':
-        case 'terjadwal': // Add Indonesian translation
             variant = 'secondary';
             className = 'bg-purple-500 text-white hover:bg-purple-600';
             Icon = Clock;
@@ -172,6 +171,7 @@ export default function DashboardPage() {
             Icon = Clock;
     }
 
+    // Use translatedStatus for the displayed text
     return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
   }, [isClient, dashboardDict]); // Memoize this helper
 
@@ -202,15 +202,15 @@ export default function DashboardPage() {
       return [];
     }
     const statusCounts = filteredProjects.reduce((acc, project) => {
-      const status = getTranslatedStatus(project.status); // Use translated status for grouping
+      const status = project.status; // Use the original status key for counting
       acc[status] = (acc[status] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
-     return Object.entries(statusCounts).map(([name, value]) => ({
-       name, // Translated status name
+     return Object.entries(statusCounts).map(([statusKey, value]) => ({
+       name: getTranslatedStatus(statusKey), // Translate the status name for display
        value, // Count for this status
-       fill: getPieColor(name), // Get color based on original status name if possible, fallback needed
+       fill: getPieColor(statusKey), // Get color based on original status key
      }));
   }, [filteredProjects, getTranslatedStatus]); // Added getTranslatedStatus dependency
 
@@ -289,11 +289,11 @@ export default function DashboardPage() {
         </h1>
         {/* Conditionally render Add Project Button based on role */}
         {canAddProject && (
-           <Button asChild className="w-full sm:w-auto accent-teal"> {/* Ensure only Link is the child */}
-              <Link href="/dashboard/add-project" className="flex items-center"> {/* Apply flex directly to Link */}
-                <PlusCircle className="mr-2 h-4 w-4" />
-                {isClient ? dashboardDict.addNewProject : defaultDict.dashboardPage.addNewProject}
-              </Link>
+           <Button asChild className="w-full sm:w-auto accent-teal">
+             <Link href="/dashboard/add-project">
+               <PlusCircle className="mr-2 h-4 w-4" />
+               {isClient ? dashboardDict.addNewProject : defaultDict.dashboardPage.addNewProject}
+             </Link>
            </Button>
         )}
       </div>
@@ -390,13 +390,13 @@ export default function DashboardPage() {
               <p className="text-muted-foreground text-center py-4">{isClient ? dashboardDict.noProjects : defaultDict.dashboardPage.noProjects}</p>
             ) : (
               filteredProjects.map((project) => (
-                <Link key={project.id} href={`/dashboard/projects?projectId=${project.id}`} passHref>
+                <Link key={project.id} href={`/dashboard/projects?projectId=${project.id}`} passHref legacyBehavior>
                    <Card className="hover:shadow-md transition-shadow cursor-pointer block"> {/* Use block for Link */}
                     <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2"> {/* Flex column on mobile */}
                        <div className="flex-1"> {/* Allow title to take space */}
                          <CardTitle className="text-lg">{project.title}</CardTitle>
                          <CardDescription className="text-xs text-muted-foreground mt-1"> {/* Added margin top */}
-                           {isClient && dashboardDict ? `${dashboardDict.assignedTo}: ${getTranslatedStatus(project.assignedDivision)} ${project.nextAction ? `| ${dashboardDict.nextAction}: ${project.nextAction}` : ''}` : '...'}
+                           {isClient && dashboardDict && project.assignedDivision ? `${dashboardDict.assignedTo}: ${getTranslatedStatus(project.assignedDivision)} ${project.nextAction ? `| ${dashboardDict.nextAction}: ${project.nextAction}` : ''}` : '...'}
                          </CardDescription>
                        </div>
                        <div className="flex-shrink-0 mt-2 sm:mt-0"> {/* Prevent badge shrinking */}
