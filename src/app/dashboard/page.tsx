@@ -268,7 +268,7 @@ export default function DashboardPage() {
                      <CardContent>
                           <div className="space-y-4">
                               {[...Array(3)].map((_, i) => (
-                                  <Card key={`project-skel-${i}`}> {/* Updated key */}
+                                  <Card key={`project-skel-${i}`} className="opacity-50"> {/* Updated key */}
                                       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                                            <div>
                                                <Skeleton className="h-5 w-3/5 mb-1" />
@@ -465,5 +465,16 @@ export default function DashboardPage() {
     </div>
   );
 }
+                </p>
+                      )}
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
-    

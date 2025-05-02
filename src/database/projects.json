@@ -2,10 +2,10 @@
   {
     "id": "project_1746135389371_75z4h",
     "title": "proyek canggu",
-    "status": "Scheduled",
-    "progress": 90,
-    "assignedDivision": "Owner",
-    "nextAction": "Declare Sidang Outcome (Success/Fail)",
+    "status": "Completed",
+    "progress": 100,
+    "assignedDivision": "",
+    "nextAction": "",
     "workflowHistory": [
       {
         "division": "sudina",
@@ -66,6 +66,11 @@
         "division": "Owner",
         "action": "Scheduled Sidang for 2025-05-03T03:45:00.000Z",
         "timestamp": "2025-05-02T02:46:08.505Z"
+      },
+      {
+        "division": "Owner",
+        "action": "Marked as Completed",
+        "timestamp": "2025-05-02T04:31:43.163Z"
       }
     ],
     "files": [
