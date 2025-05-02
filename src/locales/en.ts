@@ -65,8 +65,8 @@ const en = {
       pendingoffer: 'Pending Offer',
       pendingdpinvoice: 'Pending DP Invoice',
       pendingadminfiles: 'Pending Admin Files',
-      pendingarchitectfiles: 'Architect', // Corrected spelling
-      pendingstructurefiles: 'Structure', // Corrected spelling
+      pendingarchitectfiles: 'Architect',
+      pendingstructurefiles: 'Structure',
       pendingfinalcheck: 'Pending Final Check',
       pendingscheduling: 'Pending Scheduling',
       owner: 'Owner', // Added translation for roles used in 'assignedTo'
@@ -77,11 +77,9 @@ const en = {
       admindeveloper: 'Admin Developer',
     },
     progress: '{progress}% Complete',
-    averageProgressTitle: 'Average Progress',
-    averageProgressDesc: 'Average completion rate across all your projects.',
-    statusDistributionTitle: 'Project Status Distribution', // Added
-    statusDistributionDesc: 'Overview of projects by current status.', // Added
-    noProjectDataForChart: 'No project data available for chart.', // Added
+    averageProgressTitle: 'Average Progress', // Added
+    averageProgressDesc: 'Average completion rate across all your projects.', // Added
+    // Removed statusDistributionTitle and statusDistributionDesc
   },
   // Projects Page (Renamed from Tasks Page)
   projectsPage: {
@@ -229,8 +227,8 @@ const en = {
       Owner: 'Owner',
       'General Admin': 'General Admin',
       'Admin Proyek': 'Project Admin',
-      Arsitek: 'Architect', // Corrected spelling
-      Struktur: 'Structure', // Corrected spelling
+      Arsitek: 'Architect',
+      Struktur: 'Structure',
       'Admin Developer': 'Admin Developer',
     },
     toast: {

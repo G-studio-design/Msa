@@ -65,8 +65,8 @@ const id = {
       pendingoffer: 'Menunggu Penawaran',
       pendingdpinvoice: 'Menunggu Faktur DP',
       pendingadminfiles: 'Menunggu File Admin',
-      pendingarchitectfiles: 'Arsitek', // Corrected spelling
-      pendingstructurefiles: 'Struktur', // Corrected spelling
+      pendingarchitectfiles: 'Arsitek',
+      pendingstructurefiles: 'Struktur',
       pendingfinalcheck: 'Menunggu Pemeriksaan Akhir',
       pendingscheduling: 'Menunggu Penjadwalan',
       owner: 'Pemilik', // Added translation for roles used in 'assignedTo'
@@ -77,11 +77,9 @@ const id = {
       admindeveloper: 'Admin Pengembang',
     },
      progress: '{progress}% Selesai',
-     averageProgressTitle: 'Rata-rata Progres',
-     averageProgressDesc: 'Tingkat penyelesaian rata-rata di semua proyek Anda.',
-     statusDistributionTitle: 'Distribusi Status Proyek', // Added
-     statusDistributionDesc: 'Gambaran umum proyek berdasarkan status saat ini.', // Added
-     noProjectDataForChart: 'Tidak ada data proyek untuk ditampilkan di diagram.', // Added
+     averageProgressTitle: 'Rata-rata Progres', // Added
+     averageProgressDesc: 'Tingkat penyelesaian rata-rata di semua proyek Anda.', // Added
+     // Removed statusDistributionTitle and statusDistributionDesc
   },
   // Projects Page (Renamed from Tasks Page)
   projectsPage: {
@@ -229,8 +227,8 @@ const id = {
        Owner: 'Pemilik',
        'General Admin': 'Admin Umum',
        'Admin Proyek': 'Admin Proyek',
-       Arsitek: 'Arsitek', // Corrected spelling
-       Struktur: 'Struktur', // Corrected spelling
+       Arsitek: 'Arsitek',
+       Struktur: 'Struktur',
        'Admin Developer': 'Admin Pengembang',
      },
     toast: {

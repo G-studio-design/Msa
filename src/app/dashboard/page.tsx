@@ -7,50 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button'; // Import Button
-import { CheckCircle, XCircle, Clock, AlertTriangle, PlusCircle, Loader2, TrendingUp } from 'lucide-react'; // Import PlusCircle, Loader2, TrendingUp
+import { CheckCircle, XCircle, Clock, AlertTriangle, PlusCircle, Loader2, TrendingUp, Percent } from 'lucide-react'; // Added Percent icon
 import { useLanguage } from '@/context/LanguageContext'; // Import language context
 import { getDictionary } from '@/lib/translations'; // Import translation helper
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 import { getAllProjects, type Project } from '@/services/project-service';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'; // Import Recharts components
+// Removed Recharts imports as we are removing the pie chart
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
-
-// Define colors for the pie chart (consistent with status badge colors if possible)
-const PIE_COLORS = {
-    'Pending Approval': '#f59e0b', // Yellow-orange
-    'In Progress': '#3b82f6', // Blue
-    'Pending Offer': '#6366f1', // Indigo
-    'Pending Input': '#a855f7', // Purple
-    'Pending DP Invoice': '#ec4899', // Pink
-    'Pending Admin Files': '#f43f5e', // Rose
-    'Pending Architect Files': '#10b981', // Emerald
-    'Pending Structure Files': '#facc15', // Yellow
-    'Pending Final Check': '#84cc16', // Lime
-    'Pending Scheduling': '#d946ef', // Fuchsia
-    'Scheduled': '#6d28d9', // Violet
-    'Completed': '#22c55e', // Green
-    'Canceled': '#ef4444', // Red
-    'Delayed': '#f97316', // Orange (from custom destructive style)
-    'Default': '#6b7280', // Gray for others
-};
-
-// Function to get color based on status
-const getPieColor = (status: string): string => {
-    // Try matching based on English status first for consistency
-    const key = Object.keys(PIE_COLORS).find(k => k.toLowerCase() === status.toLowerCase());
-    if (key) return PIE_COLORS[key as keyof typeof PIE_COLORS];
-
-    // If no English match, try matching based on translated status (less reliable for colors)
-    // This requires reversing the translation, which is complex.
-    // A better approach is to always use the English status key for color mapping.
-    // For now, fallback to default if no direct English key match.
-    return PIE_COLORS['Default'];
-};
-
 
 export default function DashboardPage() {
   const { language } = useLanguage(); // Get current language
@@ -78,6 +45,8 @@ export default function DashboardPage() {
                 } finally {
                     setIsLoadingProjects(false);
                 }
+            } else {
+                setIsLoadingProjects(false); // Stop loading if no user
             }
        };
        fetchProjects();
@@ -98,137 +67,132 @@ export default function DashboardPage() {
   // Helper function to get translated status
   const getTranslatedStatus = React.useCallback((statusKey: string): string => {
        if (!isClient || !dashboardDict?.status || !statusKey) return statusKey;
-       // Try to find the English key corresponding to the translated value (if possible)
-       // This is complex. It's better to store status consistently (e.g., always English keys)
-       // and translate only for display.
-       // Assuming statusKey is the *key* (like 'inprogress')
        const key = statusKey.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
        return dashboardDict.status[key] || statusKey;
-  }, [isClient, dashboardDict]); // Memoize this helper
+  }, [isClient, dashboardDict]);
 
 
   // Helper function to get status icon and color using translated status
   const getStatusBadge = React.useCallback((status: string) => {
-    if (!isClient || !dashboardDict?.status || !status) return <Skeleton className="h-5 w-20" />; // Skeleton during hydration mismatch check or if status is missing
+    if (!isClient || !dashboardDict?.status || !status) return <Skeleton className="h-5 w-20" />;
 
     const statusKey = status.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
-    const translatedStatus = dashboardDict.status[statusKey] || status; // Fallback to original
+    const translatedStatus = dashboardDict.status[statusKey] || status;
 
-    // Define badge variants based on status
     let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
     let className = "";
     let Icon = Clock;
 
-     // Use the original English status key for logic, translate only for display text
      switch (status.toLowerCase()) {
         case 'completed':
             variant = 'default';
-            className = 'bg-green-500 hover:bg-green-600 text-white'; // Added text-white for consistency
+            className = 'bg-green-500 hover:bg-green-600 text-white';
             Icon = CheckCircle;
             break;
         case 'inprogress':
+        case 'sedang berjalan':
             variant = 'secondary';
             className = 'bg-blue-500 text-white hover:bg-blue-600';
             Icon = Clock;
             break;
         case 'pendingapproval':
+        case 'menunggu persetujuan':
             variant = 'outline';
             className = 'border-yellow-500 text-yellow-600';
             Icon = AlertTriangle;
             break;
         case 'delayed':
-             variant = 'destructive'; // Use destructive for delay color, but style it orange
-             className = 'bg-orange-500 text-white hover:bg-orange-600 border-orange-500'; // Custom orange style
+        case 'tertunda':
+             variant = 'destructive';
+             className = 'bg-orange-500 text-white hover:bg-orange-600 border-orange-500';
              Icon = Clock;
              break;
         case 'canceled':
+        case 'dibatalkan':
              variant = 'destructive';
              Icon = XCircle;
              break;
         case 'pending':
         case 'pendinginput':
+        case 'menunggu input':
         case 'pendingoffer':
-            variant = 'outline'; // Example: Use outline for pending offer
-            className = 'border-blue-500 text-blue-600'; // Example: blue outline
+        case 'menunggu penawaran':
+            variant = 'outline';
+            className = 'border-blue-500 text-blue-600';
             Icon = Clock;
             break;
         case 'pendingdpinvoice':
+        case 'menunggu faktur dp':
         case 'pendingadminfiles':
+        case 'menunggu file admin':
         case 'pendingarchitectfiles':
+        case 'menunggu file arsitek':
         case 'pendingstructurefiles':
+        case 'menunggu file struktur':
         case 'pendingfinalcheck':
+        case 'menunggu pemeriksaan akhir':
         case 'pendingscheduling':
+        case 'menunggu penjadwalan':
             variant = 'secondary';
             Icon = Clock;
             break;
         case 'scheduled':
+        case 'terjadwal':
             variant = 'secondary';
             className = 'bg-purple-500 text-white hover:bg-purple-600';
             Icon = Clock;
             break;
         default:
-            variant = 'secondary'; // Default fallback
+            variant = 'secondary';
             Icon = Clock;
     }
 
-    // Use translatedStatus for the displayed text
     return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
-  }, [isClient, dashboardDict]); // Memoize this helper
+  }, [isClient, dashboardDict]);
 
   // Filter projects based on user role from context - MEMOIZED
    const filteredProjects = React.useMemo(() => {
-        if (!userRole || !isClient || isLoadingProjects) return []; // Don't filter if not client or still loading
+        if (!userRole || !isClient || isLoadingProjects) return [];
         if (['Owner', 'General Admin', 'Admin Developer'].includes(userRole)) {
-            return projects; // These roles see all projects
+            return projects;
         }
-        // Admin Proyek can also see all projects
         if (userRole === 'Admin Proyek') {
           return projects;
         }
-        // Other roles see projects assigned to them OR requiring their action (based on nextAction)
         return projects.filter(project =>
             project.assignedDivision === userRole ||
             (project.nextAction && project.nextAction.toLowerCase().includes(userRole.toLowerCase()))
         );
-   }, [userRole, projects, isClient, isLoadingProjects]); // Recalculate when userRole, projects, or client status changes
+   }, [userRole, projects, isClient, isLoadingProjects]);
 
   const activeProjects = React.useMemo(() => filteredProjects.filter(project => project.status !== 'Completed' && project.status !== 'Canceled'), [filteredProjects]);
   const completedProjectsCount = React.useMemo(() => filteredProjects.filter(project => project.status === 'Completed').length, [filteredProjects]);
-  const pendingProjectsCount = React.useMemo(() => filteredProjects.filter(project => project.status === 'Pending' || project.status === 'Pending Approval' || project.status === 'Menunggu Persetujuan' || project.status === 'Pending Input' || project.status === 'Pending Offer' || project.status === 'Pending DP Invoice' || project.status === 'Pending Admin Files' || project.status === 'Pending Architect Files' || project.status === 'Pending Structure Files' || project.status === 'Pending Final Check' || project.status === 'Pending Scheduling').length, [filteredProjects]);
+  const pendingProjectsCount = React.useMemo(() => filteredProjects.filter(project => ['Pending Approval', 'Pending Input', 'Pending Offer', 'Pending DP Invoice', 'Pending Admin Files', 'Pending Architect Files', 'Pending Structure Files', 'Pending Final Check', 'Pending Scheduling', 'Menunggu Persetujuan', 'Menunggu Input', 'Menunggu Penawaran', 'Menunggu Faktur DP', 'Menunggu File Admin', 'Menunggu File Arsitek', 'Menunggu File Struktur', 'Menunggu Pemeriksaan Akhir', 'Menunggu Penjadwalan'].includes(project.status)).length, [filteredProjects]);
 
-   // --- Project Status Distribution Calculation - MEMOIZED ---
-  const projectStatusDistribution = React.useMemo(() => {
-    if (!filteredProjects || filteredProjects.length === 0) {
-      return [];
+  // Calculate Average Progress - MEMOIZED
+  const averageProgress = React.useMemo(() => {
+    if (filteredProjects.length === 0) {
+      return 0;
     }
-    const statusCounts = filteredProjects.reduce((acc, project) => {
-      const status = project.status; // Use the original status key for counting
-      acc[status] = (acc[status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const totalProgress = filteredProjects.reduce((sum, project) => sum + project.progress, 0);
+    return Math.round(totalProgress / filteredProjects.length);
+  }, [filteredProjects]);
 
-     return Object.entries(statusCounts).map(([statusKey, value]) => ({
-       name: getTranslatedStatus(statusKey), // Translate the status name for display
-       value, // Count for this status
-       fill: getPieColor(statusKey), // Get color based on original status key
-     }));
-  }, [filteredProjects, getTranslatedStatus]); // Added getTranslatedStatus dependency
+   // --- Remove Project Status Distribution Calculation ---
+   // const projectStatusDistribution = React.useMemo(() => { ... }, [filteredProjects, getTranslatedStatus]);
 
-
-   // Render loading state if user is not yet available on the client or projects are loading
+   // Render loading state
    if (!isClient || !currentUser || isLoadingProjects) {
        return (
-           <div className="container mx-auto py-4 px-4 md:px-6 space-y-6"> {/* Added responsive padding */}
+           <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
                {/* Skeleton for Header */}
-                <div className="flex justify-between items-center mb-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <Skeleton className="h-8 w-48" />
-                    {/* Skeleton for Add Project Button (if applicable) */}
-                    {(currentUser?.role === 'Owner' || currentUser?.role === 'General Admin') && <Skeleton className="h-10 w-32" />}
+                    {(currentUser?.role === 'Owner' || currentUser?.role === 'General Admin') && <Skeleton className="h-10 w-36" />}
                 </div>
-               {/* Skeleton for Summary Cards & Chart */}
-                <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-6"> {/* Adjusted grid for 3 items + chart */}
-                     {/* Skeletons for 3 summary cards */}
-                    {[...Array(3)].map((_, i) => (
+               {/* Skeleton for Summary Cards */}
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+                    {[...Array(4)].map((_, i) => ( // Now 4 cards
                          <Card key={`summary-skel-${i}`}>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <Skeleton className="h-4 w-2/4" />
@@ -240,16 +204,6 @@ export default function DashboardPage() {
                              </CardContent>
                          </Card>
                     ))}
-                     {/* Skeleton for Chart Card */}
-                     <Card className="md:col-span-1 lg:col-span-1"> {/* Chart takes 1 column */}
-                          <CardHeader className="pb-2">
-                             <Skeleton className="h-5 w-3/5 mb-2" />
-                             <Skeleton className="h-3 w-4/5" />
-                          </CardHeader>
-                          <CardContent className="flex justify-center items-center h-[200px]"> {/* Fixed height for chart area */}
-                              <Skeleton className="h-36 w-36 rounded-full" />
-                          </CardContent>
-                      </Card>
                  </div>
                  {/* Skeleton for Project List */}
                   <Card>
@@ -260,7 +214,7 @@ export default function DashboardPage() {
                      <CardContent>
                           <div className="space-y-4">
                               {[...Array(3)].map((_, i) => (
-                                  <Card key={`project-skel-${i}`} > {/* Updated key */}
+                                  <Card key={`project-skel-${i}`} className="opacity-50">
                                       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                                            <div>
                                                <Skeleton className="h-5 w-3/5 mb-1" />
@@ -282,104 +236,74 @@ export default function DashboardPage() {
    }
 
   return (
-    <div className="container mx-auto py-4 px-4 md:px-6 space-y-6"> {/* Added responsive padding */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6"> {/* Flex column on mobile */}
-        <h1 className="text-2xl md:text-3xl font-bold text-primary"> {/* Adjusted font size */}
-          {isClient ? dashboardDict.title : defaultDict.dashboardPage.title}
+    <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-primary">
+          {isClient && dashboardDict ? dashboardDict.title : defaultDict.dashboardPage.title}
         </h1>
-        {/* Conditionally render Add Project Button based on role */}
         {canAddProject && (
-           <Button asChild className="w-full sm:w-auto accent-teal">
-             <Link href="/dashboard/add-project">
-               <PlusCircle className="mr-2 h-4 w-4" />
-               {isClient ? dashboardDict.addNewProject : defaultDict.dashboardPage.addNewProject}
-             </Link>
-           </Button>
+             <Button asChild className="w-full sm:w-auto accent-teal">
+                <Link href="/dashboard/add-project">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                     {isClient && dashboardDict ? dashboardDict.addNewProject : defaultDict.dashboardPage.addNewProject}
+                </Link>
+            </Button>
         )}
       </div>
 
-       {/* Summary Cards & Chart */}
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-6"> {/* Adjusted grid */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.activeProjects : defaultDict.dashboardPage.activeProjects}</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeProjects.length}</div>
-            <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.activeProjectsDesc : defaultDict.dashboardPage.activeProjectsDesc}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.completedProjects : defaultDict.dashboardPage.completedProjects}</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{completedProjectsCount}</div>
-             <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.completedProjectsDesc : defaultDict.dashboardPage.completedProjectsDesc}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.pendingActions : defaultDict.dashboardPage.pendingActions}</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{pendingProjectsCount}</div>
-            <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.pendingActionsDesc : defaultDict.dashboardPage.pendingActionsDesc}</p>
-          </CardContent>
-        </Card>
+       {/* Summary Cards - Updated to 4 columns */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{isClient && dashboardDict ? dashboardDict.activeProjects : defaultDict.dashboardPage.activeProjects}</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{activeProjects.length}</div>
+                    <p className="text-xs text-muted-foreground">{isClient && dashboardDict ? dashboardDict.activeProjectsDesc : defaultDict.dashboardPage.activeProjectsDesc}</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{isClient && dashboardDict ? dashboardDict.completedProjects : defaultDict.dashboardPage.completedProjects}</CardTitle>
+                    <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{completedProjectsCount}</div>
+                    <p className="text-xs text-muted-foreground">{isClient && dashboardDict ? dashboardDict.completedProjectsDesc : defaultDict.dashboardPage.completedProjectsDesc}</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{isClient && dashboardDict ? dashboardDict.pendingActions : defaultDict.dashboardPage.pendingActions}</CardTitle>
+                    <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{pendingProjectsCount}</div>
+                    <p className="text-xs text-muted-foreground">{isClient && dashboardDict ? dashboardDict.pendingActionsDesc : defaultDict.dashboardPage.pendingActionsDesc}</p>
+                </CardContent>
+            </Card>
+             {/* Average Progress Card */}
+             <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{isClient && dashboardDict ? dashboardDict.averageProgressTitle : defaultDict.dashboardPage.averageProgressTitle}</CardTitle>
+                    <Percent className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{averageProgress}%</div>
+                    <p className="text-xs text-muted-foreground">{isClient && dashboardDict ? dashboardDict.averageProgressDesc : defaultDict.dashboardPage.averageProgressDesc}</p>
+                </CardContent>
+             </Card>
+        </div>
 
-         {/* Project Status Distribution Chart */}
-          <Card className="md:col-span-2 lg:col-span-1"> {/* Chart takes 2 cols on md, 1 on lg */}
-            <CardHeader className="pb-2">
-               <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.statusDistributionTitle : defaultDict.dashboardPage.statusDistributionTitle}</CardTitle>
-               <CardDescription className="text-xs text-muted-foreground">{isClient ? dashboardDict.statusDistributionDesc : defaultDict.dashboardPage.statusDistributionDesc}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
-                 {projectStatusDistribution.length > 0 ? (
-                   <PieChart>
-                     <Pie
-                       data={projectStatusDistribution}
-                       cx="50%"
-                       cy="50%"
-                       labelLine={false}
-                       // label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`} // Simple label
-                       outerRadius={80}
-                       fill="#8884d8" // Default fill, overridden by Cell
-                       dataKey="value"
-                       stroke="hsl(var(--border))" // Add border to segments
-                       paddingAngle={1} // Add padding between segments
-                     >
-                       {projectStatusDistribution.map((entry, index) => (
-                         <Cell key={`cell-${index}`} fill={entry.fill} />
-                       ))}
-                     </Pie>
-                      <Tooltip
-                          contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
-                          itemStyle={{ color: 'hsl(var(--foreground))' }}
-                          formatter={(value, name) => [`${value} ${value === 1 ? 'project' : 'projects'}`, name]} // Custom formatter
-                      />
-                      <Legend layout="vertical" align="right" verticalAlign="middle" iconSize={10} wrapperStyle={{ fontSize: '12px', lineHeight: '1.5' }} />
-                   </PieChart>
-                 ) : (
-                    <div className="flex justify-center items-center h-full text-muted-foreground text-sm">
-                      {isClient ? dashboardDict.noProjectDataForChart : defaultDict.dashboardPage.noProjectDataForChart}
-                    </div>
-                 )}
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-      </div>
+       {/* Removed Project Status Distribution Chart */}
 
        {/* Project List */}
       <Card>
          <CardHeader>
-           <CardTitle>{isClient ? dashboardDict.projectOverview : defaultDict.dashboardPage.projectOverview}</CardTitle>
+           <CardTitle>{isClient && dashboardDict ? dashboardDict.projectOverview : defaultDict.dashboardPage.projectOverview}</CardTitle>
            <CardDescription>
-             {isClient ? (userRole === 'General Admin' || userRole === 'Owner' || userRole === 'Admin Developer' || userRole === 'Admin Proyek'
+             {isClient && dashboardDict ? (userRole === 'General Admin' || userRole === 'Owner' || userRole === 'Admin Developer' || userRole === 'Admin Proyek'
                 ? dashboardDict.allProjectsDesc
                 : dashboardDict.divisionProjectsDesc.replace('{division}', getTranslatedStatus(userRole))) : '...'}
            </CardDescription>
@@ -387,24 +311,24 @@ export default function DashboardPage() {
         <CardContent>
           <div className="space-y-4">
             {filteredProjects.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">{isClient ? dashboardDict.noProjects : defaultDict.dashboardPage.noProjects}</p>
+              <p className="text-muted-foreground text-center py-4">{isClient && dashboardDict ? dashboardDict.noProjects : defaultDict.dashboardPage.noProjects}</p>
             ) : (
               filteredProjects.map((project) => (
                 <Link key={project.id} href={`/dashboard/projects?projectId=${project.id}`} passHref legacyBehavior>
-                   <Card className="hover:shadow-md transition-shadow cursor-pointer block"> {/* Use block for Link */}
-                    <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2"> {/* Flex column on mobile */}
-                       <div className="flex-1"> {/* Allow title to take space */}
+                   <Card className="hover:shadow-md transition-shadow cursor-pointer block">
+                    <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2">
+                       <div className="flex-1">
                          <CardTitle className="text-lg">{project.title}</CardTitle>
-                         <CardDescription className="text-xs text-muted-foreground mt-1"> {/* Added margin top */}
+                         <CardDescription className="text-xs text-muted-foreground mt-1">
                            {isClient && dashboardDict && project.assignedDivision ? `${dashboardDict.assignedTo}: ${getTranslatedStatus(project.assignedDivision)} ${project.nextAction ? `| ${dashboardDict.nextAction}: ${project.nextAction}` : ''}` : '...'}
                          </CardDescription>
                        </div>
-                       <div className="flex-shrink-0 mt-2 sm:mt-0"> {/* Prevent badge shrinking */}
+                       <div className="flex-shrink-0 mt-2 sm:mt-0">
                           {getStatusBadge(project.status)}
                        </div>
                     </CardHeader>
                     <CardContent>
-                       {project.status !== 'Canceled' && project.status !== 'Completed' && ( // Don't show progress for completed/canceled
+                       {project.status !== 'Canceled' && project.status !== 'Completed' && (
                          <div className="flex items-center gap-2">
                             <Progress value={project.progress} className="flex-1 h-2" />
                             <span className="text-xs text-muted-foreground font-medium">
@@ -414,12 +338,12 @@ export default function DashboardPage() {
                        )}
                        {project.status === 'Canceled' && (
                           <p className="text-sm text-destructive font-medium">
-                            {isClient ? getTranslatedStatus(project.status) : defaultDict.dashboardPage.projectCanceled}
+                            {isClient && dashboardDict ? getTranslatedStatus(project.status) : defaultDict.dashboardPage.projectCanceled}
                           </p>
                        )}
                        {project.status === 'Completed' && (
                            <p className="text-sm text-green-600 font-medium">
-                             {isClient ? getTranslatedStatus(project.status) : defaultDict.dashboardPage.projectCompleted}
+                             {isClient && dashboardDict ? getTranslatedStatus(project.status) : defaultDict.dashboardPage.projectCompleted}
                            </p>
                         )}
                     </CardContent>
@@ -433,6 +357,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-
-    
