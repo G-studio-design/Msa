@@ -1,12 +1,11 @@
-
 [
   {
     "id": "project_1746135389371_75z4h",
     "title": "proyek canggu",
-    "status": "Pending Offer",
-    "progress": 10,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Upload Offer Document",
+    "status": "Pending Structure Files",
+    "progress": 70,
+    "assignedDivision": "Struktur",
+    "nextAction": "Upload Structure Files",
     "workflowHistory": [
       {
         "division": "sudina",
@@ -22,6 +21,36 @@
         "division": "System",
         "action": "Assigned to Admin Proyek for Upload Offer Document",
         "timestamp": "2025-05-01T21:36:29.371Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "Uploaded Offer Document",
+        "timestamp": "2025-05-02T02:11:52.578Z"
+      },
+      {
+        "division": "Owner",
+        "action": "Approved Offer",
+        "timestamp": "2025-05-02T02:12:48.106Z"
+      },
+      {
+        "division": "General Admin",
+        "action": "Uploaded DP Invoice",
+        "timestamp": "2025-05-02T02:15:05.867Z"
+      },
+      {
+        "division": "Owner",
+        "action": "Approved DP Invoice",
+        "timestamp": "2025-05-02T02:16:04.097Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "Uploaded Admin Files",
+        "timestamp": "2025-05-02T02:31:38.973Z"
+      },
+      {
+        "division": "Arsitek",
+        "action": "Uploaded Architect Files",
+        "timestamp": "2025-05-02T02:37:50.596Z"
       }
     ],
     "files": [
@@ -29,6 +58,26 @@
         "name": "brosur PDF Tanah Pegangan Marketing.pdf",
         "uploadedBy": "sudina",
         "timestamp": "2025-05-01T21:36:29.371Z"
+      },
+      {
+        "name": "berkas penawaran proyek canggu.docx",
+        "uploadedBy": "komangmerta",
+        "timestamp": "2025-05-02T02:11:52.578Z"
+      },
+      {
+        "name": "invoice dp proyek canggu.pdf",
+        "uploadedBy": "oksi",
+        "timestamp": "2025-05-02T02:15:05.867Z"
+      },
+      {
+        "name": "dokumen kelengkapan proyek.pdf",
+        "uploadedBy": "komangmerta",
+        "timestamp": "2025-05-02T02:31:38.973Z"
+      },
+      {
+        "name": "CV-ku.jpg",
+        "uploadedBy": "arch_wayan",
+        "timestamp": "2025-05-02T02:37:50.596Z"
       }
     ],
     "createdAt": "2025-05-01T21:36:29.371Z",

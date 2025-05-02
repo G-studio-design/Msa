@@ -183,7 +183,7 @@ export default function AdminActionsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                projects.map((project) => ( // Renamed variable
+                projects.map((project) => (
                   <TableRow key={project.id}>
                     <TableCell className="text-xs font-mono">{project.id}</TableCell> {/* Display full ID */}
                     <TableCell className="font-medium">
