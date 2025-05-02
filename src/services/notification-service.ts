@@ -1,4 +1,3 @@
-
 // src/services/notification-service.ts
 'use server';
 
@@ -8,7 +7,7 @@ import { getAllUsers, type User } from './user-service';
 export interface Notification {
     id: string;
     userId: string; // ID of the user to receive the notification
-    taskId?: string; // Optional task ID related to the notification
+    projectId?: string; // Optional project ID related to the notification // Renamed property
     message: string;
     timestamp: string; // ISO string
     isRead: boolean;
@@ -36,10 +35,10 @@ async function findUsersByRole(role: string): Promise<User[]> {
  * Sends a notification message to all users with a specific role.
  * @param role The target role.
  * @param message The notification message content.
- * @param taskId Optional ID of the task related to the notification.
+ * @param projectId Optional ID of the project related to the notification. // Renamed parameter
  */
-export async function notifyUsersByRole(role: string, message: string, taskId?: string): Promise<void> {
-    console.log(`Sending notification to role "${role}": ${message}${taskId ? ` (Task: ${taskId})` : ''}`);
+export async function notifyUsersByRole(role: string, message: string, projectId?: string): Promise<void> { // Renamed parameter
+    console.log(`Sending notification to role "${role}": ${message}${projectId ? ` (Project: ${projectId})` : ''}`); // Updated log message
     try {
         const targetUsers = await findUsersByRole(role);
         const now = new Date().toISOString();
@@ -48,7 +47,7 @@ export async function notifyUsersByRole(role: string, message: string, taskId?: 
             const newNotification: Notification = {
                 id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
                 userId: user.id,
-                taskId: taskId,
+                projectId: projectId, // Renamed property
                 message: message,
                 timestamp: now,
                 isRead: false,

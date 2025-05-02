@@ -27,7 +27,7 @@ const en = {
     menuTitle: 'Menu',
     menuDescription: 'Navigation and user options.',
     dashboard: 'Dashboard',
-    tasks: 'Tasks',
+    projects: 'Projects', // Renamed
     manageUsers: 'Manage Users',
     adminActions: 'Admin Actions',
     settings: 'Settings',
@@ -38,21 +38,21 @@ const en = {
   // Dashboard Page
   dashboardPage: {
     title: 'Dashboard',
-    activeTasks: 'Active Tasks',
-    activeTasksDesc: 'Tasks currently in progress or pending',
-    completedTasks: 'Completed Tasks',
-    completedTasksDesc: 'Tasks successfully finished',
+    activeProjects: 'Active Projects', // Renamed
+    activeProjectsDesc: 'Projects currently in progress or pending', // Renamed
+    completedProjects: 'Completed Projects', // Renamed
+    completedProjectsDesc: 'Projects successfully finished', // Renamed
     pendingActions: 'Pending Actions',
-    pendingActionsDesc: 'Tasks awaiting approval or next step',
-    taskOverview: 'Task Overview',
-    allTasksDesc: 'All tasks across divisions.',
-    divisionTasksDesc: 'Tasks relevant to the {division} division.',
-    noTasks: 'No tasks found.',
+    pendingActionsDesc: 'Projects awaiting approval or next step', // Renamed
+    projectOverview: 'Project Overview', // Renamed
+    allProjectsDesc: 'All projects across divisions.', // Renamed
+    divisionProjectsDesc: 'Projects relevant to the {division} division.', // Renamed
+    noProjects: 'No projects found.', // Renamed
     assignedTo: 'Assigned to',
     nextAction: 'Next',
-    taskCanceled: 'This task was canceled.',
-    taskCompleted: 'Task Completed',
-    addNewTask: 'Add New Task',
+    projectCanceled: 'This project was canceled.', // Renamed
+    projectCompleted: 'Project Completed', // Renamed
+    addNewProject: 'Add New Project', // Renamed
     status: {
       completed: 'Completed',
       inprogress: 'In Progress',
@@ -71,8 +71,8 @@ const en = {
       pendingscheduling: 'Pending Scheduling',
     },
     progress: '{progress}% Complete',
-    taskStatusChartTitle: 'Task Status Distribution', // New
-    noDataForChart: 'No task data for chart.', // New
+    projectStatusChartTitle: 'Project Status Distribution', // Renamed
+    noDataForChart: 'No project data for chart.', // Renamed
     // Chart Colors (keyed by the lowercase, no-space status key)
     chartColors: {
       completed: 'hsl(120 60% 45%)', // Green
@@ -92,8 +92,8 @@ const en = {
       pendingscheduling: 'hsl(250 70% 60%)', // Violet
     },
   },
-  // Tasks Page
-  tasksPage: {
+  // Projects Page (Renamed from Tasks Page)
+  projectsPage: {
     statusLabel: 'Status',
     nextActionLabel: 'Next Action',
     assignedLabel: 'Assigned',
@@ -138,21 +138,21 @@ const en = {
     workflowHistoryDesc: 'Timeline of actions taken.',
     loadingHistory: 'Loading history...',
     historyActionBy: '{action} by {division}',
-    taskListTitle: 'Task List', // Added
-    taskListDescription: 'View and manage ongoing tasks.', // Added
-    filterButton: 'Filter by Status', // Added
-    filterStatusLabel: 'Filter Statuses', // Added
-    filterClear: 'Show All', // Added
-    noTasksFound: 'No tasks match the current filters.', // Added
-    viewDetails: 'View Details', // Added
-    backToList: 'Back to List', // Added
+    projectListTitle: 'Project List', // Renamed
+    projectListDescription: 'View and manage ongoing projects.', // Renamed
+    filterButton: 'Filter by Status',
+    filterStatusLabel: 'Filter Statuses',
+    filterClear: 'Show All',
+    noProjectsFound: 'No projects match the current filters.', // Renamed
+    viewDetails: 'View Details',
+    backToList: 'Back to List',
     toast: {
       permissionDenied: 'Permission Denied',
       notYourTurn: 'Not your turn to update progress.',
       missingInput: 'Missing Input',
       provideDescOrFile: 'Please provide a description or upload files.',
       provideOfferFile: 'Please upload offer files.',
-      offerSubmitted: 'Offer Submitted', // Added this line
+      offerSubmitted: 'Offer Submitted',
       progressSubmitted: 'Progress Submitted',
       notifiedNextStep: 'Notified {division} for next step.',
       onlyOwnerDecision: 'Only Owner can make this decision.',
@@ -177,24 +177,24 @@ const en = {
       couldNotFindSchedule: 'Could not find scheduling information.',
     }
   },
-  // Add Task Page
-  addTaskPage: {
-      title: 'Create New Task',
-      description: 'Enter the project title and upload initial files (Owner/General Admin only).',
-      titleLabel: 'Project Title',
-      titlePlaceholder: 'Enter the full project title',
+  // Add Project Page (Renamed from Add Task Page)
+  addProjectPage: {
+      title: 'Create New Project', // Renamed
+      description: 'Enter the project title and upload initial files (Owner/General Admin only).', // Renamed
+      titleLabel: 'Project Title', // Renamed
+      titlePlaceholder: 'Enter the full project title', // Renamed
       filesLabel: 'Initial Files (Optional)',
-      filesHint: 'Upload any initial documents or briefs related to the project.',
-      createButton: 'Create Task',
+      filesHint: 'Upload any initial documents or briefs related to the project.', // Renamed
+      createButton: 'Create Project', // Renamed
       creatingButton: 'Creating...',
-      accessDenied: 'You do not have permission to add new tasks.',
+      accessDenied: 'You do not have permission to add new projects.', // Renamed
       toast: {
-          success: 'Task Created',
-          successDesc: 'Task "{title}" added successfully. Project Admin notified for offer.', // Updated notification target
-          error: 'Failed to Create Task',
+          success: 'Project Created', // Renamed
+          successDesc: 'Project "{title}" added successfully. Project Admin notified for offer.', // Renamed
+          error: 'Failed to Create Project', // Renamed
       },
       validation: {
-          titleMin: 'Project title must be at least 5 characters.',
+          titleMin: 'Project title must be at least 5 characters.', // Renamed
       }
   },
   // Manage Users Page
@@ -273,18 +273,18 @@ const en = {
   },
   // Admin Actions Page
   adminActionsPage: {
-      title: 'Admin Actions - Modify Task Titles',
-      description: 'Users with appropriate permissions (Owner, General Admin, Admin Proyek) can modify task titles here.', // Added Admin Proyek back
-      tableHeaderId: 'Task ID',
+      title: 'Admin Actions - Modify Project Titles', // Renamed
+      description: 'Users with appropriate permissions (Owner, General Admin, Admin Proyek) can modify project titles here.', // Renamed
+      tableHeaderId: 'Project ID', // Renamed
       tableHeaderTitle: 'Current Title',
       tableHeaderStatus: 'Status',
       tableHeaderActions: 'Actions',
-      noTasks: 'No tasks found.',
+      noProjects: 'No projects found.', // Renamed
       toast: {
           error: 'Error',
           titleEmpty: 'Title cannot be empty.',
           titleUpdated: 'Title Updated',
-          titleUpdatedDesc: 'Task {id} title changed successfully.',
+          titleUpdatedDesc: 'Project {id} title changed successfully.', // Renamed
       },
        accessDeniedTitle: 'Access Denied',
        accessDeniedDesc: 'You do not have permission to access this page.',
@@ -302,8 +302,8 @@ const en = {
     whatsappLabel: 'WhatsApp Number',
     whatsappPlaceholder: 'Enter WhatsApp number (optional)',
     changePictureButton: 'Change Picture',
-    uploadingPictureButton: 'Uploading...', // Added
-    pictureHint: 'Upload a new profile picture (PNG, JPG). Max 2MB.', // Updated hint
+    uploadingPictureButton: 'Uploading...',
+    pictureHint: 'Upload a new profile picture (PNG, JPG). Max 2MB.',
     updateProfileButton: 'Update Profile',
     updatingProfileButton: 'Updating...',
     passwordCardTitle: 'Update Password',
@@ -317,7 +317,7 @@ const en = {
     updatingPasswordButton: 'Updating...',
     notificationsCardTitle: 'Notification Preferences',
     emailNotificationsLabel: 'Email Notifications',
-    emailNotificationsHint: 'Receive email updates for task assignments and status changes.',
+    emailNotificationsHint: 'Receive email updates for project assignments and status changes.', // Renamed
     inAppNotificationsLabel: 'In-App Notifications',
     inAppNotificationsHint: 'Show notifications within the application.',
     languageCardTitle: 'Language Settings',
@@ -357,10 +357,10 @@ const en = {
       permissionErrorDesc: "Could not request notification permission.",
       notSupportedTitle: "Notifications Not Supported",
       notSupportedDesc: "Your browser does not support notifications.",
-      tooltip: "Notifications", // Added tooltip text
-      title: "Notifications", // Added popover title
-      description: "Recent updates and required actions.", // Added popover description
-      empty: "No new notifications.", // Added empty state text
+      tooltip: "Notifications",
+      title: "Notifications",
+      description: "Recent updates and required actions.",
+      empty: "No new notifications.",
   },
 };
 

@@ -13,7 +13,7 @@ import { getDictionary } from '@/lib/translations'; // Import translation helper
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
-import { getAllTasks, type Task } from '@/services/task-service'; // Import task service
+import { getAllProjects, type Project } from '@/services/project-service'; // Renamed import
 import {
   ChartContainer,
   ChartTooltip,
@@ -34,27 +34,27 @@ export default function DashboardPage() {
   const [isClient, setIsClient] = React.useState(false);
   const [dict, setDict] = React.useState(() => getDictionary(language));
   const [dashboardDict, setDashboardDict] = React.useState(() => dict.dashboardPage); // Initialize specific section
-  const [tasks, setTasks] = React.useState<Task[]>([]); // State to hold fetched tasks
-  const [isLoadingTasks, setIsLoadingTasks] = React.useState(true); // Loading state for tasks
+  const [projects, setProjects] = React.useState<Project[]>([]); // Renamed state variable
+  const [isLoadingProjects, setIsLoadingProjects] = React.useState(true); // Renamed loading state
 
   React.useEffect(() => {
       setIsClient(true);
-      // Fetch tasks when component mounts and user is available
-       const fetchTasks = async () => {
+      // Fetch projects when component mounts and user is available
+       const fetchProjects = async () => { // Renamed function
             if (currentUser) { // Only fetch if user is loaded
-                setIsLoadingTasks(true);
+                setIsLoadingProjects(true); // Renamed loading state
                 try {
-                    const fetchedTasks = await getAllTasks(); // Fetch all tasks for now
-                    setTasks(fetchedTasks);
+                    const fetchedProjects = await getAllProjects(); // Renamed service call
+                    setProjects(fetchedProjects); // Renamed state setter
                 } catch (error) {
-                    console.error("Failed to fetch tasks:", error);
-                    toast({ variant: 'destructive', title: 'Error', description: 'Could not load task data.' });
+                    console.error("Failed to fetch projects:", error); // Updated log message
+                    toast({ variant: 'destructive', title: 'Error', description: 'Could not load project data.' }); // Updated toast message
                 } finally {
-                    setIsLoadingTasks(false);
+                    setIsLoadingProjects(false); // Renamed loading state
                 }
             }
        };
-       fetchTasks();
+       fetchProjects(); // Renamed function call
   }, [currentUser, toast]);
 
   React.useEffect(() => {
@@ -66,8 +66,8 @@ export default function DashboardPage() {
   // Get user role from context, default to empty string if null/undefined
   const userRole = currentUser?.role || '';
 
-  // Check if the current user can add tasks based on role from context
-  const canAddTask = ['Owner', 'General Admin'].includes(userRole);
+  // Check if the current user can add projects based on role from context
+  const canAddProject = ['Owner', 'General Admin'].includes(userRole); // Renamed variable
 
   // Helper function to get translated status
   const getTranslatedStatus = (statusKey: string): string => {
@@ -156,31 +156,31 @@ export default function DashboardPage() {
     return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
   };
 
-  // Filter tasks based on user role from context
-   const filteredTasks = React.useMemo(() => {
-        if (!userRole || !isClient || isLoadingTasks) return []; // Don't filter if not client or still loading
+  // Filter projects based on user role from context
+   const filteredProjects = React.useMemo(() => { // Renamed variable
+        if (!userRole || !isClient || isLoadingProjects) return []; // Don't filter if not client or still loading // Renamed loading state
         if (['Owner', 'General Admin', 'Admin Developer'].includes(userRole)) {
-            return tasks; // These roles see all tasks
+            return projects; // These roles see all projects // Renamed state variable
         }
-        // Admin Proyek can also see all tasks
+        // Admin Proyek can also see all projects
         if (userRole === 'Admin Proyek') {
-          return tasks;
+          return projects; // Renamed state variable
         }
-        // Other roles see tasks assigned to them OR requiring their action (based on nextAction)
+        // Other roles see projects assigned to them OR requiring their action (based on nextAction)
          // Use translated role names for filtering if necessary, or keep using English keys
-        return tasks.filter(task =>
-            task.assignedDivision === userRole ||
-            (task.nextAction && task.nextAction.toLowerCase().includes(userRole.toLowerCase()))
+        return projects.filter(project => // Renamed state variable // Renamed variable
+            project.assignedDivision === userRole ||
+            (project.nextAction && project.nextAction.toLowerCase().includes(userRole.toLowerCase()))
         );
-   }, [userRole, tasks, isClient, isLoadingTasks]); // Recalculate when userRole, tasks, or client status changes
+   }, [userRole, projects, isClient, isLoadingProjects]); // Recalculate when userRole, projects, or client status changes // Renamed state variables
 
-  const activeTasks = filteredTasks.filter(task => task.status !== 'Completed' && task.status !== 'Canceled');
-  const completedTasksCount = filteredTasks.filter(task => task.status === 'Completed').length;
-  const pendingTasksCount = filteredTasks.filter(task => task.status === 'Pending' || task.status === 'Pending Approval' || task.status === 'Menunggu Persetujuan' || task.status === 'Pending Input' || task.status === 'Pending Offer' || task.status === 'Pending DP Invoice' || task.status === 'Pending Admin Files' || task.status === 'Pending Architect Files' || task.status === 'Pending Structure Files' || task.status === 'Pending Final Check' || task.status === 'Pending Scheduling').length;
+  const activeProjects = filteredProjects.filter(project => project.status !== 'Completed' && project.status !== 'Canceled'); // Renamed variable
+  const completedProjectsCount = filteredProjects.filter(project => project.status === 'Completed').length; // Renamed variable
+  const pendingProjectsCount = filteredProjects.filter(project => project.status === 'Pending' || project.status === 'Pending Approval' || project.status === 'Menunggu Persetujuan' || project.status === 'Pending Input' || project.status === 'Pending Offer' || project.status === 'Pending DP Invoice' || project.status === 'Pending Admin Files' || project.status === 'Pending Architect Files' || project.status === 'Pending Structure Files' || project.status === 'Pending Final Check' || project.status === 'Pending Scheduling').length; // Renamed variable
 
   // --- Chart Data Preparation ---
-  const taskStatusData = React.useMemo(() => {
-    if (!isClient || !dashboardDict?.status || filteredTasks.length === 0) {
+  const projectStatusData = React.useMemo(() => { // Renamed variable
+    if (!isClient || !dashboardDict?.status || filteredProjects.length === 0) { // Renamed variable
         return [];
     }
 
@@ -189,15 +189,15 @@ export default function DashboardPage() {
     // Initialize counts for all known statuses to ensure they appear in the legend
     Object.keys(dashboardDict.status).forEach(key => {
         // Convert status key back to original English format if needed for lookup, or rely on translation keys
-        // This assumes keys in dashboardDict.status match the keys used in tasks.status (lowercase, no space)
+        // This assumes keys in dashboardDict.status match the keys used in projects.status (lowercase, no space)
          const originalStatus = Object.entries(dashboardDict.status).find(([origKey, trans]) => origKey === key)?.[0] ?? key;
         statusCounts[originalStatus] = 0;
     });
 
 
-    filteredTasks.forEach(task => {
-        const statusKey = task.status.toLowerCase().replace(/ /g, '');
-        const translatedStatus = dashboardDict.status[statusKey as keyof typeof dashboardDict.status] || task.status;
+    filteredProjects.forEach(project => { // Renamed variable
+        const statusKey = project.status.toLowerCase().replace(/ /g, '');
+        const translatedStatus = dashboardDict.status[statusKey as keyof typeof dashboardDict.status] || project.status;
         statusCounts[translatedStatus] = (statusCounts[translatedStatus] || 0) + 1;
     });
 
@@ -209,14 +209,14 @@ export default function DashboardPage() {
                 count,
                 // Define fill color here or in chartConfig
            }));
-  }, [filteredTasks, isClient, dashboardDict]);
+  }, [filteredProjects, isClient, dashboardDict]); // Renamed variable
 
   // --- Chart Configuration ---
   const chartConfig = React.useMemo(() => {
       if (!isClient || !dashboardDict?.chartColors) return {} as ChartConfig;
 
        const config: ChartConfig = {};
-       taskStatusData.forEach((data) => {
+       projectStatusData.forEach((data) => { // Renamed variable
          // Find the key corresponding to the translated status
          const statusKey = Object.entries(dashboardDict.status).find(([, translated]) => translated === data.status)?.[0];
           if (statusKey) {
@@ -227,17 +227,17 @@ export default function DashboardPage() {
           }
        });
        return config;
-  }, [isClient, dashboardDict, taskStatusData]);
+  }, [isClient, dashboardDict, projectStatusData]); // Renamed variable
 
 
-   // Render loading state if user is not yet available on the client or tasks are loading
-   if (!isClient || !currentUser || isLoadingTasks) {
+   // Render loading state if user is not yet available on the client or projects are loading
+   if (!isClient || !currentUser || isLoadingProjects) { // Renamed loading state
        return (
            <div className="container mx-auto py-4 space-y-6">
                {/* Skeleton for Header */}
                 <div className="flex justify-between items-center mb-6">
                     <Skeleton className="h-8 w-48" />
-                    {/* Skeleton for Add Task Button (if applicable) */}
+                    {/* Skeleton for Add Project Button (if applicable) */}
                     {(currentUser?.role === 'Owner' || currentUser?.role === 'General Admin') && <Skeleton className="h-10 w-32" />}
                 </div>
                {/* Skeleton for Summary Cards */}
@@ -255,7 +255,7 @@ export default function DashboardPage() {
                          </Card>
                     ))}
                  </div>
-                {/* Skeleton for Task List */}
+                {/* Skeleton for Project List */}
                  <Card>
                     <CardHeader>
                          <Skeleton className="h-6 w-1/3 mb-2" />
@@ -264,7 +264,7 @@ export default function DashboardPage() {
                     <CardContent>
                          <div className="space-y-4">
                              {[...Array(3)].map((_, i) => (
-                                 <Card key={`task-skel-${i}`}>
+                                 <Card key={`project-skel-${i}`}> {/* Updated key */}
                                      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                                           <div>
                                               <Skeleton className="h-5 w-3/5 mb-1" />
@@ -291,12 +291,12 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold text-primary">
           {isClient ? dashboardDict.title : defaultDict.dashboardPage.title}
         </h1>
-        {/* Conditionally render Add Task Button based on role */}
-        {canAddTask && (
+        {/* Conditionally render Add Project Button based on role */}
+        {canAddProject && ( // Renamed variable
             <Button asChild>
-                 <Link href="/dashboard/add-task">
+                 <Link href="/dashboard/add-project"> {/* Updated href */}
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    {isClient ? dashboardDict.addNewTask : defaultDict.dashboardPage.addNewTask}
+                    {isClient ? dashboardDict.addNewProject : defaultDict.dashboardPage.addNewProject} {/* Updated dict key */}
                 </Link>
             </Button>
         )}
@@ -306,22 +306,22 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6"> {/* Changed to 4 columns */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.activeTasks : defaultDict.dashboardPage.activeTasks}</CardTitle>
+            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.activeProjects : defaultDict.dashboardPage.activeProjects}</CardTitle> {/* Updated dict key */}
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{activeTasks.length}</div>
-            <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.activeTasksDesc : defaultDict.dashboardPage.activeTasksDesc}</p>
+            <div className="text-2xl font-bold">{activeProjects.length}</div> {/* Renamed variable */}
+            <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.activeProjectsDesc : defaultDict.dashboardPage.activeProjectsDesc}</p> {/* Updated dict key */}
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.completedTasks : defaultDict.dashboardPage.completedTasks}</CardTitle>
+            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.completedProjects : defaultDict.dashboardPage.completedProjects}</CardTitle> {/* Updated dict key */}
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{completedTasksCount}</div>
-             <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.completedTasksDesc : defaultDict.dashboardPage.completedTasksDesc}</p>
+            <div className="text-2xl font-bold">{completedProjectsCount}</div> {/* Renamed variable */}
+             <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.completedProjectsDesc : defaultDict.dashboardPage.completedProjectsDesc}</p> {/* Updated dict key */}
           </CardContent>
         </Card>
         <Card>
@@ -330,19 +330,19 @@ export default function DashboardPage() {
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingTasksCount}</div>
+            <div className="text-2xl font-bold">{pendingProjectsCount}</div> {/* Renamed variable */}
             <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.pendingActionsDesc : defaultDict.dashboardPage.pendingActionsDesc}</p>
           </CardContent>
         </Card>
 
-        {/* Task Status Distribution Chart Card */}
+        {/* Project Status Distribution Chart Card */}
         <Card>
            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-               <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.taskStatusChartTitle : defaultDict.dashboardPage.taskStatusChartTitle}</CardTitle>
+               <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.projectStatusChartTitle : defaultDict.dashboardPage.projectStatusChartTitle}</CardTitle> {/* Updated dict key */}
                <PieChartIcon className="h-4 w-4 text-muted-foreground" />
            </CardHeader>
            <CardContent>
-             {taskStatusData.length > 0 ? (
+             {projectStatusData.length > 0 ? ( // Renamed variable
                <ChartContainer config={chartConfig} className="mx-auto aspect-square h-[150px]"> {/* Adjust height */}
                  <PieChart>
                    <ChartTooltip
@@ -350,7 +350,7 @@ export default function DashboardPage() {
                       content={<ChartTooltipContent hideLabel />}
                     />
                    <Pie
-                      data={taskStatusData}
+                      data={projectStatusData} // Renamed variable
                       dataKey="count"
                       nameKey="status"
                       innerRadius={40} // Make it a donut chart
@@ -376,7 +376,7 @@ export default function DashboardPage() {
                             );
                         }}
                     >
-                     {taskStatusData.map((entry) => (
+                     {projectStatusData.map((entry) => ( // Renamed variable
                        <Cell key={entry.status} fill={`var(--color-${entry.status})`} />
                      ))}
                    </Pie>
@@ -395,49 +395,49 @@ export default function DashboardPage() {
          </Card>
       </div>
 
-       {/* Task List */}
+       {/* Project List */}
       <Card>
          <CardHeader>
-           <CardTitle>{isClient ? dashboardDict.taskOverview : defaultDict.dashboardPage.taskOverview}</CardTitle>
+           <CardTitle>{isClient ? dashboardDict.projectOverview : defaultDict.dashboardPage.projectOverview}</CardTitle> {/* Updated dict key */}
            <CardDescription>
              {isClient ? (userRole === 'General Admin' || userRole === 'Owner' || userRole === 'Admin Developer' || userRole === 'Admin Proyek'
-                ? dashboardDict.allTasksDesc
-                : dashboardDict.divisionTasksDesc.replace('{division}', getTranslatedStatus(userRole))) : '...'}
+                ? dashboardDict.allProjectsDesc // Updated dict key
+                : dashboardDict.divisionProjectsDesc.replace('{division}', getTranslatedStatus(userRole))) : '...'} {/* Updated dict key */}
            </CardDescription>
          </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredTasks.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">{isClient ? dashboardDict.noTasks : defaultDict.dashboardPage.noTasks}</p>
+            {filteredProjects.length === 0 ? ( // Renamed variable
+              <p className="text-muted-foreground text-center py-4">{isClient ? dashboardDict.noProjects : defaultDict.dashboardPage.noProjects}</p> // Updated dict key
             ) : (
-              filteredTasks.map((task) => (
-                <Card key={task.id} className="hover:shadow-md transition-shadow">
+              filteredProjects.map((project) => ( // Renamed variable
+                <Card key={project.id} className="hover:shadow-md transition-shadow">
                   <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                      <div>
-                       <CardTitle className="text-lg">{task.title}</CardTitle>
+                       <CardTitle className="text-lg">{project.title}</CardTitle>
                        <CardDescription className="text-xs text-muted-foreground">
-                         {isClient && dashboardDict ? `${dashboardDict.assignedTo}: ${getTranslatedStatus(task.assignedDivision)} ${task.nextAction ? `| ${dashboardDict.nextAction}: ${task.nextAction}` : ''}` : '...'}
+                         {isClient && dashboardDict ? `${dashboardDict.assignedTo}: ${getTranslatedStatus(project.assignedDivision)} ${project.nextAction ? `| ${dashboardDict.nextAction}: ${project.nextAction}` : ''}` : '...'}
                        </CardDescription>
                      </div>
-                     {getStatusBadge(task.status)}
+                     {getStatusBadge(project.status)}
                   </CardHeader>
                   <CardContent>
-                     {task.status !== 'Canceled' && task.status !== 'Completed' && ( // Don't show progress for completed/canceled
+                     {project.status !== 'Canceled' && project.status !== 'Completed' && ( // Don't show progress for completed/canceled
                        <>
-                          <Progress value={task.progress} className="w-full h-2 mb-1" />
+                          <Progress value={project.progress} className="w-full h-2 mb-1" />
                           <span className="text-xs text-muted-foreground">
-                            {isClient && dashboardDict ? dashboardDict.progress.replace('{progress}', task.progress.toString()) : '...'}
+                            {isClient && dashboardDict ? dashboardDict.progress.replace('{progress}', project.progress.toString()) : '...'}
                           </span>
                        </>
                      )}
-                     {task.status === 'Canceled' && (
+                     {project.status === 'Canceled' && (
                         <p className="text-sm text-destructive font-medium">
-                          {isClient ? getTranslatedStatus(task.status) : defaultDict.dashboardPage.taskCanceled}
+                          {isClient ? getTranslatedStatus(project.status) : defaultDict.dashboardPage.projectCanceled} {/* Updated dict key */}
                         </p>
                      )}
-                     {task.status === 'Completed' && (
+                     {project.status === 'Completed' && (
                          <p className="text-sm text-green-600 font-medium">
-                           {isClient ? getTranslatedStatus(task.status) : defaultDict.dashboardPage.taskCompleted}
+                           {isClient ? getTranslatedStatus(project.status) : defaultDict.dashboardPage.projectCompleted} {/* Updated dict key */}
                          </p>
                       )}
                   </CardContent>

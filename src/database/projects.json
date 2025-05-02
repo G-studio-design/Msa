@@ -1,20 +1,26 @@
+
 [
   {
-    "id": "task_1746135389371_75z4h",
+    "id": "project_1746135389371_75z4h",
     "title": "proyek canggu",
-    "status": "Pending Input",
-    "progress": 5,
-    "assignedDivision": "Owner",
-    "nextAction": "Input Project Data",
+    "status": "Pending Offer",
+    "progress": 10,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Upload Offer Document",
     "workflowHistory": [
       {
         "division": "sudina",
-        "action": "Created Task",
+        "action": "Created Project",
         "timestamp": "2025-05-01T21:36:29.371Z"
       },
       {
         "division": "sudina",
         "action": "Uploaded initial file: brosur PDF Tanah Pegangan Marketing.pdf",
+        "timestamp": "2025-05-01T21:36:29.371Z"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Upload Offer Document",
         "timestamp": "2025-05-01T21:36:29.371Z"
       }
     ],

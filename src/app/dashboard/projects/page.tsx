@@ -1,4 +1,4 @@
-
+// src/app/dashboard/projects/page.tsx
 'use client';
 
 import * as React from 'react';
@@ -48,7 +48,7 @@ import { useLanguage } from '@/context/LanguageContext'; // Import language cont
 import { getDictionary } from '@/lib/translations'; // Import translation helper
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
-import { getAllTasks, updateTask, type Task, type WorkflowHistoryEntry, type FileEntry } from '@/services/task-service'; // Import service and types
+import { getAllProjects, updateProject, type Project, type WorkflowHistoryEntry, type FileEntry } from '@/services/project-service'; // Renamed import
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -64,25 +64,25 @@ import { notifyUsersByRole } from '@/services/notification-service'; // Import n
 const defaultDict = getDictionary('en');
 
 // Define possible statuses for filtering
-const taskStatuses = [
+const projectStatuses = [ // Renamed variable
     'Pending Input', 'Pending Offer', 'Pending Approval', 'Pending DP Invoice',
     'Pending Admin Files', 'Pending Architect Files', 'Pending Structure Files',
     'Pending Final Check', 'Pending Scheduling', 'Scheduled', 'In Progress',
     'Completed', 'Canceled'
 ];
 
-export default function TasksPage() {
+export default function ProjectsPage() { // Renamed component
   const { toast } = useToast();
   const { language } = useLanguage(); // Get current language
   const { currentUser } = useAuth(); // Get current user from AuthContext
   const [isClient, setIsClient] = React.useState(false); // State to track client-side mount
   const [dict, setDict] = React.useState(() => getDictionary(language)); // Initialize dict directly
-  const [tasksDict, setTasksDict] = React.useState(() => dict.tasksPage); // Specific dictionary section
+  const [projectsDict, setProjectsDict] = React.useState(() => dict.projectsPage); // Renamed dictionary section
   const [dashboardDict, setDashboardDict] = React.useState(() => dict.dashboardPage); // For status translation
 
-  const [allTasks, setAllTasks] = React.useState<Task[]>([]); // State to hold ALL fetched tasks
-  const [isLoadingTasks, setIsLoadingTasks] = React.useState(true); // State for loading task data
-  const [selectedTask, setSelectedTask] = React.useState<Task | null>(null); // State for viewing a specific task detail (if implemented)
+  const [allProjects, setAllProjects] = React.useState<Project[]>([]); // Renamed state variable
+  const [isLoadingProjects, setIsLoadingProjects] = React.useState(true); // Renamed state variable
+  const [selectedProject, setSelectedProject] = React.useState<Project | null>(null); // Renamed state variable
 
   const [description, setDescription] = React.useState('');
   const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);
@@ -96,31 +96,31 @@ export default function TasksPage() {
 
   React.useEffect(() => {
     setIsClient(true);
-    // Fetch all tasks when component mounts and user is available
-    const fetchTasks = async () => {
+    // Fetch all projects when component mounts and user is available
+    const fetchProjects = async () => { // Renamed function
       if (currentUser) {
-        setIsLoadingTasks(true);
+        setIsLoadingProjects(true); // Renamed state variable
         try {
-          const fetchedTasks = await getAllTasks();
-          setAllTasks(fetchedTasks);
-          console.log("Fetched tasks:", fetchedTasks.length);
+          const fetchedProjects = await getAllProjects(); // Renamed service call
+          setAllProjects(fetchedProjects); // Renamed state setter
+          console.log("Fetched projects:", fetchedProjects.length); // Updated log message
         } catch (error) {
-          console.error("Failed to fetch tasks:", error);
-          toast({ variant: 'destructive', title: 'Error', description: 'Could not load task data.' });
+          console.error("Failed to fetch projects:", error); // Updated log message
+          toast({ variant: 'destructive', title: 'Error', description: 'Could not load project data.' }); // Updated toast message
         } finally {
-          setIsLoadingTasks(false);
+          setIsLoadingProjects(false); // Renamed state setter
         }
       } else {
-          setIsLoadingTasks(false); // Don't load if no user
+          setIsLoadingProjects(false); // Renamed state setter
       }
     };
-    fetchTasks();
+    fetchProjects(); // Renamed function call
   }, [currentUser, toast]);
 
   React.useEffect(() => {
       const newDict = getDictionary(language); // Update dictionary when language changes
       setDict(newDict);
-      setTasksDict(newDict.tasksPage);
+      setProjectsDict(newDict.projectsPage); // Renamed dictionary setter
       setDashboardDict(newDict.dashboardPage);
   }, [language]);
 
@@ -164,17 +164,16 @@ export default function TasksPage() {
     setUploadedFiles(uploadedFiles.filter((_, i) => i !== index));
   };
 
-  // Determine if the current user (from context) can perform the action on the SELECTED task
-  // This checks if the currentUser's role matches the task's assignedDivision OR if the task is awaiting their input (Pending Offer for Admin Proyek)
-  const canPerformSelectedTaskAction = React.useMemo(() => {
-    if (!currentUser || !selectedTask) return false;
+  // Determine if the current user (from context) can perform the action on the SELECTED project
+  // This checks if the currentUser's role matches the project's assignedDivision OR if the project is awaiting their input (Pending Offer for Admin Proyek)
+  const canPerformSelectedProjectAction = React.useMemo(() => { // Renamed variable
+    if (!currentUser || !selectedProject) return false; // Renamed state variable
     // Directly assigned role can act
-    if (currentUser.role === selectedTask.assignedDivision) return true;
+    if (currentUser.role === selectedProject.assignedDivision) return true; // Renamed state variable
     // Specific exception: Admin Proyek can act on 'Pending Offer' even if not assigned (because Owner is assigned technically)
-    if (currentUser.role === 'Admin Proyek' && selectedTask.status === 'Pending Offer') return true;
+    if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer') return true; // Renamed state variable
     return false;
-  }, [currentUser, selectedTask]);
-
+  }, [currentUser, selectedProject]); // Renamed state variable
 
   // Helper to get translated status
     const getTranslatedStatus = (statusKey: string): string => {
@@ -270,35 +269,35 @@ export default function TasksPage() {
 
 
   const handleProgressSubmit = async () => {
-    if (!currentUser || !selectedTask || !canPerformSelectedTaskAction) {
-      toast({ variant: 'destructive', title: tasksDict.toast.permissionDenied, description: tasksDict.toast.notYourTurn });
+    if (!currentUser || !selectedProject || !canPerformSelectedProjectAction) { // Renamed variables
+      toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.notYourTurn });
       return;
     }
 
     // Admins Proyek MUST upload at least one offer file when in 'Pending Offer' status.
-    if (currentUser.role === 'Admin Proyek' && selectedTask.status === 'Pending Offer' && uploadedFiles.length === 0) {
-        toast({ variant: 'destructive', title: tasksDict.toast.missingInput, description: tasksDict.toast.provideOfferFile });
+    if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer' && uploadedFiles.length === 0) { // Renamed state variable
+        toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: projectsDict.toast.provideOfferFile });
         return;
     }
 
     // General validation: Require description or files for most steps (except scheduling or Owner/GA override)
-    if (!description && uploadedFiles.length === 0 && selectedTask.status !== 'Pending Scheduling' && !['Owner', 'General Admin'].includes(currentUser.role) && !(currentUser.role === 'Admin Proyek' && selectedTask.status === 'Pending Offer')) {
-       toast({ variant: 'destructive', title: tasksDict.toast.missingInput, description: tasksDict.toast.provideDescOrFile });
+    if (!description && uploadedFiles.length === 0 && selectedProject.status !== 'Pending Scheduling' && !['Owner', 'General Admin'].includes(currentUser.role) && !(currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer')) { // Renamed state variable
+       toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: projectsDict.toast.provideDescOrFile });
        return;
      }
 
     setIsSubmitting(true);
-    console.log('Submitting Progress for task:', selectedTask.id, { description, files: uploadedFiles.map(f => f.name) });
+    console.log('Submitting Progress for project:', selectedProject.id, { description, files: uploadedFiles.map(f => f.name) }); // Updated log message
 
     // Simulate API call
     // TODO: Implement actual file upload logic here, get URLs/references
     // const uploadedFileEntries = await Promise.all(uploadedFiles.map(file => uploadFile(file)));
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    let nextStatus = selectedTask.status;
-    let nextDivision = selectedTask.assignedDivision;
-    let newProgress = selectedTask.progress;
-    let nextActionDescription = selectedTask.nextAction;
+    let nextStatus = selectedProject.status; // Renamed state variable
+    let nextDivision = selectedProject.assignedDivision; // Renamed state variable
+    let newProgress = selectedProject.progress; // Renamed state variable
+    let nextActionDescription = selectedProject.nextAction; // Renamed state variable
     const historyEntry: WorkflowHistoryEntry = { division: currentUser.role, action: `Submitted Progress`, timestamp: new Date().toISOString() };
     const newFiles: FileEntry[] = uploadedFiles.map(file => ({
         name: file.name,
@@ -308,7 +307,7 @@ export default function TasksPage() {
     }));
 
 
-    // Workflow logic based on current user's role and task status
+    // Workflow logic based on current user's role and project status
     // Use currentUser.role for the switch, as they are the one performing the action
     switch (currentUser.role) {
         case 'Owner':
@@ -317,22 +316,22 @@ export default function TasksPage() {
 
         case 'Admin Proyek':
              // --- Specific logic for Admin Proyek submitting Offer ---
-             if (selectedTask.status === 'Pending Offer') {
+             if (selectedProject.status === 'Pending Offer') { // Renamed state variable
                 nextStatus = 'Pending Approval'; // Move to Owner for approval
                 nextDivision = 'Owner'; // Assign to Owner
                 newProgress = 20; // Set progress after offer upload
                 nextActionDescription = 'Approve Offer Document'; // Owner needs to approve
                 historyEntry.action = 'Uploaded Offer Document'; // Specific history action
-                console.log(`Admin Proyek submitted offer for task ${selectedTask.id}. Moving to Pending Approval, assigned to Owner.`);
+                console.log(`Admin Proyek submitted offer for project ${selectedProject.id}. Moving to Pending Approval, assigned to Owner.`); // Updated log message
              }
-              else if (selectedTask.status === 'Pending Admin Files') {
+              else if (selectedProject.status === 'Pending Admin Files') { // Renamed state variable
                 nextStatus = 'Pending Architect Files';
                 nextDivision = 'Arsitek';
                 newProgress = 50;
                 nextActionDescription = 'Upload Architect Files';
                 historyEntry.action = 'Uploaded Admin Files';
               }
-              else if (selectedTask.status === 'Pending Final Check') {
+              else if (selectedProject.status === 'Pending Final Check') { // Renamed state variable
                  nextStatus = 'Pending Scheduling';
                  nextDivision = 'General Admin';
                  newProgress = 90;
@@ -342,18 +341,18 @@ export default function TasksPage() {
             break;
 
         case 'General Admin':
-            if (selectedTask.status === 'Pending DP Invoice') {
+            if (selectedProject.status === 'Pending DP Invoice') { // Renamed state variable
                 nextStatus = 'Pending Approval';
                 nextDivision = 'Owner';
                 newProgress = 30;
                 nextActionDescription = 'Approve DP Invoice';
                 historyEntry.action = 'Uploaded DP Invoice';
-            } else if (selectedTask.status === 'Pending Scheduling') {
+            } else if (selectedProject.status === 'Pending Scheduling') { // Renamed state variable
                 // This case is handled by the schedule button directly
             }
             break;
         case 'Arsitek':
-            if (selectedTask.status === 'Pending Architect Files') {
+            if (selectedProject.status === 'Pending Architect Files') { // Renamed state variable
               nextStatus = 'Pending Structure Files';
               nextDivision = 'Struktur';
               newProgress = 70;
@@ -362,7 +361,7 @@ export default function TasksPage() {
             }
             break;
         case 'Struktur':
-             if (selectedTask.status === 'Pending Structure Files') {
+             if (selectedProject.status === 'Pending Structure Files') { // Renamed state variable
                nextStatus = 'Pending Final Check';
                nextDivision = 'Admin Proyek';
                newProgress = 80;
@@ -371,48 +370,48 @@ export default function TasksPage() {
              }
              break;
         default:
-            historyEntry.action = `Submitted Progress for ${selectedTask.status}`; // Generic action
+            historyEntry.action = `Submitted Progress for ${selectedProject.status}`; // Generic action // Renamed state variable
     }
 
 
-    // Prepare updated task data
-    const updatedTaskData: Task = {
-        ...selectedTask,
+    // Prepare updated project data
+    const updatedProjectData: Project = { // Renamed type
+        ...selectedProject, // Renamed state variable
         status: nextStatus,
         assignedDivision: nextDivision,
         progress: newProgress,
         nextAction: nextActionDescription,
-        workflowHistory: [...selectedTask.workflowHistory, historyEntry],
-        files: [...selectedTask.files, ...newFiles], // Append new files
+        workflowHistory: [...selectedProject.workflowHistory, historyEntry], // Renamed state variable
+        files: [...selectedProject.files, ...newFiles], // Append new files // Renamed state variable
       };
 
 
      try {
         // --- Actual API Call ---
-        await updateTask(updatedTaskData);
+        await updateProject(updatedProjectData); // Renamed service call
         // --- End API Call ---
 
         // Update local state AFTER successful update
-        setAllTasks(prev => prev.map(t => t.id === updatedTaskData.id ? updatedTaskData : t));
-        if (selectedTask?.id === updatedTaskData.id) {
-             setSelectedTask(updatedTaskData); // Update selected task view if it was the one updated
+        setAllProjects(prev => prev.map(p => p.id === updatedProjectData.id ? updatedProjectData : p)); // Renamed state setter
+        if (selectedProject?.id === updatedProjectData.id) { // Renamed state variable
+             setSelectedProject(updatedProjectData); // Renamed state setter
          }
 
         setDescription('');
         setUploadedFiles([]);
         setIsSubmitting(false);
         // Use a specific toast message if it was the offer submission
-        if (currentUser.role === 'Admin Proyek' && selectedTask.status === 'Pending Offer' && nextStatus === 'Pending Approval') {
-            toast({ title: tasksDict.toast.offerSubmitted, description: tasksDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
+        if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer' && nextStatus === 'Pending Approval') { // Renamed state variable
+            toast({ title: projectsDict.toast.offerSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
              // Notify Owners only when Offer is submitted by Admin Proyek
-             await notifyUsersByRole('Owner', `Task "${selectedTask.title}" is awaiting your approval for the offer document.`, selectedTask.id);
+             await notifyUsersByRole('Owner', `Project "${selectedProject.title}" is awaiting your approval for the offer document.`, selectedProject.id); // Updated notification message // Renamed state variable
         } else {
-            toast({ title: tasksDict.toast.progressSubmitted, description: tasksDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
-             // General notification for other steps (if division changed) is handled within updateTask service
+            toast({ title: projectsDict.toast.progressSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
+             // General notification for other steps (if division changed) is handled within updateProject service
         }
 
       } catch (error) {
-         console.error("Error updating task:", error);
+         console.error("Error updating project:", error); // Updated log message
          toast({ variant: 'destructive', title: 'Update Error', description: 'Failed to submit progress.' });
          setIsSubmitting(false);
       }
@@ -420,75 +419,75 @@ export default function TasksPage() {
   };
 
   const handleDecision = (decision: 'continue' | 'cancel') => {
-     if (currentUser?.role !== 'Owner' || !selectedTask) { // Check currentUser exists and task selected
-       toast({ variant: 'destructive', title: tasksDict.toast.permissionDenied, description: tasksDict.toast.onlyOwnerDecision });
+     if (currentUser?.role !== 'Owner' || !selectedProject) { // Check currentUser exists and project selected // Renamed state variable
+       toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.onlyOwnerDecision });
        return;
      }
      setIsSubmitting(true);
-     console.log(`Owner decision for task ${selectedTask.id}: ${decision}`);
+     console.log(`Owner decision for project ${selectedProject.id}: ${decision}`); // Updated log message // Renamed state variable
      // Simulate API call
      new Promise(resolve => setTimeout(resolve, 1000)).then(async () => { // Make async
-       let nextStatus = selectedTask.status;
-       let nextDivision = selectedTask.assignedDivision;
-       let newProgress = selectedTask.progress;
-       let nextActionDescription = selectedTask.nextAction;
+       let nextStatus = selectedProject.status; // Renamed state variable
+       let nextDivision = selectedProject.assignedDivision; // Renamed state variable
+       let newProgress = selectedProject.progress; // Renamed state variable
+       let nextActionDescription = selectedProject.nextAction; // Renamed state variable
         const historyEntry: WorkflowHistoryEntry = { division: currentUser!.role, action: '', timestamp: new Date().toISOString() }; // Use non-null assertion
 
 
        if (decision === 'cancel') {
          nextStatus = 'Canceled';
          nextDivision = ''; // No one assigned
-         newProgress = selectedTask.progress; // Keep progress as is? Or set to 0/100?
+         newProgress = selectedProject.progress; // Keep progress as is? Or set to 0/100? // Renamed state variable
          nextActionDescription = '';
           historyEntry.action = 'Canceled Progress';
-         toast({ variant: 'destructive', title: tasksDict.toast.progressCanceled });
+         toast({ variant: 'destructive', title: projectsDict.toast.progressCanceled });
        } else {
          // Logic for continuing based on the current approval step
-         if (selectedTask.status === 'Pending Approval') {
+         if (selectedProject.status === 'Pending Approval') { // Renamed state variable
             // Check progress to differentiate between Offer Approval and DP Invoice Approval
-            if (selectedTask.progress === 20) { // After Offer Upload (Progress 20)
+            if (selectedProject.progress === 20) { // After Offer Upload (Progress 20) // Renamed state variable
                  nextStatus = 'Pending DP Invoice'; // Move to DP Invoice stage
                  nextDivision = 'General Admin'; // Assign to GA
                  newProgress = 25; // Progress slightly after approval
                  nextActionDescription = 'Generate DP Invoice';
                   historyEntry.action = 'Approved Offer'; // Specific history action
-                 toast({ title: tasksDict.toast.offerApproved, description: tasksDict.toast.offerApprovedDesc });
-            } else if (selectedTask.progress === 30) { // After DP Invoice Upload (Progress 30)
+                 toast({ title: projectsDict.toast.offerApproved, description: projectsDict.toast.offerApprovedDesc });
+            } else if (selectedProject.progress === 30) { // After DP Invoice Upload (Progress 30) // Renamed state variable
                  nextStatus = 'Pending Admin Files'; // Move to Admin Files stage
                  nextDivision = 'Admin Proyek'; // Assign to Admin Proyek
                  newProgress = 40; // Progress slightly after approval
                  nextActionDescription = 'Upload Admin Files';
                   historyEntry.action = 'Approved DP Invoice'; // Specific history action
-                 toast({ title: tasksDict.toast.dpApproved, description: tasksDict.toast.dpApprovedDesc });
+                 toast({ title: projectsDict.toast.dpApproved, description: projectsDict.toast.dpApprovedDesc });
             }
-         } else if (selectedTask.status === 'Scheduled') { // After Sidang outcome
+         } else if (selectedProject.status === 'Scheduled') { // After Sidang outcome // Renamed state variable
              nextStatus = 'Completed'; // Assuming success for now
              nextDivision = '';
              newProgress = 100;
              nextActionDescription = '';
              historyEntry.action = 'Marked as Completed';
-             toast({ title: tasksDict.toast.progressCompleted });
+             toast({ title: projectsDict.toast.progressCompleted });
          }
        }
 
-       const updatedTaskData: Task = {
-            ...selectedTask,
+       const updatedProjectData: Project = { // Renamed type
+            ...selectedProject, // Renamed state variable
             status: nextStatus,
             assignedDivision: nextDivision,
             progress: newProgress,
             nextAction: nextActionDescription,
-            workflowHistory: [...selectedTask.workflowHistory, historyEntry],
+            workflowHistory: [...selectedProject.workflowHistory, historyEntry], // Renamed state variable
        };
 
         try {
-            await updateTask(updatedTaskData);
-             setAllTasks(prev => prev.map(t => t.id === updatedTaskData.id ? updatedTaskData : t));
-             if (selectedTask?.id === updatedTaskData.id) {
-                setSelectedTask(updatedTaskData);
+            await updateProject(updatedProjectData); // Renamed service call
+             setAllProjects(prev => prev.map(p => p.id === updatedProjectData.id ? updatedProjectData : p)); // Renamed state setter
+             if (selectedProject?.id === updatedProjectData.id) { // Renamed state variable
+                setSelectedProject(updatedProjectData); // Renamed state setter
             }
              setIsSubmitting(false);
         } catch (error) {
-            console.error("Error updating task after decision:", error);
+            console.error("Error updating project after decision:", error); // Updated log message
             toast({ variant: 'destructive', title: 'Update Error', description: 'Failed to process decision.' });
             setIsSubmitting(false);
         }
@@ -497,45 +496,45 @@ export default function TasksPage() {
   };
 
   const handleScheduleSubmit = () => {
-     if (!currentUser || !['Owner', 'General Admin'].includes(currentUser.role) || !selectedTask) { // Check currentUser and selectedTask
-       toast({ variant: 'destructive', title: tasksDict.toast.permissionDenied });
+     if (!currentUser || !['Owner', 'General Admin'].includes(currentUser.role) || !selectedProject) { // Check currentUser and selectedProject // Renamed state variable
+       toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied });
        return;
      }
      if (!scheduleDate || !scheduleTime || !scheduleLocation) {
-         toast({ variant: 'destructive', title: tasksDict.toast.missingScheduleInfo, description: tasksDict.toast.provideDateTimeLoc });
+         toast({ variant: 'destructive', title: projectsDict.toast.missingScheduleInfo, description: projectsDict.toast.provideDateTimeLoc });
          return;
      }
 
      setIsSubmitting(true);
      const sidangDateTime = new Date(`${scheduleDate}T${scheduleTime}`);
-     console.log(`Scheduling Sidang for task ${selectedTask.id}:`, { dateTime: sidangDateTime, location: scheduleLocation });
+     console.log(`Scheduling Sidang for project ${selectedProject.id}:`, { dateTime: sidangDateTime, location: scheduleLocation }); // Updated log message // Renamed state variable
 
      // TODO: API Call to save schedule to DB
      new Promise(resolve => setTimeout(resolve, 1000)).then(async () => { // Make async
         const historyEntry: WorkflowHistoryEntry = { division: currentUser!.role, action: `Scheduled Sidang for ${sidangDateTime.toISOString()}`, timestamp: new Date().toISOString() }; // Use non-null assertion
 
-        const updatedTaskData: Task = {
-             ...selectedTask,
+        const updatedProjectData: Project = { // Renamed type
+             ...selectedProject, // Renamed state variable
              status: 'Scheduled',
              assignedDivision: 'Owner', // Owner handles outcome after sidang
              nextAction: 'Declare Sidang Outcome (Success/Fail)',
-             workflowHistory: [...selectedTask.workflowHistory, historyEntry],
+             workflowHistory: [...selectedProject.workflowHistory, historyEntry], // Renamed state variable
            };
 
         try {
-            await updateTask(updatedTaskData);
-            setAllTasks(prev => prev.map(t => t.id === updatedTaskData.id ? updatedTaskData : t));
-            if (selectedTask?.id === updatedTaskData.id) {
-                setSelectedTask(updatedTaskData);
+            await updateProject(updatedProjectData); // Renamed service call
+            setAllProjects(prev => prev.map(p => p.id === updatedProjectData.id ? updatedProjectData : p)); // Renamed state setter
+            if (selectedProject?.id === updatedProjectData.id) { // Renamed state variable
+                setSelectedProject(updatedProjectData); // Renamed state setter
             }
 
             setScheduleDate('');
             setScheduleTime('');
             setScheduleLocation('');
             setIsSubmitting(false);
-            toast({ title: tasksDict.toast.sidangScheduled, description: tasksDict.toast.sidangScheduledDesc });
+            toast({ title: projectsDict.toast.sidangScheduled, description: projectsDict.toast.sidangScheduledDesc });
         } catch (error) {
-            console.error("Error updating task after scheduling:", error);
+            console.error("Error updating project after scheduling:", error); // Updated log message
             toast({ variant: 'destructive', title: 'Update Error', description: 'Failed to save schedule.' });
             setIsSubmitting(false);
         }
@@ -543,13 +542,13 @@ export default function TasksPage() {
   };
 
     const handleAddToCalendar = async () => {
-      if (!selectedTask || selectedTask.status !== 'Scheduled') {
-        toast({ variant: 'destructive', title: tasksDict.toast.cannotAddCalendarYet, description: tasksDict.toast.mustScheduleFirst });
+      if (!selectedProject || selectedProject.status !== 'Scheduled') { // Renamed state variable
+        toast({ variant: 'destructive', title: projectsDict.toast.cannotAddCalendarYet, description: projectsDict.toast.mustScheduleFirst });
         return;
       }
-        const schedulingEntry = selectedTask.workflowHistory.find(entry => entry.action.startsWith('Scheduled Sidang for '));
+        const schedulingEntry = selectedProject.workflowHistory.find(entry => entry.action.startsWith('Scheduled Sidang for ')); // Renamed state variable
         if (!schedulingEntry) {
-             toast({ variant: 'destructive', title: tasksDict.toast.errorFindingSchedule, description: tasksDict.couldNotFindSchedule });
+             toast({ variant: 'destructive', title: projectsDict.toast.errorFindingSchedule, description: projectsDict.couldNotFindSchedule });
              return;
         }
 
@@ -557,58 +556,58 @@ export default function TasksPage() {
          const scheduledDateTime = new Date(isoString);
 
          // Find location from the scheduling history or a relevant file/field if stored differently
-         // Placeholder: Assume location is stored in a task field or derived somehow
+         // Placeholder: Assume location is stored in a project field or derived somehow
          const location = scheduleLocation || "Meeting Room 1"; // Use state or fetch if needed
 
          const endTime = new Date(scheduledDateTime.getTime() + 60 * 60 * 1000); // Assume 1 hour duration
 
       const eventDetails = {
-          title: `Sidang: ${selectedTask.title}`,
+          title: `Sidang: ${selectedProject.title}`, // Renamed state variable
           location: location,
           startTime: scheduledDateTime.toISOString(),
           endTime: endTime.toISOString(),
-          description: `Sidang discussion for project: ${selectedTask.title}`,
+          description: `Sidang discussion for project: ${selectedProject.title}`, // Renamed state variable
       };
 
       try {
         setIsSubmitting(true);
         const eventId = await scheduleEvent(eventDetails);
-        toast({ title: tasksDict.toast.addedToCalendar, description: tasksDict.toast.eventId.replace('{id}', eventId) });
+        toast({ title: projectsDict.toast.addedToCalendar, description: projectsDict.toast.eventId.replace('{id}', eventId) });
       } catch (error) {
         console.error("Error scheduling event:", error);
-        toast({ variant: 'destructive', title: tasksDict.toast.calendarError, description: tasksDict.couldNotAddEvent });
+        toast({ variant: 'destructive', title: projectsDict.toast.calendarError, description: projectsDict.couldNotAddEvent });
       } finally {
         setIsSubmitting(false);
       }
     };
 
-   // Filter tasks based on user role and selected status filters
-    const filteredTasks = React.useMemo(() => {
-        if (!currentUser || !isClient || isLoadingTasks) return [];
+   // Filter projects based on user role and selected status filters
+    const filteredProjects = React.useMemo(() => { // Renamed variable
+        if (!currentUser || !isClient || isLoadingProjects) return []; // Renamed state variable
 
-        let roleFilteredTasks = allTasks;
-         // Owner, General Admin, Admin Developer see all tasks
-         // Admin Proyek sees ALL tasks
+        let roleFilteredProjects = allProjects; // Renamed variable // Renamed state variable
+         // Owner, General Admin, Admin Developer see all projects
+         // Admin Proyek sees ALL projects
          if (currentUser.role === 'Admin Proyek') {
-              roleFilteredTasks = allTasks;
+              roleFilteredProjects = allProjects; // Renamed variable // Renamed state variable
          }
-         // Other specific roles (Arsitek, Struktur) see tasks where they are assigned or next action applies
+         // Other specific roles (Arsitek, Struktur) see projects where they are assigned or next action applies
          else if (!['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role)) {
-             roleFilteredTasks = allTasks.filter(task =>
-                 task.assignedDivision === currentUser.role ||
-                 (task.nextAction && task.nextAction.toLowerCase().includes(currentUser.role.toLowerCase()))
+             roleFilteredProjects = allProjects.filter(project => // Renamed variable // Renamed state variable
+                 project.assignedDivision === currentUser.role ||
+                 (project.nextAction && project.nextAction.toLowerCase().includes(currentUser.role.toLowerCase()))
              );
          }
-         // Owner, GA, DevAdmin see all tasks (default behavior if not Admin Proyek or other specific role)
+         // Owner, GA, DevAdmin see all projects (default behavior if not Admin Proyek or other specific role)
 
 
          // Apply status filters if any are selected
          if (statusFilter.length > 0) {
-             return roleFilteredTasks.filter(task => statusFilter.includes(task.status));
+             return roleFilteredProjects.filter(project => statusFilter.includes(project.status)); // Renamed variable
          }
 
-         return roleFilteredTasks; // Return role-filtered (or all) if no status filter applied
-    }, [currentUser, allTasks, isClient, isLoadingTasks, statusFilter]);
+         return roleFilteredProjects; // Return role-filtered (or all) if no status filter applied // Renamed variable
+    }, [currentUser, allProjects, isClient, isLoadingProjects, statusFilter]); // Renamed state variables
 
     // Toggle status filter
     const handleStatusFilterChange = (status: string) => {
@@ -620,27 +619,26 @@ export default function TasksPage() {
     };
 
 
-  // Define which actions are available based on status and current user role for the SELECTED task
-   // Define which actions are available based on status and current user role for the SELECTED task
+  // Define which actions are available based on status and current user role for the SELECTED project
    const showUploadSection = React.useMemo(() => {
-        if (!selectedTask || !currentUser) return false;
-        // Check if the user can perform the action based on role and task status
-        if (!canPerformSelectedTaskAction) return false;
+        if (!selectedProject || !currentUser) return false; // Renamed state variable
+        // Check if the user can perform the action based on role and project status
+        if (!canPerformSelectedProjectAction) return false; // Renamed variable
 
         // Allow upload if not in a final/pending state (unless it's Pending Offer for Admin Proyek)
         return (
-            (currentUser.role === 'Admin Proyek' && selectedTask.status === 'Pending Offer') ||
-            !['Pending Approval', 'Pending Scheduling', 'Scheduled', 'Completed', 'Canceled'].includes(selectedTask.status)
+            (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer') || // Renamed state variable
+            !['Pending Approval', 'Pending Scheduling', 'Scheduled', 'Completed', 'Canceled'].includes(selectedProject.status) // Renamed state variable
         );
-   }, [selectedTask, currentUser, canPerformSelectedTaskAction]);
+   }, [selectedProject, currentUser, canPerformSelectedProjectAction]); // Renamed variables
 
-   const showOwnerDecisionSection = selectedTask && selectedTask.status === 'Pending Approval' && currentUser?.role === 'Owner';
-   const showSchedulingSection = selectedTask && selectedTask.status === 'Pending Scheduling' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role);
-   const showCalendarButton = selectedTask && selectedTask.status === 'Scheduled' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role);
-   const showSidangOutcomeSection = selectedTask && selectedTask.status === 'Scheduled' && currentUser?.role === 'Owner';
+   const showOwnerDecisionSection = selectedProject && selectedProject.status === 'Pending Approval' && currentUser?.role === 'Owner'; // Renamed state variable
+   const showSchedulingSection = selectedProject && selectedProject.status === 'Pending Scheduling' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role); // Renamed state variable
+   const showCalendarButton = selectedProject && selectedProject.status === 'Scheduled' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role); // Renamed state variable
+   const showSidangOutcomeSection = selectedProject && selectedProject.status === 'Scheduled' && currentUser?.role === 'Owner'; // Renamed state variable
 
-   // Loading state for the whole page if task data or user data isn't ready
-    if (!isClient || !currentUser || isLoadingTasks) {
+   // Loading state for the whole page if project data or user data isn't ready
+    if (!isClient || !currentUser || isLoadingProjects) { // Renamed state variable
         return (
             <div className="container mx-auto py-4 space-y-6">
                  <Card>
@@ -654,7 +652,7 @@ export default function TasksPage() {
                          </div>
                          <div className="space-y-4">
                              {[...Array(3)].map((_, i) => (
-                                <Card key={`task-skel-${i}`} className="opacity-50">
+                                <Card key={`project-skel-${i}`} className="opacity-50"> {/* Updated key */}
                                     <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                                          <div>
                                              <Skeleton className="h-5 w-3/5 mb-1" />
@@ -671,7 +669,7 @@ export default function TasksPage() {
                          </div>
                      </CardContent>
                  </Card>
-                 {/* Placeholder for selected task details */}
+                 {/* Placeholder for selected project details */}
                  <Card className="mt-6 opacity-50">
                      <CardHeader><Skeleton className="h-6 w-1/3" /></CardHeader>
                      <CardContent><Skeleton className="h-40 w-full" /></CardContent>
@@ -680,10 +678,10 @@ export default function TasksPage() {
         );
     }
 
-  // --- Render Task List View ---
-  const renderTaskList = () => {
-    // Ensure tasksDict is available before rendering
-    if (!tasksDict || !isClient) {
+  // --- Render Project List View ---
+  const renderProjectList = () => { // Renamed function
+    // Ensure projectsDict is available before rendering
+    if (!projectsDict || !isClient) { // Renamed dict variable
         return (
             <div className="container mx-auto py-4 space-y-6">
                 <Card><CardHeader><Skeleton className="h-7 w-3/5 mb-2" /></CardHeader></Card>
@@ -697,10 +695,10 @@ export default function TasksPage() {
           <div className="flex justify-between items-center">
             <div>
               <CardTitle className="text-2xl">
-                {tasksDict.taskListTitle || 'Task List'}
+                {projectsDict.projectListTitle || 'Project List'} {/* Renamed dict key */}
               </CardTitle>
               <CardDescription>
-                {tasksDict.taskListDescription || 'View and manage ongoing tasks.'}
+                {projectsDict.projectListDescription || 'View and manage ongoing projects.'} {/* Renamed dict key */}
               </CardDescription>
             </div>
             {/* Filter Dropdown */}
@@ -708,14 +706,14 @@ export default function TasksPage() {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">
                   <ListFilter className="mr-2 h-4 w-4" />
-                  {tasksDict.filterButton || 'Filter by Status'}
+                  {projectsDict.filterButton || 'Filter by Status'} {/* Renamed dict key */}
                   {statusFilter.length > 0 && ` (${statusFilter.length})`}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>{tasksDict.filterStatusLabel || 'Filter Statuses'}</DropdownMenuLabel>
+                <DropdownMenuLabel>{projectsDict.filterStatusLabel || 'Filter Statuses'}</DropdownMenuLabel> {/* Renamed dict key */}
                 <DropdownMenuSeparator />
-                {taskStatuses.map((status) => (
+                {projectStatuses.map((status) => ( // Renamed variable
                   <DropdownMenuCheckboxItem
                     key={status}
                     checked={statusFilter.includes(status)}
@@ -731,7 +729,7 @@ export default function TasksPage() {
                   onCheckedChange={() => setStatusFilter([])}
                   className="text-muted-foreground"
                 >
-                  {tasksDict.filterClear || 'Show All'}
+                  {projectsDict.filterClear || 'Show All'} {/* Renamed dict key */}
                 </DropdownMenuCheckboxItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -739,44 +737,44 @@ export default function TasksPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredTasks.length === 0 ? (
+            {filteredProjects.length === 0 ? ( // Renamed variable
               <p className="text-muted-foreground text-center py-4">
-                {tasksDict.noTasksFound || 'No tasks match the current filters.'}
+                {projectsDict.noProjectsFound || 'No projects match the current filters.'} {/* Renamed dict key */}
               </p>
             ) : (
-              filteredTasks.map((taskItem) => (
+              filteredProjects.map((projectItem) => ( // Renamed variable
                 <Card
-                  key={taskItem.id}
+                  key={projectItem.id}
                   className="hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => setSelectedTask(taskItem)}
+                  onClick={() => setSelectedProject(projectItem)} // Renamed state setter
                 >
                   <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                     <div>
-                      <CardTitle className="text-lg">{taskItem.title}</CardTitle>
+                      <CardTitle className="text-lg">{projectItem.title}</CardTitle>
                       <CardDescription className="text-xs text-muted-foreground">
-                        {tasksDict.assignedLabel}: {taskItem.assignedDivision || tasksDict.none} {taskItem.nextAction ? `| ${tasksDict.nextActionLabel}: ${taskItem.nextAction}` : ''}
+                        {projectsDict.assignedLabel}: {projectItem.assignedDivision || projectsDict.none} {projectItem.nextAction ? `| ${projectsDict.nextActionLabel}: ${projectItem.nextAction}` : ''}
                       </CardDescription>
                     </div>
-                    {getStatusBadge(taskItem.status)}
+                    {getStatusBadge(projectItem.status)}
                   </CardHeader>
                   <CardContent>
-                    {taskItem.status !== 'Canceled' && taskItem.status !== 'Completed' && (
+                    {projectItem.status !== 'Canceled' && projectItem.status !== 'Completed' && (
                       <>
-                        <Progress value={taskItem.progress} className="w-full h-2 mb-1" />
+                        <Progress value={projectItem.progress} className="w-full h-2 mb-1" />
                         <span className="text-xs text-muted-foreground">
-                          {dashboardDict?.progress?.replace('{progress}', taskItem.progress.toString()) ?? `${taskItem.progress}%`}
+                          {dashboardDict?.progress?.replace('{progress}', projectItem.progress.toString()) ?? `${projectItem.progress}%`}
                         </span>
                       </>
                     )}
-                    {(taskItem.status === 'Canceled' || taskItem.status === 'Completed') && (
-                      <p className={`text-sm font-medium ${taskItem.status === 'Canceled' ? 'text-destructive' : 'text-green-600'}`}>
-                        {getTranslatedStatus(taskItem.status)}
+                    {(projectItem.status === 'Canceled' || projectItem.status === 'Completed') && (
+                      <p className={`text-sm font-medium ${projectItem.status === 'Canceled' ? 'text-destructive' : 'text-green-600'}`}>
+                        {getTranslatedStatus(projectItem.status)}
                       </p>
                     )}
                   </CardContent>
                   <CardFooter className="text-xs text-muted-foreground justify-end">
                     <span className="flex items-center gap-1">
-                      {tasksDict.viewDetails || 'View Details'} <ArrowRight className="h-3 w-3" />
+                      {projectsDict.viewDetails || 'View Details'} <ArrowRight className="h-3 w-3" /> {/* Renamed dict key */}
                     </span>
                   </CardFooter>
                 </Card>
@@ -788,33 +786,33 @@ export default function TasksPage() {
     );
   };
 
-  // --- Render Selected Task Detail View ---
-  const renderSelectedTaskDetail = (task: Task) => {
-      // Ensure tasksDict is available
-       if (!tasksDict || !isClient) {
+  // --- Render Selected Project Detail View ---
+  const renderSelectedProjectDetail = (project: Project) => { // Renamed function parameter and type
+      // Ensure projectsDict is available
+       if (!projectsDict || !isClient) { // Renamed dict variable
            return <Skeleton className="h-64 w-full" />; // Or some loading state
        }
 
        return (
            <>
-               <Button variant="outline" onClick={() => setSelectedTask(null)} className="mb-4">
-                   &larr; {tasksDict.backToList || 'Back to List'}
+               <Button variant="outline" onClick={() => setSelectedProject(null)} className="mb-4"> {/* Renamed state setter */}
+                   &larr; {projectsDict.backToList || 'Back to List'} {/* Renamed dict key */}
                </Button>
                <Card>
                    <CardHeader>
                      <div className="flex justify-between items-start">
                         <div>
                           {/* TODO: Allow editing title for Owner, GA, PA */}
-                           <CardTitle className="text-2xl">{task.title}</CardTitle>
+                           <CardTitle className="text-2xl">{project.title}</CardTitle>
                            <CardDescription>
-                               {tasksDict.statusLabel}: {getStatusBadge(task.status)} | {tasksDict.nextActionLabel}: {task.nextAction || tasksDict.none} | {tasksDict.assignedLabel}: {task.assignedDivision || tasksDict.none}
+                               {projectsDict.statusLabel}: {getStatusBadge(project.status)} | {projectsDict.nextActionLabel}: {project.nextAction || projectsDict.none} | {projectsDict.assignedLabel}: {project.assignedDivision || projectsDict.none}
                            </CardDescription>
                          </div>
                            <div className="text-right">
-                               <div className="text-sm font-medium">{tasksDict.progressLabel}</div>
-                               <Progress value={task.progress} className="w-32 h-2 mt-1" />
+                               <div className="text-sm font-medium">{projectsDict.progressLabel}</div>
+                               <Progress value={project.progress} className="w-32 h-2 mt-1" />
                                <span className="text-xs text-muted-foreground">
-                                   {dashboardDict?.progress?.replace('{progress}', task.progress.toString()) ?? `${task.progress}%`}
+                                   {dashboardDict?.progress?.replace('{progress}', project.progress.toString()) ?? `${project.progress}%`}
                                </span>
                            </div>
                      </div>
@@ -825,24 +823,24 @@ export default function TasksPage() {
                      {/* Conditionally render upload section based on role and status */}
                       {showUploadSection && (
                          <div className="space-y-4 border-t pt-4">
-                           <h3 className="text-lg font-semibold">{tasksDict.uploadProgressTitle.replace('{role}', currentUser!.role)}</h3> {/* Non-null assertion */}
+                           <h3 className="text-lg font-semibold">{projectsDict.uploadProgressTitle.replace('{role}', currentUser!.role)}</h3> {/* Non-null assertion */}
                            <div className="grid w-full items-center gap-1.5">
-                             <Label htmlFor="description">{tasksDict.descriptionLabel}</Label>
+                             <Label htmlFor="description">{projectsDict.descriptionLabel}</Label>
                              <Textarea
                                id="description"
-                               placeholder={tasksDict.descriptionPlaceholder.replace('{division}', task.assignedDivision)}
+                               placeholder={projectsDict.descriptionPlaceholder.replace('{division}', project.assignedDivision)}
                                value={description}
                                onChange={(e) => setDescription(e.target.value)}
                                disabled={isSubmitting}
                              />
                            </div>
                            <div className="grid w-full items-center gap-1.5">
-                             <Label htmlFor="picture">{tasksDict.attachFilesLabel}</Label>
+                             <Label htmlFor="picture">{projectsDict.attachFilesLabel}</Label>
                              <Input id="picture" type="file" multiple onChange={handleFileChange} disabled={isSubmitting} />
                            </div>
                            {uploadedFiles.length > 0 && (
                              <div className="space-y-2 rounded-md border p-3">
-                               <Label>{tasksDict.selectedFilesLabel}</Label>
+                               <Label>{projectsDict.selectedFilesLabel}</Label>
                                <ul className="list-disc list-inside text-sm space-y-1 max-h-32 overflow-y-auto">
                                  {uploadedFiles.map((file, index) => (
                                     <li key={index} className="flex items-center justify-between group">
@@ -870,18 +868,18 @@ export default function TasksPage() {
                                 disabled={
                                     isSubmitting ||
                                     // Specific check for Admin Proyek submitting Offer
-                                    (currentUser?.role === 'Admin Proyek' && task.status === 'Pending Offer' && uploadedFiles.length === 0) ||
+                                    (currentUser?.role === 'Admin Proyek' && project.status === 'Pending Offer' && uploadedFiles.length === 0) ||
                                     // General check for other steps (excluding scheduling and Owner/GA override)
                                     (
-                                        !['Pending Scheduling', 'Completed', 'Canceled'].includes(task.status) && // Exclude scheduling/final states
+                                        !['Pending Scheduling', 'Completed', 'Canceled'].includes(project.status) && // Exclude scheduling/final states
                                         !['Owner', 'General Admin'].includes(currentUser!.role) && // Don't enforce for Owner/GA
-                                        !(currentUser?.role === 'Admin Proyek' && task.status === 'Pending Offer') && // Already handled above
+                                        !(currentUser?.role === 'Admin Proyek' && project.status === 'Pending Offer') && // Already handled above
                                         !description && uploadedFiles.length === 0 // Require desc or file otherwise
                                     )
                                 }
                             >
                                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                                {isSubmitting ? tasksDict.submittingButton : tasksDict.submitButton}
+                                {isSubmitting ? projectsDict.submittingButton : projectsDict.submitButton}
                             </Button>
                          </div>
                        )}
@@ -889,37 +887,37 @@ export default function TasksPage() {
 
                       {showOwnerDecisionSection && (
                         <div className="space-y-4 border-t pt-4">
-                          <h3 className="text-lg font-semibold">{tasksDict.ownerActionTitle}</h3>
-                          <p className="text-sm text-muted-foreground">{tasksDict.ownerActionDesc}</p>
+                          <h3 className="text-lg font-semibold">{projectsDict.ownerActionTitle}</h3>
+                          <p className="text-sm text-muted-foreground">{projectsDict.ownerActionDesc}</p>
                            <div className="flex gap-4">
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button variant="outline" disabled={isSubmitting}>
-                                    <XCircle className="mr-2 h-4 w-4" /> {tasksDict.cancelProgressButton}
+                                    <XCircle className="mr-2 h-4 w-4" /> {projectsDict.cancelProgressButton}
                                   </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle>{tasksDict.cancelDialogTitle}</AlertDialogTitle>
+                                    <AlertDialogTitle>{projectsDict.cancelDialogTitle}</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                     {tasksDict.cancelDialogDesc}
+                                     {projectsDict.cancelDialogDesc}
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
-                                    <AlertDialogCancel disabled={isSubmitting}>{tasksDict.cancelDialogCancel}</AlertDialogCancel>
+                                    <AlertDialogCancel disabled={isSubmitting}>{projectsDict.cancelDialogCancel}</AlertDialogCancel>
                                     <AlertDialogAction
                                        className="bg-destructive hover:bg-destructive/90"
                                        onClick={() => handleDecision('cancel')}
                                        disabled={isSubmitting}>
                                         {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                        {tasksDict.cancelDialogConfirm}
+                                        {projectsDict.cancelDialogConfirm}
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
                               </AlertDialog>
                               <Button onClick={() => handleDecision('continue')} disabled={isSubmitting} className="accent-teal">
                                  {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
-                                 {tasksDict.continueProgressButton}
+                                 {projectsDict.continueProgressButton}
                               </Button>
                             </div>
                         </div>
@@ -927,24 +925,24 @@ export default function TasksPage() {
 
                        {showSchedulingSection && (
                             <div className="space-y-4 border-t pt-4">
-                              <h3 className="text-lg font-semibold">{tasksDict.scheduleSidangTitle.replace('{role}', currentUser!.role)}</h3> {/* Non-null assertion */}
+                              <h3 className="text-lg font-semibold">{projectsDict.scheduleSidangTitle.replace('{role}', currentUser!.role)}</h3> {/* Non-null assertion */}
                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                  <div className="space-y-1.5">
-                                    <Label htmlFor="scheduleDate">{tasksDict.dateLabel}</Label>
+                                    <Label htmlFor="scheduleDate">{projectsDict.dateLabel}</Label>
                                     <Input id="scheduleDate" type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} disabled={isSubmitting} />
                                  </div>
                                   <div className="space-y-1.5">
-                                     <Label htmlFor="scheduleTime">{tasksDict.timeLabel}</Label>
+                                     <Label htmlFor="scheduleTime">{projectsDict.timeLabel}</Label>
                                      <Input id="scheduleTime" type="time" value={scheduleTime} onChange={e => setScheduleTime(e.target.value)} disabled={isSubmitting} />
                                   </div>
                                   <div className="space-y-1.5">
-                                     <Label htmlFor="scheduleLocation">{tasksDict.locationLabel}</Label>
-                                     <Input id="scheduleLocation" placeholder={tasksDict.locationPlaceholder} value={scheduleLocation} onChange={e => setScheduleLocation(e.target.value)} disabled={isSubmitting} />
+                                     <Label htmlFor="scheduleLocation">{projectsDict.locationLabel}</Label>
+                                     <Input id="scheduleLocation" placeholder={projectsDict.locationPlaceholder} value={scheduleLocation} onChange={e => setScheduleLocation(e.target.value)} disabled={isSubmitting} />
                                   </div>
                                </div>
                               <Button onClick={handleScheduleSubmit} disabled={isSubmitting || !scheduleDate || !scheduleTime || !scheduleLocation}>
                                  {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarClock className="mr-2 h-4 w-4" />}
-                                {isSubmitting ? tasksDict.schedulingButton : tasksDict.confirmScheduleButton}
+                                {isSubmitting ? projectsDict.schedulingButton : projectsDict.confirmScheduleButton}
                               </Button>
                             </div>
                           )}
@@ -955,7 +953,7 @@ export default function TasksPage() {
                                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> :
                                       <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><line x1="12" y1="14" x2="12" y2="18"></line><line x1="10" y1="16" x2="14" y2="16"></line></svg>
                                    }
-                                  {isSubmitting ? tasksDict.addingCalendarButton : tasksDict.addCalendarButton}
+                                  {isSubmitting ? projectsDict.addingCalendarButton : projectsDict.addCalendarButton}
                                </Button>
                            </div>
                        )}
@@ -963,33 +961,33 @@ export default function TasksPage() {
 
                       {showSidangOutcomeSection && (
                            <div className="space-y-4 border-t pt-4">
-                             <h3 className="text-lg font-semibold">{tasksDict.sidangOutcomeTitle}</h3>
-                              <p className="text-sm text-muted-foreground">{tasksDict.sidangOutcomeDesc}</p>
+                             <h3 className="text-lg font-semibold">{projectsDict.sidangOutcomeTitle}</h3>
+                              <p className="text-sm text-muted-foreground">{projectsDict.sidangOutcomeDesc}</p>
                               <div className="flex gap-4">
                                  {/* For simplicity, using the same 'continue' logic for success */}
                                  <Button onClick={() => handleDecision('continue')} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white">
                                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
-                                    {tasksDict.markSuccessButton}
+                                    {projectsDict.markSuccessButton}
                                  </Button>
-                                  <Button variant="destructive" onClick={() => { /* Implement fail logic */ toast({title: tasksDict.toast.failNotImplemented})}} disabled={isSubmitting}>
+                                  <Button variant="destructive" onClick={() => { /* Implement fail logic */ toast({title: projectsDict.toast.failNotImplemented})}} disabled={isSubmitting}>
                                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
-                                    {tasksDict.markFailButton}
+                                    {projectsDict.markFailButton}
                                   </Button>
                               </div>
                            </div>
                         )}
 
 
-                      {task.status === 'Completed' && (
+                      {project.status === 'Completed' && (
                          <div className="border-t pt-4 text-center">
                             <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
-                            <p className="font-semibold text-lg text-green-600">{tasksDict.completedMessage}</p>
+                            <p className="font-semibold text-lg text-green-600">{projectsDict.completedMessage}</p>
                          </div>
                       )}
-                       {task.status === 'Canceled' && (
+                       {project.status === 'Canceled' && (
                           <div className="border-t pt-4 text-center">
                              <XCircle className="h-12 w-12 text-destructive mx-auto mb-2" />
-                             <p className="font-semibold text-lg text-destructive">{tasksDict.canceledMessage}</p>
+                             <p className="font-semibold text-lg text-destructive">{projectsDict.canceledMessage}</p>
                           </div>
                        )}
 
@@ -999,22 +997,22 @@ export default function TasksPage() {
                   {/* File List Card */}
                    <Card className="mt-6">
                        <CardHeader>
-                         <CardTitle>{tasksDict.uploadedFilesTitle}</CardTitle>
-                         <CardDescription>{tasksDict.uploadedFilesDesc}</CardDescription>
+                         <CardTitle>{projectsDict.uploadedFilesTitle}</CardTitle>
+                         <CardDescription>{projectsDict.uploadedFilesDesc}</CardDescription>
                        </CardHeader>
                        <CardContent>
-                         {task.files.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">{tasksDict.noFiles}</p>
+                         {project.files.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">{projectsDict.noFiles}</p>
                          ) : (
                            <ul className="space-y-2">
-                              {task.files.map((file, index) => (
+                              {project.files.map((file, index) => (
                                <li key={index} className="flex items-center justify-between p-2 border rounded-md hover:bg-secondary/50">
                                   <div className="flex items-center gap-2">
                                       <FileText className="h-5 w-5 text-primary" />
                                       <span className="text-sm font-medium">{file.name}</span>
                                   </div>
                                   <div className="text-xs text-muted-foreground">
-                                     {tasksDict.uploadedByOn.replace('{user}', file.uploadedBy).replace('{date}', formatDateOnly(file.timestamp))}
+                                     {projectsDict.uploadedByOn.replace('{user}', file.uploadedBy).replace('{date}', formatDateOnly(file.timestamp))}
                                   </div>
                                </li>
                               ))}
@@ -1027,17 +1025,17 @@ export default function TasksPage() {
                   {/* Workflow History Card */}
                   <Card className="mt-6">
                     <CardHeader>
-                      <CardTitle>{tasksDict.workflowHistoryTitle}</CardTitle>
-                      <CardDescription>{tasksDict.workflowHistoryDesc}</CardDescription>
+                      <CardTitle>{projectsDict.workflowHistoryTitle}</CardTitle>
+                      <CardDescription>{projectsDict.workflowHistoryDesc}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ul className="space-y-3">
-                        {task.workflowHistory.map((entry, index) => (
+                        {project.workflowHistory.map((entry, index) => (
                             <li key={index} className="flex items-start gap-3">
-                                <div className={`mt-1 h-3 w-3 rounded-full flex-shrink-0 ${index === task.workflowHistory.length - 1 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
+                                <div className={`mt-1 h-3 w-3 rounded-full flex-shrink-0 ${index === project.workflowHistory.length - 1 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
                                 <div>
                                     <p className="text-sm font-medium">
-                                        {tasksDict.historyActionBy.replace('{action}', entry.action).replace('{division}', entry.division)}
+                                        {projectsDict.historyActionBy.replace('{action}', entry.action).replace('{division}', entry.division)}
                                     </p>
                                     <p className="text-xs text-muted-foreground">{formatTimestamp(entry.timestamp)}</p> {/* Use helper function */}
                                 </div>
@@ -1053,10 +1051,7 @@ export default function TasksPage() {
 
   return (
     <div className="container mx-auto py-4 space-y-6">
-      {selectedTask ? renderSelectedTaskDetail(selectedTask) : renderTaskList()}
+      {selectedProject ? renderSelectedProjectDetail(selectedProject) : renderProjectList()} {/* Renamed function calls */}
     </div>
   );
 }
-
-    
-

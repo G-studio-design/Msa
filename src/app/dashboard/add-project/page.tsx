@@ -1,4 +1,4 @@
-// src/app/dashboard/add-task/page.tsx
+// src/app/dashboard/add-project/page.tsx
 'use client';
 
 import * as React from 'react';
@@ -15,12 +15,12 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
-import { addTask, type AddTaskData } from '@/services/task-service'; // Import task service and type
+import { addProject, type AddProjectData } from '@/services/project-service'; // Renamed import
 import { Loader2, Upload, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Zod schema for the form
-const getAddTaskSchema = (dict: ReturnType<typeof getDictionary>['addTaskPage']['validation']) => z.object({
+const getAddProjectSchema = (dict: ReturnType<typeof getDictionary>['addProjectPage']['validation']) => z.object({
   title: z.string().min(5, dict.titleMin),
   // Files are handled separately, not directly in the zod schema for validation here
 });
@@ -28,14 +28,14 @@ const getAddTaskSchema = (dict: ReturnType<typeof getDictionary>['addTaskPage'][
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
 
-export default function AddTaskPage() {
+export default function AddProjectPage() { // Renamed component
   const { currentUser } = useAuth();
   const { language } = useLanguage();
   const { toast } = useToast();
   const router = useRouter();
   const [isClient, setIsClient] = React.useState(false);
   const [dict, setDict] = React.useState(defaultDict);
-  const addTaskDict = dict.addTaskPage; // Specific dictionary section
+  const addProjectDict = dict.addProjectPage; // Renamed dictionary section
   const [isLoading, setIsLoading] = React.useState(false);
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
 
@@ -47,15 +47,15 @@ export default function AddTaskPage() {
     setDict(getDictionary(language));
   }, [language]);
 
-  const addTaskSchema = getAddTaskSchema(addTaskDict.validation);
-  type AddTaskFormValues = z.infer<typeof addTaskSchema>;
+  const addProjectSchema = getAddProjectSchema(addProjectDict.validation); // Renamed schema
+  type AddProjectFormValues = z.infer<typeof addProjectSchema>; // Renamed type
 
-  const form = useForm<AddTaskFormValues>({
-    resolver: zodResolver(addTaskSchema),
+  const form = useForm<AddProjectFormValues>({
+    resolver: zodResolver(addProjectSchema),
     defaultValues: {
       title: '',
     },
-    context: { dict: addTaskDict.validation },
+    context: { dict: addProjectDict.validation },
   });
 
    React.useEffect(() => {
@@ -66,7 +66,7 @@ export default function AddTaskPage() {
 
 
   // Role check
-  const canAddTask = currentUser && ['Owner', 'General Admin'].includes(currentUser.role);
+  const canAddProject = currentUser && ['Owner', 'General Admin'].includes(currentUser.role); // Renamed variable
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -79,27 +79,27 @@ export default function AddTaskPage() {
      setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
    };
 
-  const onSubmit = async (data: AddTaskFormValues) => {
-    if (!canAddTask || !currentUser) return; // Should not happen if UI is correct
+  const onSubmit = async (data: AddProjectFormValues) => {
+    if (!canAddProject || !currentUser) return; // Should not happen if UI is correct
 
     setIsLoading(true);
     form.clearErrors();
-    console.log('Adding new task:', data.title, 'by', currentUser.username);
+    console.log('Adding new project:', data.title, 'by', currentUser.username); // Updated log message
     console.log('Selected files:', selectedFiles.map(f => f.name));
 
     // Prepare file data for the service
-    // In a real app, you'd upload the file *here* and get URLs/references before calling addTask
-    // For now, just prepare the structure expected by AddTaskData
+    // In a real app, you'd upload the file *here* and get URLs/references before calling addProject
+    // For now, just prepare the structure expected by AddProjectData
      const initialFilesData = selectedFiles.map(file => ({
          name: file.name,
          // In a real app, store URL or identifier after upload
          uploadedBy: currentUser.username, // Or currentUser.id
      }));
 
-    const newTaskData: AddTaskData = {
+    const newProjectData: AddProjectData = { // Renamed type
       title: data.title,
       initialFiles: initialFilesData,
-      createdBy: currentUser.username, // Track who created the task
+      createdBy: currentUser.username, // Track who created the project
     };
 
     try {
@@ -108,21 +108,21 @@ export default function AddTaskPage() {
       // const uploadedFileReferences = await Promise.all(
       //   selectedFiles.map(file => uploadFileToStorage(file)) // Assume this returns { name: string, url: string }
       // );
-      // newTaskData.initialFiles = uploadedFileReferences.map(ref => ({ name: ref.name, url: ref.url, uploadedBy: currentUser.username }));
+      // newProjectData.initialFiles = uploadedFileReferences.map(ref => ({ name: ref.name, url: ref.url, uploadedBy: currentUser.username }));
       // --- End File Upload Logic ---
 
-      console.log('Calling addTask service with:', newTaskData);
-      const createdTask = await addTask(newTaskData);
-      console.log('Task created successfully:', createdTask);
+      console.log('Calling addProject service with:', newProjectData); // Updated log message
+      const createdProject = await addProject(newProjectData); // Renamed service call
+      console.log('Project created successfully:', createdProject); // Updated log message
 
-      toast({ title: addTaskDict.toast.success, description: addTaskDict.toast.successDesc.replace('{title}', data.title) });
+      toast({ title: addProjectDict.toast.success, description: addProjectDict.toast.successDesc.replace('{title}', data.title) });
       router.push('/dashboard'); // Redirect back to dashboard on success
     } catch (error: any) {
-      console.error('Failed to add task:', error);
+      console.error('Failed to add project:', error); // Updated log message
       toast({
         variant: 'destructive',
-        title: addTaskDict.toast.error,
-        description: error.message || 'An unexpected error occurred while creating the task.',
+        title: addProjectDict.toast.error,
+        description: error.message || 'An unexpected error occurred while creating the project.', // Updated error message
       });
     } finally {
       setIsLoading(false);
@@ -151,7 +151,7 @@ export default function AddTaskPage() {
         );
     }
 
-    if (!canAddTask) {
+    if (!canAddProject) { // Renamed variable
        return (
          <div className="container mx-auto py-4">
            <Card className="border-destructive">
@@ -159,7 +159,7 @@ export default function AddTaskPage() {
                <CardTitle className="text-destructive">{isClient ? dict.manageUsersPage.accessDeniedTitle : defaultDict.manageUsersPage.accessDeniedTitle}</CardTitle>
              </CardHeader>
              <CardContent>
-               <p>{isClient ? addTaskDict.accessDenied : defaultDict.addTaskPage.accessDenied}</p>
+               <p>{isClient ? addProjectDict.accessDenied : defaultDict.addProjectPage.accessDenied}</p>
              </CardContent>
            </Card>
          </div>
@@ -171,8 +171,8 @@ export default function AddTaskPage() {
     <div className="container mx-auto py-4">
       <Card className="w-full max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle className="text-2xl">{isClient ? addTaskDict.title : defaultDict.addTaskPage.title}</CardTitle>
-          <CardDescription>{isClient ? addTaskDict.description : defaultDict.addTaskPage.description}</CardDescription>
+          <CardTitle className="text-2xl">{isClient ? addProjectDict.title : defaultDict.addProjectPage.title}</CardTitle>
+          <CardDescription>{isClient ? addProjectDict.description : defaultDict.addProjectPage.description}</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -182,9 +182,9 @@ export default function AddTaskPage() {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{isClient ? addTaskDict.titleLabel : defaultDict.addTaskPage.titleLabel}</FormLabel>
+                    <FormLabel>{isClient ? addProjectDict.titleLabel : defaultDict.addProjectPage.titleLabel}</FormLabel>
                     <FormControl>
-                      <Input placeholder={isClient ? addTaskDict.titlePlaceholder : defaultDict.addTaskPage.titlePlaceholder} {...field} disabled={isLoading} />
+                      <Input placeholder={isClient ? addProjectDict.titlePlaceholder : defaultDict.addProjectPage.titlePlaceholder} {...field} disabled={isLoading} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -192,10 +192,10 @@ export default function AddTaskPage() {
               />
 
               <div className="space-y-2">
-                 <Label htmlFor="task-files">{isClient ? addTaskDict.filesLabel : defaultDict.addTaskPage.filesLabel}</Label>
+                 <Label htmlFor="project-files">{isClient ? addProjectDict.filesLabel : defaultDict.addProjectPage.filesLabel}</Label> {/* Updated htmlFor and label */}
                  <div className="flex items-center gap-2">
                       <Input
-                         id="task-files"
+                         id="project-files" // Updated id
                          type="file"
                          multiple // Allow multiple files
                          onChange={handleFileChange}
@@ -205,14 +205,14 @@ export default function AddTaskPage() {
                        <Upload className="h-5 w-5 text-muted-foreground" />
                  </div>
                   <p className="text-xs text-muted-foreground">
-                      {isClient ? addTaskDict.filesHint : defaultDict.addTaskPage.filesHint}
+                      {isClient ? addProjectDict.filesHint : defaultDict.addProjectPage.filesHint}
                   </p>
                </div>
 
                 {/* Display selected files */}
                  {selectedFiles.length > 0 && (
                    <div className="space-y-2 rounded-md border p-3">
-                     <Label>{isClient ? dict.tasksPage.selectedFilesLabel : defaultDict.tasksPage.selectedFilesLabel}</Label>
+                     <Label>{isClient ? dict.projectsPage.selectedFilesLabel : defaultDict.projectsPage.selectedFilesLabel}</Label> {/* Updated dict key */}
                      <ul className="list-disc list-inside text-sm space-y-1 max-h-32 overflow-y-auto">
                        {selectedFiles.map((file, index) => (
                          <li key={index} className="flex items-center justify-between group">
@@ -242,7 +242,7 @@ export default function AddTaskPage() {
                  </Button>
                  <Button type="submit" className="accent-teal" disabled={isLoading}>
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                    {isClient ? (isLoading ? addTaskDict.creatingButton : addTaskDict.createButton) : defaultDict.addTaskPage.createButton}
+                    {isClient ? (isLoading ? addProjectDict.creatingButton : addProjectDict.createButton) : defaultDict.addProjectPage.createButton}
                  </Button>
               </div>
             </form>

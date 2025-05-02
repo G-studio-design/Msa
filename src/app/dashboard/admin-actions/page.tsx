@@ -1,4 +1,4 @@
-
+// src/app/dashboard/admin-actions/page.tsx
 'use client';
 
 import * as React from 'react';
@@ -26,10 +26,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAllTasks, updateTaskTitle, type Task } from '@/services/task-service'; // Import task service
-
-// Mock data removed - will fetch from service
-// const initialTasks = [...];
+import { getAllProjects, updateProjectTitle, type Project } from '@/services/project-service'; // Renamed import
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -43,32 +40,32 @@ export default function AdminActionsPage() {
   const [adminDict, setAdminDict] = React.useState(defaultDict.adminActionsPage); // Specific dictionary section
   const [dashboardDict, setDashboardDict] = React.useState(defaultDict.dashboardPage); // For status translation
 
-  const [tasks, setTasks] = React.useState<Task[]>([]); // State to hold fetched tasks
-  const [isLoadingTasks, setIsLoadingTasks] = React.useState(true); // Loading state
-  const [editingTaskId, setEditingTaskId] = React.useState<string | null>(null); // Use string ID
+  const [projects, setProjects] = React.useState<Project[]>([]); // Renamed state variable
+  const [isLoadingProjects, setIsLoadingProjects] = React.useState(true); // Renamed loading state
+  const [editingProjectId, setEditingProjectId] = React.useState<string | null>(null); // Renamed state variable
   const [newTitle, setNewTitle] = React.useState('');
   const [isSaving, setIsSaving] = React.useState(false); // Saving state
 
    React.useEffect(() => {
         setIsClient(true);
-        // Fetch tasks when component mounts and user is loaded
-        const fetchTasks = async () => {
+        // Fetch projects when component mounts and user is loaded
+        const fetchProjects = async () => { // Renamed function
              if (currentUser && ['Owner', 'General Admin', 'Admin Proyek'].includes(currentUser.role)) {
-                 setIsLoadingTasks(true);
+                 setIsLoadingProjects(true); // Renamed loading state
                  try {
-                     const fetchedTasks = await getAllTasks();
-                     setTasks(fetchedTasks);
+                     const fetchedProjects = await getAllProjects(); // Renamed service call
+                     setProjects(fetchedProjects); // Renamed state setter
                  } catch (error) {
-                     console.error("Failed to fetch tasks for admin actions:", error);
-                     toast({ variant: 'destructive', title: 'Error', description: 'Could not load task data.' });
+                     console.error("Failed to fetch projects for admin actions:", error); // Updated log message
+                     toast({ variant: 'destructive', title: 'Error', description: 'Could not load project data.' }); // Updated toast message
                  } finally {
-                     setIsLoadingTasks(false);
+                     setIsLoadingProjects(false); // Renamed loading state
                  }
              } else {
-                setIsLoadingTasks(false); // No need to load if no permission
+                setIsLoadingProjects(false); // Renamed loading state
              }
         };
-        fetchTasks();
+        fetchProjects(); // Renamed function call
    }, [currentUser, toast]); // Re-run if user changes
 
    React.useEffect(() => {
@@ -78,37 +75,37 @@ export default function AdminActionsPage() {
         setDashboardDict(newDict.dashboardPage);
    }, [language]);
 
-  const handleEditClick = (taskId: string, currentTitle: string) => {
-    setEditingTaskId(taskId);
+  const handleEditClick = (projectId: string, currentTitle: string) => { // Renamed parameter
+    setEditingProjectId(projectId); // Renamed state setter
     setNewTitle(currentTitle);
   };
 
   const handleCancelEdit = () => {
-    setEditingTaskId(null);
+    setEditingProjectId(null); // Renamed state setter
     setNewTitle('');
   };
 
-  const handleSaveTitle = async (taskId: string) => { // Make async
+  const handleSaveTitle = async (projectId: string) => { // Renamed parameter, make async
     if (!newTitle.trim()) {
       toast({ variant: 'destructive', title: adminDict.toast.error, description: adminDict.toast.titleEmpty });
       return;
     }
 
     setIsSaving(true); // Start saving indicator
-    console.log(`Saving new title for task ${taskId}: ${newTitle}`);
+    console.log(`Saving new title for project ${projectId}: ${newTitle}`); // Updated log message
 
     try {
-        await updateTaskTitle(taskId, newTitle); // Use service function
+        await updateProjectTitle(projectId, newTitle); // Renamed service function
         // Update local state optimistically or re-fetch
-        setTasks(
-            tasks.map((task) =>
-            task.id === taskId ? { ...task, title: newTitle } : task
+        setProjects( // Renamed state setter
+            projects.map((project) => // Renamed variable
+            project.id === projectId ? { ...project, title: newTitle } : project
             )
         );
-        toast({ title: adminDict.toast.titleUpdated, description: adminDict.toast.titleUpdatedDesc.replace('{id}', taskId) });
+        toast({ title: adminDict.toast.titleUpdated, description: adminDict.toast.titleUpdatedDesc.replace('{id}', projectId) });
         handleCancelEdit(); // Exit editing mode
     } catch (error: any) {
-        console.error("Failed to update task title:", error);
+        console.error("Failed to update project title:", error); // Updated log message
         toast({ variant: 'destructive', title: adminDict.toast.error, description: error.message || 'Failed to save title.' });
     } finally {
         setIsSaving(false); // Stop saving indicator
@@ -126,7 +123,7 @@ export default function AdminActionsPage() {
    const canEdit = currentUser && ['Owner', 'General Admin', 'Admin Proyek'].includes(currentUser.role);
 
    // Loading state for the page
-    if (!isClient || !currentUser || isLoadingTasks) {
+    if (!isClient || !currentUser || isLoadingProjects) { // Renamed loading state
        return (
            <div className="container mx-auto py-4 space-y-6">
                <Card>
@@ -179,18 +176,18 @@ export default function AdminActionsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tasks.length === 0 ? (
+              {projects.length === 0 ? ( // Renamed state variable
                 <TableRow>
                   <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    {isClient ? adminDict.noTasks : defaultDict.adminActionsPage.noTasks}
+                    {isClient ? adminDict.noProjects : defaultDict.adminActionsPage.noProjects} {/* Updated dict key */}
                   </TableCell>
                 </TableRow>
               ) : (
-                tasks.map((task) => (
-                  <TableRow key={task.id}>{/* Removed whitespace here */}
-                    <TableCell className="text-xs font-mono">{task.id}</TableCell> {/* Display full ID */}
+                projects.map((project) => ( // Renamed variable
+                  <TableRow key={project.id}>
+                    <TableCell className="text-xs font-mono">{project.id}</TableCell> {/* Display full ID */}
                     <TableCell className="font-medium">
-                      {editingTaskId === task.id ? (
+                      {editingProjectId === project.id ? ( // Renamed state variable
                         <Input
                           value={newTitle}
                           onChange={(e) => setNewTitle(e.target.value)}
@@ -198,14 +195,14 @@ export default function AdminActionsPage() {
                           disabled={isSaving} // Disable input while saving
                         />
                       ) : (
-                        task.title
+                        project.title
                       )}
                     </TableCell>
-                    <TableCell>{getTranslatedStatus(task.status)}</TableCell> {/* Use translated status */}
+                    <TableCell>{getTranslatedStatus(project.status)}</TableCell> {/* Use translated status */}
                     <TableCell className="text-right space-x-2">
-                      {editingTaskId === task.id ? (
+                      {editingProjectId === project.id ? ( // Renamed state variable
                         <>
-                          <Button variant="ghost" size="icon" onClick={() => handleSaveTitle(task.id)} disabled={isSaving}>
+                          <Button variant="ghost" size="icon" onClick={() => handleSaveTitle(project.id)} disabled={isSaving}>
                              {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 text-green-600" />}
                           </Button>
                           <Button variant="ghost" size="icon" onClick={handleCancelEdit} disabled={isSaving}>
@@ -213,7 +210,7 @@ export default function AdminActionsPage() {
                           </Button>
                         </>
                       ) : (
-                        <Button variant="ghost" size="icon" onClick={() => handleEditClick(task.id, task.title)} disabled={isSaving}>
+                        <Button variant="ghost" size="icon" onClick={() => handleEditClick(project.id, project.title)} disabled={isSaving}>
                           <Edit className="h-4 w-4 text-primary" />
                         </Button>
                       )}

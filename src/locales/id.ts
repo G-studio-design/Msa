@@ -27,7 +27,7 @@ const id = {
     menuTitle: 'Menu',
     menuDescription: 'Navigasi dan opsi pengguna.',
     dashboard: 'Dasbor',
-    tasks: 'Tugas',
+    projects: 'Proyek', // Renamed
     manageUsers: 'Kelola Pengguna',
     adminActions: 'Tindakan Admin',
     settings: 'Pengaturan',
@@ -38,21 +38,21 @@ const id = {
   // Dashboard Page
   dashboardPage: {
     title: 'Dasbor',
-    activeTasks: 'Tugas Aktif',
-    activeTasksDesc: 'Tugas yang sedang berjalan atau tertunda',
-    completedTasks: 'Tugas Selesai',
-    completedTasksDesc: 'Tugas yang berhasil diselesaikan',
+    activeProjects: 'Proyek Aktif', // Renamed
+    activeProjectsDesc: 'Proyek yang sedang berjalan atau tertunda', // Renamed
+    completedProjects: 'Proyek Selesai', // Renamed
+    completedProjectsDesc: 'Proyek yang berhasil diselesaikan', // Renamed
     pendingActions: 'Tindakan Tertunda',
-    pendingActionsDesc: 'Tugas menunggu persetujuan atau langkah selanjutnya',
-    taskOverview: 'Gambaran Tugas',
-    allTasksDesc: 'Semua tugas di seluruh divisi.',
-    divisionTasksDesc: 'Tugas yang relevan dengan divisi {division}.',
-    noTasks: 'Tidak ada tugas ditemukan.',
+    pendingActionsDesc: 'Proyek menunggu persetujuan atau langkah selanjutnya', // Renamed
+    projectOverview: 'Gambaran Proyek', // Renamed
+    allProjectsDesc: 'Semua proyek di seluruh divisi.', // Renamed
+    divisionProjectsDesc: 'Proyek yang relevan dengan divisi {division}.', // Renamed
+    noProjects: 'Tidak ada proyek ditemukan.', // Renamed
     assignedTo: 'Ditugaskan ke',
     nextAction: 'Berikutnya',
-    taskCanceled: 'Tugas ini dibatalkan.',
-    taskCompleted: 'Tugas Selesai',
-    addNewTask: 'Tambah Tugas Baru',
+    projectCanceled: 'Proyek ini dibatalkan.', // Renamed
+    projectCompleted: 'Proyek Selesai', // Renamed
+    addNewProject: 'Tambah Proyek Baru', // Renamed
     status: {
       completed: 'Selesai',
       inprogress: 'Sedang Berjalan',
@@ -71,8 +71,8 @@ const id = {
       pendingscheduling: 'Menunggu Penjadwalan',
     },
      progress: '{progress}% Selesai',
-     taskStatusChartTitle: 'Distribusi Status Tugas', // New
-     noDataForChart: 'Tidak ada data tugas untuk grafik.', // New
+     projectStatusChartTitle: 'Distribusi Status Proyek', // Renamed
+     noDataForChart: 'Tidak ada data proyek untuk grafik.', // Renamed
      // Chart Colors (keyed by the lowercase, no-space status key)
      // Ensure these keys match the keys in the 'status' object above
      chartColors: {
@@ -93,8 +93,8 @@ const id = {
        pendingscheduling: 'hsl(250 70% 60%)', // Violet
      },
   },
-  // Tasks Page
-  tasksPage: {
+  // Projects Page (Renamed from Tasks Page)
+  projectsPage: {
     statusLabel: 'Status',
     nextActionLabel: 'Tindakan Berikutnya',
     assignedLabel: 'Ditugaskan',
@@ -139,21 +139,21 @@ const id = {
     workflowHistoryDesc: 'Garis waktu tindakan yang diambil.',
     loadingHistory: 'Memuat riwayat...',
     historyActionBy: '{action} oleh {division}',
-    taskListTitle: 'Daftar Tugas', // Added
-    taskListDescription: 'Lihat dan kelola tugas yang sedang berjalan.', // Added
-    filterButton: 'Filter berdasarkan Status', // Added
-    filterStatusLabel: 'Filter Status', // Added
-    filterClear: 'Tampilkan Semua', // Added
-    noTasksFound: 'Tidak ada tugas yang cocok dengan filter saat ini.', // Added
-    viewDetails: 'Lihat Detail', // Added
-    backToList: 'Kembali ke Daftar', // Added
+    projectListTitle: 'Daftar Proyek', // Renamed
+    projectListDescription: 'Lihat dan kelola proyek yang sedang berjalan.', // Renamed
+    filterButton: 'Filter berdasarkan Status',
+    filterStatusLabel: 'Filter Status',
+    filterClear: 'Tampilkan Semua',
+    noProjectsFound: 'Tidak ada proyek yang cocok dengan filter saat ini.', // Renamed
+    viewDetails: 'Lihat Detail',
+    backToList: 'Kembali ke Daftar',
      toast: {
         permissionDenied: 'Izin Ditolak',
         notYourTurn: 'Bukan giliran Anda untuk memperbarui progres.',
         missingInput: 'Input Kurang',
         provideDescOrFile: 'Harap berikan deskripsi atau unggah file.',
         provideOfferFile: 'Harap unggah file penawaran.',
-        offerSubmitted: 'Penawaran Terkirim', // Added this line
+        offerSubmitted: 'Penawaran Terkirim',
         progressSubmitted: 'Progres Terkirim',
         notifiedNextStep: 'Memberitahu {division} untuk langkah selanjutnya.',
         onlyOwnerDecision: 'Hanya Pemilik yang dapat membuat keputusan ini.',
@@ -178,24 +178,24 @@ const id = {
         couldNotFindSchedule: 'Tidak dapat menemukan informasi penjadwalan.',
       }
   },
-   // Add Task Page
-   addTaskPage: {
-       title: 'Buat Tugas Baru',
-       description: 'Masukkan judul proyek dan unggah file awal (Hanya Pemilik/Admin Umum).',
-       titleLabel: 'Judul Proyek',
-       titlePlaceholder: 'Masukkan judul proyek lengkap',
+   // Add Project Page (Renamed from Add Task Page)
+   addProjectPage: {
+       title: 'Buat Proyek Baru', // Renamed
+       description: 'Masukkan judul proyek dan unggah file awal (Hanya Pemilik/Admin Umum).', // Renamed
+       titleLabel: 'Judul Proyek', // Renamed
+       titlePlaceholder: 'Masukkan judul proyek lengkap', // Renamed
        filesLabel: 'File Awal (Opsional)',
-       filesHint: 'Unggah dokumen awal atau brief terkait proyek.',
-       createButton: 'Buat Tugas',
+       filesHint: 'Unggah dokumen awal atau brief terkait proyek.', // Renamed
+       createButton: 'Buat Proyek', // Renamed
        creatingButton: 'Membuat...',
-       accessDenied: 'Anda tidak memiliki izin untuk menambahkan tugas baru.',
+       accessDenied: 'Anda tidak memiliki izin untuk menambahkan proyek baru.', // Renamed
        toast: {
-           success: 'Tugas Dibuat',
-           successDesc: 'Tugas "{title}" berhasil ditambahkan. Admin Proyek diberitahu untuk penawaran.', // Updated notification target
-           error: 'Gagal Membuat Tugas',
+           success: 'Proyek Dibuat', // Renamed
+           successDesc: 'Proyek "{title}" berhasil ditambahkan. Admin Proyek diberitahu untuk penawaran.', // Renamed
+           error: 'Gagal Membuat Proyek', // Renamed
        },
        validation: {
-           titleMin: 'Judul proyek minimal 5 karakter.',
+           titleMin: 'Judul proyek minimal 5 karakter.', // Renamed
        }
    },
   // Manage Users Page
@@ -274,18 +274,18 @@ const id = {
   },
    // Admin Actions Page
    adminActionsPage: {
-       title: 'Tindakan Admin - Ubah Judul Tugas',
-       description: 'Pengguna dengan izin yang sesuai (Pemilik, Admin Umum, Admin Proyek) dapat mengubah judul tugas di sini.', // Added Admin Proyek back
-       tableHeaderId: 'ID Tugas',
+       title: 'Tindakan Admin - Ubah Judul Proyek', // Renamed
+       description: 'Pengguna dengan izin yang sesuai (Pemilik, Admin Umum, Admin Proyek) dapat mengubah judul proyek di sini.', // Renamed
+       tableHeaderId: 'ID Proyek', // Renamed
        tableHeaderTitle: 'Judul Saat Ini',
        tableHeaderStatus: 'Status',
        tableHeaderActions: 'Tindakan',
-       noTasks: 'Tidak ada tugas ditemukan.',
+       noProjects: 'Tidak ada proyek ditemukan.', // Renamed
        toast: {
            error: 'Kesalahan',
            titleEmpty: 'Judul tidak boleh kosong.',
            titleUpdated: 'Judul Diperbarui',
-           titleUpdatedDesc: 'Judul tugas {id} berhasil diubah.',
+           titleUpdatedDesc: 'Judul proyek {id} berhasil diubah.', // Renamed
        },
        accessDeniedTitle: 'Akses Ditolak',
        accessDeniedDesc: 'Anda tidak memiliki izin untuk mengakses halaman ini.',
@@ -303,8 +303,8 @@ const id = {
     whatsappLabel: 'Nomor WhatsApp',
     whatsappPlaceholder: 'Masukkan nomor WhatsApp (opsional)',
     changePictureButton: 'Ubah Foto',
-    uploadingPictureButton: 'Mengunggah...', // Added
-    pictureHint: 'Unggah foto profil baru (PNG, JPG). Maks 2MB.', // Updated hint
+    uploadingPictureButton: 'Mengunggah...',
+    pictureHint: 'Unggah foto profil baru (PNG, JPG). Maks 2MB.',
     updateProfileButton: 'Perbarui Profil',
     updatingProfileButton: 'Memperbarui...',
     passwordCardTitle: 'Perbarui Kata Sandi',
@@ -318,7 +318,7 @@ const id = {
     updatingPasswordButton: 'Memperbarui...',
     notificationsCardTitle: 'Preferensi Notifikasi',
     emailNotificationsLabel: 'Notifikasi Email',
-    emailNotificationsHint: 'Terima pembaruan email untuk penugasan tugas dan perubahan status.',
+    emailNotificationsHint: 'Terima pembaruan email untuk penugasan proyek dan perubahan status.', // Renamed
     inAppNotificationsLabel: 'Notifikasi Dalam Aplikasi',
     inAppNotificationsHint: 'Tampilkan notifikasi di dalam aplikasi.',
     languageCardTitle: 'Pengaturan Bahasa',
@@ -358,10 +358,10 @@ const id = {
        permissionErrorDesc: "Tidak dapat meminta izin notifikasi.",
        notSupportedTitle: "Notifikasi Tidak Didukung",
        notSupportedDesc: "Browser Anda tidak mendukung notifikasi.",
-       tooltip: "Notifikasi", // Added tooltip text
-       title: "Notifikasi", // Added popover title
-       description: "Pembaruan terkini dan tindakan yang diperlukan.", // Added popover description
-       empty: "Tidak ada notifikasi baru.", // Added empty state text
+       tooltip: "Notifikasi",
+       title: "Notifikasi",
+       description: "Pembaruan terkini dan tindakan yang diperlukan.",
+       empty: "Tidak ada notifikasi baru.",
    },
 };
 
