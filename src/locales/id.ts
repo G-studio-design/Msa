@@ -135,6 +135,7 @@ const id = {
         missingInput: 'Input Kurang',
         provideDescOrFile: 'Harap berikan deskripsi atau unggah file.',
         provideOfferFile: 'Harap unggah file penawaran.',
+        offerSubmitted: 'Penawaran Terkirim', // Added this line
         progressSubmitted: 'Progres Terkirim',
         notifiedNextStep: 'Memberitahu {division} untuk langkah selanjutnya.',
         onlyOwnerDecision: 'Hanya Pemilik yang dapat membuat keputusan ini.',

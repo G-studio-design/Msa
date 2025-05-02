@@ -135,6 +135,7 @@ const en = {
       missingInput: 'Missing Input',
       provideDescOrFile: 'Please provide a description or upload files.',
       provideOfferFile: 'Please upload offer files.',
+      offerSubmitted: 'Offer Submitted', // Added this line
       progressSubmitted: 'Progress Submitted',
       notifiedNextStep: 'Notified {division} for next step.',
       onlyOwnerDecision: 'Only Owner can make this decision.',

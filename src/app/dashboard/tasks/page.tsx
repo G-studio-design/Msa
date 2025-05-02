@@ -57,6 +57,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"; // Import Dropdown for filtering
+import { cn } from '@/lib/utils'; // Import cn utility
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -176,7 +177,7 @@ export default function TasksPage() {
     if (!isClient || !status) return <Skeleton className="h-5 w-20" />; // Skeleton during hydration mismatch check or if status is missing
 
     // Ensure dashboardDict and dashboardDict.status are available
-    if (!dashboardDict || !dashboardDict.status) {
+    if (!isClient || !dashboardDict || !dashboardDict.status) {
       return <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />{status}</Badge>; // Fallback badge
     }
 
@@ -258,11 +259,12 @@ export default function TasksPage() {
       return;
     }
 
-    // Admins Proyek MUST upload at least one offer file. Other roles continue to have description as optional
+    // Admins Proyek MUST upload at least one offer file when in 'Pending Offer' status.
     if (selectedTask.assignedDivision === 'Admin Proyek' && selectedTask.status === 'Pending Offer' && uploadedFiles.length === 0) {
       toast({ variant: 'destructive', title: tasksDict.toast.missingInput, description: tasksDict.toast.provideOfferFile });
       return;
     }
+    // General validation: Require description or files for most steps (except scheduling or Owner/GA override)
     if (!description && uploadedFiles.length === 0 && selectedTask.status !== 'Pending Scheduling' && !['Owner', 'General Admin'].includes(currentUser.role)) {
        toast({ variant: 'destructive', title: tasksDict.toast.missingInput, description: tasksDict.toast.provideDescOrFile });
        return;
@@ -272,12 +274,9 @@ export default function TasksPage() {
     console.log('Submitting Progress for task:', selectedTask.id, { description, files: uploadedFiles.map(f => f.name) });
 
     // Simulate API call
+    // TODO: Implement actual file upload logic here, get URLs/references
+    // const uploadedFileEntries = await Promise.all(uploadedFiles.map(file => uploadFile(file)));
     await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // TODO: Implement actual API call to update task status, progress, files, and trigger notifications
-    // This involves:
-    // 1. Uploading files to storage (get URLs/references)
-    // 2. Calling `updateTask` service with the new data
 
     let nextStatus = selectedTask.status;
     let nextDivision = selectedTask.assignedDivision;
@@ -286,27 +285,30 @@ export default function TasksPage() {
     const historyEntry: WorkflowHistoryEntry = { division: currentUser.role, action: `Submitted Progress`, timestamp: new Date().toISOString() };
     const newFiles: FileEntry[] = uploadedFiles.map(file => ({
         name: file.name,
-        uploadedBy: currentUser.role, // Use role for simplicity, could be username/ID
+        uploadedBy: currentUser.username, // Use username for better tracking
         timestamp: new Date().toISOString(),
         // url: 'simulated_url_after_upload' // Add URL after actual upload
     }));
 
 
-    // Simplified workflow logic - replace with actual state machine based on role/action
+    // Workflow logic based on current division and status
     switch (selectedTask.assignedDivision) {
         case 'Owner':
+            // Owner specific transitions (if any Owner uploads progress)
             if (selectedTask.status === 'Pending Input') { /*...*/ }
-            // Add other Owner-specific transitions
             break;
+
         case 'Admin Proyek':
+             // --- Specific logic for Admin Proyek submitting Offer ---
              if (selectedTask.status === 'Pending Offer') {
-                nextStatus = 'Pending Approval';
+                nextStatus = 'Pending Approval'; // Move to Owner for approval
                 nextDivision = 'Owner';
-                newProgress = 20;
-                nextActionDescription = 'Approve Offer';
-                historyEntry.action = 'Uploaded Offer';
+                newProgress = 20; // Set progress after offer upload
+                nextActionDescription = 'Approve Offer Document'; // Owner needs to approve
+                historyEntry.action = 'Uploaded Offer Document'; // Specific history action
              }
-             else if (selectedTask.status === 'Pending Admin Files') {
+             // --- End specific logic for Offer ---
+              else if (selectedTask.status === 'Pending Admin Files') {
                 nextStatus = 'Pending Architect Files';
                 nextDivision = 'Arsitek'; // Corrected Role
                 newProgress = 50;
@@ -320,8 +322,9 @@ export default function TasksPage() {
                  nextActionDescription = 'Schedule Sidang';
                  historyEntry.action = 'Completed Final Check';
               }
-              // Add other Admin Proyek transitions
+              // Add other Admin Proyek transitions here if needed
             break;
+
         case 'General Admin':
             if (selectedTask.status === 'Pending DP Invoice') {
                 nextStatus = 'Pending Approval';
@@ -367,7 +370,7 @@ export default function TasksPage() {
         progress: newProgress,
         nextAction: nextActionDescription,
         workflowHistory: [...selectedTask.workflowHistory, historyEntry],
-        files: [...selectedTask.files, ...newFiles],
+        files: [...selectedTask.files, ...newFiles], // Append new files
       };
 
 
@@ -385,7 +388,12 @@ export default function TasksPage() {
         setDescription('');
         setUploadedFiles([]);
         setIsSubmitting(false);
-        toast({ title: tasksDict.toast.progressSubmitted, description: tasksDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
+        // Use a specific toast message if it was the offer submission
+        if (selectedTask.status === 'Pending Offer' && nextStatus === 'Pending Approval') {
+            toast({ title: tasksDict.toast.offerSubmitted, description: tasksDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
+        } else {
+            toast({ title: tasksDict.toast.progressSubmitted, description: tasksDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
+        }
 
       } catch (error) {
          console.error("Error updating task:", error);
@@ -421,19 +429,20 @@ export default function TasksPage() {
        } else {
          // Logic for continuing based on the current approval step
          if (selectedTask.status === 'Pending Approval') {
-            if (selectedTask.progress === 20) { // After Offer
-                 nextStatus = 'Pending DP Invoice';
-                 nextDivision = 'General Admin';
+            // Check progress to differentiate between Offer Approval and DP Invoice Approval
+            if (selectedTask.progress === 20) { // After Offer Upload (Progress 20)
+                 nextStatus = 'Pending DP Invoice'; // Move to DP Invoice stage
+                 nextDivision = 'General Admin'; // Assign to GA
                  newProgress = 25; // Progress slightly after approval
                  nextActionDescription = 'Generate DP Invoice';
-                  historyEntry.action = 'Approved Offer';
+                  historyEntry.action = 'Approved Offer'; // Specific history action
                  toast({ title: tasksDict.toast.offerApproved, description: tasksDict.toast.offerApprovedDesc });
-            } else if (selectedTask.progress === 30) { // After DP Invoice
-                 nextStatus = 'Pending Admin Files';
-                 nextDivision = 'Admin Proyek';
+            } else if (selectedTask.progress === 30) { // After DP Invoice Upload (Progress 30)
+                 nextStatus = 'Pending Admin Files'; // Move to Admin Files stage
+                 nextDivision = 'Admin Proyek'; // Assign to Admin Proyek
                  newProgress = 40; // Progress slightly after approval
                  nextActionDescription = 'Upload Admin Files';
-                  historyEntry.action = 'Approved DP Invoice';
+                  historyEntry.action = 'Approved DP Invoice'; // Specific history action
                  toast({ title: tasksDict.toast.dpApproved, description: tasksDict.toast.dpApprovedDesc });
             }
          } else if (selectedTask.status === 'Scheduled') { // After Sidang outcome
@@ -562,7 +571,8 @@ export default function TasksPage() {
         if (!currentUser || !isClient || isLoadingTasks) return [];
 
         let roleFilteredTasks = allTasks;
-         // Owner, General Admin, Admin Developer, Admin Proyek see all tasks
+         // Owner, General Admin, Admin Developer see all tasks
+         // Admin Proyek should also see all tasks to monitor progress after handoff
          if (!['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'].includes(currentUser.role)) {
              // Other specific roles (Arsitek, Struktur) see tasks where they are assigned or next action applies
              roleFilteredTasks = allTasks.filter(task =>
@@ -641,7 +651,7 @@ export default function TasksPage() {
   // --- Render Task List View ---
   const renderTaskList = () => {
     // Ensure tasksDict is available before rendering
-    if (!tasksDict) {
+    if (!tasksDict || !isClient) {
         return (
             <div className="container mx-auto py-4 space-y-6">
                 <Card><CardHeader><Skeleton className="h-7 w-3/5 mb-2" /></CardHeader></Card>
@@ -749,7 +759,7 @@ export default function TasksPage() {
   // --- Render Selected Task Detail View ---
   const renderSelectedTaskDetail = (task: Task) => {
       // Ensure tasksDict is available
-       if (!tasksDict) {
+       if (!tasksDict || !isClient) {
            return <Skeleton className="h-64 w-full" />; // Or some loading state
        }
 
@@ -821,7 +831,17 @@ export default function TasksPage() {
                              </ul>
                            </div>
                          )}
-                          <Button onClick={handleProgressSubmit} disabled={isSubmitting || (!description && uploadedFiles.length === 0 && task.assignedDivision !== 'Admin Proyek' && task.status !== 'Pending Offer') || (task.assignedDivision === 'Admin Proyek' && task.status === 'Pending Offer' && uploadedFiles.length === 0)}>
+                          {/* Disable button logic refined */}
+                          <Button
+                              onClick={handleProgressSubmit}
+                              disabled={
+                                  isSubmitting ||
+                                  // Specific check for Admin Proyek submitting Offer
+                                  (task.assignedDivision === 'Admin Proyek' && task.status === 'Pending Offer' && uploadedFiles.length === 0) ||
+                                  // General check for other steps (excluding scheduling and Owner/GA override)
+                                  (task.status !== 'Pending Scheduling' && !['Owner', 'General Admin'].includes(currentUser!.role) && !description && uploadedFiles.length === 0)
+                              }
+                          >
                               {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                               {isSubmitting ? tasksDict.submittingButton : tasksDict.submitButton}
                           </Button>
