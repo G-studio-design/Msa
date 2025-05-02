@@ -165,8 +165,16 @@ export default function TasksPage() {
   };
 
   // Determine if the current user (from context) can perform the action on the SELECTED task
-  // This should check if the currentUser's role matches the task's assignedDivision
-  const canPerformSelectedTaskAction = currentUser && selectedTask && currentUser.role === selectedTask.assignedDivision;
+  // This checks if the currentUser's role matches the task's assignedDivision OR if the task is awaiting their input (Pending Offer for Admin Proyek)
+  const canPerformSelectedTaskAction = React.useMemo(() => {
+    if (!currentUser || !selectedTask) return false;
+    // Directly assigned role can act
+    if (currentUser.role === selectedTask.assignedDivision) return true;
+    // Specific exception: Admin Proyek can act on 'Pending Offer' even if not assigned (because Owner is assigned technically)
+    if (currentUser.role === 'Admin Proyek' && selectedTask.status === 'Pending Offer') return true;
+    return false;
+  }, [currentUser, selectedTask]);
+
 
   // Helper to get translated status
     const getTranslatedStatus = (statusKey: string): string => {
@@ -262,18 +270,19 @@ export default function TasksPage() {
 
 
   const handleProgressSubmit = async () => {
-    if (!currentUser || !selectedTask || !canPerformSelectedTaskAction) { // Check currentUser, selectedTask, and canPerformSelectedTaskAction
+    if (!currentUser || !selectedTask || !canPerformSelectedTaskAction) {
       toast({ variant: 'destructive', title: tasksDict.toast.permissionDenied, description: tasksDict.toast.notYourTurn });
       return;
     }
 
     // Admins Proyek MUST upload at least one offer file when in 'Pending Offer' status.
-    if (selectedTask.assignedDivision === 'Admin Proyek' && selectedTask.status === 'Pending Offer' && uploadedFiles.length === 0) {
-      toast({ variant: 'destructive', title: tasksDict.toast.missingInput, description: tasksDict.toast.provideOfferFile });
-      return;
+    if (currentUser.role === 'Admin Proyek' && selectedTask.status === 'Pending Offer' && uploadedFiles.length === 0) {
+        toast({ variant: 'destructive', title: tasksDict.toast.missingInput, description: tasksDict.toast.provideOfferFile });
+        return;
     }
+
     // General validation: Require description or files for most steps (except scheduling or Owner/GA override)
-    if (!description && uploadedFiles.length === 0 && selectedTask.status !== 'Pending Scheduling' && !['Owner', 'General Admin'].includes(currentUser.role)) {
+    if (!description && uploadedFiles.length === 0 && selectedTask.status !== 'Pending Scheduling' && !['Owner', 'General Admin'].includes(currentUser.role) && !(currentUser.role === 'Admin Proyek' && selectedTask.status === 'Pending Offer')) {
        toast({ variant: 'destructive', title: tasksDict.toast.missingInput, description: tasksDict.toast.provideDescOrFile });
        return;
      }
@@ -299,39 +308,37 @@ export default function TasksPage() {
     }));
 
 
-    // Workflow logic based on current division and status
-    switch (selectedTask.assignedDivision) {
+    // Workflow logic based on current user's role and task status
+    // Use currentUser.role for the switch, as they are the one performing the action
+    switch (currentUser.role) {
         case 'Owner':
-            // Owner specific transitions (if any Owner uploads progress)
-            if (selectedTask.status === 'Pending Input') { /*...*/ }
+             // Handle owner approvals in handleDecision
             break;
 
         case 'Admin Proyek':
              // --- Specific logic for Admin Proyek submitting Offer ---
              if (selectedTask.status === 'Pending Offer') {
                 nextStatus = 'Pending Approval'; // Move to Owner for approval
-                nextDivision = 'Owner';
+                nextDivision = 'Owner'; // Assign to Owner
                 newProgress = 20; // Set progress after offer upload
                 nextActionDescription = 'Approve Offer Document'; // Owner needs to approve
                 historyEntry.action = 'Uploaded Offer Document'; // Specific history action
                 console.log(`Admin Proyek submitted offer for task ${selectedTask.id}. Moving to Pending Approval, assigned to Owner.`);
              }
-             // --- End specific logic for Offer ---
               else if (selectedTask.status === 'Pending Admin Files') {
                 nextStatus = 'Pending Architect Files';
-                nextDivision = 'Arsitek'; // Corrected Role
+                nextDivision = 'Arsitek';
                 newProgress = 50;
                 nextActionDescription = 'Upload Architect Files';
                 historyEntry.action = 'Uploaded Admin Files';
               }
               else if (selectedTask.status === 'Pending Final Check') {
                  nextStatus = 'Pending Scheduling';
-                 nextDivision = 'General Admin'; // Or Owner? Decide who schedules
+                 nextDivision = 'General Admin';
                  newProgress = 90;
                  nextActionDescription = 'Schedule Sidang';
                  historyEntry.action = 'Completed Final Check';
               }
-              // Add other Admin Proyek transitions here if needed
             break;
 
         case 'General Admin':
@@ -342,21 +349,19 @@ export default function TasksPage() {
                 nextActionDescription = 'Approve DP Invoice';
                 historyEntry.action = 'Uploaded DP Invoice';
             } else if (selectedTask.status === 'Pending Scheduling') {
-                // This case might be handled by the schedule button directly
+                // This case is handled by the schedule button directly
             }
-            // Add other General Admin transitions
             break;
-        case 'Arsitek': // Corrected Role
+        case 'Arsitek':
             if (selectedTask.status === 'Pending Architect Files') {
               nextStatus = 'Pending Structure Files';
-              nextDivision = 'Struktur'; // Corrected Role
+              nextDivision = 'Struktur';
               newProgress = 70;
               nextActionDescription = 'Upload Structure Files';
               historyEntry.action = 'Uploaded Architect Files';
             }
-            // Add other Arsitek transitions
             break;
-        case 'Struktur': // Corrected Role
+        case 'Struktur':
              if (selectedTask.status === 'Pending Structure Files') {
                nextStatus = 'Pending Final Check';
                nextDivision = 'Admin Proyek';
@@ -364,7 +369,6 @@ export default function TasksPage() {
                nextActionDescription = 'Perform Final Check';
                historyEntry.action = 'Uploaded Structure Files';
              }
-             // Add other Struktur transitions
              break;
         default:
             historyEntry.action = `Submitted Progress for ${selectedTask.status}`; // Generic action
@@ -398,17 +402,14 @@ export default function TasksPage() {
         setUploadedFiles([]);
         setIsSubmitting(false);
         // Use a specific toast message if it was the offer submission
-        if (selectedTask.status === 'Pending Offer' && nextStatus === 'Pending Approval') {
+        if (currentUser.role === 'Admin Proyek' && selectedTask.status === 'Pending Offer' && nextStatus === 'Pending Approval') {
             toast({ title: tasksDict.toast.offerSubmitted, description: tasksDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
+             // Notify Owners only when Offer is submitted by Admin Proyek
+             await notifyUsersByRole('Owner', `Task "${selectedTask.title}" is awaiting your approval for the offer document.`, selectedTask.id);
         } else {
             toast({ title: tasksDict.toast.progressSubmitted, description: tasksDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
+             // General notification for other steps (if division changed) is handled within updateTask service
         }
-
-        // Notify Owners only when Offer is submitted by Admin Proyek
-        if (selectedTask.assignedDivision === 'Admin Proyek' && selectedTask.status === 'Pending Offer' && nextDivision === 'Owner') {
-            await notifyUsersByRole('Owner', `Task "${selectedTask.title}" is awaiting your approval for the offer document.`, selectedTask.id);
-        }
-
 
       } catch (error) {
          console.error("Error updating task:", error);
@@ -587,18 +588,18 @@ export default function TasksPage() {
 
         let roleFilteredTasks = allTasks;
          // Owner, General Admin, Admin Developer see all tasks
-         // Admin Proyek should also see all tasks to monitor progress after handoff
-         if (!['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'].includes(currentUser.role)) {
-             // Other specific roles (Arsitek, Struktur) see tasks where they are assigned or next action applies
+         // Admin Proyek sees ALL tasks
+         if (currentUser.role === 'Admin Proyek') {
+              roleFilteredTasks = allTasks;
+         }
+         // Other specific roles (Arsitek, Struktur) see tasks where they are assigned or next action applies
+         else if (!['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role)) {
              roleFilteredTasks = allTasks.filter(task =>
                  task.assignedDivision === currentUser.role ||
                  (task.nextAction && task.nextAction.toLowerCase().includes(currentUser.role.toLowerCase()))
              );
-         } else if (currentUser.role === 'Admin Proyek') {
-              // Admin Proyek sees all tasks + tasks specifically assigned to them (redundant with includes check, but explicit)
-              // Or filter to only show tasks currently assigned to Admin Proyek or requiring their action
-              roleFilteredTasks = allTasks.filter(task => task.assignedDivision === currentUser.role || task.status === 'Pending Offer');
          }
+         // Owner, GA, DevAdmin see all tasks (default behavior if not Admin Proyek or other specific role)
 
 
          // Apply status filters if any are selected
@@ -620,12 +621,19 @@ export default function TasksPage() {
 
 
   // Define which actions are available based on status and current user role for the SELECTED task
-  // Explicitly allow Admin Proyek to see upload when status is Pending Offer
-  const showUploadSection = selectedTask && canPerformSelectedTaskAction &&
-     (
-       (currentUser?.role === 'Admin Proyek' && selectedTask.status === 'Pending Offer') ||
-       !['Pending Approval', 'Pending Scheduling', 'Scheduled', 'Completed', 'Canceled'].includes(selectedTask.status)
-     );
+   // Define which actions are available based on status and current user role for the SELECTED task
+   const showUploadSection = React.useMemo(() => {
+        if (!selectedTask || !currentUser) return false;
+        // Check if the user can perform the action based on role and task status
+        if (!canPerformSelectedTaskAction) return false;
+
+        // Allow upload if not in a final/pending state (unless it's Pending Offer for Admin Proyek)
+        return (
+            (currentUser.role === 'Admin Proyek' && selectedTask.status === 'Pending Offer') ||
+            !['Pending Approval', 'Pending Scheduling', 'Scheduled', 'Completed', 'Canceled'].includes(selectedTask.status)
+        );
+   }, [selectedTask, currentUser, canPerformSelectedTaskAction]);
+
    const showOwnerDecisionSection = selectedTask && selectedTask.status === 'Pending Approval' && currentUser?.role === 'Owner';
    const showSchedulingSection = selectedTask && selectedTask.status === 'Pending Scheduling' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role);
    const showCalendarButton = selectedTask && selectedTask.status === 'Scheduled' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role);
@@ -862,9 +870,14 @@ export default function TasksPage() {
                                 disabled={
                                     isSubmitting ||
                                     // Specific check for Admin Proyek submitting Offer
-                                    (task.assignedDivision === 'Admin Proyek' && task.status === 'Pending Offer' && uploadedFiles.length === 0) ||
+                                    (currentUser?.role === 'Admin Proyek' && task.status === 'Pending Offer' && uploadedFiles.length === 0) ||
                                     // General check for other steps (excluding scheduling and Owner/GA override)
-                                    (task.status !== 'Pending Scheduling' && !['Owner', 'General Admin'].includes(currentUser!.role) && !description && uploadedFiles.length === 0)
+                                    (
+                                        !['Pending Scheduling', 'Completed', 'Canceled'].includes(task.status) && // Exclude scheduling/final states
+                                        !['Owner', 'General Admin'].includes(currentUser!.role) && // Don't enforce for Owner/GA
+                                        !(currentUser?.role === 'Admin Proyek' && task.status === 'Pending Offer') && // Already handled above
+                                        !description && uploadedFiles.length === 0 // Require desc or file otherwise
+                                    )
                                 }
                             >
                                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
@@ -1046,3 +1059,4 @@ export default function TasksPage() {
 }
 
     
+
