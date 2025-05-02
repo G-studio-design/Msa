@@ -35,8 +35,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge'; // Import Badge
 import { Separator } from '@/components/ui/separator';
-import { useLanguage } from '@/context/LanguageContext';
-import { getDictionary } from '@/lib/translations';
+import { useLanguage } from '@/context/LanguageContext'; // Import language context
+import { getDictionary } from '@/lib/translations'; // Import translation helper
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 import { useToast } from '@/hooks/use-toast'; // Import useToast
@@ -47,16 +47,17 @@ import { cn } from '@/lib/utils'; // Import cn utility
 interface Notification {
   id: string;
   message: string;
-  projectId: string; // ID of the project related to the notification // Renamed property
+  projectId: string; // ID of the project related to the notification
   timestamp: string; // ISO string
   isRead: boolean;
 }
 
 // Mock notification data (replace with actual fetching logic)
+// Updated messages to be more generic or use project ID
 const mockNotifications: Notification[] = [
-  { id: 'notif1', message: 'Project "Project Alpha" needs your approval.', projectId: 'project_alpha_id', timestamp: new Date(Date.now() - 3600000).toISOString(), isRead: false }, // Renamed property and message
-  { id: 'notif2', message: 'New files uploaded for "Project Beta".', projectId: 'project_beta_id', timestamp: new Date(Date.now() - 7200000).toISOString(), isRead: false }, // Renamed property and message
-  { id: 'notif3', message: 'Sidang scheduled for "Project Gamma".', projectId: 'project_gamma_id', timestamp: new Date(Date.now() - 86400000).toISOString(), isRead: true }, // Renamed property and message
+  { id: 'notif1', message: 'Project ID "project_alpha_id" needs your approval.', projectId: 'project_alpha_id', timestamp: new Date(Date.now() - 3600000).toISOString(), isRead: false },
+  { id: 'notif2', message: 'New files uploaded for Project ID "project_beta_id".', projectId: 'project_beta_id', timestamp: new Date(Date.now() - 7200000).toISOString(), isRead: false },
+  { id: 'notif3', message: 'Sidang scheduled for Project ID "project_gamma_id".', projectId: 'project_gamma_id', timestamp: new Date(Date.now() - 86400000).toISOString(), isRead: true },
 ];
 
 
@@ -70,7 +71,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter(); // Initialize router
   const [isClient, setIsClient] = useState(false); // State to track client-side mount
   const [dict, setDict] = useState(() => getDictionary(language)); // Initialize dict directly
-  const layoutDict = dict.dashboardLayout; // Specific dictionary section
+  const [layoutDict, setLayoutDict] = useState(() => dict.dashboardLayout); // Initialize specific section
   const [notifications, setNotifications] = useState<Notification[]>([]); // State for notifications
   const [unreadCount, setUnreadCount] = useState(0); // State for unread count
 
@@ -79,6 +80,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     // Simulate fetching notifications
     if (currentUser) {
        // In a real app, fetch notifications specific to the currentUser here
+       // Example: Fetch notifications using a service function
+       // const fetchedNotifications = await getNotificationsForUser(currentUser.id);
+       // setNotifications(fetchedNotifications);
        setNotifications(mockNotifications); // Use mock data for now
     } else {
         setNotifications([]); // Clear notifications if no user
@@ -136,14 +140,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
 
   useEffect(() => {
-    setDict(getDictionary(language)); // Update dictionary when language changes
+      const newDict = getDictionary(language);
+      setDict(newDict); // Update dictionary when language changes
+      setLayoutDict(newDict.dashboardLayout); // Update specific section
   }, [language]);
 
   const menuItems = [
     { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
-    { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] }, // Updated href and labelKey
+    { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
     { href: "/dashboard/users", icon: Users, labelKey: "manageUsers", roles: ["Owner", "General Admin", "Admin Developer"] }, // Restricted access
-    // Updated roles for Admin Actions: Owner and General Admin only. Admin Proyek should use the Projects menu. // Updated comment
     { href: "/dashboard/admin-actions", icon: UserCog, labelKey: "adminActions", roles: ["Owner", "General Admin"] },
     { href: "/dashboard/settings", icon: Settings, labelKey: "settings", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
   ];
@@ -205,14 +210,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
    // Handle notification click
    const handleNotificationClick = (notification: Notification) => {
-       console.log(`Notification clicked: ${notification.id}, Project ID: ${notification.projectId}`); // Updated log message
+       console.log(`Notification clicked: ${notification.id}, Project ID: ${notification.projectId}`);
        // Mark notification as read (update state and potentially backend)
        setNotifications(prev =>
            prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
        );
-       // Navigate to the project details page // Updated comment
-       // Assuming project IDs are stable and can be used in URLs // Updated comment
-       router.push(`/dashboard/projects?projectId=${notification.projectId}`); // Updated URL structure if needed
+       // Navigate to the project details page
+       // Assuming project IDs are stable and can be used in URLs
+       router.push(`/dashboard/projects?projectId=${notification.projectId}`);
    };
 
 
@@ -291,15 +296,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <SheetTrigger asChild>
                   <Button variant="outline" size="icon">
                     <PanelRightOpen className="h-5 w-5" />
-                    <span className="sr-only">{isClient ? layoutDict.toggleMenu : defaultDict?.dashboardLayout?.toggleMenu}</span>
+                    <span className="sr-only">{isClient && layoutDict ? layoutDict.toggleMenu : defaultDict?.dashboardLayout?.toggleMenu}</span>
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="bg-primary text-primary-foreground border-primary-foreground/20 w-[300px] sm:w-[320px] flex flex-col p-4">
                   {/* Sheet Header */}
                   <SheetHeader className="mb-4 text-left">
-                    <SheetTitle className="text-primary-foreground text-xl">{isClient ? layoutDict.menuTitle : defaultDict?.dashboardLayout?.menuTitle}</SheetTitle>
+                    <SheetTitle className="text-primary-foreground text-xl">{isClient && layoutDict ? layoutDict.menuTitle : defaultDict?.dashboardLayout?.menuTitle}</SheetTitle>
                     <SheetDescription className="text-primary-foreground/80">
-                     {isClient ? layoutDict.menuDescription : defaultDict?.dashboardLayout?.menuDescription}
+                     {isClient && layoutDict ? layoutDict.menuDescription : defaultDict?.dashboardLayout?.menuDescription}
                     </SheetDescription>
                   </SheetHeader>
 
@@ -378,7 +383,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                       disabled={!isClient || !currentUser} // Disable if not client or no user
                     >
                       <LogOut className="h-5 w-5" />
-                      <span>{isClient ? layoutDict.logout : defaultDict?.dashboardLayout?.logout}</span>
+                      <span>{isClient && layoutDict ? layoutDict.logout : defaultDict?.dashboardLayout?.logout}</span>
                     </Button>
                    </div>
                 </SheetContent>
