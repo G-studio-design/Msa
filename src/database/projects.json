@@ -214,5 +214,64 @@
     ],
     "createdAt": "2025-05-02T06:33:38.806Z",
     "createdBy": "admin"
+  },
+  {
+    "id": "project_1746172440270_3w7k7",
+    "title": "canggu residence",
+    "status": "Pending Approval",
+    "progress": 20,
+    "assignedDivision": "Owner",
+    "nextAction": "Approve Offer Document",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project",
+        "timestamp": "2025-05-02T07:54:00.270Z"
+      },
+      {
+        "division": "sudina",
+        "action": "Uploaded initial file: Kisah Dalem Bungkut.pdf",
+        "timestamp": "2025-05-02T07:54:00.270Z"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Upload Offer Document",
+        "timestamp": "2025-05-02T07:54:00.270Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "Uploaded Offer Document",
+        "timestamp": "2025-05-02T07:55:10.847Z"
+      },
+      {
+        "division": "Owner",
+        "action": "Submitted Progress",
+        "timestamp": "2025-05-02T07:56:10.902Z"
+      },
+      {
+        "division": "Owner",
+        "action": "Submitted Progress",
+        "timestamp": "2025-05-02T07:57:10.732Z"
+      }
+    ],
+    "files": [
+      {
+        "name": "Kisah Dalem Bungkut.pdf",
+        "uploadedBy": "sudina",
+        "timestamp": "2025-05-02T07:54:00.270Z"
+      },
+      {
+        "name": "Kisah Dalem Bungkut.pdf",
+        "uploadedBy": "komangmerta",
+        "timestamp": "2025-05-02T07:55:10.847Z"
+      },
+      {
+        "name": "Kisah Dalem Bungkut.pdf",
+        "uploadedBy": "sudina",
+        "timestamp": "2025-05-02T07:57:10.732Z"
+      }
+    ],
+    "createdAt": "2025-05-02T07:54:00.270Z",
+    "createdBy": "sudina"
   }
 ]
