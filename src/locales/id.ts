@@ -79,6 +79,9 @@ const id = {
      progress: '{progress}% Selesai',
      averageProgressTitle: 'Rata-rata Progres',
      averageProgressDesc: 'Tingkat penyelesaian rata-rata di semua proyek Anda.',
+     statusDistributionTitle: 'Distribusi Status Proyek', // Added
+     statusDistributionDesc: 'Gambaran umum proyek berdasarkan status saat ini.', // Added
+     noProjectDataForChart: 'Tidak ada data proyek untuk ditampilkan di diagram.', // Added
   },
   // Projects Page (Renamed from Tasks Page)
   projectsPage: {

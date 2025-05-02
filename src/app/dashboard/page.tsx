@@ -14,17 +14,45 @@ import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 import { getAllProjects, type Project } from '@/services/project-service';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'; // Import Recharts components
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
+
+// Define colors for the pie chart (consistent with status badge colors if possible)
+const PIE_COLORS = {
+    'Pending Approval': '#f59e0b', // Yellow-orange
+    'In Progress': '#3b82f6', // Blue
+    'Pending Offer': '#6366f1', // Indigo
+    'Pending Input': '#a855f7', // Purple
+    'Pending DP Invoice': '#ec4899', // Pink
+    'Pending Admin Files': '#f43f5e', // Rose
+    'Pending Architect Files': '#10b981', // Emerald
+    'Pending Structure Files': '#facc15', // Yellow
+    'Pending Final Check': '#84cc16', // Lime
+    'Pending Scheduling': '#d946ef', // Fuchsia
+    'Scheduled': '#6d28d9', // Violet
+    'Completed': '#22c55e', // Green
+    'Canceled': '#ef4444', // Red
+    'Delayed': '#f97316', // Orange (from custom destructive style)
+    'Default': '#6b7280', // Gray for others
+};
+
+// Function to get color based on status
+const getPieColor = (status: string): string => {
+    const normalizedStatus = status.replace(/ /g, ''); // Remove spaces for key matching
+    const key = Object.keys(PIE_COLORS).find(k => k.replace(/ /g, '') === normalizedStatus);
+    return key ? PIE_COLORS[key as keyof typeof PIE_COLORS] : PIE_COLORS['Default'];
+};
 
 export default function DashboardPage() {
   const { language } = useLanguage(); // Get current language
   const { currentUser } = useAuth(); // Get current user from AuthContext
   const { toast } = useToast(); // Initialize toast
   const [isClient, setIsClient] = React.useState(false);
-  const [dict, setDict] = React.useState(() => getDictionary(language));
-  const [dashboardDict, setDashboardDict] = React.useState(() => dict.dashboardPage); // Initialize specific section
+  const [dict, setDict] = React.useState(defaultDict); // Initialize with default dict
+  const [dashboardDict, setDashboardDict] = React.useState(defaultDict.dashboardPage); // Initialize specific section
+
   const [projects, setProjects] = React.useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = React.useState(true);
 
@@ -58,19 +86,19 @@ export default function DashboardPage() {
   const userRole = currentUser?.role || '';
 
   // Check if the current user can add projects based on role from context
-  const canAddProject = ['Owner', 'General Admin'].includes(userRole);
+  const canAddProject = currentUser && ['Owner', 'General Admin'].includes(userRole);
 
   // Helper function to get translated status
   const getTranslatedStatus = React.useCallback((statusKey: string): string => {
-      if (!isClient || !dashboardDict?.status) return statusKey;
-      const key = statusKey?.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
-      return dashboardDict.status[key] || statusKey;
+       if (!isClient || !dashboardDict?.status || !statusKey) return statusKey;
+       const key = statusKey.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
+       return dashboardDict.status[key] || statusKey;
   }, [isClient, dashboardDict]); // Memoize this helper
+
 
   // Helper function to get status icon and color using translated status
   const getStatusBadge = React.useCallback((status: string) => {
-    if (!isClient || !dashboardDict?.status) return <Skeleton className="h-5 w-20" />; // Skeleton during hydration mismatch check
-    if (!dashboardDict?.status) return <Badge variant="secondary">{status}</Badge>; // Fallback
+    if (!isClient || !dashboardDict?.status || !status) return <Skeleton className="h-5 w-20" />; // Skeleton during hydration mismatch check or if status is missing
 
     const statusKey = status.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
     const translatedStatus = dashboardDict.status[statusKey] || status; // Fallback to original
@@ -168,14 +196,23 @@ export default function DashboardPage() {
   const completedProjectsCount = React.useMemo(() => filteredProjects.filter(project => project.status === 'Completed').length, [filteredProjects]);
   const pendingProjectsCount = React.useMemo(() => filteredProjects.filter(project => project.status === 'Pending' || project.status === 'Pending Approval' || project.status === 'Menunggu Persetujuan' || project.status === 'Pending Input' || project.status === 'Pending Offer' || project.status === 'Pending DP Invoice' || project.status === 'Pending Admin Files' || project.status === 'Pending Architect Files' || project.status === 'Pending Structure Files' || project.status === 'Pending Final Check' || project.status === 'Pending Scheduling').length, [filteredProjects]);
 
-  // --- Average Progress Calculation - MEMOIZED ---
-  const averageProgress = React.useMemo(() => {
+   // --- Project Status Distribution Calculation - MEMOIZED ---
+  const projectStatusDistribution = React.useMemo(() => {
     if (!filteredProjects || filteredProjects.length === 0) {
-      return 0;
+      return [];
     }
-    const totalProgress = filteredProjects.reduce((sum, project) => sum + project.progress, 0);
-    return Math.round(totalProgress / filteredProjects.length);
-  }, [filteredProjects]);
+    const statusCounts = filteredProjects.reduce((acc, project) => {
+      const status = getTranslatedStatus(project.status); // Use translated status for grouping
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+     return Object.entries(statusCounts).map(([name, value]) => ({
+       name, // Translated status name
+       value, // Count for this status
+       fill: getPieColor(name), // Get color based on original status name if possible, fallback needed
+     }));
+  }, [filteredProjects, getTranslatedStatus]); // Added getTranslatedStatus dependency
 
 
    // Render loading state if user is not yet available on the client or projects are loading
@@ -188,9 +225,10 @@ export default function DashboardPage() {
                     {/* Skeleton for Add Project Button (if applicable) */}
                     {(currentUser?.role === 'Owner' || currentUser?.role === 'General Admin') && <Skeleton className="h-10 w-32" />}
                 </div>
-               {/* Skeleton for Summary Cards */}
-                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6"> {/* Updated grid for responsiveness */}
-                    {[...Array(4)].map((_, i) => (
+               {/* Skeleton for Summary Cards & Chart */}
+                <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-6"> {/* Adjusted grid for 3 items + chart */}
+                     {/* Skeletons for 3 summary cards */}
+                    {[...Array(3)].map((_, i) => (
                          <Card key={`summary-skel-${i}`}>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <Skeleton className="h-4 w-2/4" />
@@ -202,6 +240,16 @@ export default function DashboardPage() {
                              </CardContent>
                          </Card>
                     ))}
+                     {/* Skeleton for Chart Card */}
+                     <Card className="md:col-span-1 lg:col-span-1"> {/* Chart takes 1 column */}
+                          <CardHeader className="pb-2">
+                             <Skeleton className="h-5 w-3/5 mb-2" />
+                             <Skeleton className="h-3 w-4/5" />
+                          </CardHeader>
+                          <CardContent className="flex justify-center items-center h-[200px]"> {/* Fixed height for chart area */}
+                              <Skeleton className="h-36 w-36 rounded-full" />
+                          </CardContent>
+                      </Card>
                  </div>
                  {/* Skeleton for Project List */}
                   <Card>
@@ -241,17 +289,19 @@ export default function DashboardPage() {
         </h1>
         {/* Conditionally render Add Project Button based on role */}
         {canAddProject && (
-            <Button asChild className="w-full sm:w-auto"> {/* Full width on mobile */}
-                 <Link href="/dashboard/add-project">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    {isClient ? dashboardDict.addNewProject : defaultDict.dashboardPage.addNewProject}
-                </Link>
-            </Button>
+           <Button asChild className="w-full sm:w-auto accent-teal"> {/* Added accent-teal and ensured it's a single child */}
+              <Link href="/dashboard/add-project">
+                <span> {/* Wrap content in a span */}
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  {isClient ? dashboardDict.addNewProject : defaultDict.dashboardPage.addNewProject}
+                </span>
+              </Link>
+           </Button>
         )}
       </div>
 
-       {/* Summary Cards */}
-       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6"> {/* Responsive grid */}
+       {/* Summary Cards & Chart */}
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-6"> {/* Adjusted grid */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.activeProjects : defaultDict.dashboardPage.activeProjects}</CardTitle>
@@ -283,18 +333,47 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-         {/* Average Project Progress Card */}
-         <Card>
-           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-             <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.averageProgressTitle : defaultDict.dashboardPage.averageProgressTitle}</CardTitle>
-             <TrendingUp className="h-4 w-4 text-muted-foreground" />
-           </CardHeader>
-           <CardContent>
-             <div className="text-2xl font-bold mb-2">{averageProgress}%</div>
-             <Progress value={averageProgress} className="h-2" />
-             <p className="text-xs text-muted-foreground mt-2">{isClient ? dashboardDict.averageProgressDesc : defaultDict.dashboardPage.averageProgressDesc}</p>
-           </CardContent>
-         </Card>
+         {/* Project Status Distribution Chart */}
+          <Card className="md:col-span-2 lg:col-span-1"> {/* Chart takes 2 cols on md, 1 on lg */}
+            <CardHeader className="pb-2">
+               <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.statusDistributionTitle : defaultDict.dashboardPage.statusDistributionTitle}</CardTitle>
+               <CardDescription className="text-xs text-muted-foreground">{isClient ? dashboardDict.statusDistributionDesc : defaultDict.dashboardPage.statusDistributionDesc}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={200}>
+                 {projectStatusDistribution.length > 0 ? (
+                   <PieChart>
+                     <Pie
+                       data={projectStatusDistribution}
+                       cx="50%"
+                       cy="50%"
+                       labelLine={false}
+                       // label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`} // Simple label
+                       outerRadius={80}
+                       fill="#8884d8" // Default fill, overridden by Cell
+                       dataKey="value"
+                       stroke="hsl(var(--border))" // Add border to segments
+                       paddingAngle={1} // Add padding between segments
+                     >
+                       {projectStatusDistribution.map((entry, index) => (
+                         <Cell key={`cell-${index}`} fill={entry.fill} />
+                       ))}
+                     </Pie>
+                      <Tooltip
+                          contentStyle={{ background: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }}
+                          itemStyle={{ color: 'hsl(var(--foreground))' }}
+                          formatter={(value, name) => [`${value} ${value === 1 ? 'project' : 'projects'}`, name]} // Custom formatter
+                      />
+                      <Legend layout="vertical" align="right" verticalAlign="middle" iconSize={10} wrapperStyle={{ fontSize: '12px', lineHeight: '1.5' }} />
+                   </PieChart>
+                 ) : (
+                    <div className="flex justify-center items-center h-full text-muted-foreground text-sm">
+                      {isClient ? dashboardDict.noProjectDataForChart : defaultDict.dashboardPage.noProjectDataForChart}
+                    </div>
+                 )}
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
       </div>
 
        {/* Project List */}
@@ -314,7 +393,7 @@ export default function DashboardPage() {
             ) : (
               filteredProjects.map((project) => (
                 <Link key={project.id} href={`/dashboard/projects?projectId=${project.id}`} passHref>
-                  <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                   <Card className="hover:shadow-md transition-shadow cursor-pointer block"> {/* Use block for Link */}
                     <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2"> {/* Flex column on mobile */}
                        <div className="flex-1"> {/* Allow title to take space */}
                          <CardTitle className="text-lg">{project.title}</CardTitle>
