@@ -286,9 +286,12 @@ const ChartLegendContent = React.forwardRef<
 ChartLegendContent.displayName = "ChartLegend"
 
 // Needs to be compatible with server components
-"use client"
+
 
 const Chart = ChartContainer
 
 export { Chart, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, ChartContainer }
 
+
+
+    
