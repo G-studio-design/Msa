@@ -26,11 +26,6 @@ import { getDictionary } from '@/lib/translations';
 import { verifyUserCredentials, type User } from '@/services/user-service'; // Import local user service functions
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { Separator } from '@/components/ui/separator'; // Import Separator
-// Firebase imports removed - No longer needed
-// import { getAuth, GoogleAuthProvider, signInWithPopup, type UserCredential } from "firebase/auth";
-// import { app as firebaseApp, auth as firebaseAuth, isFirebaseInitialized, initializationError } from "@/lib/firebase";
-// import { findOrCreateUserByGoogleUid, activateUser } from '@/services/user-service';
-// import { notifyUsersByRole } from '@/services/notification-service'; // Import notification service
 
 
 // Default dictionary for server render / pre-hydration
@@ -48,11 +43,12 @@ export default function LoginPage() {
   const router = useRouter();
   const { language } = useLanguage();
   const { setCurrentUser } = useAuth(); // Get setCurrentUser from AuthContext
-  const [dict, setDict] = React.useState(() => getDictionary(language).login); // Initialize dict directly
+  const [dict, setDict] = React.useState(defaultDict.login); // Initialize with default dict section
   const [isClient, setIsClient] = React.useState(false);
   const [isBypassing, setIsBypassing] = React.useState(false); // State for bypass button
   const [loginError, setLoginError] = React.useState<string | null>(null); // State for specific login errors
-  // Removed Google Sign-In and Account Setup states
+  const [isSubmitting, setIsSubmitting] = React.useState(false); // State for login submission
+
 
   React.useEffect(() => {
       setIsClient(true);
@@ -61,7 +57,6 @@ export default function LoginPage() {
    React.useEffect(() => {
        const newDict = getDictionary(language);
        setDict(newDict.login); // Update login dict
-       // accountSetupDict removed
    }, [language]);
 
   // Initialize schemas based on current language dict using useMemo
@@ -88,18 +83,16 @@ export default function LoginPage() {
     context: { dict: dict?.validation }, // Pass validation context
   });
 
-  // accountSetupForm removed
-
   // Re-validate forms if language/dict changes
    React.useEffect(() => {
        if (isClient) {
            form.trigger(); // Trigger validation on client side only after dict update
-           // accountSetupForm.trigger removed
            setLoginError(null); // Clear error when language changes
        }
-   }, [dict, form, isClient]); // Removed accountSetupForm dependency
+   }, [dict, form, isClient]);
 
   const onSubmit = async (data: LoginFormValues) => {
+    setIsSubmitting(true); // Set submitting state to true
     console.log('Login attempt:', data.username);
     form.clearErrors(); // Clear previous zod errors
     setLoginError(null); // Clear previous custom error
@@ -110,21 +103,22 @@ export default function LoginPage() {
         if (user) {
             console.log('Login successful for user:', user.username, 'Role:', user.role);
             // --- Set Current User in Context ---
-             // Ensure password is not stored in context/sessionStorage
              const { password, ...userToStore } = user;
              setCurrentUser(userToStore);
             // --- End Set Current User ---
             toast({
-                title: isClient && dict ? dict.success : defaultDict.login.success,
-                description: isClient && dict ? dict.redirecting : defaultDict.login.redirecting,
+                title: dict.success,
+                description: dict.redirecting,
             });
             router.push('/dashboard'); // Redirect to dashboard on success
+            // No need to set isSubmitting to false here as we are navigating away
         } else {
             console.log('Invalid credentials for:', data.username);
-            setLoginError(isClient && dict ? dict.invalidCredentials : defaultDict.login.invalidCredentials); // Set custom error message
+            setLoginError(dict.invalidCredentials); // Set custom error message
             form.setError('username', { type: 'manual', message: ' ' }); // Add error marker without specific message
             form.setError('password', { type: 'manual', message: ' '}); // Add error marker
             form.resetField('password');
+            setIsSubmitting(false); // Reset submitting state on failure
         }
     } catch (error: any) {
         console.error('Login error:', error);
@@ -132,10 +126,11 @@ export default function LoginPage() {
          setLoginError(errorMessage); // Set custom error message
          toast({
             variant: 'destructive',
-            title: isClient && dict ? dict.fail : defaultDict.login.fail,
+            title: dict.fail,
             description: errorMessage,
         });
         form.resetField('password');
+        setIsSubmitting(false); // Reset submitting state on error
     }
   };
 
@@ -144,38 +139,32 @@ export default function LoginPage() {
       setLoginError(null); // Clear any previous errors
       console.log('Bypassing login as admin (Development Only)');
 
-      // Simulate fetching a default admin user (use a specific known admin if available)
-      // In a real bypass, you might skip verification entirely or use a fixed admin user object
       try {
-            // Attempt to verify a known admin user (e.g., 'admin' / 'admin123' if exists)
-            // Or fetch a specific user known to be an admin directly
-            // Replace this with a more robust bypass user fetching if needed
-             const adminUser = await verifyUserCredentials('admin', 'admin123'); // Try known credentials
+             const adminUser = await verifyUserCredentials('admin', 'admin123');
 
             if (adminUser) {
                 const { password, ...adminToStore } = adminUser;
-                setCurrentUser(adminToStore); // Set the fetched admin user
+                setCurrentUser(adminToStore);
                  toast({
-                    title: isClient && dict ? dict.bypassTitle : defaultDict.login.bypassTitle,
-                    description: isClient && dict ? dict.redirecting : defaultDict.login.redirecting,
+                    title: dict.bypassTitle,
+                    description: dict.redirecting,
                     variant: 'default',
                     duration: 2000,
                 });
                 router.push('/dashboard');
             } else {
-                 // Fallback if 'admin'/'admin123' doesn't work
-                 const fallbackAdmin: User = { // Define a fallback Admin structure if needed
+                 const fallbackAdmin: User = {
                      id: 'bypass-admin',
                      username: 'bypass_admin',
-                     role: 'General Admin', // Or 'Owner' or 'Admin Developer'
+                     role: 'General Admin',
                      displayName: 'Bypass Admin',
                      email: 'bypass@example.com',
-                     password: 'bypass_password' // Add dummy password if needed by type
+                     password: 'admin123' // Use consistent password
                  };
                  setCurrentUser(fallbackAdmin);
                   toast({
-                     title: isClient && dict ? dict.bypassTitle : defaultDict.login.bypassTitle,
-                     description: isClient && dict ? dict.redirecting : defaultDict.login.redirecting,
+                     title: dict.bypassTitle,
+                     description: dict.redirecting,
                      variant: 'default',
                      duration: 2000,
                  });
@@ -192,12 +181,8 @@ export default function LoginPage() {
          });
           setIsBypassing(false);
       }
-      // No actual user verification or session creation happens here beyond setting context
+      // No need to set isBypassing to false if successful navigation occurs
   };
-
-  // --- Google Sign-In Logic Removed ---
-  // const handleGoogleSignIn = async () => { ... };
-  // const onAccountSetupSubmit = async (data: AccountSetupFormValues) => { ... };
 
 
   return (
@@ -207,13 +192,11 @@ export default function LoginPage() {
           <CardTitle className="text-center text-2xl font-bold text-primary">
             {isClient ? dict.title : defaultDict.login.title}
           </CardTitle>
-           {/* Add description if needed */}
             <CardDescription className="text-center text-muted-foreground">
                 {isClient ? dict.description : defaultDict.login.description}
             </CardDescription>
         </CardHeader>
         <CardContent>
-           {/* Display login error */}
            {loginError && (
              <Alert variant="destructive" className="mb-4">
                <AlertTriangle className="h-4 w-4" />
@@ -231,7 +214,12 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel>{isClient ? dict.usernameLabel : defaultDict.login.usernameLabel}</FormLabel>
                     <FormControl>
-                      <Input placeholder={isClient ? dict.usernamePlaceholder : defaultDict.login.usernamePlaceholder} {...field} autoComplete="username" />
+                      <Input
+                         placeholder={isClient ? dict.usernamePlaceholder : defaultDict.login.usernamePlaceholder}
+                         {...field}
+                         autoComplete="username"
+                         disabled={isSubmitting || isBypassing} // Disable during submission/bypass
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -249,24 +237,24 @@ export default function LoginPage() {
                         placeholder={isClient ? dict.passwordPlaceholder : defaultDict.login.passwordPlaceholder}
                         {...field}
                         autoComplete="current-password"
+                        disabled={isSubmitting || isBypassing} // Disable during submission/bypass
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full accent-teal" disabled={form.formState.isSubmitting || isBypassing}>
-                {form.formState.isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
-                 {isClient ? (form.formState.isSubmitting ? dict.loggingIn : dict.loginButton) : defaultDict.login.loginButton}
+              <Button
+                 type="submit"
+                 className="w-full accent-teal"
+                 disabled={isSubmitting || isBypassing} // Disable during submission/bypass
+              >
+                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
+                 {isClient ? (isSubmitting ? dict.loggingIn : dict.loginButton) : defaultDict.login.loginButton}
               </Button>
             </form>
           </Form>
 
-           {/* Google Sign-In Button Removed */}
-           {/* <Separator className="my-6" /> */}
-           {/* ... Google Button ... */}
-
-          {/* Bypass Login Button - Development Only */}
            {process.env.NODE_ENV === 'development' && (
              <>
                 <Separator className="my-6" />
@@ -275,7 +263,7 @@ export default function LoginPage() {
                   variant="outline"
                   className="w-full"
                   onClick={handleBypassLogin}
-                  disabled={isBypassing || form.formState.isSubmitting}
+                  disabled={isBypassing || isSubmitting} // Disable during bypass/submission
                 >
                   {isBypassing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
                    {isClient ? (isBypassing ? dict.bypassing : dict.bypassButton) : defaultDict.login.bypassButton}
@@ -288,8 +276,6 @@ export default function LoginPage() {
 
         </CardContent>
       </Card>
-
-       {/* Account Setup Dialog Removed */}
 
     </div>
   );
