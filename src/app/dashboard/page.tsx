@@ -1,4 +1,3 @@
-// src/app/dashboard/page.tsx
 'use client';
 
 import * as React from 'react';
@@ -49,7 +48,7 @@ export default function DashboardPage() {
             }
        };
        fetchTasks();
-  }, [currentUser, toast]); // Re-fetch if currentUser changes
+  }, [currentUser, toast]);
 
   React.useEffect(() => {
       setDict(getDictionary(language));
@@ -143,6 +142,10 @@ export default function DashboardPage() {
         if (!userRole || !isClient || isLoadingTasks) return []; // Don't filter if not client or still loading
         if (['Owner', 'General Admin', 'Admin Developer'].includes(userRole)) {
             return tasks; // These roles see all tasks
+        }
+        // Admin Proyek can also see all tasks
+        if (userRole === 'Admin Proyek') {
+          return tasks;
         }
         // Other roles see tasks assigned to them OR requiring their action (based on nextAction)
          // Use translated role names for filtering if necessary, or keep using English keys
@@ -321,3 +324,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

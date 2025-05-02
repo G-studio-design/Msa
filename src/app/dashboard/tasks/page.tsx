@@ -1,4 +1,3 @@
-// src/app/dashboard/tasks/page.tsx
 'use client';
 
 import * as React from 'react';
@@ -539,7 +538,7 @@ export default function TasksPage() {
       }
         const schedulingEntry = selectedTask.workflowHistory.find(entry => entry.action.startsWith('Scheduled Sidang for '));
         if (!schedulingEntry) {
-             toast({ variant: 'destructive', title: tasksDict.toast.errorFindingSchedule, description: tasksDict.toast.couldNotFindSchedule });
+             toast({ variant: 'destructive', title: tasksDict.toast.errorFindingSchedule, description: tasksDict.couldNotFindSchedule });
              return;
         }
 
