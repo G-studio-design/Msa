@@ -7,14 +7,22 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button'; // Import Button
-import { CheckCircle, XCircle, Clock, AlertTriangle, PlusCircle, Loader2, TrendingUp, Percent } from 'lucide-react'; // Added Percent icon
+import { CheckCircle, XCircle, Clock, AlertTriangle, PlusCircle, Loader2, TrendingUp, Percent, BarChartIcon } from 'lucide-react'; // Added Percent, BarChartIcon icons
 import { useLanguage } from '@/context/LanguageContext'; // Import language context
 import { getDictionary } from '@/lib/translations'; // Import translation helper
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton
 import { getAllProjects, type Project } from '@/services/project-service';
-// Removed Recharts imports as we are removing the pie chart
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "@/components/ui/chart"; // Import base chart components
+import { BarChart, Bar, Rectangle, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"; // Import specific chart types and elements
+
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -178,6 +186,17 @@ export default function DashboardPage() {
     return Math.round(totalProgress / filteredProjects.length);
   }, [filteredProjects]);
 
+  // Prepare data for the progress chart - MEMOIZED
+  const chartData = React.useMemo(() => {
+      // Only include active projects (not completed or canceled)
+      return activeProjects
+          .map(project => ({
+              title: project.title.length > 20 ? `${project.title.substring(0, 17)}...` : project.title, // Truncate long titles
+              progress: project.progress,
+          }))
+          .sort((a, b) => b.progress - a.progress); // Optional: sort by progress
+  }, [activeProjects]);
+
    // --- Remove Project Status Distribution Calculation ---
    // const projectStatusDistribution = React.useMemo(() => { ... }, [filteredProjects, getTranslatedStatus]);
 
@@ -205,6 +224,16 @@ export default function DashboardPage() {
                          </Card>
                     ))}
                  </div>
+                 {/* Skeleton for Project Progress Chart */}
+                 <Card>
+                     <CardHeader>
+                          <Skeleton className="h-6 w-1/3 mb-2" />
+                          <Skeleton className="h-4 w-2/3" />
+                     </CardHeader>
+                     <CardContent>
+                         <Skeleton className="h-64 w-full" /> {/* Skeleton for chart area */}
+                     </CardContent>
+                 </Card>
                  {/* Skeleton for Project List */}
                   <Card>
                      <CardHeader>
@@ -242,12 +271,12 @@ export default function DashboardPage() {
           {isClient && dashboardDict ? dashboardDict.title : defaultDict.dashboardPage.title}
         </h1>
         {canAddProject && (
-             <Button asChild className="w-full sm:w-auto accent-teal">
-                <Link href="/dashboard/add-project">
-                    <PlusCircle className="mr-2 h-4 w-4" />
+             <Link href="/dashboard/add-project" passHref>
+                <Button className="w-full sm:w-auto accent-teal">
+                     <PlusCircle className="mr-2 h-4 w-4" />
                      {isClient && dashboardDict ? dashboardDict.addNewProject : defaultDict.dashboardPage.addNewProject}
-                </Link>
-            </Button>
+                </Button>
+             </Link>
         )}
       </div>
 
@@ -296,7 +325,53 @@ export default function DashboardPage() {
              </Card>
         </div>
 
-       {/* Removed Project Status Distribution Chart */}
+       {/* Project Completion Chart */}
+        <Card>
+           <CardHeader>
+             <CardTitle>{isClient && dashboardDict ? dashboardDict.projectProgressChartTitle : defaultDict.dashboardPage.projectProgressChartTitle}</CardTitle>
+             <CardDescription>{isClient && dashboardDict ? dashboardDict.projectProgressChartDesc : defaultDict.dashboardPage.projectProgressChartDesc}</CardDescription>
+           </CardHeader>
+           <CardContent>
+              {activeProjects.length > 0 ? (
+                  <ChartContainer config={{ progress: { label: "Progress", color: "hsl(var(--primary))" } }} className="h-[250px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={chartData}
+                        margin={{ top: 5, right: 20, left: -10, bottom: 40 }} // Adjust margin for rotated labels
+                        layout="vertical" // Change to vertical layout
+                      >
+                        <CartesianGrid strokeDasharray="3 3" horizontal={false} /> {/* Adjust grid */}
+                        <XAxis type="number" domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                        <YAxis
+                          dataKey="title"
+                          type="category"
+                          tickLine={false}
+                          axisLine={false}
+                          // Rotate labels if too long (optional, adjust angle/dx/dy as needed)
+                          // angle={-45}
+                          // textAnchor="end"
+                          width={100} // Adjust width to fit labels
+                          interval={0} // Ensure all labels are shown
+                          tick={{ fontSize: 10 }} // Adjust font size
+                         />
+                        <ChartTooltip
+                           cursor={false}
+                           content={<ChartTooltipContent indicator="line" hideLabel />}
+                        />
+                        <Bar dataKey="progress" fill="var(--color-progress)" radius={4} barSize={20} /> {/* Adjust barSize */}
+                         {/* <ChartLegend content={<ChartLegendContent />} /> Optional: Add legend if needed */}
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+              ) : (
+                  <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
+                     <BarChartIcon className="h-12 w-12 mb-2" />
+                     <p>{isClient && dashboardDict ? dashboardDict.noActiveProjectsForChart : defaultDict.dashboardPage.noActiveProjectsForChart}</p>
+                  </div>
+              )}
+           </CardContent>
+        </Card>
+
 
        {/* Project List */}
       <Card>
@@ -356,4 +431,73 @@ export default function DashboardPage() {
       </Card>
     </div>
   );
+}
+```
+  </change>
+  <change>
+    <file>package.json</file>
+    <description>Add recharts and @types/recharts for bar chart visualization.</description>
+    <content><![CDATA[{
+  "name": "msaarch-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack -p 9002",
+    "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
+    "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@genkit-ai/googleai": "^1.6.2",
+    "@genkit-ai/next": "^1.6.2",
+    "@hookform/resolvers": "^4.1.3",
+    "@radix-ui/react-accordion": "^1.2.3",
+    "@radix-ui/react-alert-dialog": "^1.1.6",
+    "@radix-ui/react-avatar": "^1.1.3",
+    "@radix-ui/react-checkbox": "^1.1.4",
+    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-dropdown-menu": "^2.1.6",
+    "@radix-ui/react-label": "^2.1.2",
+    "@radix-ui/react-menubar": "^1.1.6",
+    "@radix-ui/react-popover": "^1.1.6",
+    "@radix-ui/react-progress": "^1.1.2",
+    "@radix-ui/react-radio-group": "^1.2.3",
+    "@radix-ui/react-scroll-area": "^1.2.3",
+    "@radix-ui/react-select": "^2.1.6",
+    "@radix-ui/react-separator": "^1.1.2",
+    "@radix-ui/react-slider": "^1.2.3",
+    "@radix-ui/react-slot": "^1.1.2",
+    "@radix-ui/react-switch": "^1.1.3",
+    "@radix-ui/react-tabs": "^1.1.3",
+    "@radix-ui/react-toast": "^1.2.6",
+    "@radix-ui/react-tooltip": "^1.1.8",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^3.6.0",
+    "genkit": "^1.6.2",
+    "lucide-react": "^0.475.0",
+    "next": "15.2.3",
+    "patch-package": "^8.0.0",
+    "react": "^18.3.1",
+    "react-day-picker": "^8.10.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.54.2",
+    "recharts": "^2.15.1",
+    "tailwind-merge": "^3.0.1",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/recharts": "^1.8.29",
+    "genkit-cli": "^1.6.1",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
 }

@@ -79,6 +79,9 @@ const en = {
     progress: '{progress}% Complete',
     averageProgressTitle: 'Average Progress', // Added
     averageProgressDesc: 'Average completion rate across all your projects.', // Added
+    projectProgressChartTitle: 'Active Project Progress', // Added
+    projectProgressChartDesc: 'Visualization of current project completion rates.', // Added
+    noActiveProjectsForChart: 'No active projects to display in the chart.', // Added
     // Removed statusDistributionTitle and statusDistributionDesc
   },
   // Projects Page (Renamed from Tasks Page)
