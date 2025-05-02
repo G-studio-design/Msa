@@ -395,6 +395,12 @@ export default function TasksPage() {
             toast({ title: tasksDict.toast.progressSubmitted, description: tasksDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
         }
 
+        // Notify Owners only when Offer is submitted
+        if (selectedTask.assignedDivision === 'Admin Proyek' && selectedTask.status === 'Pending Offer') {
+            await notifyUsersByRole('Owner', `Task "${selectedTask.title}" is awaiting your approval for the offer document.`, selectedTask.id);
+        }
+
+
       } catch (error) {
          console.error("Error updating task:", error);
          toast({ variant: 'destructive', title: 'Update Error', description: 'Failed to submit progress.' });
