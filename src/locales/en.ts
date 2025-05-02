@@ -3,7 +3,7 @@ const en = {
   // Login Page
   login: {
     title: 'Msaarch APP Login',
-    description: 'Enter your credentials or sign in with Google.', // Added
+    description: 'Enter your credentials.', // Simplified description
     usernameLabel: 'Username',
     usernamePlaceholder: 'Enter your username',
     passwordLabel: 'Password',
@@ -17,14 +17,14 @@ const en = {
     bypassButton: 'Bypass Login as Admin (Dev)',
     bypassTitle: 'Bypass Login',
     bypassing: 'Bypassing...',
-    googleSignIn: 'Sign in with Google', // Added
-    googleSignInHint: 'Use your company Google account.', // Added
+    // Google Sign-In text removed
     validation: {
         usernameRequired: 'Username is required.',
         passwordRequired: 'Password is required.',
     }
   },
-  // Account Setup Page translations remain removed or adjust as needed
+   // Account Setup Dialog Removed
+   // accountSetup: { ... },
   // Dashboard Layout
   dashboardLayout: {
     menuTitle: 'Menu',
@@ -172,7 +172,7 @@ const en = {
       accessDenied: 'You do not have permission to add new tasks.',
       toast: {
           success: 'Task Created',
-          successDesc: 'Task "{title}" added successfully. Owner notified for input.',
+          successDesc: 'Task "{title}" added successfully. Project Admin notified for offer.', // Updated notification target
           error: 'Failed to Create Task',
       },
       validation: {
@@ -216,11 +216,7 @@ const en = {
     deleteDialogConfirm: 'Delete User',
     cannotChangeLastAdminRoleHint: 'Cannot change the role of the last General Admin.',
     cannotChangeLastDevAdminRoleHint: 'Cannot change the role of the last Admin Developer.',
-    activateUserButtonLabel: 'Activate User',
-    activateUserDialogTitle: 'Activate User',
-    activateUserDialogDesc: 'Assign a role to activate user "{username}".',
-    activateUserSubmitButton: 'Activate User',
-    activatingUserButton: 'Activating...',
+    // Activation buttons/text removed
     roles: {
       Owner: 'Owner',
       'General Admin': 'General Admin',
@@ -228,7 +224,7 @@ const en = {
       Arsitek: 'Architect', // Corrected spelling
       Struktur: 'Structure', // Corrected spelling
       'Admin Developer': 'Admin Developer',
-      Pending: 'Pending Activation',
+      // Pending role removed
     },
     toast: {
       userAdded: 'User Added',
@@ -248,11 +244,8 @@ const en = {
       editPermissionDenied: 'You do not have permission to edit this user.',
       devCannotEditOwnerGA: 'Admin Developer cannot edit Owner or General Admin.',
       gaCannotEditOwnerDev: 'General Admin cannot edit Owner or Admin Developer.',
-      activateUserSuccess: 'User Activated',
-      activateUserDesc: 'User {username} has been activated.',
-      activateUserError: 'Activation Failed',
-      activateUserErrorDesc: 'Could not activate user {username}.',
-      cannotEditPending: 'Activate the user first before editing.',
+      // Activation toasts removed
+      cannotEditPending: 'Activate the user first before editing.', // This case should no longer occur
       userNotFound: 'User not found.',
     },
     validation: {
@@ -267,7 +260,7 @@ const en = {
   // Admin Actions Page
   adminActionsPage: {
       title: 'Admin Actions - Modify Task Titles',
-      description: 'Users with appropriate permissions (Owner, General Admin) can modify task titles here.', // Removed Admin Proyek
+      description: 'Users with appropriate permissions (Owner, General Admin, Admin Proyek) can modify task titles here.', // Added Admin Proyek back
       tableHeaderId: 'Task ID',
       tableHeaderTitle: 'Current Title',
       tableHeaderStatus: 'Status',

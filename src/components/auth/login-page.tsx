@@ -23,31 +23,24 @@ import { LogIn, Loader2, ShieldCheck, AlertTriangle } from 'lucide-react'; // Ad
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
-import { verifyUserCredentials, type User } from '@/services/user-service'; // Import local user service
+import { verifyUserCredentials, type User } from '@/services/user-service'; // Import local user service functions
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { Separator } from '@/components/ui/separator'; // Import Separator
+// Firebase imports removed - No longer needed
+// import { getAuth, GoogleAuthProvider, signInWithPopup, type UserCredential } from "firebase/auth";
+// import { app as firebaseApp, auth as firebaseAuth, isFirebaseInitialized, initializationError } from "@/lib/firebase";
+// import { findOrCreateUserByGoogleUid, activateUser } from '@/services/user-service';
+// import { notifyUsersByRole } from '@/services/notification-service'; // Import notification service
 
-// Mock Google Icon removed as functionality is removed
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
 
 // Define schema using a function to access translations
-const getLoginSchema = (dict: ReturnType<typeof getDictionary>['login']) => {
-    // Add a check to ensure dict and dict.validation exist
-    if (!dict?.validation) {
-      console.warn("Login validation dictionary is not available yet.");
-      // Return a base schema using default English messages as fallback
-      return z.object({
-        username: z.string().min(1, defaultDict.login.validation.usernameRequired),
-        password: z.string().min(1, defaultDict.login.validation.passwordRequired),
-      });
-    }
-    return z.object({
-        username: z.string().min(1, dict.validation.usernameRequired), // Use translated message
-        password: z.string().min(1, dict.validation.passwordRequired), // Use translated message
-    });
-};
+const getLoginSchema = (dictValidation: ReturnType<typeof getDictionary>['login']['validation']) => z.object({
+    username: z.string().min(1, dictValidation.usernameRequired), // Use translated message
+    password: z.string().min(1, dictValidation.passwordRequired), // Use translated message
+});
 
 
 export default function LoginPage() {
@@ -59,24 +52,32 @@ export default function LoginPage() {
   const [isClient, setIsClient] = React.useState(false);
   const [isBypassing, setIsBypassing] = React.useState(false); // State for bypass button
   const [loginError, setLoginError] = React.useState<string | null>(null); // State for specific login errors
-  // const [isGoogleLoading, setIsGoogleLoading] = React.useState(false); // State for Google Sign-In loading (removed)
+  // Removed Google Sign-In and Account Setup states
 
   React.useEffect(() => {
       setIsClient(true);
-      // Firebase check removed, assuming local auth only
   }, []);
 
    React.useEffect(() => {
-       setDict(getDictionary(language).login); // Update dict when language changes
+       const newDict = getDictionary(language);
+       setDict(newDict.login); // Update login dict
+       // accountSetupDict removed
    }, [language]);
 
-  // Initialize schema based on current language dict using useMemo
+  // Initialize schemas based on current language dict using useMemo
    const loginSchema = React.useMemo(() => {
-        return getLoginSchema(dict);
+        if (!dict?.validation) {
+             console.warn("Login validation dictionary is not available yet.");
+              // Return a base schema using default English messages as fallback
+              return z.object({
+                username: z.string().min(1, defaultDict.login.validation.usernameRequired),
+                password: z.string().min(1, defaultDict.login.validation.passwordRequired),
+              });
+        }
+        return getLoginSchema(dict.validation);
    }, [dict]); // Re-create schema only when dict changes
 
   type LoginFormValues = z.infer<typeof loginSchema>;
-
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema), // Pass the memoized schema
@@ -84,16 +85,19 @@ export default function LoginPage() {
       username: '',
       password: '',
     },
-    // context: { dict: dict.validation }, // Removed context - resolver uses schema messages
+    context: { dict: dict?.validation }, // Pass validation context
   });
 
-  // Re-validate form if language/dict changes
+  // accountSetupForm removed
+
+  // Re-validate forms if language/dict changes
    React.useEffect(() => {
        if (isClient) {
            form.trigger(); // Trigger validation on client side only after dict update
+           // accountSetupForm.trigger removed
            setLoginError(null); // Clear error when language changes
        }
-   }, [dict, form, isClient]);
+   }, [dict, form, isClient]); // Removed accountSetupForm dependency
 
   const onSubmit = async (data: LoginFormValues) => {
     console.log('Login attempt:', data.username);
@@ -111,13 +115,13 @@ export default function LoginPage() {
              setCurrentUser(userToStore);
             // --- End Set Current User ---
             toast({
-                title: dict.success,
-                description: dict.redirecting,
+                title: isClient && dict ? dict.success : defaultDict.login.success,
+                description: isClient && dict ? dict.redirecting : defaultDict.login.redirecting,
             });
             router.push('/dashboard'); // Redirect to dashboard on success
         } else {
             console.log('Invalid credentials for:', data.username);
-            setLoginError(dict.invalidCredentials); // Set custom error message
+            setLoginError(isClient && dict ? dict.invalidCredentials : defaultDict.login.invalidCredentials); // Set custom error message
             form.setError('username', { type: 'manual', message: ' ' }); // Add error marker without specific message
             form.setError('password', { type: 'manual', message: ' '}); // Add error marker
             form.resetField('password');
@@ -128,7 +132,7 @@ export default function LoginPage() {
          setLoginError(errorMessage); // Set custom error message
          toast({
             variant: 'destructive',
-            title: dict.fail,
+            title: isClient && dict ? dict.fail : defaultDict.login.fail,
             description: errorMessage,
         });
         form.resetField('password');
@@ -152,8 +156,8 @@ export default function LoginPage() {
                 const { password, ...adminToStore } = adminUser;
                 setCurrentUser(adminToStore); // Set the fetched admin user
                  toast({
-                    title: isClient ? dict.bypassTitle : defaultDict.login.bypassTitle,
-                    description: isClient ? dict.redirecting : defaultDict.login.redirecting,
+                    title: isClient && dict ? dict.bypassTitle : defaultDict.login.bypassTitle,
+                    description: isClient && dict ? dict.redirecting : defaultDict.login.redirecting,
                     variant: 'default',
                     duration: 2000,
                 });
@@ -166,11 +170,12 @@ export default function LoginPage() {
                      role: 'General Admin', // Or 'Owner' or 'Admin Developer'
                      displayName: 'Bypass Admin',
                      email: 'bypass@example.com',
+                     password: 'bypass_password' // Add dummy password if needed by type
                  };
                  setCurrentUser(fallbackAdmin);
                   toast({
-                     title: isClient ? dict.bypassTitle : defaultDict.login.bypassTitle,
-                     description: isClient ? dict.redirecting : defaultDict.login.redirecting,
+                     title: isClient && dict ? dict.bypassTitle : defaultDict.login.bypassTitle,
+                     description: isClient && dict ? dict.redirecting : defaultDict.login.redirecting,
                      variant: 'default',
                      duration: 2000,
                  });
@@ -190,7 +195,9 @@ export default function LoginPage() {
       // No actual user verification or session creation happens here beyond setting context
   };
 
-   // Google Sign-In Logic Removed
+  // --- Google Sign-In Logic Removed ---
+  // const handleGoogleSignIn = async () => { ... };
+  // const onAccountSetupSubmit = async (data: AccountSetupFormValues) => { ... };
 
 
   return (
@@ -255,8 +262,9 @@ export default function LoginPage() {
             </form>
           </Form>
 
-          {/* Google Sign-In Button and Separator Removed */}
-
+           {/* Google Sign-In Button Removed */}
+           {/* <Separator className="my-6" /> */}
+           {/* ... Google Button ... */}
 
           {/* Bypass Login Button - Development Only */}
            {process.env.NODE_ENV === 'development' && (
@@ -280,6 +288,9 @@ export default function LoginPage() {
 
         </CardContent>
       </Card>
+
+       {/* Account Setup Dialog Removed */}
+
     </div>
   );
 }

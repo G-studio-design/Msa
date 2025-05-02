@@ -3,7 +3,7 @@ const id = {
   // Login Page
   login: {
     title: 'Login Msaarch APP',
-    description: 'Masukkan kredensial Anda atau masuk dengan Google.', // Added
+    description: 'Masukkan kredensial Anda.', // Simplified description
     usernameLabel: 'Nama Pengguna',
     usernamePlaceholder: 'Masukkan nama pengguna Anda',
     passwordLabel: 'Kata Sandi',
@@ -17,14 +17,14 @@ const id = {
     bypassButton: 'Lewati Login sebagai Admin (Dev)',
     bypassTitle: 'Lewati Login',
     bypassing: 'Melewati...',
-    googleSignIn: 'Masuk dengan Google', // Added
-    googleSignInHint: 'Gunakan akun Google perusahaan Anda.', // Added
+    // Google Sign-In text removed
      validation: {
         usernameRequired: 'Nama pengguna wajib diisi.',
         passwordRequired: 'Kata sandi wajib diisi.',
      }
   },
-  // Account Setup Page translations remain removed or adjust as needed
+  // Account Setup Dialog Removed
+   // accountSetup: { ... },
   // Dashboard Layout
    dashboardLayout: {
     menuTitle: 'Menu',
@@ -172,7 +172,7 @@ const id = {
        accessDenied: 'Anda tidak memiliki izin untuk menambahkan tugas baru.',
        toast: {
            success: 'Tugas Dibuat',
-           successDesc: 'Tugas "{title}" berhasil ditambahkan. Pemilik diberitahu untuk input.',
+           successDesc: 'Tugas "{title}" berhasil ditambahkan. Admin Proyek diberitahu untuk penawaran.', // Updated notification target
            error: 'Gagal Membuat Tugas',
        },
        validation: {
@@ -216,11 +216,7 @@ const id = {
     deleteDialogConfirm: 'Hapus Pengguna',
     cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin Umum terakhir.',
     cannotChangeLastDevAdminRoleHint: 'Tidak dapat mengubah peran Admin Pengembang terakhir.',
-    activateUserButtonLabel: 'Aktifkan Pengguna',
-    activateUserDialogTitle: 'Aktifkan Pengguna',
-    activateUserDialogDesc: 'Tetapkan peran untuk mengaktifkan pengguna "{username}".',
-    activateUserSubmitButton: 'Aktifkan Pengguna',
-    activatingUserButton: 'Mengaktifkan...',
+    // Activation buttons/text removed
     roles: {
        Owner: 'Pemilik',
        'General Admin': 'Admin Umum',
@@ -228,7 +224,7 @@ const id = {
        Arsitek: 'Arsitek', // Corrected spelling
        Struktur: 'Struktur', // Corrected spelling
        'Admin Developer': 'Admin Pengembang',
-       Pending: 'Menunggu Aktivasi',
+       // Pending role removed
      },
     toast: {
         userAdded: 'Pengguna Ditambahkan',
@@ -248,11 +244,8 @@ const id = {
         editPermissionDenied: 'Anda tidak memiliki izin untuk mengubah pengguna ini.',
         devCannotEditOwnerGA: 'Admin Pengembang tidak dapat mengubah Pemilik atau Admin Umum.',
         gaCannotEditOwnerDev: 'Admin Umum tidak dapat mengubah Pemilik atau Admin Pengembang.',
-        activateUserSuccess: 'Pengguna Diaktifkan',
-        activateUserDesc: 'Pengguna {username} telah diaktifkan.',
-        activateUserError: 'Aktivasi Gagal',
-        activateUserErrorDesc: 'Tidak dapat mengaktifkan pengguna {username}.',
-        cannotEditPending: 'Aktifkan pengguna terlebih dahulu sebelum mengubah.',
+        // Activation toasts removed
+        cannotEditPending: 'Aktifkan pengguna terlebih dahulu sebelum mengubah.', // This case should no longer occur
         userNotFound: 'Pengguna tidak ditemukan.',
     },
     validation: {
@@ -267,7 +260,7 @@ const id = {
    // Admin Actions Page
    adminActionsPage: {
        title: 'Tindakan Admin - Ubah Judul Tugas',
-       description: 'Pengguna dengan izin yang sesuai (Pemilik, Admin Umum) dapat mengubah judul tugas di sini.', // Removed Admin Proyek
+       description: 'Pengguna dengan izin yang sesuai (Pemilik, Admin Umum, Admin Proyek) dapat mengubah judul tugas di sini.', // Added Admin Proyek back
        tableHeaderId: 'ID Tugas',
        tableHeaderTitle: 'Judul Saat Ini',
        tableHeaderStatus: 'Status',
@@ -356,3 +349,5 @@ const id = {
        empty: "Tidak ada notifikasi baru.", // Added empty state text
    },
 };
+
+export default id;

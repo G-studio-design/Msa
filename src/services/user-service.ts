@@ -3,7 +3,7 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-// bcrypt removed as hashing is disabled
+import { notifyUsersByRole } from './notification-service'; // Import notification service
 
 // Define the structure of a user in the database
 export interface User {
@@ -15,20 +15,20 @@ export interface User {
     email?: string;
     whatsappNumber?: string; // Added WhatsApp number
     profilePictureUrl?: string; // Added profile picture URL
-    googleUid?: string; // Keep for potential future use, though functionality is removed
+    // googleUid removed - no longer used
     displayName?: string;
     createdAt?: string; // Use ISO string for dates
 }
 
 // Define the structure for updating a user's password
-interface UpdatePasswordData {
+export interface UpdatePasswordData {
     userId: string;
     currentPassword?: string; // Less critical without hashing, but might still be used for verification
     newPassword: string;
 }
 
 // Define the structure for updating a user's profile (excluding password)
-interface UpdateProfileData {
+export interface UpdateProfileData {
     userId: string;
     username: string;
     role: string; // Keep role here for admin updates, but settings page won't change it
@@ -39,7 +39,7 @@ interface UpdateProfileData {
 }
 
 // Define the structure for adding a user directly (by admin)
-interface AddUserData {
+export interface AddUserData {
     username: string;
     password: string; // Plain password received from form
     role: string;
@@ -79,6 +79,8 @@ async function readUsers(): Promise<User[]> {
             whatsappNumber: user.whatsappNumber || '',
             profilePictureUrl: user.profilePictureUrl || undefined, // Keep undefined if not present
             displayName: user.displayName || user.username, // Set displayName default to username
+            role: user.role === 'Pending' ? 'Arsitek' : user.role, // Convert any lingering Pending roles
+            googleUid: undefined, // Ensure googleUid is removed
         })) as User[];
     } catch (error) {
         console.error("Error reading or parsing user database:", error);
@@ -100,10 +102,10 @@ async function readUsers(): Promise<User[]> {
  */
 async function writeUsers(users: User[]): Promise<void> {
     try {
-        // Ensure no passwordHash fields are written
+        // Ensure no passwordHash fields are written and googleUid is removed
         const usersToWrite = users.map(u => {
-            const { passwordHash, ...userWithoutHash } = u as any;
-            return userWithoutHash;
+            const { passwordHash, googleUid, ...userWithoutSensitive } = u as any;
+            return userWithoutSensitive;
         });
         await fs.writeFile(DB_PATH, JSON.stringify(usersToWrite, null, 2), 'utf8');
         console.log("User data written to DB_PATH successfully."); // Log success
@@ -123,7 +125,8 @@ async function writeUsers(users: User[]): Promise<void> {
 export async function findUserByUsername(username: string): Promise<User | null> {
     const users = await readUsers();
     const lowerCaseUsername = username.toLowerCase();
-    return users.find(u => u.username.toLowerCase() === lowerCaseUsername) || null;
+    // Ensure we don't return 'Pending' users if any somehow remain
+    return users.find(u => u.username.toLowerCase() === lowerCaseUsername && u.role !== 'Pending') || null;
 }
 
 /**
@@ -133,7 +136,8 @@ export async function findUserByUsername(username: string): Promise<User | null>
  */
 export async function findUserById(userId: string): Promise<User | null> {
     const users = await readUsers();
-    return users.find(u => u.id === userId) || null;
+    // Ensure we don't return 'Pending' users if any somehow remain
+    return users.find(u => u.id === userId && u.role !== 'Pending') || null;
 }
 
 /**
@@ -153,11 +157,7 @@ export async function verifyUserCredentials(username: string, password: string):
     }
     console.log(`User "${username}" found. ID: ${user.id}, Role: ${user.role}`);
 
-    if (user.role === 'Pending') {
-        console.log(`Login failed for ${username}: User is pending activation.`);
-        // throw new Error('PENDING_ACTIVATION'); // Throw specific error
-        return null; // Keep returning null for now as login page expects it
-    }
+    // Pending role check removed
 
     if (!user.password) {
          console.error(`Login failed for ${username}: User has no password stored.`);
@@ -186,6 +186,11 @@ export async function verifyUserCredentials(username: string, password: string):
 export async function addUser(userData: AddUserData): Promise<Omit<User, 'password'>> {
     console.log('Attempting to add user:', userData.username, userData.role);
     const users = await readUsers();
+
+    if (userData.role === 'Pending') {
+        console.error('Cannot add user with role "Pending".');
+        throw new Error('INVALID_ROLE');
+    }
 
     const usernameExists = users.some(u => u.username.toLowerCase() === userData.username.toLowerCase());
     if (usernameExists) {
@@ -251,8 +256,14 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
         throw new Error('USER_NOT_FOUND');
     }
 
+    if (updateData.role === 'Pending') {
+         console.error('Cannot update user role to "Pending".');
+         throw new Error('INVALID_ROLE');
+     }
+
+
     // Check if the new username is already taken by another user (if username is being changed)
-    if (updateData.username && updateData.username !== users[userIndex].username) {
+    if (updateData.username && updateData.username.toLowerCase() !== users[userIndex].username.toLowerCase()) {
         const newUsernameLower = updateData.username.toLowerCase();
         const usernameConflict = users.some(u => u.id !== updateData.userId && u.username.toLowerCase() === newUsernameLower);
         if (usernameConflict) {
@@ -335,157 +346,19 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
  * Gets all users from the database, including passwords.
  * SECURITY RISK: Returning passwords should only be done for privileged roles (Owner, General Admin).
  * The consuming component (ManageUsersPage) should handle role-based access control.
- * @returns A promise that resolves to an array of all User objects (including passwords).
+ * Filters out any 'Pending' users.
+ * @returns A promise that resolves to an array of all active User objects (including passwords).
  */
 export async function getAllUsers(): Promise<User[]> {
     const users = await readUsers();
+    // Filter out pending users before returning
+    const activeUsers = users.filter(u => u.role !== 'Pending');
     // Return the full user object, including password
     // The frontend will handle displaying/hiding based on the logged-in user's role
-    return users;
+    return activeUsers;
 }
 
 
-// --- Google Sign-In related functions (Removed/Commented Out) ---
-
-/**
- * Finds or creates a user based on Google UID.
- * If the user exists, update their displayName and profile picture.
- * If the user doesn't exist, create a new user with role 'Pending'.
- * @param googleUser The user object returned from Google Sign-In.
- * @returns A promise that resolves to the found or created User object (without password).
- * @throws An error if there's an issue reading/writing the database.
- */
-// export async function findOrCreateUserByGoogleUid(googleUser: { uid: string; email: string | null; displayName: string | null; photoURL: string | null }): Promise<Omit<User, 'password'>> {
-//     const users = await readUsers();
-//     const existingUserIndex = users.findIndex(u => u.googleUid === googleUser.uid);
-
-//     if (existingUserIndex !== -1) {
-//         // User found by Google UID
-//         const existingUser = users[existingUserIndex];
-//         console.log(`User found by Google UID: ${existingUser.username}`);
-
-//         // Update display name and photo if necessary
-//         let needsUpdate = false;
-//         if (googleUser.displayName && existingUser.displayName !== googleUser.displayName) {
-//             existingUser.displayName = googleUser.displayName;
-//             needsUpdate = true;
-//         }
-//         if (googleUser.photoURL && existingUser.profilePictureUrl !== googleUser.photoURL) {
-//             existingUser.profilePictureUrl = googleUser.photoURL;
-//             needsUpdate = true;
-//         }
-
-//         if (needsUpdate) {
-//             users[existingUserIndex] = existingUser;
-//             await writeUsers(users);
-//             console.log(`User profile updated from Google data for ${existingUser.username}`);
-//         }
-
-//         const { password: _p, ...userWithoutPassword } = existingUser;
-//         return userWithoutPassword;
-
-//     } else {
-//         // No user found with this Google UID, check if email exists
-//         let emailExists = false;
-//         if (googleUser.email) {
-//             emailExists = users.some(u => u.email?.toLowerCase() === googleUser.email?.toLowerCase());
-//         }
-
-//         if (emailExists) {
-//             // Throw an error or handle linking - for now, prevent creation if email exists without Google UID
-//             console.error(`Google Sign-In failed: Email ${googleUser.email} already exists for a non-Google user.`);
-//             throw new Error('EMAIL_EXISTS_NON_GOOGLE'); // Or handle linking logic
-//         }
-
-
-//         // Create a new user with 'Pending' role
-//         console.log(`Creating new user from Google Sign-In for email: ${googleUser.email}`);
-//         const newUserId = `usr_goog_${Date.now()}`; // Unique ID
-//         const newUser: User = {
-//             id: newUserId,
-//             // Use email prefix or a random string if display name is null for username
-//             username: googleUser.displayName?.replace(/\s+/g, '_').toLowerCase() || `user_${Date.now().toString().slice(-5)}`,
-//             role: 'Pending', // New users from Google start as Pending
-//             password: '', // No password for Google sign-in users initially
-//             email: googleUser.email || `${newUserId}@placeholder.example.com`, // Use placeholder if no email
-//             whatsappNumber: '',
-//             profilePictureUrl: googleUser.photoURL || undefined,
-//             googleUid: googleUser.uid,
-//             displayName: googleUser.displayName || 'New User',
-//             createdAt: new Date().toISOString(),
-//         };
-
-//         // Ensure the generated username doesn't conflict (rare, but possible)
-//         let finalUsername = newUser.username;
-//         let counter = 1;
-//         while (users.some(u => u.username.toLowerCase() === finalUsername.toLowerCase())) {
-//             finalUsername = `${newUser.username}_${counter}`;
-//             counter++;
-//         }
-//         newUser.username = finalUsername;
-//         newUser.displayName = googleUser.displayName || finalUsername; // Update display name too if username changed
-
-//         users.push(newUser);
-//         await writeUsers(users);
-//         console.log(`New user ${newUser.username} created with role 'Pending'. Needs activation.`);
-//         const { password: _p, ...newUserWithoutPassword } = newUser;
-//         return newUserWithoutPassword;
-//     }
-// }
-
-/**
- * Activates a pending user by assigning a role and optionally a password.
- * Stores password in plain text if provided.
- * SECURITY RISK: Storing plain text passwords is highly insecure.
- *
- * @param userId The ID of the user to activate.
- * @param role The role to assign.
- * @param password (Optional) The password to set for the user.
- * @returns A promise that resolves when the operation is complete.
- * @throws An error if the user is not found or is already active.
- */
-// export async function activateUser(userId: string, role: string, password?: string): Promise<void> {
-//     console.log(`Attempting to activate user ID: ${userId} with role: ${role}`);
-//     let users = await readUsers();
-//     const userIndex = users.findIndex(u => u.id === userId);
-
-//     if (userIndex === -1) {
-//         console.error(`User with ID "${userId}" not found for activation.`);
-//         throw new Error('USER_NOT_FOUND');
-//     }
-
-//     const user = users[userIndex];
-
-//     if (user.role !== 'Pending') {
-//         console.error(`User ${user.username} is already active with role ${user.role}.`);
-//         throw new Error('USER_ALREADY_ACTIVE');
-//     }
-
-//     user.role = role;
-//     if (password) {
-//         user.password = password; // Store plain text password
-//         console.warn(`Password set for activated user ${user.username} (Plain text - INSECURE).`);
-//     } else if (!user.googleUid) {
-//         // If it's not a Google user and no password provided, maybe throw error or set a default?
-//         // For now, we allow activation without password if needed, but it's risky for non-Google accounts.
-//         console.warn(`Activating user ${user.username} without a password. Consider setting one.`);
-//     }
-
-//     users[userIndex] = user;
-//     await writeUsers(users);
-//     console.log(`User ${user.username} activated successfully with role ${role}.`);
-// }
-
-// --- Notification Service Stub ---
-// Replace with actual notification logic (e.g., email, in-app)
-// async function notifyAdminsOfProfileChange(username: string, changes: Partial<User>) {
-//     console.log(`NOTIFICATION: User '${username}' updated their profile. Changes:`, changes);
-//     // Find Admin/Owner users
-//     // Send notification (e.g., email, websocket message)
-// }
-
-// async function notifyAdminsOfPasswordChange(username: string) {
-//     console.log(`NOTIFICATION: User '${username}' updated their password.`);
-//     // Find Admin/Owner users
-//     // Send notification
-// }
+// --- Google Sign-In related functions Removed ---
+// export async function findOrCreateUserByGoogleUid(...) {...}
+// export async function activateUser(...) {...}

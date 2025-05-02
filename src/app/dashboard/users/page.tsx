@@ -332,10 +332,7 @@ export default function ManageUsersPage() {
    const openEditDialog = (user: UserType) => {
         if (!currentUser) return; // Ensure currentUser is available
 
-        if (user.role === 'Pending') {
-             toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotEditPending});
-             return;
-        }
+        // Pending check removed
 
          let canEditTargetUser = false;
          if (currentUser.role === 'Owner') {
@@ -371,7 +368,7 @@ export default function ManageUsersPage() {
           case 'Arsitek': return <User className="h-4 w-4 text-green-600" />;
           case 'Struktur': return <User className="h-4 w-4 text-yellow-600" />;
           case 'Admin Developer': return <Code className="h-4 w-4 text-red-600" />;
-          case 'Pending': return <ShieldAlert className="h-4 w-4 text-yellow-500" />;
+          // Pending icon removed
           default: return <User className="h-4 w-4 text-muted-foreground" />;
       }
   }
@@ -548,7 +545,7 @@ export default function ManageUsersPage() {
                                             (isLastAdminDeveloper && ['General Admin', 'Admin Developer'].includes(currentUser?.role || ''));
 
                       let disableEdit = !canManageUsers ||
-                                        user.role === 'Pending' ||
+                                        // user.role === 'Pending' || // Removed Pending check
                                         (currentUser?.role === 'General Admin' && user.role === 'Owner') ||
                                         (currentUser?.role === 'Admin Developer' && ['Owner', 'General Admin'].includes(user.role));
 
@@ -562,7 +559,8 @@ export default function ManageUsersPage() {
 
 
                     return (
-                      <TableRow key={user.id} className={user.role === 'Pending' ? 'bg-yellow-100/30 dark:bg-yellow-900/30 hover:bg-yellow-100/50 dark:hover:bg-yellow-900/50' : ''}>
+                      // Removed Pending styling
+                      <TableRow key={user.id}>
                         <TableCell className="font-medium">{user.username}</TableCell>
                          <TableCell>
                             {canViewPassword ? (
@@ -599,7 +597,7 @@ export default function ManageUsersPage() {
                         </TableCell>
                         <TableCell className="text-right space-x-1">
                            {/* Edit User Button */}
-                           {user.role !== 'Pending' && (
+                           {/* user.role !== 'Pending' check removed */}
                                 <Button
                                     variant="ghost"
                                     size="icon"
@@ -610,7 +608,6 @@ export default function ManageUsersPage() {
                                >
                                    <Edit className={`h-4 w-4 ${disableEdit ? 'text-muted-foreground' : 'text-blue-500'}`} />
                                </Button>
-                            )}
 
                            {/* Delete User Button */}
                             {
