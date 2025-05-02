@@ -808,10 +808,10 @@ export default function ProjectsPage() {
                   className="hover:shadow-md transition-shadow cursor-pointer"
                   onClick={() => setSelectedProject(projectItem)}
                 >
-                  <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2"> {/* Flex column on mobile */}
-                    <div className="flex-1"> {/* Allow title to take space */}
-                      <CardTitle className="text-lg">{projectItem.title}</CardTitle>
-                      <CardDescription className="text-xs text-muted-foreground mt-1"> {/* Added margin top */}
+                  <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6"> {/* Adjusted padding */}
+                    <div className="flex-1 min-w-0"> {/* Allow title to take space and wrap */}
+                      <CardTitle className="text-base sm:text-lg">{projectItem.title}</CardTitle> {/* Responsive font size */}
+                      <CardDescription className="text-xs text-muted-foreground mt-1 truncate"> {/* Truncate description */}
                         {projectsDict.assignedLabel}: {getTranslatedStatus(projectItem.assignedDivision) || projectsDict.none} {projectItem.nextAction ? `| ${projectsDict.nextActionLabel}: ${projectItem.nextAction}` : ''}
                       </CardDescription>
                     </div>
@@ -819,7 +819,7 @@ export default function ProjectsPage() {
                         {getStatusBadge(projectItem.status)}
                      </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 sm:p-6 pt-0"> {/* Adjusted padding */}
                      {projectItem.status !== 'Canceled' && projectItem.status !== 'Completed' && (
                        <div className="flex items-center gap-2">
                           <Progress value={projectItem.progress} className="flex-1 h-2" />
@@ -834,7 +834,7 @@ export default function ProjectsPage() {
                       </p>
                     )}
                   </CardContent>
-                  <CardFooter className="text-xs text-muted-foreground justify-end">
+                  <CardFooter className="text-xs text-muted-foreground justify-end p-4 sm:p-6 pt-0"> {/* Adjusted padding */}
                     <span className="flex items-center gap-1">
                       {projectsDict.viewDetails || 'View Details'} <ArrowRight className="h-3 w-3" />
                     </span>
@@ -857,17 +857,17 @@ export default function ProjectsPage() {
 
        return (
            <>
-               <Button variant="outline" onClick={() => setSelectedProject(null)} className="mb-4">
+               <Button variant="outline" onClick={() => setSelectedProject(null)} className="mb-4 w-full sm:w-auto"> {/* Full width on mobile */}
                    <ArrowLeft className="mr-2 h-4 w-4" /> {/* Use ArrowLeft icon */}
                    {projectsDict.backToList || 'Back to List'}
                </Button>
                <Card>
-                   <CardHeader>
+                   <CardHeader className="p-4 sm:p-6"> {/* Adjusted padding */}
                      <div className="flex flex-col md:flex-row justify-between items-start gap-4"> {/* Stack on mobile */}
-                        <div className="flex-1"> {/* Allow title to grow */}
+                        <div className="flex-1 min-w-0"> {/* Allow title to grow and wrap */}
                           {/* TODO: Allow editing title for Owner, GA, PA */}
                            <CardTitle className="text-xl md:text-2xl">{project.title}</CardTitle> {/* Responsive title */}
-                           <CardDescription className="mt-1"> {/* Add margin */}
+                           <CardDescription className="mt-1 text-xs sm:text-sm"> {/* Add margin, adjust size */}
                                {projectsDict.statusLabel}: {getStatusBadge(project.status)} | {projectsDict.nextActionLabel}: {project.nextAction || projectsDict.none} | {projectsDict.assignedLabel}: {getTranslatedStatus(project.assignedDivision) || projectsDict.none}
                            </CardDescription>
                          </div>
@@ -884,10 +884,10 @@ export default function ProjectsPage() {
                    </CardHeader>
 
                    {/* Action Section */}
-                   <CardContent>
+                   <CardContent className="p-4 sm:p-6 pt-0"> {/* Adjusted padding */}
                      {/* Conditionally render upload section based on role and status */}
                       {showUploadSection && (
-                         <div className="space-y-4 border-t pt-4">
+                         <div className="space-y-4 border-t pt-4 mt-4"> {/* Added margin top */}
                            <h3 className="text-lg font-semibold">{projectsDict.uploadProgressTitle.replace('{role}', currentUser!.role)}</h3> {/* Non-null assertion */}
                            <div className="grid w-full items-center gap-1.5">
                              <Label htmlFor="description">{projectsDict.descriptionLabel}</Label>
@@ -952,7 +952,7 @@ export default function ProjectsPage() {
 
 
                       {showOwnerDecisionSection && (
-                        <div className="space-y-4 border-t pt-4">
+                        <div className="space-y-4 border-t pt-4 mt-4"> {/* Added margin top */}
                           <h3 className="text-lg font-semibold">{projectsDict.ownerActionTitle}</h3>
                           <p className="text-sm text-muted-foreground">{projectsDict.ownerActionDesc}</p>
                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4"> {/* Stack on mobile */}
@@ -990,7 +990,7 @@ export default function ProjectsPage() {
                       )}
 
                        {showSchedulingSection && (
-                            <div className="space-y-4 border-t pt-4">
+                            <div className="space-y-4 border-t pt-4 mt-4"> {/* Added margin top */}
                               <h3 className="text-lg font-semibold">{projectsDict.scheduleSidangTitle.replace('{role}', currentUser!.role)}</h3> {/* Non-null assertion */}
                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                  <div className="space-y-1.5">
@@ -1015,7 +1015,7 @@ export default function ProjectsPage() {
 
                         {/* Add to Calendar button only shown after scheduling */}
                         {showCalendarButton && (
-                           <div className="border-t pt-4 mt-4">
+                           <div className="border-t pt-4 mt-4"> {/* Added margin top */}
                                <Button
                                    onClick={() => {
                                         // Find the scheduled date/time from history or state
@@ -1045,7 +1045,7 @@ export default function ProjectsPage() {
 
 
                       {showSidangOutcomeSection && (
-                           <div className="space-y-4 border-t pt-4">
+                           <div className="space-y-4 border-t pt-4 mt-4"> {/* Added margin top */}
                              <h3 className="text-lg font-semibold">{projectsDict.sidangOutcomeTitle}</h3>
                               <p className="text-sm text-muted-foreground">{projectsDict.sidangOutcomeDesc}</p>
                                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4"> {/* Stack on mobile */}
@@ -1064,13 +1064,13 @@ export default function ProjectsPage() {
 
 
                       {project.status === 'Completed' && (
-                         <div className="border-t pt-4 text-center">
+                         <div className="border-t pt-4 mt-4 text-center"> {/* Added margin top */}
                             <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
                             <p className="font-semibold text-lg text-green-600">{projectsDict.completedMessage}</p>
                          </div>
                       )}
                        {project.status === 'Canceled' && (
-                          <div className="border-t pt-4 text-center">
+                          <div className="border-t pt-4 mt-4 text-center"> {/* Added margin top */}
                              <XCircle className="h-12 w-12 text-destructive mx-auto mb-2" />
                              <p className="font-semibold text-lg text-destructive">{projectsDict.canceledMessage}</p>
                           </div>
@@ -1081,11 +1081,11 @@ export default function ProjectsPage() {
 
                   {/* File List Card */}
                    <Card className="mt-6">
-                       <CardHeader>
+                       <CardHeader className="p-4 sm:p-6"> {/* Adjusted padding */}
                          <CardTitle>{projectsDict.uploadedFilesTitle}</CardTitle>
                          <CardDescription>{projectsDict.uploadedFilesDesc}</CardDescription>
                        </CardHeader>
-                       <CardContent>
+                       <CardContent className="p-4 sm:p-6 pt-0"> {/* Adjusted padding */}
                          {project.files.length === 0 ? (
                             <p className="text-sm text-muted-foreground">{projectsDict.noFiles}</p>
                          ) : (
@@ -1109,11 +1109,11 @@ export default function ProjectsPage() {
 
                   {/* Workflow History Card */}
                   <Card className="mt-6">
-                    <CardHeader>
+                    <CardHeader className="p-4 sm:p-6"> {/* Adjusted padding */}
                       <CardTitle>{projectsDict.workflowHistoryTitle}</CardTitle>
                       <CardDescription>{projectsDict.workflowHistoryDesc}</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-4 sm:p-6 pt-0"> {/* Adjusted padding */}
                         <ul className="space-y-3">
                         {project.workflowHistory.map((entry, index) => (
                             <li key={index} className="flex items-start gap-3">

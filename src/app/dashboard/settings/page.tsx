@@ -122,7 +122,7 @@ export default function SettingsPage() {
                    } else {
                        // This case should ideally not be reached if the FileReader constructor succeeded
                        // but added as a safeguard.
-                       console.error("readAsDataURL method not found on FileReader instance.");
+                       console.error("reader.readAsDataURL method not found on FileReader instance.");
                        throw new Error("FileReader.readAsDataURL is not available.");
                    }
                } catch (e) {
@@ -560,7 +560,7 @@ export default function SettingsPage() {
                     <div className="flex items-center justify-between space-x-2">
                         <Label htmlFor="email-notifications" className="flex flex-col space-y-1 flex-1"> {/* Allow label to take space */}
                             <span>{isClient ? settingsDict.emailNotificationsLabel : defaultDict.settingsPage.emailNotificationsLabel}</span>
-                            <span className="font-normal leading-snug text-muted-foreground">
+                            <span className="font-normal leading-snug text-muted-foreground text-xs sm:text-sm"> {/* Adjusted text size */}
                                {isClient ? settingsDict.emailNotificationsHint : defaultDict.settingsPage.emailNotificationsHint}
                             </span>
                         </Label>
@@ -570,7 +570,7 @@ export default function SettingsPage() {
                      <div className="flex items-center justify-between space-x-2">
                         <Label htmlFor="in-app-notifications" className="flex flex-col space-y-1 flex-1"> {/* Allow label to take space */}
                             <span>{isClient ? settingsDict.inAppNotificationsLabel : defaultDict.settingsPage.inAppNotificationsLabel}</span>
-                            <span className="font-normal leading-snug text-muted-foreground">
+                            <span className="font-normal leading-snug text-muted-foreground text-xs sm:text-sm"> {/* Adjusted text size */}
                                 {isClient ? settingsDict.inAppNotificationsHint : defaultDict.settingsPage.inAppNotificationsHint}
                             </span>
                         </Label>

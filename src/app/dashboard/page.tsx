@@ -328,29 +328,26 @@ export default function DashboardPage() {
        {/* Project Completion Chart */}
         <Card>
            <CardHeader>
-             <CardTitle>{isClient && dashboardDict ? dashboardDict.projectProgressChartTitle : defaultDict.dashboardPage.projectProgressChartTitle}</CardTitle>
+             <CardTitle className="text-lg md:text-xl">{isClient && dashboardDict ? dashboardDict.projectProgressChartTitle : defaultDict.dashboardPage.projectProgressChartTitle}</CardTitle> {/* Adjusted size */}
              <CardDescription>{isClient && dashboardDict ? dashboardDict.projectProgressChartDesc : defaultDict.dashboardPage.projectProgressChartDesc}</CardDescription>
            </CardHeader>
-           <CardContent>
+           <CardContent className="pl-2 pr-6"> {/* Adjusted padding for chart */}
               {activeProjects.length > 0 ? (
-                  <ChartContainer config={{ progress: { label: "Progress", color: "hsl(var(--primary))" } }} className="h-[250px] w-full">
+                  <ChartContainer config={{ progress: { label: "Progress", color: "hsl(var(--primary))" } }} className="h-[250px] sm:h-[300px] w-full"> {/* Adjusted height */}
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={chartData}
-                        margin={{ top: 5, right: 20, left: -10, bottom: 40 }} // Adjust margin for rotated labels
+                        margin={{ top: 5, right: 5, left: -15, bottom: 5 }} // Adjust margin for smaller screens
                         layout="vertical" // Change to vertical layout
                       >
                         <CartesianGrid strokeDasharray="3 3" horizontal={false} /> {/* Adjust grid */}
-                        <XAxis type="number" domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                        <XAxis type="number" domain={[0, 100]} tickFormatter={(value) => `${value}%`} tick={{ fontSize: 10 }} /> {/* Smaller tick font */}
                         <YAxis
                           dataKey="title"
                           type="category"
                           tickLine={false}
                           axisLine={false}
-                          // Rotate labels if too long (optional, adjust angle/dx/dy as needed)
-                          // angle={-45}
-                          // textAnchor="end"
-                          width={100} // Adjust width to fit labels
+                          width={80} // Reduced width for smaller screens
                           interval={0} // Ensure all labels are shown
                           tick={{ fontSize: 10 }} // Adjust font size
                          />
@@ -358,7 +355,7 @@ export default function DashboardPage() {
                            cursor={false}
                            content={<ChartTooltipContent indicator="line" hideLabel />}
                         />
-                        <Bar dataKey="progress" fill="var(--color-progress)" radius={4} barSize={20} /> {/* Adjust barSize */}
+                        <Bar dataKey="progress" fill="var(--color-progress)" radius={4} barSize={16} /> {/* Reduced barSize */}
                          {/* <ChartLegend content={<ChartLegendContent />} /> Optional: Add legend if needed */}
                       </BarChart>
                     </ResponsiveContainer>
@@ -376,7 +373,7 @@ export default function DashboardPage() {
        {/* Project List */}
       <Card>
          <CardHeader>
-           <CardTitle>{isClient && dashboardDict ? dashboardDict.projectOverview : defaultDict.dashboardPage.projectOverview}</CardTitle>
+           <CardTitle className="text-lg md:text-xl">{isClient && dashboardDict ? dashboardDict.projectOverview : defaultDict.dashboardPage.projectOverview}</CardTitle> {/* Adjusted size */}
            <CardDescription>
              {isClient && dashboardDict ? (userRole === 'General Admin' || userRole === 'Owner' || userRole === 'Admin Developer' || userRole === 'Admin Proyek'
                 ? dashboardDict.allProjectsDesc
@@ -390,39 +387,41 @@ export default function DashboardPage() {
             ) : (
               filteredProjects.map((project) => (
                 <Link key={project.id} href={`/dashboard/projects?projectId=${project.id}`} passHref legacyBehavior>
-                   <Card className="hover:shadow-md transition-shadow cursor-pointer block">
-                    <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2">
-                       <div className="flex-1">
-                         <CardTitle className="text-lg">{project.title}</CardTitle>
-                         <CardDescription className="text-xs text-muted-foreground mt-1">
-                           {isClient && dashboardDict && project.assignedDivision ? `${dashboardDict.assignedTo}: ${getTranslatedStatus(project.assignedDivision)} ${project.nextAction ? `| ${dashboardDict.nextAction}: ${project.nextAction}` : ''}` : '...'}
-                         </CardDescription>
-                       </div>
-                       <div className="flex-shrink-0 mt-2 sm:mt-0">
-                          {getStatusBadge(project.status)}
-                       </div>
-                    </CardHeader>
-                    <CardContent>
-                       {project.status !== 'Canceled' && project.status !== 'Completed' && (
-                         <div className="flex items-center gap-2">
-                            <Progress value={project.progress} className="flex-1 h-2" />
-                            <span className="text-xs text-muted-foreground font-medium">
-                              {project.progress}%
-                            </span>
-                         </div>
-                       )}
-                       {project.status === 'Canceled' && (
-                          <p className="text-sm text-destructive font-medium">
-                            {isClient && dashboardDict ? getTranslatedStatus(project.status) : defaultDict.dashboardPage.projectCanceled}
-                          </p>
-                       )}
-                       {project.status === 'Completed' && (
-                           <p className="text-sm text-green-600 font-medium">
-                             {isClient && dashboardDict ? getTranslatedStatus(project.status) : defaultDict.dashboardPage.projectCompleted}
-                           </p>
-                        )}
-                    </CardContent>
-                  </Card>
+                   <a className="block hover:shadow-md transition-shadow cursor-pointer"> {/* Wrap Card with <a> */}
+                       <Card>
+                           <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6"> {/* Adjusted padding */}
+                               <div className="flex-1 min-w-0"> {/* Ensure text can wrap */}
+                                   <CardTitle className="text-base sm:text-lg truncate">{project.title}</CardTitle> {/* Truncate */}
+                                   <CardDescription className="text-xs text-muted-foreground mt-1 truncate"> {/* Truncate */}
+                                       {isClient && dashboardDict && project.assignedDivision ? `${dashboardDict.assignedTo}: ${getTranslatedStatus(project.assignedDivision)} ${project.nextAction ? `| ${dashboardDict.nextAction}: ${project.nextAction}` : ''}` : '...'}
+                                   </CardDescription>
+                               </div>
+                               <div className="flex-shrink-0 mt-2 sm:mt-0">
+                                   {getStatusBadge(project.status)}
+                               </div>
+                           </CardHeader>
+                           <CardContent className="p-4 sm:p-6 pt-0"> {/* Adjusted padding */}
+                               {project.status !== 'Canceled' && project.status !== 'Completed' && (
+                                   <div className="flex items-center gap-2">
+                                       <Progress value={project.progress} className="flex-1 h-2" />
+                                       <span className="text-xs text-muted-foreground font-medium">
+                                           {project.progress}%
+                                       </span>
+                                   </div>
+                               )}
+                               {project.status === 'Canceled' && (
+                                   <p className="text-sm text-destructive font-medium">
+                                       {isClient && dashboardDict ? getTranslatedStatus(project.status) : defaultDict.dashboardPage.projectCanceled}
+                                   </p>
+                               )}
+                               {project.status === 'Completed' && (
+                                   <p className="text-sm text-green-600 font-medium">
+                                       {isClient && dashboardDict ? getTranslatedStatus(project.status) : defaultDict.dashboardPage.projectCompleted}
+                                   </p>
+                               )}
+                           </CardContent>
+                       </Card>
+                   </a>
                 </Link>
               ))
             )}
@@ -431,6 +430,4 @@ export default function DashboardPage() {
       </Card>
     </div>
   );
-} // Closing brace added here
-
-    
+}
