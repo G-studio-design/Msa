@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -57,6 +58,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"; // Import Dropdown for filtering
 import { cn } from '@/lib/utils'; // Import cn utility
+import { notifyUsersByRole } from '@/services/notification-service'; // Import notification service
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -108,6 +110,8 @@ export default function TasksPage() {
         } finally {
           setIsLoadingTasks(false);
         }
+      } else {
+          setIsLoadingTasks(false); // Don't load if no user
       }
     };
     fetchTasks();
@@ -161,6 +165,7 @@ export default function TasksPage() {
   };
 
   // Determine if the current user (from context) can perform the action on the SELECTED task
+  // This should check if the currentUser's role matches the task's assignedDivision
   const canPerformSelectedTaskAction = currentUser && selectedTask && currentUser.role === selectedTask.assignedDivision;
 
   // Helper to get translated status
@@ -220,8 +225,12 @@ export default function TasksPage() {
         case 'pending':
         case 'pendinginput':
         case 'menunggu input': // Add Indonesian translation
-        case 'pendingoffer':
+        case 'pendingoffer': // Make this stand out slightly?
         case 'menunggu penawaran': // Add Indonesian translation
+            variant = 'outline'; // Example: Use outline for pending offer
+            className = 'border-blue-500 text-blue-600'; // Example: blue outline
+            Icon = Clock;
+            break;
         case 'pendingdpinvoice':
         case 'menunggu faktur dp': // Add Indonesian translation
         case 'pendingadminfiles':
@@ -253,7 +262,7 @@ export default function TasksPage() {
 
 
   const handleProgressSubmit = async () => {
-    if (!currentUser || !selectedTask) { // Check currentUser and selectedTask exist
+    if (!currentUser || !selectedTask || !canPerformSelectedTaskAction) { // Check currentUser, selectedTask, and canPerformSelectedTaskAction
       toast({ variant: 'destructive', title: tasksDict.toast.permissionDenied, description: tasksDict.toast.notYourTurn });
       return;
     }
@@ -305,6 +314,7 @@ export default function TasksPage() {
                 newProgress = 20; // Set progress after offer upload
                 nextActionDescription = 'Approve Offer Document'; // Owner needs to approve
                 historyEntry.action = 'Uploaded Offer Document'; // Specific history action
+                console.log(`Admin Proyek submitted offer for task ${selectedTask.id}. Moving to Pending Approval, assigned to Owner.`);
              }
              // --- End specific logic for Offer ---
               else if (selectedTask.status === 'Pending Admin Files') {
@@ -394,8 +404,8 @@ export default function TasksPage() {
             toast({ title: tasksDict.toast.progressSubmitted, description: tasksDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
         }
 
-        // Notify Owners only when Offer is submitted
-        if (selectedTask.assignedDivision === 'Admin Proyek' && selectedTask.status === 'Pending Offer') {
+        // Notify Owners only when Offer is submitted by Admin Proyek
+        if (selectedTask.assignedDivision === 'Admin Proyek' && selectedTask.status === 'Pending Offer' && nextDivision === 'Owner') {
             await notifyUsersByRole('Owner', `Task "${selectedTask.title}" is awaiting your approval for the offer document.`, selectedTask.id);
         }
 
@@ -584,7 +594,12 @@ export default function TasksPage() {
                  task.assignedDivision === currentUser.role ||
                  (task.nextAction && task.nextAction.toLowerCase().includes(currentUser.role.toLowerCase()))
              );
+         } else if (currentUser.role === 'Admin Proyek') {
+              // Admin Proyek sees all tasks + tasks specifically assigned to them (redundant with includes check, but explicit)
+              // Or filter to only show tasks currently assigned to Admin Proyek or requiring their action
+              roleFilteredTasks = allTasks.filter(task => task.assignedDivision === currentUser.role || task.status === 'Pending Offer');
          }
+
 
          // Apply status filters if any are selected
          if (statusFilter.length > 0) {
@@ -605,8 +620,12 @@ export default function TasksPage() {
 
 
   // Define which actions are available based on status and current user role for the SELECTED task
+  // Explicitly allow Admin Proyek to see upload when status is Pending Offer
   const showUploadSection = selectedTask && canPerformSelectedTaskAction &&
-     !['Pending Approval', 'Pending Scheduling', 'Scheduled', 'Completed', 'Canceled'].includes(selectedTask.status);
+     (
+       (currentUser?.role === 'Admin Proyek' && selectedTask.status === 'Pending Offer') ||
+       !['Pending Approval', 'Pending Scheduling', 'Scheduled', 'Completed', 'Canceled'].includes(selectedTask.status)
+     );
    const showOwnerDecisionSection = selectedTask && selectedTask.status === 'Pending Approval' && currentUser?.role === 'Owner';
    const showSchedulingSection = selectedTask && selectedTask.status === 'Pending Scheduling' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role);
    const showCalendarButton = selectedTask && selectedTask.status === 'Scheduled' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role);
@@ -795,63 +814,65 @@ export default function TasksPage() {
 
                    {/* Action Section */}
                    <CardContent>
-                     {showUploadSection && (
-                       <div className="space-y-4 border-t pt-4">
-                         <h3 className="text-lg font-semibold">{tasksDict.uploadProgressTitle.replace('{role}', currentUser!.role)}</h3> {/* Non-null assertion */}
-                         <div className="grid w-full items-center gap-1.5">
-                           <Label htmlFor="description">{tasksDict.descriptionLabel}</Label>
-                           <Textarea
-                             id="description"
-                             placeholder={tasksDict.descriptionPlaceholder.replace('{division}', task.assignedDivision)}
-                             value={description}
-                             onChange={(e) => setDescription(e.target.value)}
-                             disabled={isSubmitting}
-                           />
-                         </div>
-                         <div className="grid w-full items-center gap-1.5">
-                           <Label htmlFor="picture">{tasksDict.attachFilesLabel}</Label>
-                           <Input id="picture" type="file" multiple onChange={handleFileChange} disabled={isSubmitting} />
-                         </div>
-                         {uploadedFiles.length > 0 && (
-                           <div className="space-y-2 rounded-md border p-3">
-                             <Label>{tasksDict.selectedFilesLabel}</Label>
-                             <ul className="list-disc list-inside text-sm space-y-1 max-h-32 overflow-y-auto">
-                               {uploadedFiles.map((file, index) => (
-                                  <li key={index} className="flex items-center justify-between group">
-                                      <span className="truncate max-w-xs text-muted-foreground group-hover:text-foreground">
-                                        {file.name} <span className="text-xs">({(file.size / 1024).toFixed(1)} KB)</span>
-                                      </span>
-                                     <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          type="button" // Prevent form submission
-                                          onClick={() => removeFile(index)}
-                                          disabled={isSubmitting}
-                                          className="opacity-50 group-hover:opacity-100"
-                                      >
-                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                     </Button>
-                                  </li>
-                               ))}
-                             </ul>
+                     {/* Conditionally render upload section based on role and status */}
+                      {showUploadSection && (
+                         <div className="space-y-4 border-t pt-4">
+                           <h3 className="text-lg font-semibold">{tasksDict.uploadProgressTitle.replace('{role}', currentUser!.role)}</h3> {/* Non-null assertion */}
+                           <div className="grid w-full items-center gap-1.5">
+                             <Label htmlFor="description">{tasksDict.descriptionLabel}</Label>
+                             <Textarea
+                               id="description"
+                               placeholder={tasksDict.descriptionPlaceholder.replace('{division}', task.assignedDivision)}
+                               value={description}
+                               onChange={(e) => setDescription(e.target.value)}
+                               disabled={isSubmitting}
+                             />
                            </div>
-                         )}
-                          {/* Disable button logic refined */}
-                          <Button
-                              onClick={handleProgressSubmit}
-                              disabled={
-                                  isSubmitting ||
-                                  // Specific check for Admin Proyek submitting Offer
-                                  (task.assignedDivision === 'Admin Proyek' && task.status === 'Pending Offer' && uploadedFiles.length === 0) ||
-                                  // General check for other steps (excluding scheduling and Owner/GA override)
-                                  (task.status !== 'Pending Scheduling' && !['Owner', 'General Admin'].includes(currentUser!.role) && !description && uploadedFiles.length === 0)
-                              }
-                          >
-                              {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                              {isSubmitting ? tasksDict.submittingButton : tasksDict.submitButton}
-                          </Button>
-                       </div>
-                     )}
+                           <div className="grid w-full items-center gap-1.5">
+                             <Label htmlFor="picture">{tasksDict.attachFilesLabel}</Label>
+                             <Input id="picture" type="file" multiple onChange={handleFileChange} disabled={isSubmitting} />
+                           </div>
+                           {uploadedFiles.length > 0 && (
+                             <div className="space-y-2 rounded-md border p-3">
+                               <Label>{tasksDict.selectedFilesLabel}</Label>
+                               <ul className="list-disc list-inside text-sm space-y-1 max-h-32 overflow-y-auto">
+                                 {uploadedFiles.map((file, index) => (
+                                    <li key={index} className="flex items-center justify-between group">
+                                        <span className="truncate max-w-xs text-muted-foreground group-hover:text-foreground">
+                                          {file.name} <span className="text-xs">({(file.size / 1024).toFixed(1)} KB)</span>
+                                        </span>
+                                       <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            type="button" // Prevent form submission
+                                            onClick={() => removeFile(index)}
+                                            disabled={isSubmitting}
+                                            className="opacity-50 group-hover:opacity-100"
+                                        >
+                                          <Trash2 className="h-4 w-4 text-destructive" />
+                                       </Button>
+                                    </li>
+                                 ))}
+                               </ul>
+                             </div>
+                           )}
+                            {/* Disable button logic refined */}
+                            <Button
+                                onClick={handleProgressSubmit}
+                                disabled={
+                                    isSubmitting ||
+                                    // Specific check for Admin Proyek submitting Offer
+                                    (task.assignedDivision === 'Admin Proyek' && task.status === 'Pending Offer' && uploadedFiles.length === 0) ||
+                                    // General check for other steps (excluding scheduling and Owner/GA override)
+                                    (task.status !== 'Pending Scheduling' && !['Owner', 'General Admin'].includes(currentUser!.role) && !description && uploadedFiles.length === 0)
+                                }
+                            >
+                                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                                {isSubmitting ? tasksDict.submittingButton : tasksDict.submitButton}
+                            </Button>
+                         </div>
+                       )}
+
 
                       {showOwnerDecisionSection && (
                         <div className="space-y-4 border-t pt-4">
@@ -1024,3 +1045,4 @@ export default function TasksPage() {
   );
 }
 
+    
