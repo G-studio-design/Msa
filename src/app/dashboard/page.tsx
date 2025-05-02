@@ -289,12 +289,10 @@ export default function DashboardPage() {
         </h1>
         {/* Conditionally render Add Project Button based on role */}
         {canAddProject && (
-           <Button asChild className="w-full sm:w-auto accent-teal"> {/* Added accent-teal and ensured it's a single child */}
-              <Link href="/dashboard/add-project">
-                <span> {/* Wrap content in a span */}
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  {isClient ? dashboardDict.addNewProject : defaultDict.dashboardPage.addNewProject}
-                </span>
+           <Button asChild className="w-full sm:w-auto accent-teal"> {/* Ensure only Link is the child */}
+              <Link href="/dashboard/add-project" className="flex items-center"> {/* Apply flex directly to Link */}
+                <PlusCircle className="mr-2 h-4 w-4" />
+                {isClient ? dashboardDict.addNewProject : defaultDict.dashboardPage.addNewProject}
               </Link>
            </Button>
         )}
@@ -435,3 +433,6 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+
+    
