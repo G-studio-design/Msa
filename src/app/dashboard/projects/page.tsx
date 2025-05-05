@@ -28,6 +28,7 @@ import {
   ArrowRight, // Added for linking
   Clock, // Import Clock icon
   ArrowLeft, // Import ArrowLeft icon
+  Download, // Import Download icon
 } from 'lucide-react';
 import Link from 'next/link'; // Added Link
 import { useToast } from '@/hooks/use-toast';
@@ -451,8 +452,6 @@ export default function ProjectsPage() {
         // Use a specific toast message if it was the offer submission
         if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer' && nextStatus === 'Pending Approval') {
             toast({ title: projectsDict.toast.offerSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
-             // Notify Owners only when Offer is submitted by Admin Proyek
-             await notifyUsersByRole('Owner', `Project "${selectedProject.title}" is awaiting your approval for the offer document.`, selectedProject.id);
         } else {
             toast({ title: projectsDict.toast.progressSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
              // General notification for other steps (if division changed) is handled within updateProject service
@@ -696,6 +695,27 @@ export default function ProjectsPage() {
    const showSchedulingSection = React.useMemo(() => selectedProject && selectedProject.status === 'Pending Scheduling' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role), [selectedProject, currentUser]);
    const showCalendarButton = React.useMemo(() => selectedProject && selectedProject.status === 'Scheduled' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role), [selectedProject, currentUser]);
    const showSidangOutcomeSection = React.useMemo(() => selectedProject && selectedProject.status === 'Scheduled' && currentUser?.role === 'Owner', [selectedProject, currentUser]);
+    const canDownloadFiles = React.useMemo(() => currentUser && ['Owner', 'General Admin'].includes(currentUser.role), [currentUser]);
+
+
+   // Simulated file download function
+   const handleDownloadFile = (file: FileEntry) => {
+        console.log(`Simulating download for file: ${file.name}`);
+        // In a real app, this would fetch the file from storage (e.g., using file.url)
+        // and trigger a download prompt.
+        const fileContent = `This is a simulated download for ${file.name}. Uploaded by ${file.uploadedBy} on ${new Date(file.timestamp).toLocaleDateString()}.`;
+        const blob = new Blob([fileContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.name; // Use the original file name
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast({ title: projectsDict.toast.downloadStarted, description: `Downloading ${file.name}...` });
+    };
+
 
    // Loading state for the whole page if project data or user data isn't ready
     if (!isClient || !currentUser || isLoadingProjects) {
@@ -1091,13 +1111,26 @@ export default function ProjectsPage() {
                          ) : (
                            <ul className="space-y-2">
                               {project.files.map((file, index) => (
-                               <li key={index} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 border rounded-md hover:bg-secondary/50 gap-2 sm:gap-0"> {/* Stack on mobile */}
-                                  <div className="flex items-center gap-2">
+                               <li key={index} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 border rounded-md hover:bg-secondary/50 gap-2 sm:gap-4"> {/* Stack on mobile, add gap */}
+                                  <div className="flex items-center gap-2 flex-grow min-w-0"> {/* Allow file name to grow */}
                                       <FileText className="h-5 w-5 text-primary flex-shrink-0" /> {/* Ensure icon doesn't shrink */}
                                       <span className="text-sm font-medium break-all">{file.name}</span> {/* Allow file name break */}
                                   </div>
-                                  <div className="text-xs text-muted-foreground text-left sm:text-right w-full sm:w-auto mt-1 sm:mt-0"> {/* Align appropriately */}
-                                     {projectsDict.uploadedByOn.replace('{user}', file.uploadedBy).replace('{date}', formatDateOnly(file.timestamp))}
+                                  <div className="flex flex-shrink-0 items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0"> {/* Flex container for date and button */}
+                                       <span className="text-xs text-muted-foreground text-left sm:text-right flex-grow"> {/* Allow date to take space */}
+                                          {projectsDict.uploadedByOn.replace('{user}', file.uploadedBy).replace('{date}', formatDateOnly(file.timestamp))}
+                                       </span>
+                                       {canDownloadFiles && (
+                                           <Button
+                                               variant="ghost"
+                                               size="icon"
+                                               onClick={() => handleDownloadFile(file)}
+                                               title={projectsDict.downloadFileTooltip} // Add tooltip
+                                               className="h-7 w-7 flex-shrink-0" // Smaller icon button
+                                            >
+                                               <Download className="h-4 w-4 text-primary" />
+                                           </Button>
+                                       )}
                                   </div>
                                </li>
                               ))}

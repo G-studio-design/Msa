@@ -138,6 +138,7 @@ const en = {
     noProjectsFound: 'No projects match the current filters.', // Renamed
     viewDetails: 'View Details',
     backToList: 'Back to List',
+    downloadFileTooltip: 'Download File', // Added
     toast: {
       permissionDenied: 'Permission Denied',
       notYourTurn: 'Not your turn to update progress.',
@@ -167,6 +168,7 @@ const en = {
       eventId: 'Event ID: {id}',
       errorFindingSchedule: 'Error',
       couldNotFindSchedule: 'Could not find scheduling information.',
+      downloadStarted: 'Download Started', // Added
     }
   },
   // Add Project Page (Renamed from Add Task Page)

@@ -1,3 +1,26 @@
-[]
-
-    
+[
+  {
+    "id": "notif_1746404409702_agxac",
+    "userId": "usr_ga_ran",
+    "projectId": "project_1746172440270_3w7k7",
+    "message": "Project \"canggu residence\" requires your Generate DP Invoice.",
+    "timestamp": "2025-05-05T00:20:09.701Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1746404409702_qo963",
+    "userId": "usr_7",
+    "projectId": "project_1746172440270_3w7k7",
+    "message": "Project \"canggu residence\" requires your Generate DP Invoice.",
+    "timestamp": "2025-05-05T00:20:09.701Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1746404409702_o36sv",
+    "userId": "usr_wayan",
+    "projectId": "project_1746172440270_3w7k7",
+    "message": "Project \"canggu residence\" requires your Generate DP Invoice.",
+    "timestamp": "2025-05-05T00:20:09.701Z",
+    "isRead": false
+  }
+]

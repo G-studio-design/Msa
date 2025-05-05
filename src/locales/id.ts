@@ -138,6 +138,7 @@ const id = {
     noProjectsFound: 'Tidak ada proyek yang cocok dengan filter saat ini.', // Renamed
     viewDetails: 'Lihat Detail',
     backToList: 'Kembali ke Daftar',
+    downloadFileTooltip: 'Unduh File', // Added
      toast: {
         permissionDenied: 'Izin Ditolak',
         notYourTurn: 'Bukan giliran Anda untuk memperbarui progres.',
@@ -167,6 +168,7 @@ const id = {
         eventId: 'ID Acara: {id}',
         errorFindingSchedule: 'Kesalahan',
         couldNotFindSchedule: 'Tidak dapat menemukan informasi penjadwalan.',
+        downloadStarted: 'Unduhan Dimulai', // Added
       }
   },
    // Add Project Page (Renamed from Add Task Page)
