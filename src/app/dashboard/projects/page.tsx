@@ -929,7 +929,7 @@ export default function ProjectsPage() {
                                <ul className="list-disc list-inside text-sm space-y-1 max-h-32 overflow-y-auto">
                                  {uploadedFiles.map((file, index) => (
                                     <li key={index} className="flex items-center justify-between group">
-                                        <span className="truncate max-w-xs text-muted-foreground group-hover:text-foreground">
+                                        <span className="truncate max-w-[calc(100%-4rem)] sm:max-w-xs text-muted-foreground group-hover:text-foreground"> {/* Adjusted max-width for mobile */}
                                           {file.name} <span className="text-xs">({(file.size / 1024).toFixed(1)} KB)</span>
                                         </span>
                                        <Button
@@ -938,7 +938,7 @@ export default function ProjectsPage() {
                                             type="button" // Prevent form submission
                                             onClick={() => removeFile(index)}
                                             disabled={isSubmitting}
-                                            className="opacity-50 group-hover:opacity-100"
+                                            className="opacity-50 group-hover:opacity-100 flex-shrink-0" // Prevent button shrinking
                                         >
                                           <Trash2 className="h-4 w-4 text-destructive" />
                                        </Button>

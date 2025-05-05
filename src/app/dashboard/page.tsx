@@ -197,9 +197,6 @@ export default function DashboardPage() {
           .sort((a, b) => b.progress - a.progress); // Optional: sort by progress
   }, [activeProjects]);
 
-   // --- Remove Project Status Distribution Calculation ---
-   // const projectStatusDistribution = React.useMemo(() => { ... }, [filteredProjects, getTranslatedStatus]);
-
    // Render loading state
    if (!isClient || !currentUser || isLoadingProjects) {
        return (
@@ -272,7 +269,7 @@ export default function DashboardPage() {
         </h1>
         {canAddProject && (
              <Link href="/dashboard/add-project" passHref>
-                <Button className="w-full sm:w-auto accent-teal">
+                <Button className="w-full sm:w-auto accent-teal"> {/* Full width on mobile */}
                     <PlusCircle className="mr-2 h-4 w-4" />
                     {isClient && dashboardDict ? dashboardDict.addNewProject : defaultDict.dashboardPage.addNewProject}
                 </Button>
@@ -280,7 +277,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-       {/* Summary Cards - Updated to 4 columns */}
+       {/* Summary Cards - Updated to 4 columns, responsive grid */}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
