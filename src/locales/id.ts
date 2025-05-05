@@ -354,8 +354,10 @@ const id = {
        generatingReportButton: "Membuat...",
        noDataForMonth: "Tidak ada data proyek ditemukan untuk bulan dan tahun yang dipilih.",
        totalProjects: "Total Proyek Ditinjau:",
-       completedProjects: "Proyek Selesai:",
-       canceledProjects: "Proyek Dibatalkan:",
+       completedProjects: "Proyek Selesai:", // Keep
+       completedProjectsShort: "Selesai", // Short
+       canceledProjects: "Proyek Dibatalkan:", // Keep
+       canceledProjectsShort: "Dibatalkan", // Short
        downloadExcel: "Unduh Excel",
        downloadPdf: "Unduh PDF",
        downloadingButton: "Mengunduh...",
@@ -363,6 +365,11 @@ const id = {
        errorDownloadingReport: "Kesalahan saat mengunduh laporan.",
        reportFor: "Laporan untuk", // Example: "Laporan untuk Mei 2024"
        none: "Tidak Ada", // Added translation for 'None'
+       tableCaption: "Daftar proyek yang selesai atau dibatalkan pada bulan yang dipilih.", // Added
+       tableHeaderTitle: "Judul Proyek", // Added
+       tableHeaderStatus: "Status", // Added
+       tableHeaderCompletionDate: "Tanggal Selesai/Batal", // Added
+       tableHeaderContributors: "Kontributor", // Added
        toast: {
            downloadedExcel: "Laporan Excel Diunduh",
            downloadedPdf: "Laporan PDF Diunduh",
@@ -386,3 +393,4 @@ const id = {
 };
 
 export default id;
+

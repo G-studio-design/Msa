@@ -7,9 +7,9 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from '@/components/ui/card';
 import {
   Select,
@@ -18,15 +18,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableCaption, // Import TableCaption
+} from '@/components/ui/table'; // Import Table components
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, FileText, Download } from 'lucide-react';
+import { Loader2, FileText, Download, Users, CalendarCheck, CalendarX } from 'lucide-react'; // Added new icons
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllProjects, type Project } from '@/services/project-service';
 import { generateExcelReport, generatePdfReport } from '@/lib/report-generator'; // Assume these exist
+import { Badge } from '@/components/ui/badge'; // Import Badge for status display
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'; // Import ScrollArea
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -38,6 +49,7 @@ export default function MonthlyReportPage() {
   const [isClient, setIsClient] = React.useState(false);
   const [dict, setDict] = React.useState(() => getDictionary(language));
   const [reportDict, setReportDict] = React.useState(() => dict.monthlyReportPage);
+  const [dashboardDict, setDashboardDict] = React.useState(() => dict.dashboardPage); // For status translation
 
   const [isLoading, setIsLoading] = React.useState(false);
   const [isDownloading, setIsDownloading] = React.useState(false);
@@ -53,9 +65,32 @@ export default function MonthlyReportPage() {
     const newDict = getDictionary(language);
     setDict(newDict);
     setReportDict(newDict.monthlyReportPage);
+    setDashboardDict(newDict.dashboardPage);
   }, [language]);
 
   const canAccessReport = currentUser && ['Owner', 'General Admin'].includes(currentUser.role);
+
+  // Helper function to format dates client-side
+  const formatDateOnly = React.useCallback((timestamp: string): string => {
+      if (!isClient) return '...'; // Avoid rendering incorrect date on server
+      const locale = language === 'id' ? 'id-ID' : 'en-US';
+      try {
+            return new Date(timestamp).toLocaleDateString(locale, {
+                year: 'numeric', month: 'short', day: 'numeric',
+            });
+        } catch (e) {
+            console.error("Error formatting date:", timestamp, e);
+            return "Invalid Date"; // Fallback for invalid dates
+        }
+  }, [isClient, language]); // Memoize date only formatting
+
+  // Helper to get translated status - MEMOIZED
+  const getTranslatedStatus = React.useCallback((statusKey: string): string => {
+      // Check if dashboardDict and dashboardDict.status are available
+      if (!isClient || !dashboardDict || !dashboardDict.status || !statusKey) return statusKey; // Return original key if dict not ready
+      const key = statusKey.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
+      return dashboardDict.status[key] || statusKey; // Fallback to original key if not found
+  }, [isClient, dashboardDict]); // Memoize status translation
 
   const handleGenerateReport = async () => {
     if (!selectedMonth || !selectedYear) return;
@@ -248,44 +283,67 @@ export default function MonthlyReportPage() {
              </div>
           ) : reportData ? (
             reportData.completed.length > 0 || reportData.canceled.length > 0 ? (
-              <Card className="mt-6 border-primary">
-                <CardHeader>
-                   <CardTitle className="text-lg">{reportDict.reportFor} {months.find(m => m.value === selectedMonth)?.label} {selectedYear}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <p className="font-medium">{reportDict.totalProjects} <span className="font-bold">{reportData.completed.length + reportData.canceled.length}</span></p>
-                     <div>
-                        <h4 className="font-semibold mb-2">{reportDict.completedProjects} ({reportData.completed.length})</h4>
-                         {reportData.completed.length > 0 ? (
-                             <ul className="list-disc list-inside text-sm space-y-1 text-green-600">
-                                 {reportData.completed.map(project => (
-                                    <li key={project.id}>{project.title}</li>
-                                 ))}
-                             </ul>
-                         ) : <p className="text-sm text-muted-foreground">{reportDict.none}</p>}
-                     </div>
-                     <div>
-                        <h4 className="font-semibold mb-2">{reportDict.canceledProjects} ({reportData.canceled.length})</h4>
-                         {reportData.canceled.length > 0 ? (
-                             <ul className="list-disc list-inside text-sm space-y-1 text-destructive">
-                                 {reportData.canceled.map(project => (
-                                     <li key={project.id}>{project.title}</li>
-                                 ))}
-                             </ul>
-                          ) : <p className="text-sm text-muted-foreground">{reportDict.none}</p>}
-                     </div>
-                </CardContent>
-                <CardFooter className="flex flex-col sm:flex-row justify-end gap-2">
-                  <Button variant="outline" onClick={() => handleDownload('excel')} disabled={isDownloading} className="w-full sm:w-auto">
-                    {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                    {isClient ? (isDownloading ? reportDict.downloadingButton : reportDict.downloadExcel) : defaultDict.monthlyReportPage.downloadExcel}
-                  </Button>
-                  <Button variant="outline" onClick={() => handleDownload('pdf')} disabled={isDownloading} className="w-full sm:w-auto">
-                    {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                    {isClient ? (isDownloading ? reportDict.downloadingButton : reportDict.downloadPdf) : defaultDict.monthlyReportPage.downloadPdf}
-                  </Button>
-                </CardFooter>
-              </Card>
+                <Card className="mt-6 border-primary">
+                    <CardHeader>
+                        <CardTitle className="text-lg">{reportDict.reportFor} {months.find(m => m.value === selectedMonth)?.label} {selectedYear}</CardTitle>
+                         <CardDescription>
+                           {reportDict.totalProjects} <span className="font-bold">{reportData.completed.length + reportData.canceled.length}</span>
+                           &nbsp;({reportDict.completedProjectsShort}: {reportData.completed.length}, {reportDict.canceledProjectsShort}: {reportData.canceled.length})
+                         </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ScrollArea className="max-h-[60vh] w-full"> {/* Limit height and make scrollable */}
+                            <Table>
+                                <TableCaption className="mt-4">{reportDict.tableCaption}</TableCaption>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>{reportDict.tableHeaderTitle}</TableHead>
+                                        <TableHead>{reportDict.tableHeaderStatus}</TableHead>
+                                        <TableHead>{reportDict.tableHeaderCompletionDate}</TableHead>
+                                        <TableHead>{reportDict.tableHeaderContributors}</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {[...reportData.completed, ...reportData.canceled].sort((a, b) => new Date(a.workflowHistory[a.workflowHistory.length - 1].timestamp).getTime() - new Date(b.workflowHistory[b.workflowHistory.length - 1].timestamp).getTime()).map((project) => {
+                                        const contributors = [...new Set(project.files.map(f => f.uploadedBy))].join(', ');
+                                        const completionDateEntry = project.workflowHistory[project.workflowHistory.length - 1];
+                                        const completionDate = completionDateEntry ? formatDateOnly(completionDateEntry.timestamp) : 'N/A';
+                                        const isCompleted = project.status === 'Completed';
+                                        return (
+                                            <TableRow key={project.id}>
+                                                <TableCell className="font-medium">{project.title}</TableCell>
+                                                <TableCell>
+                                                    <Badge variant={isCompleted ? 'default' : 'destructive'} className={isCompleted ? 'bg-green-500 hover:bg-green-600 text-white' : ''}>
+                                                         {isCompleted ? <CalendarCheck className="mr-1 h-3 w-3" /> : <CalendarX className="mr-1 h-3 w-3" />}
+                                                         {getTranslatedStatus(project.status)}
+                                                     </Badge>
+                                                </TableCell>
+                                                <TableCell>{completionDate}</TableCell>
+                                                <TableCell className="text-xs text-muted-foreground">
+                                                    <div className="flex items-center gap-1">
+                                                        <Users className="h-3 w-3"/>
+                                                        <span>{contributors || reportDict.none}</span>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                            <ScrollBar orientation="horizontal" />
+                        </ScrollArea>
+                    </CardContent>
+                    <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 border-t pt-4 mt-4">
+                      <Button variant="outline" onClick={() => handleDownload('excel')} disabled={isDownloading} className="w-full sm:w-auto">
+                        {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                        {isClient ? (isDownloading ? reportDict.downloadingButton : reportDict.downloadExcel) : defaultDict.monthlyReportPage.downloadExcel}
+                      </Button>
+                      <Button variant="outline" onClick={() => handleDownload('pdf')} disabled={isDownloading} className="w-full sm:w-auto">
+                        {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                        {isClient ? (isDownloading ? reportDict.downloadingButton : reportDict.downloadPdf) : defaultDict.monthlyReportPage.downloadPdf}
+                      </Button>
+                    </CardFooter>
+                </Card>
             ) : (
                <div className="text-center py-8 text-muted-foreground flex flex-col items-center gap-2">
                   <FileText className="h-8 w-8" />
@@ -298,3 +356,4 @@ export default function MonthlyReportPage() {
     </div>
   );
 }
+

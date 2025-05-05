@@ -354,8 +354,10 @@ const en = {
       generatingReportButton: "Generating...",
       noDataForMonth: "No project data found for the selected month and year.",
       totalProjects: "Total Projects Reviewed:",
-      completedProjects: "Completed Projects:",
-      canceledProjects: "Canceled Projects:",
+      completedProjects: "Completed Projects:", // Keep for list view if needed
+      completedProjectsShort: "Completed", // Short version for summary
+      canceledProjects: "Canceled Projects:", // Keep for list view if needed
+      canceledProjectsShort: "Canceled", // Short version for summary
       downloadExcel: "Download Excel",
       downloadPdf: "Download PDF",
       downloadingButton: "Downloading...",
@@ -363,6 +365,11 @@ const en = {
       errorDownloadingReport: "Error downloading report.",
       reportFor: "Report for", // Example: "Report for May 2024"
       none: "None", // Added translation for 'None'
+      tableCaption: "List of projects completed or canceled in the selected month.", // Added
+      tableHeaderTitle: "Project Title", // Added
+      tableHeaderStatus: "Status", // Added
+      tableHeaderCompletionDate: "Completion/Cancel Date", // Added
+      tableHeaderContributors: "Contributors", // Added
       toast: {
           downloadedExcel: "Excel Report Downloaded",
           downloadedPdf: "PDF Report Downloaded",
@@ -386,3 +393,4 @@ const en = {
 };
 
 export default en;
+
