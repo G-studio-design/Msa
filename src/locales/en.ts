@@ -27,9 +27,10 @@ const en = {
     menuTitle: 'Menu',
     menuDescription: 'Navigation and user options.',
     dashboard: 'Dashboard',
-    projects: 'Projects', // Renamed
+    projects: 'Projects',
     manageUsers: 'Manage Users',
     adminActions: 'Admin Actions',
+    monthlyReport: 'Monthly Report', // Added translation
     settings: 'Settings',
     logout: 'Logout',
     appTitle: 'Msaarch APP',
@@ -38,21 +39,21 @@ const en = {
   // Dashboard Page
   dashboardPage: {
     title: 'Dashboard',
-    activeProjects: 'Active Projects', // Renamed
-    activeProjectsDesc: 'Projects currently in progress or pending', // Renamed
-    completedProjects: 'Completed Projects', // Renamed
-    completedProjectsDesc: 'Projects successfully finished', // Renamed
+    activeProjects: 'Active Projects',
+    activeProjectsDesc: 'Projects currently in progress or pending',
+    completedProjects: 'Completed Projects',
+    completedProjectsDesc: 'Projects successfully finished',
     pendingActions: 'Pending Actions',
-    pendingActionsDesc: 'Projects awaiting approval or next step', // Renamed
-    projectOverview: 'Project Overview', // Renamed
-    allProjectsDesc: 'All projects across divisions.', // Renamed
-    divisionProjectsDesc: 'Projects relevant to the {division} division.', // Renamed
-    noProjects: 'No projects found.', // Renamed
+    pendingActionsDesc: 'Projects awaiting approval or next step',
+    projectOverview: 'Project Overview',
+    allProjectsDesc: 'All projects across divisions.',
+    divisionProjectsDesc: 'Projects relevant to the {division} division.',
+    noProjects: 'No projects found.',
     assignedTo: 'Assigned to',
     nextAction: 'Next',
-    projectCanceled: 'This project was canceled.', // Renamed
-    projectCompleted: 'Project Completed', // Renamed
-    addNewProject: 'Add New Project', // Renamed
+    projectCanceled: 'This project was canceled.',
+    projectCompleted: 'Project Completed',
+    addNewProject: 'Add New Project',
     status: {
       completed: 'Completed',
       inprogress: 'In Progress',
@@ -84,7 +85,7 @@ const en = {
     noActiveProjectsForChart: 'No active projects to display in the chart.', // Added
     // Removed statusDistributionTitle and statusDistributionDesc
   },
-  // Projects Page (Renamed from Tasks Page)
+  // Projects Page
   projectsPage: {
     statusLabel: 'Status',
     nextActionLabel: 'Next Action',
@@ -130,15 +131,15 @@ const en = {
     workflowHistoryDesc: 'Timeline of actions taken.',
     loadingHistory: 'Loading history...',
     historyActionBy: '{action} by {division}',
-    projectListTitle: 'Project List', // Renamed
-    projectListDescription: 'View and manage ongoing projects.', // Renamed
+    projectListTitle: 'Project List',
+    projectListDescription: 'View and manage ongoing projects.',
     filterButton: 'Filter by Status',
     filterStatusLabel: 'Filter Statuses',
     filterClear: 'Show All',
-    noProjectsFound: 'No projects match the current filters.', // Renamed
+    noProjectsFound: 'No projects match the current filters.',
     viewDetails: 'View Details',
     backToList: 'Back to List',
-    downloadFileTooltip: 'Download File', // Added
+    downloadFileTooltip: 'Download File',
     toast: {
       permissionDenied: 'Permission Denied',
       notYourTurn: 'Not your turn to update progress.',
@@ -168,27 +169,27 @@ const en = {
       eventId: 'Event ID: {id}',
       errorFindingSchedule: 'Error',
       couldNotFindSchedule: 'Could not find scheduling information.',
-      downloadStarted: 'Download Started', // Added
+      downloadStarted: 'Download Started',
     }
   },
-  // Add Project Page (Renamed from Add Task Page)
+  // Add Project Page
   addProjectPage: {
-      title: 'Create New Project', // Renamed
-      description: 'Enter the project title and upload initial files (Owner/General Admin only).', // Renamed
-      titleLabel: 'Project Title', // Renamed
-      titlePlaceholder: 'Enter the full project title', // Renamed
+      title: 'Create New Project',
+      description: 'Enter the project title and upload initial files (Owner/General Admin only).',
+      titleLabel: 'Project Title',
+      titlePlaceholder: 'Enter the full project title',
       filesLabel: 'Initial Files (Optional)',
-      filesHint: 'Upload any initial documents or briefs related to the project.', // Renamed
-      createButton: 'Create Project', // Renamed
+      filesHint: 'Upload any initial documents or briefs related to the project.',
+      createButton: 'Create Project',
       creatingButton: 'Creating...',
-      accessDenied: 'You do not have permission to add new projects.', // Renamed
+      accessDenied: 'You do not have permission to add new projects.',
       toast: {
-          success: 'Project Created', // Renamed
-          successDesc: 'Project "{title}" added successfully. Project Admin notified for offer.', // Renamed
-          error: 'Failed to Create Project', // Renamed
+          success: 'Project Created',
+          successDesc: 'Project "{title}" added successfully. Project Admin notified for offer.',
+          error: 'Failed to Create Project',
       },
       validation: {
-          titleMin: 'Project title must be at least 5 characters.', // Renamed
+          titleMin: 'Project title must be at least 5 characters.',
       }
   },
   // Manage Users Page
@@ -267,18 +268,18 @@ const en = {
   },
   // Admin Actions Page
   adminActionsPage: {
-      title: 'Admin Actions - Modify Project Titles', // Renamed
-      description: 'Users with appropriate permissions (Owner, General Admin, Admin Proyek) can modify project titles here.', // Renamed
-      tableHeaderId: 'Project ID', // Renamed
+      title: 'Admin Actions - Modify Project Titles',
+      description: 'Users with appropriate permissions (Owner, General Admin, Admin Proyek) can modify project titles here.',
+      tableHeaderId: 'Project ID',
       tableHeaderTitle: 'Current Title',
       tableHeaderStatus: 'Status',
       tableHeaderActions: 'Actions',
-      noProjects: 'No projects found.', // Renamed
+      noProjects: 'No projects found.',
       toast: {
           error: 'Error',
           titleEmpty: 'Title cannot be empty.',
           titleUpdated: 'Title Updated',
-          titleUpdatedDesc: 'Project {id} title changed successfully.', // Renamed
+          titleUpdatedDesc: 'Project {id} title changed successfully.',
       },
        accessDeniedTitle: 'Access Denied',
        accessDeniedDesc: 'You do not have permission to access this page.',
@@ -311,7 +312,7 @@ const en = {
     updatingPasswordButton: 'Updating...',
     notificationsCardTitle: 'Notification Preferences',
     emailNotificationsLabel: 'Email Notifications',
-    emailNotificationsHint: 'Receive email updates for project assignments and status changes.', // Renamed
+    emailNotificationsHint: 'Receive email updates for project assignments and status changes.',
     inAppNotificationsLabel: 'In-App Notifications',
     inAppNotificationsHint: 'Show notifications within the application.',
     languageCardTitle: 'Language Settings',
@@ -340,6 +341,25 @@ const en = {
         passwordMismatchError: 'Current password does not match.',
         usernameExistsError: 'Username already exists. Please choose another.',
     }
+  },
+  // Monthly Report Page
+  monthlyReportPage: {
+      title: "Monthly Project Report",
+      description: "Summary of projects completed and canceled within the selected month.",
+      selectMonthLabel: "Select Month",
+      selectYearLabel: "Select Year",
+      generateReportButton: "Generate Report",
+      generatingReportButton: "Generating...",
+      noDataForMonth: "No project data found for the selected month and year.",
+      totalProjects: "Total Projects Reviewed:",
+      completedProjects: "Completed Projects:",
+      canceledProjects: "Canceled Projects:",
+      downloadExcel: "Download Excel",
+      downloadPdf: "Download PDF",
+      downloadingButton: "Downloading...",
+      errorGeneratingReport: "Error generating report.",
+      errorDownloadingReport: "Error downloading report.",
+      reportFor: "Report for", // Example: "Report for May 2024"
   },
   // Notifications (General)
   notifications: {

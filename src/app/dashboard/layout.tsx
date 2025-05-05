@@ -30,6 +30,7 @@ import {
   Loader2,
   Bell, // Added Bell icon
   MessageSquareWarning, // Added for empty state
+  FileBarChart, // Added icon for Monthly Report
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,10 @@ import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { useRouter } from 'next/navigation'; // Import useRouter for navigation
 import { cn } from '@/lib/utils'; // Import cn utility
 import { getNotificationsForUser, markNotificationAsRead, type Notification } from '@/services/notification-service'; // Import notification types and functions
+
+// Define the type for the layout dictionary keys
+type LayoutDictKeys = keyof ReturnType<typeof getDictionary>['dashboardLayout'];
+
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -144,11 +149,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [language]);
 
   const menuItems = [
-    { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
-    { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
-    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers", roles: ["Owner", "General Admin", "Admin Developer"] }, // Restricted access
-    { href: "/dashboard/admin-actions", icon: UserCog, labelKey: "adminActions", roles: ["Owner", "General Admin", "Admin Proyek"] }, // Added Admin Proyek
-    { href: "/dashboard/settings", icon: Settings, labelKey: "settings", roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
+    { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
+    { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
+    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Developer"] }, // Restricted access
+    { href: "/dashboard/admin-actions", icon: UserCog, labelKey: "adminActions" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek"] }, // Added Admin Proyek
+    { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport" as LayoutDictKeys, roles: ["Owner", "General Admin"] }, // Added Monthly Report
+    { href: "/dashboard/settings", icon: Settings, labelKey: "settings" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
   ];
 
   // Filter menu items based on the current user's role from context
@@ -331,13 +337,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                            >
                              <item.icon className="h-5 w-5" />
                              {/* Translate labels */}
-                             <span>{layoutDict?.[item.labelKey as keyof typeof layoutDict]}</span>
+                             <span>{layoutDict?.[item.labelKey]}</span>
                            </Link>
                          ))
                      ) : (
                          // Skeleton loader for menu items
                          <div className="space-y-2">
-                           {[...Array(4)].map((_, i) => (
+                           {[...Array(5)].map((_, i) => ( // Adjust skeleton count
                                <div key={i} className="flex items-center gap-3 rounded-md px-3 py-2">
                                    <Skeleton className="h-5 w-5 rounded-full bg-primary-foreground/20" />
                                    <Skeleton className="h-4 w-32 bg-primary-foreground/20" />
@@ -416,5 +422,3 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
-
-    

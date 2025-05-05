@@ -27,9 +27,10 @@ const id = {
     menuTitle: 'Menu',
     menuDescription: 'Navigasi dan opsi pengguna.',
     dashboard: 'Dasbor',
-    projects: 'Proyek', // Renamed
+    projects: 'Proyek',
     manageUsers: 'Kelola Pengguna',
     adminActions: 'Tindakan Admin',
+    monthlyReport: 'Laporan Bulanan', // Added translation
     settings: 'Pengaturan',
     logout: 'Keluar',
     appTitle: 'Msaarch APP',
@@ -38,21 +39,21 @@ const id = {
   // Dashboard Page
   dashboardPage: {
     title: 'Dasbor',
-    activeProjects: 'Proyek Aktif', // Renamed
-    activeProjectsDesc: 'Proyek yang sedang berjalan atau tertunda', // Renamed
-    completedProjects: 'Proyek Selesai', // Renamed
-    completedProjectsDesc: 'Proyek yang berhasil diselesaikan', // Renamed
+    activeProjects: 'Proyek Aktif',
+    activeProjectsDesc: 'Proyek yang sedang berjalan atau tertunda',
+    completedProjects: 'Proyek Selesai',
+    completedProjectsDesc: 'Proyek yang berhasil diselesaikan',
     pendingActions: 'Tindakan Tertunda',
-    pendingActionsDesc: 'Proyek menunggu persetujuan atau langkah selanjutnya', // Renamed
-    projectOverview: 'Gambaran Proyek', // Renamed
-    allProjectsDesc: 'Semua proyek di seluruh divisi.', // Renamed
-    divisionProjectsDesc: 'Proyek yang relevan dengan divisi {division}.', // Renamed
-    noProjects: 'Tidak ada proyek ditemukan.', // Renamed
+    pendingActionsDesc: 'Proyek menunggu persetujuan atau langkah selanjutnya',
+    projectOverview: 'Gambaran Proyek',
+    allProjectsDesc: 'Semua proyek di seluruh divisi.',
+    divisionProjectsDesc: 'Proyek yang relevan dengan divisi {division}.',
+    noProjects: 'Tidak ada proyek ditemukan.',
     assignedTo: 'Ditugaskan ke',
     nextAction: 'Berikutnya',
-    projectCanceled: 'Proyek ini dibatalkan.', // Renamed
-    projectCompleted: 'Proyek Selesai', // Renamed
-    addNewProject: 'Tambah Proyek Baru', // Renamed
+    projectCanceled: 'Proyek ini dibatalkan.',
+    projectCompleted: 'Proyek Selesai',
+    addNewProject: 'Tambah Proyek Baru',
     status: {
       completed: 'Selesai',
       inprogress: 'Sedang Berjalan',
@@ -84,7 +85,7 @@ const id = {
      noActiveProjectsForChart: 'Tidak ada proyek aktif untuk ditampilkan dalam diagram.', // Added
      // Removed statusDistributionTitle and statusDistributionDesc
   },
-  // Projects Page (Renamed from Tasks Page)
+  // Projects Page
   projectsPage: {
     statusLabel: 'Status',
     nextActionLabel: 'Tindakan Berikutnya',
@@ -130,15 +131,15 @@ const id = {
     workflowHistoryDesc: 'Garis waktu tindakan yang diambil.',
     loadingHistory: 'Memuat riwayat...',
     historyActionBy: '{action} oleh {division}',
-    projectListTitle: 'Daftar Proyek', // Renamed
-    projectListDescription: 'Lihat dan kelola proyek yang sedang berjalan.', // Renamed
+    projectListTitle: 'Daftar Proyek',
+    projectListDescription: 'Lihat dan kelola proyek yang sedang berjalan.',
     filterButton: 'Filter berdasarkan Status',
     filterStatusLabel: 'Filter Status',
     filterClear: 'Tampilkan Semua',
-    noProjectsFound: 'Tidak ada proyek yang cocok dengan filter saat ini.', // Renamed
+    noProjectsFound: 'Tidak ada proyek yang cocok dengan filter saat ini.',
     viewDetails: 'Lihat Detail',
     backToList: 'Kembali ke Daftar',
-    downloadFileTooltip: 'Unduh File', // Added
+    downloadFileTooltip: 'Unduh File',
      toast: {
         permissionDenied: 'Izin Ditolak',
         notYourTurn: 'Bukan giliran Anda untuk memperbarui progres.',
@@ -168,27 +169,27 @@ const id = {
         eventId: 'ID Acara: {id}',
         errorFindingSchedule: 'Kesalahan',
         couldNotFindSchedule: 'Tidak dapat menemukan informasi penjadwalan.',
-        downloadStarted: 'Unduhan Dimulai', // Added
+        downloadStarted: 'Unduhan Dimulai',
       }
   },
-   // Add Project Page (Renamed from Add Task Page)
+   // Add Project Page
    addProjectPage: {
-       title: 'Buat Proyek Baru', // Renamed
-       description: 'Masukkan judul proyek dan unggah file awal (Hanya Pemilik/Admin Umum).', // Renamed
-       titleLabel: 'Judul Proyek', // Renamed
-       titlePlaceholder: 'Masukkan judul proyek lengkap', // Renamed
+       title: 'Buat Proyek Baru',
+       description: 'Masukkan judul proyek dan unggah file awal (Hanya Pemilik/Admin Umum).',
+       titleLabel: 'Judul Proyek',
+       titlePlaceholder: 'Masukkan judul proyek lengkap',
        filesLabel: 'File Awal (Opsional)',
-       filesHint: 'Unggah dokumen awal atau brief terkait proyek.', // Renamed
-       createButton: 'Buat Proyek', // Renamed
+       filesHint: 'Unggah dokumen awal atau brief terkait proyek.',
+       createButton: 'Buat Proyek',
        creatingButton: 'Membuat...',
-       accessDenied: 'Anda tidak memiliki izin untuk menambahkan proyek baru.', // Renamed
+       accessDenied: 'Anda tidak memiliki izin untuk menambahkan proyek baru.',
        toast: {
-           success: 'Proyek Dibuat', // Renamed
-           successDesc: 'Proyek "{title}" berhasil ditambahkan. Admin Proyek diberitahu untuk penawaran.', // Renamed
-           error: 'Gagal Membuat Proyek', // Renamed
+           success: 'Proyek Dibuat',
+           successDesc: 'Proyek "{title}" berhasil ditambahkan. Admin Proyek diberitahu untuk penawaran.',
+           error: 'Gagal Membuat Proyek',
        },
        validation: {
-           titleMin: 'Judul proyek minimal 5 karakter.', // Renamed
+           titleMin: 'Judul proyek minimal 5 karakter.',
        }
    },
   // Manage Users Page
@@ -267,18 +268,18 @@ const id = {
   },
    // Admin Actions Page
    adminActionsPage: {
-       title: 'Tindakan Admin - Ubah Judul Proyek', // Renamed
-       description: 'Pengguna dengan izin yang sesuai (Pemilik, Admin Umum, Admin Proyek) dapat mengubah judul proyek di sini.', // Renamed
-       tableHeaderId: 'ID Proyek', // Renamed
+       title: 'Tindakan Admin - Ubah Judul Proyek',
+       description: 'Pengguna dengan izin yang sesuai (Pemilik, Admin Umum, Admin Proyek) dapat mengubah judul proyek di sini.',
+       tableHeaderId: 'ID Proyek',
        tableHeaderTitle: 'Judul Saat Ini',
        tableHeaderStatus: 'Status',
        tableHeaderActions: 'Tindakan',
-       noProjects: 'Tidak ada proyek ditemukan.', // Renamed
+       noProjects: 'Tidak ada proyek ditemukan.',
        toast: {
            error: 'Kesalahan',
            titleEmpty: 'Judul tidak boleh kosong.',
            titleUpdated: 'Judul Diperbarui',
-           titleUpdatedDesc: 'Judul proyek {id} berhasil diubah.', // Renamed
+           titleUpdatedDesc: 'Judul proyek {id} berhasil diubah.',
        },
        accessDeniedTitle: 'Akses Ditolak',
        accessDeniedDesc: 'Anda tidak memiliki izin untuk mengakses halaman ini.',
@@ -311,7 +312,7 @@ const id = {
     updatingPasswordButton: 'Memperbarui...',
     notificationsCardTitle: 'Preferensi Notifikasi',
     emailNotificationsLabel: 'Notifikasi Email',
-    emailNotificationsHint: 'Terima pembaruan email untuk penugasan proyek dan perubahan status.', // Renamed
+    emailNotificationsHint: 'Terima pembaruan email untuk penugasan proyek dan perubahan status.',
     inAppNotificationsLabel: 'Notifikasi Dalam Aplikasi',
     inAppNotificationsHint: 'Tampilkan notifikasi di dalam aplikasi.',
     languageCardTitle: 'Pengaturan Bahasa',
@@ -341,6 +342,25 @@ const id = {
         usernameExistsError: 'Nama pengguna sudah ada. Silakan pilih yang lain.',
     }
   },
+   // Monthly Report Page
+   monthlyReportPage: {
+       title: "Laporan Proyek Bulanan",
+       description: "Ringkasan proyek yang selesai dan dibatalkan dalam bulan yang dipilih.",
+       selectMonthLabel: "Pilih Bulan",
+       selectYearLabel: "Pilih Tahun",
+       generateReportButton: "Buat Laporan",
+       generatingReportButton: "Membuat...",
+       noDataForMonth: "Tidak ada data proyek ditemukan untuk bulan dan tahun yang dipilih.",
+       totalProjects: "Total Proyek Ditinjau:",
+       completedProjects: "Proyek Selesai:",
+       canceledProjects: "Proyek Dibatalkan:",
+       downloadExcel: "Unduh Excel",
+       downloadPdf: "Unduh PDF",
+       downloadingButton: "Mengunduh...",
+       errorGeneratingReport: "Kesalahan saat membuat laporan.",
+       errorDownloadingReport: "Kesalahan saat mengunduh laporan.",
+       reportFor: "Laporan untuk", // Example: "Laporan untuk Mei 2024"
+   },
    // Notifications (General)
    notifications: {
        permissionGrantedTitle: "Notifikasi Diaktifkan",
