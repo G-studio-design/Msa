@@ -103,19 +103,45 @@ export default function MonthlyReportPage() {
   const handleDownload = async (format: 'excel' | 'pdf') => {
     if (!reportData) return;
     setIsDownloading(true);
+
+    // **Important Explanation:**
+    // The `generateExcelReport` and `generatePdfReport` functions in `report-generator.ts`
+    // are currently placeholders. They only *simulate* report generation by logging messages
+    // and adding a delay. They do NOT actually create or trigger a file download in the browser.
+    //
+    // To make the download work, you need to:
+    // 1. Install Libraries: Add libraries like `exceljs` (for Excel) and `jspdf` or `pdfkit` (for PDF)
+    //    to your project (`npm install exceljs jspdf`).
+    // 2. Implement Generation Logic: Replace the placeholder logic in `report-generator.ts`
+    //    with actual code using these libraries to create the file content (Excel buffer or PDF blob).
+    // 3. Implement Client-Side Download Trigger: The `report-generator.ts` functions (being server-side)
+    //    cannot directly trigger a browser download. You'll need to either:
+    //    a) Make this `handleDownload` function call an API route that generates the file and sends it back
+    //       with the correct `Content-Disposition` header to trigger the download.
+    //    b) Move the report generation logic entirely to the client-side (using the libraries directly here),
+    //       create a Blob, generate a download URL (`URL.createObjectURL`), and simulate a click on an `<a>` tag.
+    //       (This is feasible for smaller reports but not recommended for large ones).
+    //
+    // The current implementation *will not* result in a file being downloaded.
+    // I am proceeding with calling the existing simulation functions.
+
+    console.warn(`Calling simulated report generation for ${format}. Actual download is not implemented.`);
+
     try {
       const monthName = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1).toLocaleString(language, { month: 'long' });
       const filename = `Monthly_Report_${monthName}_${selectedYear}`;
 
       if (format === 'excel') {
+        // Calls the simulation function
         await generateExcelReport(reportData.completed, reportData.canceled, filename);
-        toast({ title: reportDict.toast.downloadedExcel, description: `${filename}.xlsx` });
+        toast({ title: reportDict.toast.downloadedExcel, description: `Simulation complete for ${filename}.xlsx` });
       } else {
+        // Calls the simulation function
         await generatePdfReport(reportData.completed, reportData.canceled, filename);
-        toast({ title: reportDict.toast.downloadedPdf, description: `${filename}.pdf` });
+        toast({ title: reportDict.toast.downloadedPdf, description: `Simulation complete for ${filename}.pdf` });
       }
     } catch (error) {
-      console.error(`Failed to download ${format} report:`, error);
+      console.error(`Failed to simulate download for ${format} report:`, error);
       toast({ variant: 'destructive', title: reportDict.errorDownloadingReport });
     } finally {
       setIsDownloading(false);
@@ -272,3 +298,5 @@ export default function MonthlyReportPage() {
     </div>
   );
 }
+
+    

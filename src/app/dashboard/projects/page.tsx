@@ -25,12 +25,12 @@ import {
   Loader2,
   AlertTriangle,
   ListFilter,
-  ArrowRight, // Added for linking
-  Clock, // Import Clock icon
-  ArrowLeft, // Import ArrowLeft icon
-  Download, // Import Download icon
+  ArrowRight,
+  Clock,
+  ArrowLeft,
+  Download,
 } from 'lucide-react';
-import Link from 'next/link'; // Added Link
+import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -96,6 +96,7 @@ export default function ProjectsPage() {
   const [scheduleTime, setScheduleTime] = React.useState('');
   const [scheduleLocation, setScheduleLocation] = React.useState('');
   const [isAddingToCalendar, setIsAddingToCalendar] = React.useState(false); // Specific state for calendar action
+  const [isDownloading, setIsDownloading] = React.useState(false); // State for file download
 
   // State for filtering
   const [statusFilter, setStatusFilter] = React.useState<string[]>([]); // Array of statuses to show
@@ -227,8 +228,8 @@ export default function ProjectsPage() {
   // Helper to get translated status - MEMOIZED
     const getTranslatedStatus = React.useCallback((statusKey: string): string => {
         // Check if dashboardDict and dashboardDict.status are available
-        if (!isClient || !dashboardDict || !dashboardDict.status) return statusKey; // Return original key if dict not ready
-        const key = statusKey?.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
+        if (!isClient || !dashboardDict || !dashboardDict.status || !statusKey) return statusKey; // Return original key if dict not ready
+        const key = statusKey.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
         return dashboardDict.status[key] || statusKey; // Fallback to original key if not found
     }, [isClient, dashboardDict]); // Memoize status translation
 
@@ -698,22 +699,42 @@ export default function ProjectsPage() {
     const canDownloadFiles = React.useMemo(() => currentUser && ['Owner', 'General Admin'].includes(currentUser.role), [currentUser]);
 
 
-   // Simulated file download function
+   // File download function (Simulation)
    const handleDownloadFile = (file: FileEntry) => {
+        // Important: This function currently simulates a download.
+        // For a real download, you need server-side logic to retrieve the file
+        // from storage (e.g., Firebase Storage, local filesystem if self-hosted)
+        // and serve it to the client.
+
         console.log(`Simulating download for file: ${file.name}`);
-        // In a real app, this would fetch the file from storage (e.g., using file.url)
-        // and trigger a download prompt.
-        const fileContent = `This is a simulated download for ${file.name}. Uploaded by ${file.uploadedBy} on ${new Date(file.timestamp).toLocaleDateString()}.`;
-        const blob = new Blob([fileContent], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = file.name; // Use the original file name
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        toast({ title: projectsDict.toast.downloadStarted, description: `Downloading ${file.name}...` });
+        setIsDownloading(true); // Start download indicator
+
+        // --- Simulation ---
+        // In a real app:
+        // 1. Make an API call to a server endpoint, passing the file identifier (e.g., file.url or file.id).
+        // 2. Server-side: Validate permissions, fetch the file from storage.
+        // 3. Server-side: Send the file back to the client with appropriate headers
+        //    (e.g., Content-Disposition: attachment; filename="your_file_name.ext", Content-Type).
+        // 4. Client-side: The browser will handle the download prompt based on the response headers.
+
+        // Simulate delay
+        setTimeout(() => {
+            // Simulate creating a dummy file and triggering download link
+            const fileContent = `Simulated content for ${file.name}. Uploaded by ${file.uploadedBy}.`;
+            const blob = new Blob([fileContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            toast({ title: projectsDict.toast.downloadStarted, description: `Downloading ${file.name}...` });
+            setIsDownloading(false); // End download indicator
+        }, 1000);
+        // --- End Simulation ---
     };
 
 
@@ -1125,10 +1146,11 @@ export default function ProjectsPage() {
                                                variant="ghost"
                                                size="icon"
                                                onClick={() => handleDownloadFile(file)}
+                                               disabled={isDownloading} // Disable while any download is in progress
                                                title={projectsDict.downloadFileTooltip} // Add tooltip
                                                className="h-7 w-7 flex-shrink-0" // Smaller icon button
                                             >
-                                               <Download className="h-4 w-4 text-primary" />
+                                               {isDownloading ? <Loader2 className="h-4 w-4 animate-spin"/> : <Download className="h-4 w-4 text-primary" />}
                                            </Button>
                                        )}
                                   </div>
@@ -1173,3 +1195,5 @@ export default function ProjectsPage() {
     </div>
   );
 }
+
+    
