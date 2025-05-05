@@ -347,7 +347,9 @@ const en = {
       title: "Monthly Project Report",
       description: "Summary of projects completed and canceled within the selected month.",
       selectMonthLabel: "Select Month",
+      selectMonthPlaceholder: "Select month",
       selectYearLabel: "Select Year",
+      selectYearPlaceholder: "Select year",
       generateReportButton: "Generate Report",
       generatingReportButton: "Generating...",
       noDataForMonth: "No project data found for the selected month and year.",
@@ -360,6 +362,11 @@ const en = {
       errorGeneratingReport: "Error generating report.",
       errorDownloadingReport: "Error downloading report.",
       reportFor: "Report for", // Example: "Report for May 2024"
+      none: "None", // Added translation for 'None'
+      toast: {
+          downloadedExcel: "Excel Report Downloaded",
+          downloadedPdf: "PDF Report Downloaded",
+      }
   },
   // Notifications (General)
   notifications: {

@@ -347,7 +347,9 @@ const id = {
        title: "Laporan Proyek Bulanan",
        description: "Ringkasan proyek yang selesai dan dibatalkan dalam bulan yang dipilih.",
        selectMonthLabel: "Pilih Bulan",
+       selectMonthPlaceholder: "Pilih bulan",
        selectYearLabel: "Pilih Tahun",
+       selectYearPlaceholder: "Pilih tahun",
        generateReportButton: "Buat Laporan",
        generatingReportButton: "Membuat...",
        noDataForMonth: "Tidak ada data proyek ditemukan untuk bulan dan tahun yang dipilih.",
@@ -360,6 +362,11 @@ const id = {
        errorGeneratingReport: "Kesalahan saat membuat laporan.",
        errorDownloadingReport: "Kesalahan saat mengunduh laporan.",
        reportFor: "Laporan untuk", // Example: "Laporan untuk Mei 2024"
+       none: "Tidak Ada", // Added translation for 'None'
+       toast: {
+           downloadedExcel: "Laporan Excel Diunduh",
+           downloadedPdf: "Laporan PDF Diunduh",
+       }
    },
    // Notifications (General)
    notifications: {

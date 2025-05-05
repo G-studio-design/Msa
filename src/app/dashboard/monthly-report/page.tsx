@@ -73,7 +73,13 @@ export default function MonthlyReportPage() {
         if (!history || history.length === 0) return false;
 
         const lastAction = history[history.length - 1];
+        // Ensure timestamp is valid before creating Date object
+        if (!lastAction.timestamp || isNaN(new Date(lastAction.timestamp).getTime())) {
+            console.warn(`Invalid timestamp found for project ${project.id}: ${lastAction.timestamp}`);
+            return false;
+        }
         const lastActionDate = new Date(lastAction.timestamp);
+
 
         return (
             lastActionDate.getMonth() + 1 === month &&
@@ -103,10 +109,10 @@ export default function MonthlyReportPage() {
 
       if (format === 'excel') {
         await generateExcelReport(reportData.completed, reportData.canceled, filename);
-        toast({ title: 'Excel Report Downloaded', description: `${filename}.xlsx` });
+        toast({ title: reportDict.toast.downloadedExcel, description: `${filename}.xlsx` });
       } else {
         await generatePdfReport(reportData.completed, reportData.canceled, filename);
-        toast({ title: 'PDF Report Downloaded', description: `${filename}.pdf` });
+        toast({ title: reportDict.toast.downloadedPdf, description: `${filename}.pdf` });
       }
     } catch (error) {
       console.error(`Failed to download ${format} report:`, error);
@@ -177,7 +183,7 @@ export default function MonthlyReportPage() {
               <Label htmlFor="month-select">{isClient ? reportDict.selectMonthLabel : defaultDict.monthlyReportPage.selectMonthLabel}</Label>
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                 <SelectTrigger id="month-select">
-                  <SelectValue placeholder="Select month" />
+                  <SelectValue placeholder={isClient ? reportDict.selectMonthPlaceholder : defaultDict.monthlyReportPage.selectMonthPlaceholder}/>
                 </SelectTrigger>
                 <SelectContent>
                   {months.map((month) => (
@@ -192,7 +198,7 @@ export default function MonthlyReportPage() {
               <Label htmlFor="year-select">{isClient ? reportDict.selectYearLabel : defaultDict.monthlyReportPage.selectYearLabel}</Label>
               <Select value={selectedYear} onValueChange={setSelectedYear}>
                 <SelectTrigger id="year-select">
-                  <SelectValue placeholder="Select year" />
+                  <SelectValue placeholder={isClient ? reportDict.selectYearPlaceholder : defaultDict.monthlyReportPage.selectYearPlaceholder} />
                 </SelectTrigger>
                 <SelectContent>
                   {years.map((year) => (
@@ -230,7 +236,7 @@ export default function MonthlyReportPage() {
                                     <li key={project.id}>{project.title}</li>
                                  ))}
                              </ul>
-                         ) : <p className="text-sm text-muted-foreground">None</p>}
+                         ) : <p className="text-sm text-muted-foreground">{reportDict.none}</p>}
                      </div>
                      <div>
                         <h4 className="font-semibold mb-2">{reportDict.canceledProjects} ({reportData.canceled.length})</h4>
@@ -240,7 +246,7 @@ export default function MonthlyReportPage() {
                                      <li key={project.id}>{project.title}</li>
                                  ))}
                              </ul>
-                          ) : <p className="text-sm text-muted-foreground">None</p>}
+                          ) : <p className="text-sm text-muted-foreground">{reportDict.none}</p>}
                      </div>
                 </CardContent>
                 <CardFooter className="flex flex-col sm:flex-row justify-end gap-2">
