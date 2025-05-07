@@ -34,7 +34,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAllProjects, type Project } from '@/services/project-service';
+import { getAllProjects, type Project, type WorkflowHistoryEntry } from '@/services/project-service';
 import { generateExcelReport, generatePdfReport } from '@/lib/report-generator';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
@@ -101,35 +101,98 @@ export default function MonthlyReportPage() {
     setReportData(null);
 
     try {
-      const allProjects = await getAllProjects();
-      const month = parseInt(selectedMonth, 10);
-      const year = parseInt(selectedYear, 10);
+        const allProjects = await getAllProjects();
+        const month = parseInt(selectedMonth, 10); // 1-indexed
+        const year = parseInt(selectedYear, 10);
 
-      const projectsInSelectedPeriod = allProjects.filter(project => {
-        const history = project.workflowHistory;
-        if (!history || history.length === 0) return false;
+        const startDateOfMonth = new Date(year, month - 1, 1);
+        startDateOfMonth.setHours(0, 0, 0, 0);
+        const endDateOfMonth = new Date(year, month, 0); // Last day of the (selected month - 1), effectively the last day of selected month
+        endDateOfMonth.setHours(23, 59, 59, 999);
 
-        const lastAction = history[history.length - 1];
-        if (!lastAction.timestamp || isNaN(new Date(lastAction.timestamp).getTime())) {
-            console.warn(`Invalid timestamp found for project ${project.id}: ${lastAction.timestamp}`);
-            return false;
+        const getFinalStatusTimestamp = (project: Project, targetStatus: 'Completed' | 'Canceled'): Date | null => {
+            const actionKeywords = targetStatus === 'Completed'
+                ? ['completed', 'success'] // Keywords indicating completion
+                : ['cancel']; // Keywords indicating cancellation
+
+            // Search backwards through history for the relevant action
+            for (let i = project.workflowHistory.length - 1; i >= 0; i--) {
+                const entry = project.workflowHistory[i];
+                if (actionKeywords.some(keyword => entry.action.toLowerCase().includes(keyword))) {
+                    try {
+                        return new Date(entry.timestamp);
+                    } catch (e) { return null; } // Invalid timestamp
+                }
+            }
+            // If current status matches target but no explicit history entry found,
+            // use the timestamp of the last history entry if the project's current status is the target status.
+            // This handles cases where status might be set without a specific "Marked as X" action.
+            if (project.status === targetStatus && project.workflowHistory.length > 0) {
+                 const lastEntry = project.workflowHistory[project.workflowHistory.length -1];
+                 if (lastEntry && lastEntry.timestamp) {
+                     try {
+                        return new Date(lastEntry.timestamp);
+                     } catch (e) { return null; }
+                 }
+            }
+            return null;
+        };
+
+        const completedThisMonth: Project[] = [];
+        const canceledThisMonth: Project[] = [];
+        const inProgressThisMonth: Project[] = [];
+
+        for (const project of allProjects) {
+            let projectCreationDate: Date;
+            try {
+                projectCreationDate = new Date(project.createdAt);
+            } catch (e) {
+                console.warn(`Invalid creation date for project ${project.id}: ${project.createdAt}. Skipping.`);
+                continue; 
+            }
+
+            const completionDate = getFinalStatusTimestamp(project, 'Completed');
+            const cancellationDate = getFinalStatusTimestamp(project, 'Canceled');
+
+            if (project.status === 'Completed' && completionDate && completionDate >= startDateOfMonth && completionDate <= endDateOfMonth) {
+                completedThisMonth.push(project);
+            } else if (project.status === 'Canceled' && cancellationDate && cancellationDate >= startDateOfMonth && cancellationDate <= endDateOfMonth) {
+                canceledThisMonth.push(project);
+            } else {
+                // Check for "In Progress" during the month
+                // 1. Project must be created on or before the last day of the reporting month.
+                if (projectCreationDate > endDateOfMonth) {
+                    continue;
+                }
+
+                // 2. Project must not have been completed or canceled *before* the start of the reporting month.
+                if (completionDate && completionDate < startDateOfMonth) {
+                    continue; // Completed before this month
+                }
+                if (cancellationDate && cancellationDate < startDateOfMonth) {
+                    continue; // Canceled before this month
+                }
+                
+                // If it reaches here, it was active during the month or started during the month and wasn't finalized before it.
+                // Or it was finalized *after* this month (meaning it was in progress during this month).
+                inProgressThisMonth.push(project);
+            }
         }
-        const lastActionDate = new Date(lastAction.timestamp);
-        return lastActionDate.getMonth() + 1 === month && lastActionDate.getFullYear() === year;
-      });
+        
+        setReportData({
+            completed: completedThisMonth,
+            canceled: canceledThisMonth,
+            inProgress: inProgressThisMonth,
+        });
 
-      const completed = projectsInSelectedPeriod.filter(p => p.status === 'Completed');
-      const canceled = projectsInSelectedPeriod.filter(p => p.status === 'Canceled');
-      const inProgress = projectsInSelectedPeriod.filter(p => p.status === 'In Progress');
-
-      setReportData({ completed, canceled, inProgress });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to generate report:", error);
-      toast({ variant: 'destructive', title: reportDict.errorGeneratingReport });
+      toast({ variant: 'destructive', title: reportDict.errorGeneratingReport, description: error.message || 'Unknown error' });
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const handleDownload = async (format: 'excel' | 'pdf') => {
     if (!reportData) return;
@@ -200,7 +263,19 @@ export default function MonthlyReportPage() {
   }));
 
   const allReportedProjects = reportData ? [...reportData.completed, ...reportData.canceled, ...reportData.inProgress] : [];
-  allReportedProjects.sort((a, b) => new Date(a.workflowHistory[a.workflowHistory.length - 1].timestamp).getTime() - new Date(b.workflowHistory[b.workflowHistory.length - 1].timestamp).getTime());
+  allReportedProjects.sort((a, b) => {
+      const getLastTimestamp = (project: Project): number => {
+          if (project.workflowHistory && project.workflowHistory.length > 0) {
+            try {
+              return new Date(project.workflowHistory[project.workflowHistory.length - 1].timestamp).getTime();
+            } catch { /* ignore invalid date */ }
+          }
+          try {
+            return new Date(project.createdAt).getTime();
+          } catch { return 0; }
+      };
+      return getLastTimestamp(a) - getLastTimestamp(b);
+  });
 
 
   return (
@@ -281,8 +356,8 @@ export default function MonthlyReportPage() {
                                 <TableBody>
                                     {allReportedProjects.map((project) => {
                                         const contributors = [...new Set(project.files.map(f => f.uploadedBy))].join(', ');
-                                        const lastActivityEntry = project.workflowHistory[project.workflowHistory.length - 1];
-                                        const lastActivityDate = lastActivityEntry ? formatDateOnly(lastActivityEntry.timestamp) : 'N/A';
+                                        const lastActivityEntry = project.workflowHistory && project.workflowHistory.length > 0 ? project.workflowHistory[project.workflowHistory.length - 1] : null;
+                                        const lastActivityDate = lastActivityEntry ? formatDateOnly(lastActivityEntry.timestamp) : formatDateOnly(project.createdAt);
                                         let statusIcon;
                                         let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
                                         let badgeClassName = "";
@@ -290,21 +365,30 @@ export default function MonthlyReportPage() {
                                         switch (project.status) {
                                             case 'Completed':
                                                 statusIcon = <CalendarCheck className="mr-1 h-3 w-3" />;
-                                                badgeVariant = 'default'; // Typically green
+                                                badgeVariant = 'default'; 
                                                 badgeClassName = 'bg-green-500 hover:bg-green-600 text-white';
                                                 break;
                                             case 'Canceled':
                                                 statusIcon = <CalendarX className="mr-1 h-3 w-3" />;
-                                                badgeVariant = 'destructive'; // Typically red
+                                                badgeVariant = 'destructive'; 
                                                 break;
                                             case 'In Progress':
+                                            default: // For all other in-progress like statuses
                                                 statusIcon = <Activity className="mr-1 h-3 w-3" />;
-                                                badgeVariant = 'secondary'; // Typically blue or default
+                                                badgeVariant = 'secondary'; 
                                                 badgeClassName = 'bg-blue-500 text-white hover:bg-blue-600';
                                                 break;
-                                            default:
-                                                statusIcon = <Activity className="mr-1 h-3 w-3" />; // Default icon
                                         }
+                                         // If the project is in the "inProgress" category from reportData, but its status is "Completed" or "Canceled"
+                                        // it means it was completed/canceled *after* the reporting month. For the report, show its status at the end of the month.
+                                        let displayStatus = project.status;
+                                        if (reportData.inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
+                                            displayStatus = 'In Progress'; // Or a more generic "Active"
+                                            statusIcon = <Activity className="mr-1 h-3 w-3" />;
+                                            badgeVariant = 'secondary';
+                                            badgeClassName = 'bg-blue-500 text-white hover:bg-blue-600';
+                                        }
+
 
                                         return (
                                             <TableRow key={project.id}>
@@ -312,7 +396,7 @@ export default function MonthlyReportPage() {
                                                 <TableCell>
                                                     <Badge variant={badgeVariant} className={badgeClassName}>
                                                          {statusIcon}
-                                                         {getTranslatedStatus(project.status)}
+                                                         {getTranslatedStatus(displayStatus)}
                                                      </Badge>
                                                 </TableCell>
                                                 <TableCell>{lastActivityDate}</TableCell>
@@ -353,3 +437,4 @@ export default function MonthlyReportPage() {
     </div>
   );
 }
+
