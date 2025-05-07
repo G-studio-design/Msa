@@ -35,7 +35,7 @@ import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllProjects, type Project, type WorkflowHistoryEntry } from '@/services/project-service';
-import { generateExcelReport, generatePdfReport } from '@/lib/report-generator';
+import { generateExcelReport, generatePdfReport } from '../../../lib/report-generator'; // Updated import path
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
@@ -202,7 +202,7 @@ export default function MonthlyReportPage() {
       const monthName = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1).toLocaleString(language, { month: 'long' });
       const filenameBase = `Monthly_Report_${monthName}_${selectedYear}`;
       
-      let fileContent = '';
+      let fileContent: string | Uint8Array = ''; // Can be string (CSV) or Uint8Array (PDF)
       let blobType = '';
       let fileExtension = '';
       let toastTitle = '';
@@ -212,9 +212,9 @@ export default function MonthlyReportPage() {
         blobType = 'text/csv;charset=utf-8;';
         fileExtension = '.csv';
         toastTitle = reportDict.toast?.downloadedExcel || "Excel Report Downloaded";
-      } else { // PDF (simulated as .pdf)
+      } else { // PDF
         fileContent = await generatePdfReport(reportData.completed, reportData.canceled, reportData.inProgress, monthName, selectedYear);
-        if (!fileContent || fileContent.trim() === "") {
+        if (!fileContent || (typeof fileContent === 'string' && fileContent.trim() === "") || (fileContent instanceof Uint8Array && fileContent.length === 0) ) {
             toast({ variant: 'destructive', title: "Report Empty", description: "The generated PDF report content is empty." });
             setIsDownloading(false);
             return;
