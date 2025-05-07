@@ -187,7 +187,7 @@ export default function MonthlyReportPage() {
 
     } catch (error: any) {
       console.error("Failed to generate report:", error);
-      toast({ variant: 'destructive', title: reportDict.errorGeneratingReport, description: error.message || 'Unknown error' });
+      toast({ variant: 'destructive', title: reportDict.errorGeneratingReport || "Error", description: error.message || 'Unknown error' });
     } finally {
       setIsLoading(false);
     }
@@ -210,13 +210,24 @@ export default function MonthlyReportPage() {
       if (format === 'excel') {
         fileContent = await generateExcelReport(reportData.completed, reportData.canceled, reportData.inProgress);
         blobType = 'text/csv;charset=utf-8;';
-        fileExtension = '.csv'; // Changed to .csv for actual CSV data
-        toastTitle = reportDict.toast.downloadedExcel;
-      } else { // PDF
+        fileExtension = '.csv';
+        toastTitle = reportDict.toast?.downloadedExcel || "Excel Report Downloaded";
+      } else { // PDF (simulated as .txt)
         fileContent = await generatePdfReport(reportData.completed, reportData.canceled, reportData.inProgress, monthName, selectedYear);
+        if (!fileContent || fileContent.trim() === "") {
+            toast({ variant: 'destructive', title: "Report Empty", description: "The generated PDF report content is empty." });
+            setIsDownloading(false);
+            return;
+        }
         blobType = 'text/plain;charset=utf-8;';
-        fileExtension = '.txt'; // Keep as .txt for plain text PDF simulation
-        toastTitle = reportDict.toast.downloadedPdf;
+        fileExtension = '.txt'; 
+        toastTitle = reportDict.toast?.downloadedPdf || "PDF Report Downloaded";
+      }
+
+      if (!fileContent && format === 'excel') { // Also check for excel if it could be empty
+        toast({ variant: 'destructive', title: "Report Empty", description: "The generated Excel report content is empty." });
+        setIsDownloading(false);
+        return;
       }
 
       const blob = new Blob([fileContent], { type: blobType });
@@ -233,7 +244,7 @@ export default function MonthlyReportPage() {
 
     } catch (error) {
       console.error(`Failed to download ${format} report:`, error);
-      toast({ variant: 'destructive', title: reportDict.errorDownloadingReport, description: (error as Error).message || 'Unknown error' });
+      toast({ variant: 'destructive', title: reportDict.errorDownloadingReport || "Download Error", description: (error as Error).message || 'Unknown error' });
     } finally {
       setIsDownloading(false);
     }
