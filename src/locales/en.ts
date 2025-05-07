@@ -139,7 +139,7 @@ const en = {
     noProjectsFound: 'No projects match the current filters.',
     viewDetails: 'View Details',
     backToList: 'Back to List',
-    downloadFileTooltip: 'Download File (.txt)',
+    downloadFileTooltip: 'Download File', // Updated as it now downloads actual files
     toast: {
       permissionDenied: 'Permission Denied',
       notYourTurn: 'Not your turn to update progress.',
@@ -169,7 +169,7 @@ const en = {
       eventId: 'Event ID: {id}',
       errorFindingSchedule: 'Error',
       couldNotFindSchedule: 'Could not find scheduling information.',
-      downloadStarted: 'Download Started (Simulated as .txt)',
+      downloadStarted: 'Download Started', // Updated
     }
   },
   // Add Project Page
@@ -362,7 +362,7 @@ const en = {
       inProgressProjects: "In Progress Projects:", // New
       inProgressProjectsShort: "In Progress", // New
       downloadExcel: "Download Excel (.csv)",
-      downloadPdf: "Download PDF (.txt)",
+      downloadPdf: "Download PDF (.pdf)",
       downloadingButton: "Downloading...",
       errorGeneratingReport: "Error generating report.",
       errorDownloadingReport: "Error downloading report.",
@@ -376,7 +376,7 @@ const en = {
       tableHeaderContributors: "Contributors",
       toast: {
           downloadedExcel: "Excel Report (CSV) Downloaded",
-          downloadedPdf: "PDF Report (as TXT) Downloaded",
+          downloadedPdf: "PDF Report Downloaded",
       }
   },
   // Notifications (General)

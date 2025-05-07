@@ -212,15 +212,15 @@ export default function MonthlyReportPage() {
         blobType = 'text/csv;charset=utf-8;';
         fileExtension = '.csv';
         toastTitle = reportDict.toast?.downloadedExcel || "Excel Report Downloaded";
-      } else { // PDF (simulated as .txt)
+      } else { // PDF (simulated as .pdf)
         fileContent = await generatePdfReport(reportData.completed, reportData.canceled, reportData.inProgress, monthName, selectedYear);
         if (!fileContent || fileContent.trim() === "") {
             toast({ variant: 'destructive', title: "Report Empty", description: "The generated PDF report content is empty." });
             setIsDownloading(false);
             return;
         }
-        blobType = 'text/plain;charset=utf-8;';
-        fileExtension = '.txt'; 
+        blobType = 'application/pdf'; 
+        fileExtension = '.pdf'; 
         toastTitle = reportDict.toast?.downloadedPdf || "PDF Report Downloaded";
       }
 
