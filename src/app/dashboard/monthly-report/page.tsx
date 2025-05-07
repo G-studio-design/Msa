@@ -195,52 +195,30 @@ export default function MonthlyReportPage() {
 
 
   const handleDownload = async (format: 'excel' | 'pdf') => {
-    if (!reportData) return;
+    if (!reportData || !isClient) return;
     setIsDownloading(true);
 
     try {
       const monthName = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1).toLocaleString(language, { month: 'long' });
       const filenameBase = `Monthly_Report_${monthName}_${selectedYear}`;
-      let fileContent = `Report for: ${monthName} ${selectedYear}\n\n`;
-      fileContent += `Total Projects: ${reportData.completed.length + reportData.canceled.length + reportData.inProgress.length}\n`;
-      fileContent += `Completed: ${reportData.completed.length}\n`;
-      fileContent += `Canceled: ${reportData.canceled.length}\n`;
-      fileContent += `In Progress: ${reportData.inProgress.length}\n\n`;
-
-      fileContent += "--- Completed Projects ---\n";
-      reportData.completed.forEach(p => {
-        fileContent += `Title: ${p.title}, Status: ${getTranslatedStatus(p.status)}, Last Activity: ${formatDateOnly(p.workflowHistory[p.workflowHistory.length-1]?.timestamp || p.createdAt)}\n`;
-      });
-
-      fileContent += "\n--- Canceled Projects ---\n";
-      reportData.canceled.forEach(p => {
-        fileContent += `Title: ${p.title}, Status: ${getTranslatedStatus(p.status)}, Last Activity: ${formatDateOnly(p.workflowHistory[p.workflowHistory.length-1]?.timestamp || p.createdAt)}\n`;
-      });
-
-      fileContent += "\n--- In Progress Projects ---\n";
-      reportData.inProgress.forEach(p => {
-        fileContent += `Title: ${p.title}, Status: ${getTranslatedStatus(p.status)}, Last Activity: ${formatDateOnly(p.workflowHistory[p.workflowHistory.length-1]?.timestamp || p.createdAt)}\n`;
-      });
-
-      let blobType = 'text/plain';
-      let fileExtension = '.txt';
+      
+      let fileContent = '';
+      let blobType = '';
+      let fileExtension = '';
       let toastTitle = '';
-      let toastDescription = '';
-
+      
       if (format === 'excel') {
-        // Server-side simulation (logging only)
-        await generateExcelReport(reportData.completed, reportData.canceled, reportData.inProgress, filenameBase);
-        blobType = 'text/csv;charset=utf-8;'; // Simulate CSV for Excel
+        fileContent = await generateExcelReport(reportData.completed, reportData.canceled, reportData.inProgress);
+        blobType = 'text/csv;charset=utf-8;';
+        fileExtension = '.csv'; // Changed to .csv for actual CSV data
         toastTitle = reportDict.toast.downloadedExcel;
-        toastDescription = `Simulated download of ${filenameBase}${fileExtension}`;
       } else { // PDF
-        // Server-side simulation (logging only)
-        await generatePdfReport(reportData.completed, reportData.canceled, reportData.inProgress, filenameBase);
+        fileContent = await generatePdfReport(reportData.completed, reportData.canceled, reportData.inProgress, monthName, selectedYear);
+        blobType = 'text/plain;charset=utf-8;';
+        fileExtension = '.txt'; // Keep as .txt for plain text PDF simulation
         toastTitle = reportDict.toast.downloadedPdf;
-        toastDescription = `Simulated download of ${filenameBase}${fileExtension}`;
       }
 
-      // Client-side download simulation
       const blob = new Blob([fileContent], { type: blobType });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -251,10 +229,10 @@ export default function MonthlyReportPage() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      toast({ title: toastTitle, description: toastDescription });
+      toast({ title: toastTitle, description: `Report ${filenameBase}${fileExtension} downloaded.` });
 
     } catch (error) {
-      console.error(`Failed to simulate download for ${format} report:`, error);
+      console.error(`Failed to download ${format} report:`, error);
       toast({ variant: 'destructive', title: reportDict.errorDownloadingReport, description: (error as Error).message || 'Unknown error' });
     } finally {
       setIsDownloading(false);
@@ -454,11 +432,11 @@ export default function MonthlyReportPage() {
                         </ScrollArea>
                     </CardContent>
                     <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 border-t pt-4 mt-4">
-                      <Button variant="outline" onClick={() => handleDownload('excel')} disabled={isDownloading} className="w-full sm:w-auto">
+                      <Button variant="outline" onClick={() => handleDownload('excel')} disabled={isDownloading || !reportData} className="w-full sm:w-auto">
                         {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
                         {isClient ? (isDownloading ? reportDict.downloadingButton : reportDict.downloadExcel) : defaultDict.monthlyReportPage.downloadExcel}
                       </Button>
-                      <Button variant="outline" onClick={() => handleDownload('pdf')} disabled={isDownloading} className="w-full sm:w-auto">
+                      <Button variant="outline" onClick={() => handleDownload('pdf')} disabled={isDownloading || !reportData} className="w-full sm:w-auto">
                         {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
                         {isClient ? (isDownloading ? reportDict.downloadingButton : reportDict.downloadPdf) : defaultDict.monthlyReportPage.downloadPdf}
                       </Button>
