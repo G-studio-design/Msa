@@ -361,7 +361,7 @@ const en = {
       canceledProjectsShort: "Canceled",
       inProgressProjects: "In Progress Projects:", // New
       inProgressProjectsShort: "In Progress", // New
-      downloadExcel: "Download Excel (.txt)",
+      downloadExcel: "Download Excel (.csv)",
       downloadPdf: "Download PDF (.txt)",
       downloadingButton: "Downloading...",
       errorGeneratingReport: "Error generating report.",
@@ -375,8 +375,8 @@ const en = {
       tableHeaderCompletionDate: "Completion/Cancel Date", // Kept for backward compatibility if some logic uses it, prefer LastActivityDate
       tableHeaderContributors: "Contributors",
       toast: {
-          downloadedExcel: "Excel Report (Simulated TXT) Downloaded",
-          downloadedPdf: "PDF Report (Simulated TXT) Downloaded",
+          downloadedExcel: "Excel Report (CSV) Downloaded",
+          downloadedPdf: "PDF Report (as TXT) Downloaded",
       }
   },
   // Notifications (General)
@@ -397,4 +397,3 @@ const en = {
 };
 
 export default en;
-

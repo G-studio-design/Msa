@@ -361,7 +361,7 @@ const id = {
        canceledProjectsShort: "Dibatalkan",
        inProgressProjects: "Proyek Sedang Berjalan:", // New
        inProgressProjectsShort: "Sedang Berjalan", // New
-       downloadExcel: "Unduh Excel (.txt)",
+       downloadExcel: "Unduh Excel (.csv)",
        downloadPdf: "Unduh PDF (.txt)",
        downloadingButton: "Mengunduh...",
        errorGeneratingReport: "Kesalahan saat membuat laporan.",
@@ -375,8 +375,8 @@ const id = {
        tableHeaderCompletionDate: "Tanggal Selesai/Batal", // Kept for backward compatibility
        tableHeaderContributors: "Kontributor",
        toast: {
-           downloadedExcel: "Laporan Excel (Simulasi TXT) Diunduh",
-           downloadedPdf: "Laporan PDF (Simulasi TXT) Diunduh",
+           downloadedExcel: "Laporan Excel (CSV) Diunduh",
+           downloadedPdf: "Laporan PDF (sebagai TXT) Diunduh",
        }
    },
    // Notifications (General)
@@ -397,4 +397,3 @@ const id = {
 };
 
 export default id;
-
