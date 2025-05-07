@@ -12,17 +12,23 @@ export interface WorkflowHistoryEntry {
     timestamp: string; // ISO string
 }
 
+// Helper function to sanitize text for use in a path
+function sanitizeForPath(text: string): string {
+  return text.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_-]/g, '');
+}
+
 // Define the structure of an uploaded file entry
 export interface FileEntry {
     name: string;
     uploadedBy: string; // Username or ID of the uploader
     timestamp: string; // ISO string
+    path?: string; // Simulated folder path, e.g., projects/project_id-project_title/filename.ext
     // In a real app, you'd store a URL or file ID here
     // url?: string;
 }
 
-// Define the structure of a Project // Renamed interface
-export interface Project { // Renamed interface
+// Define the structure of a Project
+export interface Project {
     id: string;
     title: string;
     status: string; // e.g., 'Pending Input', 'Pending Offer', 'In Progress', 'Completed', 'Canceled'
@@ -33,21 +39,18 @@ export interface Project { // Renamed interface
     files: FileEntry[];
     createdAt: string; // ISO string
     createdBy: string; // Username or ID of the creator
-    // Add other relevant fields as needed
-    // projectDetails?: any;
-    // deadline?: string;
 }
 
-// Define the structure for adding a new project // Renamed interface
-// Make initialFiles properties match FileEntry (except timestamp, which will be added)
-export interface AddProjectData { // Renamed interface
+// Define the structure for adding a new project
+// Make initialFiles properties match FileEntry (except timestamp and path, which will be added)
+export interface AddProjectData {
     title: string;
-    initialFiles: Omit<FileEntry, 'timestamp'>[]; // Files provided at creation
+    initialFiles: Omit<FileEntry, 'timestamp' | 'path'>[]; // Files provided at creation
     createdBy: string;
 }
 
 
-const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json'); // Renamed file
+const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
 
 // --- Helper Functions ---
 
@@ -55,12 +58,12 @@ const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
  * Reads the project data from the JSON file.
  * @returns A promise that resolves to an array of Project objects.
  */
-async function readProjects(): Promise<Project[]> { // Renamed function and return type
+async function readProjects(): Promise<Project[]> {
     try {
         await fs.access(DB_PATH); // Check if file exists
     } catch (error) {
         // If the file doesn't exist, create it with an empty array
-        console.log("Project database file not found, creating a new one."); // Updated log message
+        console.log("Project database file not found, creating a new one.");
         await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
         return [];
     }
@@ -69,21 +72,27 @@ async function readProjects(): Promise<Project[]> { // Renamed function and retu
         const data = await fs.readFile(DB_PATH, 'utf8');
         const parsedData = JSON.parse(data);
         if (!Array.isArray(parsedData)) {
-            console.error("Project database file does not contain a valid JSON array. Resetting."); // Updated log message
+            console.error("Project database file does not contain a valid JSON array. Resetting.");
             await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
             return [];
         }
-        // Basic validation/migration could happen here if needed
-        return parsedData as Project[]; // Renamed type
+        return (parsedData as Project[]).map(project => ({
+            ...project,
+            files: project.files.map(file => ({
+                ...file,
+                // Ensure path exists, construct if missing (for older data)
+                path: file.path || `projects/${project.id}-${sanitizeForPath(project.title)}/${file.name}`
+            }))
+        }));
     } catch (error) {
-        console.error("Error reading or parsing project database:", error); // Updated log message
+        console.error("Error reading or parsing project database:", error);
          try {
-             console.log("Attempting to reset project database due to read/parse error."); // Updated log message
+             console.log("Attempting to reset project database due to read/parse error.");
              await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
              return [];
          } catch (writeError) {
-             console.error("Failed to reset project database:", writeError); // Updated log message
-             throw new Error('Failed to read or reset project data.'); // Updated error message
+             console.error("Failed to reset project database:", writeError);
+             throw new Error('Failed to read or reset project data.');
          }
     }
 }
@@ -93,13 +102,13 @@ async function readProjects(): Promise<Project[]> { // Renamed function and retu
  * @param projects An array of Project objects to write.
  * @returns A promise that resolves when the write operation is complete.
  */
-async function writeProjects(projects: Project[]): Promise<void> { // Renamed function and parameter
+async function writeProjects(projects: Project[]): Promise<void> {
     try {
         await fs.writeFile(DB_PATH, JSON.stringify(projects, null, 2), 'utf8');
-        console.log("Project data written to DB_PATH successfully."); // Updated log message
+        console.log("Project data written to DB_PATH successfully.");
     } catch (error) {
-        console.error("Error writing project database:", error); // Updated log message
-        throw new Error('Failed to save project data.'); // Updated error message
+        console.error("Error writing project database:", error);
+        throw new Error('Failed to save project data.');
     }
 }
 
@@ -112,15 +121,19 @@ async function writeProjects(projects: Project[]): Promise<void> { // Renamed fu
  * @param projectData Data for the new project.
  * @returns A promise that resolves to the newly created Project object.
  */
-export async function addProject(projectData: AddProjectData): Promise<Project> { // Renamed function and parameter types
-    console.log('Adding new project:', projectData.title, 'by', projectData.createdBy); // Updated log message
-    const projects = await readProjects(); // Renamed variable
+export async function addProject(projectData: AddProjectData): Promise<Project> {
+    console.log('Adding new project:', projectData.title, 'by', projectData.createdBy);
+    const projects = await readProjects();
     const now = new Date().toISOString();
+    const projectId = `project_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const projectTitleSanitized = sanitizeForPath(projectData.title);
+    const basePath = `projects/${projectId}-${projectTitleSanitized}`;
 
-    // Add timestamps to initial files
-    const filesWithTimestamps = projectData.initialFiles.map(file => ({
+    // Add timestamps and paths to initial files
+    const filesWithMetadata: FileEntry[] = projectData.initialFiles.map(file => ({
         ...file,
         timestamp: now,
+        path: `${basePath}/${file.name}`,
     }));
 
     // Define the initial workflow state
@@ -128,51 +141,45 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
     const initialAssignedDivision = 'Admin Proyek'; // Assigned to Project Admin
     const initialNextAction = 'Upload Offer Document'; // Next step for Project Admin
 
-    const newProject: Project = { // Renamed variable and type
-        id: `project_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`, // Updated ID prefix
+    const newProject: Project = {
+        id: projectId,
         title: projectData.title,
         status: initialStatus,
         progress: 10, // Start progress slightly higher as initial step is done
         assignedDivision: initialAssignedDivision,
         nextAction: initialNextAction,
         workflowHistory: [
-            { division: projectData.createdBy, action: 'Created Project', timestamp: now }, // Updated action text
-            // Add history entry for initial file uploads if any
-            ...filesWithTimestamps.map(file => ({
+            { division: projectData.createdBy, action: 'Created Project', timestamp: now },
+            ...filesWithMetadata.map(file => ({
                  division: file.uploadedBy,
                  action: `Uploaded initial file: ${file.name}`,
                  timestamp: file.timestamp,
             })),
-            // Add initial assignment history entry
             { division: 'System', action: `Assigned to ${initialAssignedDivision} for ${initialNextAction}`, timestamp: now }
         ],
-        files: filesWithTimestamps, // Save initial files with timestamps
+        files: filesWithMetadata,
         createdAt: now,
         createdBy: projectData.createdBy,
     };
 
-    projects.push(newProject); // Renamed variable
-    await writeProjects(projects); // Renamed function call
-    console.log(`Project "${newProject.title}" (ID: ${newProject.id}) added successfully. Assigned to ${initialAssignedDivision} for ${initialNextAction}.`); // Updated log message
+    projects.push(newProject);
+    await writeProjects(projects);
+    console.log(`Project "${newProject.title}" (ID: ${newProject.id}) added successfully. Assigned to ${initialAssignedDivision} for ${initialNextAction}.`);
 
-    // --- Notify Admin Proyek using Notification Service ---
-    // Notify the 'Admin Proyek' division that a new project requires an offer document.
-    await notifyUsersByRole(initialAssignedDivision, `New project "${newProject.title}" created. Please upload the offer document.`, newProject.id); // Updated notification message
-    // --- End Notification ---
+    await notifyUsersByRole(initialAssignedDivision, `New project "${newProject.title}" created. Please upload the offer document.`, newProject.id);
 
-    return newProject; // Renamed variable
+    return newProject;
 }
 
 /**
  * Retrieves all projects from the database.
  * @returns A promise that resolves to an array of all Project objects.
  */
-export async function getAllProjects(): Promise<Project[]> { // Renamed function and return type
-    console.log("Fetching all projects from database."); // Updated log message
-    const projects = await readProjects(); // Renamed variable
-    // Sort projects by creation date, newest first (optional)
+export async function getAllProjects(): Promise<Project[]> {
+    console.log("Fetching all projects from database.");
+    const projects = await readProjects();
     projects.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    return projects; // Renamed variable
+    return projects;
 }
 
 /**
@@ -180,14 +187,14 @@ export async function getAllProjects(): Promise<Project[]> { // Renamed function
  * @param projectId The ID of the project to find.
  * @returns A promise that resolves to the Project object or null if not found.
  */
-export async function getProjectById(projectId: string): Promise<Project | null> { // Renamed function, parameter, and return type
-    console.log(`Fetching project with ID: ${projectId}`); // Updated log message
-    const projects = await readProjects(); // Renamed variable
-    const project = projects.find(p => p.id === projectId) || null; // Renamed variable
-    if (!project) { // Renamed variable
-        console.warn(`Project with ID "${projectId}" not found.`); // Updated log message
+export async function getProjectById(projectId: string): Promise<Project | null> {
+    console.log(`Fetching project with ID: ${projectId}`);
+    const projects = await readProjects();
+    const project = projects.find(p => p.id === projectId) || null;
+    if (!project) {
+        console.warn(`Project with ID "${projectId}" not found.`);
     }
-    return project; // Renamed variable
+    return project;
 }
 
 /**
@@ -198,56 +205,85 @@ export async function getProjectById(projectId: string): Promise<Project | null>
  * @returns A promise that resolves when the update is complete.
  * @throws An error if the project to update is not found.
  */
-export async function updateProject(updatedProject: Project): Promise<void> { // Renamed function and parameter type
-    console.log(`Updating project with ID: ${updatedProject.id}`); // Updated log message
-    let projects = await readProjects(); // Renamed variable
-    const projectIndex = projects.findIndex(p => p.id === updatedProject.id); // Renamed variable
+export async function updateProject(updatedProject: Project): Promise<void> {
+    console.log(`Updating project with ID: ${updatedProject.id}`);
+    let projects = await readProjects();
+    const projectIndex = projects.findIndex(p => p.id === updatedProject.id);
 
     if (projectIndex === -1) {
-        console.error(`Project with ID "${updatedProject.id}" not found for update.`); // Updated log message
-        throw new Error('PROJECT_NOT_FOUND'); // Updated error message
+        console.error(`Project with ID "${updatedProject.id}" not found for update.`);
+        throw new Error('PROJECT_NOT_FOUND');
     }
 
-    // Ensure workflow history and files are preserved if not explicitly overwritten
-    const originalProject = projects[projectIndex]; // Store original for comparison // Renamed variable
-    projects[projectIndex] = { // Renamed variable
-        ...originalProject,     // Keep existing fields // Renamed variable
-        ...updatedProject,     // Overwrite with new values
-        workflowHistory: updatedProject.workflowHistory || originalProject.workflowHistory, // Renamed variable
-        files: updatedProject.files || originalProject.files, // Renamed variable
+    const originalProject = projects[projectIndex];
+    const projectTitleSanitized = sanitizeForPath(updatedProject.title);
+    const basePath = `projects/${updatedProject.id}-${projectTitleSanitized}`;
+
+    // Ensure new files get a path
+    const updatedFilesWithPath = updatedProject.files.map(file => {
+        if (!file.path) { // If a new file from an update doesn't have a path yet
+            return {
+                ...file,
+                path: `${basePath}/${file.name}`
+            };
+        }
+        return file;
+    });
+
+
+    projects[projectIndex] = {
+        ...originalProject,
+        ...updatedProject,
+        files: updatedFilesWithPath, // Use files with new paths
+        workflowHistory: updatedProject.workflowHistory || originalProject.workflowHistory,
     };
 
-    await writeProjects(projects); // Renamed function call
-    console.log(`Project ${updatedProject.id} updated successfully.`); // Updated log message
+    await writeProjects(projects);
+    console.log(`Project ${updatedProject.id} updated successfully.`);
 
-     // Notify the newly assigned division if it changed and is not empty
-     const newlyAssignedDivision = projects[projectIndex].assignedDivision; // Renamed variable
-     if (newlyAssignedDivision && newlyAssignedDivision !== originalProject.assignedDivision) { // Renamed variable
-        const nextActionDesc = projects[projectIndex].nextAction || 'action'; // Provide a fallback if nextAction is null // Renamed variable
-       await notifyUsersByRole(newlyAssignedDivision, `Project "${projects[projectIndex].title}" requires your ${nextActionDesc}.`, projects[projectIndex].id); // Updated notification message // Renamed variable
+     const newlyAssignedDivision = projects[projectIndex].assignedDivision;
+     if (newlyAssignedDivision && newlyAssignedDivision !== originalProject.assignedDivision) {
+        const nextActionDesc = projects[projectIndex].nextAction || 'action';
+       await notifyUsersByRole(newlyAssignedDivision, `Project "${projects[projectIndex].title}" requires your ${nextActionDesc}.`, projects[projectIndex].id);
      }
 }
 
 
 /**
  * Updates the title of a specific project.
+ * Also updates file paths if the title changes.
  * @param projectId The ID of the project to update.
  * @param newTitle The new title for the project.
  * @returns A promise that resolves when the update is complete.
  * @throws An error if the project is not found.
  */
-export async function updateProjectTitle(projectId: string, newTitle: string): Promise<void> { // Renamed function and parameter
-    console.log(`Updating title for project ID: ${projectId} to "${newTitle}"`); // Updated log message
-     let projects = await readProjects(); // Renamed variable
-     const projectIndex = projects.findIndex(p => p.id === projectId); // Renamed variable
+export async function updateProjectTitle(projectId: string, newTitle: string): Promise<void> {
+    console.log(`Updating title for project ID: ${projectId} to "${newTitle}"`);
+     let projects = await readProjects();
+     const projectIndex = projects.findIndex(p => p.id === projectId);
 
      if (projectIndex === -1) {
-         console.error(`Project with ID "${projectId}" not found for title update.`); // Updated log message
-         throw new Error('PROJECT_NOT_FOUND'); // Updated error message
+         console.error(`Project with ID "${projectId}" not found for title update.`);
+         throw new Error('PROJECT_NOT_FOUND');
      }
 
-     projects[projectIndex].title = newTitle; // Renamed variable
+     const oldTitleSanitized = sanitizeForPath(projects[projectIndex].title);
+     const newTitleSanitized = sanitizeForPath(newTitle);
 
-     await writeProjects(projects); // Renamed function call
-     console.log(`Title for project ${projectId} updated successfully.`); // Updated log message
+     projects[projectIndex].title = newTitle;
+
+     // If title changed, update file paths
+     if (oldTitleSanitized !== newTitleSanitized) {
+        const oldBasePath = `projects/${projectId}-${oldTitleSanitized}`;
+        const newBasePath = `projects/${projectId}-${newTitleSanitized}`;
+        projects[projectIndex].files = projects[projectIndex].files.map(file => ({
+            ...file,
+            path: file.path?.replace(oldBasePath, newBasePath) // Update path if it existed
+        }));
+     }
+
+
+     await writeProjects(projects);
+     console.log(`Title for project ${projectId} updated successfully.`);
 }
+

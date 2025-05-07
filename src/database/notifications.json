@@ -22,5 +22,37 @@
     "message": "Project \"canggu residence\" requires your Generate DP Invoice.",
     "timestamp": "2025-05-05T00:20:09.701Z",
     "isRead": false
+  },
+  {
+    "id": "notif_1746430654616_rwumg",
+    "userId": "usr_ap_ran",
+    "projectId": "project_1746430654602_0hu9m",
+    "message": "New project \"projek villa cemagi\" created. Please upload the offer document.",
+    "timestamp": "2025-05-05T07:37:34.616Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1746430725054_yad9p",
+    "userId": "usr_owner_ran",
+    "projectId": "project_1746430654602_0hu9m",
+    "message": "Project \"projek villa cemagi\" requires your Approve Offer Document.",
+    "timestamp": "2025-05-05T07:38:45.054Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1746430725054_nhne3",
+    "userId": "usr_wayangovina",
+    "projectId": "project_1746430654602_0hu9m",
+    "message": "Project \"projek villa cemagi\" requires your Approve Offer Document.",
+    "timestamp": "2025-05-05T07:38:45.054Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1746430725054_1n6jz",
+    "userId": "usr_1746133383687_vijmn",
+    "projectId": "project_1746430654602_0hu9m",
+    "message": "Project \"projek villa cemagi\" requires your Approve Offer Document.",
+    "timestamp": "2025-05-05T07:38:45.054Z",
+    "isRead": true
   }
 ]
