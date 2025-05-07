@@ -139,7 +139,7 @@ const id = {
     noProjectsFound: 'Tidak ada proyek yang cocok dengan filter saat ini.',
     viewDetails: 'Lihat Detail',
     backToList: 'Kembali ke Daftar',
-    downloadFileTooltip: 'Unduh File',
+    downloadFileTooltip: 'Unduh File (.txt)',
      toast: {
         permissionDenied: 'Izin Ditolak',
         notYourTurn: 'Bukan giliran Anda untuk memperbarui progres.',
@@ -169,7 +169,7 @@ const id = {
         eventId: 'ID Acara: {id}',
         errorFindingSchedule: 'Kesalahan',
         couldNotFindSchedule: 'Tidak dapat menemukan informasi penjadwalan.',
-        downloadStarted: 'Unduhan Dimulai',
+        downloadStarted: 'Unduhan Dimulai (Simulasi sebagai .txt)',
       }
   },
    // Add Project Page
@@ -361,8 +361,8 @@ const id = {
        canceledProjectsShort: "Dibatalkan",
        inProgressProjects: "Proyek Sedang Berjalan:", // New
        inProgressProjectsShort: "Sedang Berjalan", // New
-       downloadExcel: "Unduh Excel",
-       downloadPdf: "Unduh PDF",
+       downloadExcel: "Unduh Excel (.txt)",
+       downloadPdf: "Unduh PDF (.txt)",
        downloadingButton: "Mengunduh...",
        errorGeneratingReport: "Kesalahan saat membuat laporan.",
        errorDownloadingReport: "Kesalahan saat mengunduh laporan.",
@@ -375,8 +375,8 @@ const id = {
        tableHeaderCompletionDate: "Tanggal Selesai/Batal", // Kept for backward compatibility
        tableHeaderContributors: "Kontributor",
        toast: {
-           downloadedExcel: "Laporan Excel Diunduh",
-           downloadedPdf: "Laporan PDF Diunduh",
+           downloadedExcel: "Laporan Excel (Simulasi TXT) Diunduh",
+           downloadedPdf: "Laporan PDF (Simulasi TXT) Diunduh",
        }
    },
    // Notifications (General)
@@ -397,3 +397,4 @@ const id = {
 };
 
 export default id;
+

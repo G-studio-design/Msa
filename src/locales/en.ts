@@ -139,7 +139,7 @@ const en = {
     noProjectsFound: 'No projects match the current filters.',
     viewDetails: 'View Details',
     backToList: 'Back to List',
-    downloadFileTooltip: 'Download File',
+    downloadFileTooltip: 'Download File (.txt)',
     toast: {
       permissionDenied: 'Permission Denied',
       notYourTurn: 'Not your turn to update progress.',
@@ -169,7 +169,7 @@ const en = {
       eventId: 'Event ID: {id}',
       errorFindingSchedule: 'Error',
       couldNotFindSchedule: 'Could not find scheduling information.',
-      downloadStarted: 'Download Started',
+      downloadStarted: 'Download Started (Simulated as .txt)',
     }
   },
   // Add Project Page
@@ -361,8 +361,8 @@ const en = {
       canceledProjectsShort: "Canceled",
       inProgressProjects: "In Progress Projects:", // New
       inProgressProjectsShort: "In Progress", // New
-      downloadExcel: "Download Excel",
-      downloadPdf: "Download PDF",
+      downloadExcel: "Download Excel (.txt)",
+      downloadPdf: "Download PDF (.txt)",
       downloadingButton: "Downloading...",
       errorGeneratingReport: "Error generating report.",
       errorDownloadingReport: "Error downloading report.",
@@ -375,8 +375,8 @@ const en = {
       tableHeaderCompletionDate: "Completion/Cancel Date", // Kept for backward compatibility if some logic uses it, prefer LastActivityDate
       tableHeaderContributors: "Contributors",
       toast: {
-          downloadedExcel: "Excel Report Downloaded",
-          downloadedPdf: "PDF Report Downloaded",
+          downloadedExcel: "Excel Report (Simulated TXT) Downloaded",
+          downloadedPdf: "PDF Report (Simulated TXT) Downloaded",
       }
   },
   // Notifications (General)
@@ -397,3 +397,4 @@ const en = {
 };
 
 export default en;
+

@@ -700,42 +700,27 @@ export default function ProjectsPage() {
     const canDownloadFiles = React.useMemo(() => currentUser && ['Owner', 'General Admin'].includes(currentUser.role), [currentUser]);
 
 
-   // File download function (Simulation)
+   // File download function (Simulation for .txt files)
    const handleDownloadFile = (file: FileEntry) => {
-        // Important: This function currently simulates a download.
-        // For a real download, you need server-side logic to retrieve the file
-        // from storage (e.g., Firebase Storage, local filesystem if self-hosted)
-        // and serve it to the client.
+        if (!isClient) return; // Ensure this runs only on client
 
         console.log(`Simulating download for file: ${file.name} from path: ${file.path}`);
         setIsDownloading(true); // Start download indicator
 
-        // --- Simulation ---
-        // In a real app:
-        // 1. Make an API call to a server endpoint, passing the file identifier (e.g., file.path or file.id).
-        // 2. Server-side: Validate permissions, fetch the file from storage based on the path.
-        // 3. Server-side: Send the file back to the client with appropriate headers
-        //    (e.g., Content-Disposition: attachment; filename="your_file_name.ext", Content-Type).
-        // 4. Client-side: The browser will handle the download prompt based on the response headers.
+        // Simulate file content based on name and path
+        const fileContent = `Simulated content for ${file.name}.\nOriginal path: ${file.path}.\nUploaded by ${file.uploadedBy} on ${formatDateOnly(file.timestamp)}.`;
+        const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${file.name}.txt`; // Always download as .txt for simulation
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
 
-        // Simulate delay
-        setTimeout(() => {
-            // Simulate creating a dummy file and triggering download link
-            const fileContent = `Simulated content for ${file.name}. Original path: ${file.path}. Uploaded by ${file.uploadedBy}.`;
-            const blob = new Blob([fileContent], { type: 'text/plain' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = file.name;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            toast({ title: projectsDict.toast.downloadStarted, description: `Downloading ${file.name}...` });
-            setIsDownloading(false); // End download indicator
-        }, 1000);
-        // --- End Simulation ---
+        toast({ title: projectsDict.toast.downloadStarted, description: `Simulated download of ${file.name}.txt` });
+        setIsDownloading(false); // End download indicator
     };
 
 

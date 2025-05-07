@@ -148,7 +148,7 @@ export default function MonthlyReportPage() {
                 projectCreationDate = new Date(project.createdAt);
             } catch (e) {
                 console.warn(`Invalid creation date for project ${project.id}: ${project.createdAt}. Skipping.`);
-                continue; 
+                continue;
             }
 
             const completionDate = getFinalStatusTimestamp(project, 'Completed');
@@ -172,13 +172,13 @@ export default function MonthlyReportPage() {
                 if (cancellationDate && cancellationDate < startDateOfMonth) {
                     continue; // Canceled before this month
                 }
-                
+
                 // If it reaches here, it was active during the month or started during the month and wasn't finalized before it.
                 // Or it was finalized *after* this month (meaning it was in progress during this month).
                 inProgressThisMonth.push(project);
             }
         }
-        
+
         setReportData({
             completed: completedThisMonth,
             canceled: canceledThisMonth,
@@ -198,22 +198,64 @@ export default function MonthlyReportPage() {
     if (!reportData) return;
     setIsDownloading(true);
 
-    console.warn(`Calling simulated report generation for ${format}. Actual download is not implemented.`);
-
     try {
       const monthName = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1).toLocaleString(language, { month: 'long' });
-      const filename = `Monthly_Report_${monthName}_${selectedYear}`;
+      const filenameBase = `Monthly_Report_${monthName}_${selectedYear}`;
+      let fileContent = `Report for: ${monthName} ${selectedYear}\n\n`;
+      fileContent += `Total Projects: ${reportData.completed.length + reportData.canceled.length + reportData.inProgress.length}\n`;
+      fileContent += `Completed: ${reportData.completed.length}\n`;
+      fileContent += `Canceled: ${reportData.canceled.length}\n`;
+      fileContent += `In Progress: ${reportData.inProgress.length}\n\n`;
+
+      fileContent += "--- Completed Projects ---\n";
+      reportData.completed.forEach(p => {
+        fileContent += `Title: ${p.title}, Status: ${getTranslatedStatus(p.status)}, Last Activity: ${formatDateOnly(p.workflowHistory[p.workflowHistory.length-1]?.timestamp || p.createdAt)}\n`;
+      });
+
+      fileContent += "\n--- Canceled Projects ---\n";
+      reportData.canceled.forEach(p => {
+        fileContent += `Title: ${p.title}, Status: ${getTranslatedStatus(p.status)}, Last Activity: ${formatDateOnly(p.workflowHistory[p.workflowHistory.length-1]?.timestamp || p.createdAt)}\n`;
+      });
+
+      fileContent += "\n--- In Progress Projects ---\n";
+      reportData.inProgress.forEach(p => {
+        fileContent += `Title: ${p.title}, Status: ${getTranslatedStatus(p.status)}, Last Activity: ${formatDateOnly(p.workflowHistory[p.workflowHistory.length-1]?.timestamp || p.createdAt)}\n`;
+      });
+
+      let blobType = 'text/plain';
+      let fileExtension = '.txt';
+      let toastTitle = '';
+      let toastDescription = '';
 
       if (format === 'excel') {
-        await generateExcelReport(reportData.completed, reportData.canceled, reportData.inProgress, filename);
-        toast({ title: reportDict.toast.downloadedExcel, description: `Simulation complete for ${filename}.xlsx` });
-      } else {
-        await generatePdfReport(reportData.completed, reportData.canceled, reportData.inProgress, filename);
-        toast({ title: reportDict.toast.downloadedPdf, description: `Simulation complete for ${filename}.pdf` });
+        // Server-side simulation (logging only)
+        await generateExcelReport(reportData.completed, reportData.canceled, reportData.inProgress, filenameBase);
+        blobType = 'text/csv;charset=utf-8;'; // Simulate CSV for Excel
+        toastTitle = reportDict.toast.downloadedExcel;
+        toastDescription = `Simulated download of ${filenameBase}${fileExtension}`;
+      } else { // PDF
+        // Server-side simulation (logging only)
+        await generatePdfReport(reportData.completed, reportData.canceled, reportData.inProgress, filenameBase);
+        toastTitle = reportDict.toast.downloadedPdf;
+        toastDescription = `Simulated download of ${filenameBase}${fileExtension}`;
       }
+
+      // Client-side download simulation
+      const blob = new Blob([fileContent], { type: blobType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${filenameBase}${fileExtension}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({ title: toastTitle, description: toastDescription });
+
     } catch (error) {
       console.error(`Failed to simulate download for ${format} report:`, error);
-      toast({ variant: 'destructive', title: reportDict.errorDownloadingReport });
+      toast({ variant: 'destructive', title: reportDict.errorDownloadingReport, description: (error as Error).message || 'Unknown error' });
     } finally {
       setIsDownloading(false);
     }
@@ -274,7 +316,7 @@ export default function MonthlyReportPage() {
             return new Date(project.createdAt).getTime();
           } catch { return 0; }
       };
-      return getLastTimestamp(a) - getLastTimestamp(b);
+      return getLastTimestamp(b) - getLastTimestamp(a); // Sort descending (newest first)
   });
 
 
@@ -362,33 +404,30 @@ export default function MonthlyReportPage() {
                                         let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
                                         let badgeClassName = "";
 
-                                        switch (project.status) {
+                                        let displayStatus = project.status;
+                                        // If the project is in the "inProgress" category from reportData, but its status is "Completed" or "Canceled"
+                                        // it means it was completed/canceled *after* the reporting month. For the report, show its status at the end of the month as "In Progress".
+                                        if (reportData.inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
+                                            displayStatus = 'In Progress';
+                                        }
+
+                                        switch (displayStatus) {
                                             case 'Completed':
                                                 statusIcon = <CalendarCheck className="mr-1 h-3 w-3" />;
-                                                badgeVariant = 'default'; 
+                                                badgeVariant = 'default';
                                                 badgeClassName = 'bg-green-500 hover:bg-green-600 text-white';
                                                 break;
                                             case 'Canceled':
                                                 statusIcon = <CalendarX className="mr-1 h-3 w-3" />;
-                                                badgeVariant = 'destructive'; 
+                                                badgeVariant = 'destructive';
                                                 break;
                                             case 'In Progress':
                                             default: // For all other in-progress like statuses
                                                 statusIcon = <Activity className="mr-1 h-3 w-3" />;
-                                                badgeVariant = 'secondary'; 
+                                                badgeVariant = 'secondary';
                                                 badgeClassName = 'bg-blue-500 text-white hover:bg-blue-600';
                                                 break;
                                         }
-                                         // If the project is in the "inProgress" category from reportData, but its status is "Completed" or "Canceled"
-                                        // it means it was completed/canceled *after* the reporting month. For the report, show its status at the end of the month.
-                                        let displayStatus = project.status;
-                                        if (reportData.inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
-                                            displayStatus = 'In Progress'; // Or a more generic "Active"
-                                            statusIcon = <Activity className="mr-1 h-3 w-3" />;
-                                            badgeVariant = 'secondary';
-                                            badgeClassName = 'bg-blue-500 text-white hover:bg-blue-600';
-                                        }
-
 
                                         return (
                                             <TableRow key={project.id}>
