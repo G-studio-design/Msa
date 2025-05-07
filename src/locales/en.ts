@@ -345,7 +345,7 @@ const en = {
   // Monthly Report Page
   monthlyReportPage: {
       title: "Monthly Project Report",
-      description: "Summary of projects completed and canceled within the selected month.",
+      description: "Summary of projects active, completed, and canceled within the selected month.",
       selectMonthLabel: "Select Month",
       selectMonthPlaceholder: "Select month",
       selectYearLabel: "Select Year",
@@ -353,23 +353,27 @@ const en = {
       generateReportButton: "Generate Report",
       generatingReportButton: "Generating...",
       noDataForMonth: "No project data found for the selected month and year.",
-      totalProjects: "Total Projects Reviewed:",
-      completedProjects: "Completed Projects:", // Keep for list view if needed
-      completedProjectsShort: "Completed", // Short version for summary
-      canceledProjects: "Canceled Projects:", // Keep for list view if needed
-      canceledProjectsShort: "Canceled", // Short version for summary
+      totalProjects: "Total Projects Reviewed:", // General, specific counts below
+      totalProjectsDesc: "Total: {total} (Completed: {completed}, Canceled: {canceled}, In Progress: {inProgress})",
+      completedProjects: "Completed Projects:",
+      completedProjectsShort: "Completed",
+      canceledProjects: "Canceled Projects:",
+      canceledProjectsShort: "Canceled",
+      inProgressProjects: "In Progress Projects:", // New
+      inProgressProjectsShort: "In Progress", // New
       downloadExcel: "Download Excel",
       downloadPdf: "Download PDF",
       downloadingButton: "Downloading...",
       errorGeneratingReport: "Error generating report.",
       errorDownloadingReport: "Error downloading report.",
-      reportFor: "Report for", // Example: "Report for May 2024"
-      none: "None", // Added translation for 'None'
-      tableCaption: "List of projects completed or canceled in the selected month.", // Added
-      tableHeaderTitle: "Project Title", // Added
-      tableHeaderStatus: "Status", // Added
-      tableHeaderCompletionDate: "Completion/Cancel Date", // Added
-      tableHeaderContributors: "Contributors", // Added
+      reportFor: "Report for",
+      none: "None",
+      tableCaption: "List of projects active, completed, or canceled in the selected month.",
+      tableHeaderTitle: "Project Title",
+      tableHeaderStatus: "Status",
+      tableHeaderLastActivityDate: "Last Activity / End Date", // Changed from CompletionDate
+      tableHeaderCompletionDate: "Completion/Cancel Date", // Kept for backward compatibility if some logic uses it, prefer LastActivityDate
+      tableHeaderContributors: "Contributors",
       toast: {
           downloadedExcel: "Excel Report Downloaded",
           downloadedPdf: "PDF Report Downloaded",
@@ -393,4 +397,3 @@ const en = {
 };
 
 export default en;
-

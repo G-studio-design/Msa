@@ -345,7 +345,7 @@ const id = {
    // Monthly Report Page
    monthlyReportPage: {
        title: "Laporan Proyek Bulanan",
-       description: "Ringkasan proyek yang selesai dan dibatalkan dalam bulan yang dipilih.",
+       description: "Ringkasan proyek aktif, selesai, dan dibatalkan dalam bulan yang dipilih.",
        selectMonthLabel: "Pilih Bulan",
        selectMonthPlaceholder: "Pilih bulan",
        selectYearLabel: "Pilih Tahun",
@@ -354,22 +354,26 @@ const id = {
        generatingReportButton: "Membuat...",
        noDataForMonth: "Tidak ada data proyek ditemukan untuk bulan dan tahun yang dipilih.",
        totalProjects: "Total Proyek Ditinjau:",
-       completedProjects: "Proyek Selesai:", // Keep
-       completedProjectsShort: "Selesai", // Short
-       canceledProjects: "Proyek Dibatalkan:", // Keep
-       canceledProjectsShort: "Dibatalkan", // Short
+       totalProjectsDesc: "Total: {total} (Selesai: {completed}, Dibatalkan: {canceled}, Sedang Berjalan: {inProgress})",
+       completedProjects: "Proyek Selesai:",
+       completedProjectsShort: "Selesai",
+       canceledProjects: "Proyek Dibatalkan:",
+       canceledProjectsShort: "Dibatalkan",
+       inProgressProjects: "Proyek Sedang Berjalan:", // New
+       inProgressProjectsShort: "Sedang Berjalan", // New
        downloadExcel: "Unduh Excel",
        downloadPdf: "Unduh PDF",
        downloadingButton: "Mengunduh...",
        errorGeneratingReport: "Kesalahan saat membuat laporan.",
        errorDownloadingReport: "Kesalahan saat mengunduh laporan.",
-       reportFor: "Laporan untuk", // Example: "Laporan untuk Mei 2024"
-       none: "Tidak Ada", // Added translation for 'None'
-       tableCaption: "Daftar proyek yang selesai atau dibatalkan pada bulan yang dipilih.", // Added
-       tableHeaderTitle: "Judul Proyek", // Added
-       tableHeaderStatus: "Status", // Added
-       tableHeaderCompletionDate: "Tanggal Selesai/Batal", // Added
-       tableHeaderContributors: "Kontributor", // Added
+       reportFor: "Laporan untuk",
+       none: "Tidak Ada",
+       tableCaption: "Daftar proyek aktif, selesai, atau dibatalkan pada bulan yang dipilih.",
+       tableHeaderTitle: "Judul Proyek",
+       tableHeaderStatus: "Status",
+       tableHeaderLastActivityDate: "Aktivitas Terakhir / Tanggal Selesai", // Changed from CompletionDate
+       tableHeaderCompletionDate: "Tanggal Selesai/Batal", // Kept for backward compatibility
+       tableHeaderContributors: "Kontributor",
        toast: {
            downloadedExcel: "Laporan Excel Diunduh",
            downloadedPdf: "Laporan PDF Diunduh",
@@ -393,4 +397,3 @@ const id = {
 };
 
 export default id;
-
