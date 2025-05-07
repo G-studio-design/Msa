@@ -8,7 +8,7 @@ import type { Project } from '@/services/project-service';
 const formatDateForReport = (timestamp: string): string => {
     try {
         return new Date(timestamp).toLocaleDateString('en-US', { // Default to en-US for server-side generation consistency
-            year: 'numeric', month: 'short', day: 'numeric',
+            year: 'numeric', month: 'long', day: 'numeric', // Use long month for PDF
         });
     } catch (e) {
         return "Invalid Date";
@@ -18,7 +18,7 @@ const formatDateForReport = (timestamp: string): string => {
 // Helper to get unique contributors
 const getContributorsString = (project: Project): string => {
     if (!project.files || project.files.length === 0) return "N/A";
-    return [...new Set(project.files.map(f => f.uploadedBy))].join(', ');
+    return [...new Set(project.files.map(f => f.uploadedBy))].join(', ') || "N/A";
 };
 
 
@@ -53,8 +53,6 @@ export async function generateExcelReport(
   canceledProjects.forEach(p => addProjectToCsv(p));
 
   csvContent += "\n# In Progress Projects\n";
-  // For "In Progress" projects in the report, their actual status might be "Completed" or "Canceled" (meaning they were completed/canceled *after* the reporting month).
-  // We should reflect their status *at the end of the reporting month* as "In Progress".
   inProgressProjects.forEach(p => addProjectToCsv(p, "In Progress"));
 
 
@@ -80,46 +78,99 @@ export async function generatePdfReport(
   year: string
 ): Promise<string> {
   console.log(`Generating plain text data for PDF report.`);
-  let textContent = `Monthly Project Report: ${monthName} ${year}\n`;
-  textContent += "====================================================\n\n";
+  const reportDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const totalReviewed = completedProjects.length + canceledProjects.length + inProgressProjects.length;
 
-  textContent += `Total Projects Reviewed: ${completedProjects.length + canceledProjects.length + inProgressProjects.length}\n`;
-  textContent += `  - Completed this month: ${completedProjects.length}\n`;
-  textContent += `  - Canceled this month: ${canceledProjects.length}\n`;
-  textContent += `  - In Progress during month: ${inProgressProjects.length}\n\n`;
+  let textContent = `
+*******************************************************************************
+                      MONTHLY PROJECT STATUS REPORT
+*******************************************************************************
 
+Report Period: ${monthName} ${year}
+Generated On: ${reportDate}
 
-  const addProjectToText = (project: Project, sectionTitle: string, statusOverride?: string) => {
-    textContent += `  Project Title: ${project.title}\n`;
-    textContent += `    Status: ${statusOverride || project.status}\n`;
-    const lastActivityDate = formatDateForReport(project.workflowHistory[project.workflowHistory.length-1]?.timestamp || project.createdAt);
-    textContent += `    Last Activity / End Date: ${lastActivityDate}\n`;
-    textContent += `    Contributors: ${getContributorsString(project)}\n\n`;
+-------------------------------------------------------------------------------
+                                EXECUTIVE SUMMARY
+-------------------------------------------------------------------------------
+Total Projects Reviewed: ${totalReviewed}
+  - Projects Completed This Month: ${completedProjects.length}
+  - Projects Canceled This Month:  ${canceledProjects.length}
+  - Projects In Progress During Month: ${inProgressProjects.length}
+-------------------------------------------------------------------------------
+
+`;
+
+  const addProjectToText = (project: Project, statusOverride?: string) => {
+    const lastActivityEntry = project.workflowHistory[project.workflowHistory.length - 1];
+    const lastActivityDate = lastActivityEntry ? formatDateForReport(lastActivityEntry.timestamp) : formatDateForReport(project.createdAt);
+    const projectStatus = statusOverride || project.status;
+
+    textContent += `  Project Title:      ${project.title}\n`;
+    textContent += `    Status:             ${projectStatus}\n`;
+    if (projectStatus === 'Completed' || projectStatus === 'Canceled') {
+        textContent += `    End Date:           ${lastActivityDate}\n`;
+    } else {
+        textContent += `    Last Activity Date: ${lastActivityDate}\n`;
+    }
+    textContent += `    Contributors:       ${getContributorsString(project)}\n`;
+    textContent += `    Progress:           ${project.progress}%\n`;
+    textContent += `    Created On:         ${formatDateForReport(project.createdAt)} by ${project.createdBy}\n`;
+    textContent += `  ---------------------------------------------------------------------------\n`;
   };
 
-  textContent += "--- COMPLETED PROJECTS THIS MONTH ---\n";
   if (completedProjects.length > 0) {
-    completedProjects.forEach(p => addProjectToText(p, "Completed"));
+    textContent += `
+===============================================================================
+                         PROJECTS COMPLETED THIS MONTH
+===============================================================================\n\n`;
+    completedProjects.forEach(p => addProjectToText(p));
   } else {
-    textContent += "(None)\n\n";
+    textContent += `
+===============================================================================
+                         PROJECTS COMPLETED THIS MONTH
+===============================================================================
+  (No projects were completed this month)
+-------------------------------------------------------------------------------\n\n`;
   }
 
 
-  textContent += "--- CANCELED PROJECTS THIS MONTH ---\n";
   if (canceledProjects.length > 0) {
-    canceledProjects.forEach(p => addProjectToText(p, "Canceled"));
+    textContent += `
+===============================================================================
+                          PROJECTS CANCELED THIS MONTH
+===============================================================================\n\n`;
+    canceledProjects.forEach(p => addProjectToText(p));
   } else {
-    textContent += "(None)\n\n";
+     textContent += `
+===============================================================================
+                          PROJECTS CANCELED THIS MONTH
+===============================================================================
+  (No projects were canceled this month)
+-------------------------------------------------------------------------------\n\n`;
   }
 
-  textContent += "--- PROJECTS IN PROGRESS DURING THIS MONTH ---\n";
   if (inProgressProjects.length > 0) {
-     // As in Excel, reflect their status at the end of the reporting month as "In Progress".
-    inProgressProjects.forEach(p => addProjectToText(p, "In Progress", "In Progress"));
+    textContent += `
+===============================================================================
+                    PROJECTS IN PROGRESS DURING THIS MONTH
+===============================================================================\n\n`;
+    inProgressProjects.forEach(p => addProjectToText(p, "In Progress"));
   } else {
-    textContent += "(None)\n\n";
+    textContent += `
+===============================================================================
+                    PROJECTS IN PROGRESS DURING THIS MONTH
+===============================================================================
+  (No projects were in progress during this month)
+-------------------------------------------------------------------------------\n\n`;
   }
+
+  textContent += `
+*******************************************************************************
+                                END OF REPORT
+*******************************************************************************
+`;
 
   console.log(`Plain text data generation for PDF complete.`);
-  return textContent;
+  return textContent.trim(); // Trim leading/trailing whitespace
 }
+
