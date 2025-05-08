@@ -19,14 +19,13 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'; // Added CardDescription
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Added Alert components
 import { useToast } from '@/hooks/use-toast';
-import { LogIn, Loader2, ShieldCheck, AlertTriangle } from 'lucide-react'; // Added AlertTriangle
+import { LogIn, Loader2, AlertTriangle } from 'lucide-react'; // Removed ShieldCheck
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { verifyUserCredentials, type User } from '@/services/user-service'; // Import local user service functions
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
-import { Separator } from '@/components/ui/separator'; // Import Separator
-
+import { Separator } from '@/components/ui/separator'; // Keep Separator if used elsewhere, remove if not
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -45,7 +44,7 @@ export default function LoginPage() {
   const { setCurrentUser } = useAuth(); // Get setCurrentUser from AuthContext
   const [dict, setDict] = React.useState(defaultDict.login); // Initialize with default dict section
   const [isClient, setIsClient] = React.useState(false);
-  const [isBypassing, setIsBypassing] = React.useState(false); // State for bypass button
+  // Removed isBypassing state
   const [loginError, setLoginError] = React.useState<string | null>(null); // State for specific login errors
   const [isSubmitting, setIsSubmitting] = React.useState(false); // State for login submission
 
@@ -61,15 +60,9 @@ export default function LoginPage() {
 
   // Initialize schemas based on current language dict using useMemo
    const loginSchema = React.useMemo(() => {
-        if (!dict?.validation) {
-             console.warn("Login validation dictionary is not available yet.");
-              // Return a base schema using default English messages as fallback
-              return z.object({
-                username: z.string().min(1, defaultDict.login.validation.usernameRequired),
-                password: z.string().min(1, defaultDict.login.validation.passwordRequired),
-              });
-        }
-        return getLoginSchema(dict.validation);
+        // Use the correct validation object from the dict
+        const validationDict = dict?.validation ?? defaultDict.login.validation;
+        return getLoginSchema(validationDict);
    }, [dict]); // Re-create schema only when dict changes
 
   type LoginFormValues = z.infer<typeof loginSchema>;
@@ -103,8 +96,8 @@ export default function LoginPage() {
         if (user) {
             console.log('Login successful for user:', user.username, 'Role:', user.role);
             // --- Set Current User in Context ---
-             const { password, ...userToStore } = user;
-             setCurrentUser(userToStore);
+             // Password should not be included in user object returned by verifyUserCredentials
+             setCurrentUser(user); // Assuming verifyUserCredentials returns user without password
             // --- End Set Current User ---
             toast({
                 title: dict.success,
@@ -134,55 +127,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleBypassLogin = async () => {
-      setIsBypassing(true);
-      setLoginError(null); // Clear any previous errors
-      console.log('Bypassing login as admin (Development Only)');
-
-      try {
-             const adminUser = await verifyUserCredentials('admin', 'admin123');
-
-            if (adminUser) {
-                const { password, ...adminToStore } = adminUser;
-                setCurrentUser(adminToStore);
-                 toast({
-                    title: dict.bypassTitle,
-                    description: dict.redirecting,
-                    variant: 'default',
-                    duration: 2000,
-                });
-                router.push('/dashboard');
-            } else {
-                 const fallbackAdmin: User = {
-                     id: 'bypass-admin',
-                     username: 'bypass_admin',
-                     role: 'General Admin',
-                     displayName: 'Bypass Admin',
-                     email: 'bypass@example.com',
-                     password: 'admin123' // Use consistent password
-                 };
-                 setCurrentUser(fallbackAdmin);
-                  toast({
-                     title: dict.bypassTitle,
-                     description: dict.redirecting,
-                     variant: 'default',
-                     duration: 2000,
-                 });
-                 router.push('/dashboard');
-                console.warn("Bypassed login with fallback admin object as default admin credentials failed.");
-            }
-
-      } catch (error) {
-         console.error("Error during bypass login:", error);
-         toast({
-             variant: 'destructive',
-             title: 'Bypass Failed',
-             description: 'Could not simulate admin login.',
-         });
-          setIsBypassing(false);
-      }
-      // No need to set isBypassing to false if successful navigation occurs
-  };
+  // Removed handleBypassLogin function
 
 
   return (
@@ -218,7 +163,7 @@ export default function LoginPage() {
                          placeholder={isClient ? dict.usernamePlaceholder : defaultDict.login.usernamePlaceholder}
                          {...field}
                          autoComplete="username"
-                         disabled={isSubmitting || isBypassing} // Disable during submission/bypass
+                         disabled={isSubmitting} // Removed isBypassing from disabled state
                       />
                     </FormControl>
                     <FormMessage />
@@ -237,7 +182,7 @@ export default function LoginPage() {
                         placeholder={isClient ? dict.passwordPlaceholder : defaultDict.login.passwordPlaceholder}
                         {...field}
                         autoComplete="current-password"
-                        disabled={isSubmitting || isBypassing} // Disable during submission/bypass
+                        disabled={isSubmitting} // Removed isBypassing from disabled state
                       />
                     </FormControl>
                     <FormMessage />
@@ -247,7 +192,7 @@ export default function LoginPage() {
               <Button
                  type="submit"
                  className="w-full accent-teal"
-                 disabled={isSubmitting || isBypassing} // Disable during submission/bypass
+                 disabled={isSubmitting} // Removed isBypassing from disabled state
               >
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
                  {isClient ? (isSubmitting ? dict.loggingIn : dict.loginButton) : defaultDict.login.loginButton}
@@ -255,24 +200,7 @@ export default function LoginPage() {
             </form>
           </Form>
 
-           {process.env.NODE_ENV === 'development' && (
-             <>
-                <Separator className="my-6" />
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleBypassLogin}
-                  disabled={isBypassing || isSubmitting} // Disable during bypass/submission
-                >
-                  {isBypassing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
-                   {isClient ? (isBypassing ? dict.bypassing : dict.bypassButton) : defaultDict.login.bypassButton}
-                </Button>
-                <p className="mt-2 text-center text-xs text-muted-foreground">
-                    (Development Only)
-                </p>
-             </>
-            )}
+           {/* Removed Bypass Login section */}
 
         </CardContent>
       </Card>

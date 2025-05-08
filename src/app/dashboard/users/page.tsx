@@ -72,8 +72,8 @@ import {
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Define available roles for selection (excluding Pending)
-const divisions = ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur', 'Admin Developer'];
+// Define available roles for selection (excluding Pending and Admin Developer)
+const divisions = ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur'];
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -112,7 +112,7 @@ export default function ManageUsersPage() {
           setIsLoading(true);
           try {
               // TODO: Secure this endpoint - ideally only callable by authorized roles
-              const fetchedUsers = await getAllUsers();
+              const fetchedUsers = await getAllUsers(); // getAllUsers now filters out Admin Dev
               setUsers(fetchedUsers);
           } catch (error) {
               console.error("Failed to fetch users:", error);
@@ -121,8 +121,8 @@ export default function ManageUsersPage() {
               setIsLoading(false);
           }
       }
-      // Only fetch if the current user has permission
-      if (currentUser && ['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role)) {
+      // Only fetch if the current user has permission (Owner or General Admin)
+      if (currentUser && ['Owner', 'General Admin'].includes(currentUser.role)) {
           fetchUsers();
       } else {
           setIsLoading(false); // Don't show loading if no permission
@@ -141,8 +141,8 @@ export default function ManageUsersPage() {
   type AddUserFormValues = z.infer<typeof addUserSchema>;
   type EditUserFormValues = z.infer<typeof editUserSchema>;
 
-  // Check if current user has permission (Owner, GA, or Admin Developer)
-  const canManageUsers = currentUser && ['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role);
+  // Check if current user has permission (Owner or General Admin)
+  const canManageUsers = currentUser && ['Owner', 'General Admin'].includes(currentUser.role);
 
   const addUserForm = useForm<AddUserFormValues>({
     resolver: zodResolver(addUserSchema),
@@ -191,6 +191,7 @@ export default function ManageUsersPage() {
     console.log('Adding user:', data.username);
     try {
         // TODO: Secure this function call - ensure only authorized roles can execute it server-side
+        // addUser service function already prevents adding 'Admin Developer' role
         const newUser = await addUser(data);
         setUsers([...users, newUser as UserType]);
         toast({ title: usersDict.toast.userAdded, description: usersDict.toast.userAddedDesc.replace('{username}', data.username) });
@@ -217,8 +218,8 @@ export default function ManageUsersPage() {
         editUserForm.clearErrors();
         console.log(`Editing user ${editingUser.id}:`, data.username, data.role);
 
-        // Prevent changing role of last GA if the current user is GA or Admin Dev
-        if (['General Admin', 'Admin Developer'].includes(currentUser.role) && editingUser.role === 'General Admin' && data.role !== 'General Admin') {
+        // Prevent changing role of last GA if the current user is GA
+        if (currentUser.role === 'General Admin' && editingUser.role === 'General Admin' && data.role !== 'General Admin') {
             const gaCount = users.filter(u => u.role === 'General Admin').length;
             if (gaCount <= 1) {
                 toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotChangeLastAdminRole });
@@ -227,21 +228,13 @@ export default function ManageUsersPage() {
             }
         }
 
-         if (currentUser.role === 'Admin Developer' && editingUser.id === currentUser.id && data.role !== 'Admin Developer') {
-             const devAdminCount = users.filter(u => u.role === 'Admin Developer').length;
-             if (devAdminCount <= 1) {
-                  toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotChangeLastDevAdminRole });
-                  setIsProcessing(false);
-                  return;
-             }
-         }
-
+         // Removed Admin Developer checks
 
         try {
             const updatePayload: { userId: string; username: string; role: string; displayName?: string } = {
                  userId: editingUser.id,
                  username: data.username,
-                 role: data.role,
+                 role: data.role, // updateUserProfile already prevents setting role to 'Admin Developer'
             };
              if (data.username !== editingUser.username) {
                  updatePayload.displayName = data.username;
@@ -275,12 +268,14 @@ export default function ManageUsersPage() {
     const userToDelete = users.find(user => user.id === userId);
     if (!userToDelete) return;
 
-     if (['General Admin', 'Admin Developer'].includes(currentUser.role) && currentUser.id === userId) {
+     // Prevent GA from deleting self
+     if (currentUser.role === 'General Admin' && currentUser.id === userId) {
        toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotDeleteSelf });
        return;
      }
 
-     if (['General Admin', 'Admin Developer'].includes(currentUser.role) && userToDelete.role === 'General Admin') {
+     // Prevent deleting last GA if current user is GA
+     if (currentUser.role === 'General Admin' && userToDelete.role === 'General Admin') {
          const gaCount = users.filter(u => u.role === 'General Admin').length;
          if (gaCount <= 1) {
              toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotDeleteLastAdmin });
@@ -288,19 +283,13 @@ export default function ManageUsersPage() {
          }
      }
 
-      if (['General Admin', 'Admin Developer'].includes(currentUser.role) && userToDelete.role === 'Admin Developer') {
-           const devAdminCount = users.filter(u => u.role === 'Admin Developer').length;
-           if (devAdminCount <= 1) {
-               toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotDeleteLastDevAdmin });
-               return;
-           }
-      }
-
+      // Removed Admin Developer checks
 
     setIsProcessing(true);
     console.log('Attempting to delete user:', userId, username);
     try {
          // TODO: Secure this function call - ensure only authorized roles can execute it server-side
+         // deleteUser service function already prevents deleting 'Admin Developer'
         await deleteUser(userId);
         setUsers(users.filter((user) => user.id !== userId));
         setVisiblePasswords(prev => {
@@ -332,15 +321,11 @@ export default function ManageUsersPage() {
    const openEditDialog = (user: UserType) => {
         if (!currentUser) return; // Ensure currentUser is available
 
-        // Pending check removed
-
          let canEditTargetUser = false;
          if (currentUser.role === 'Owner') {
-             canEditTargetUser = true;
+             canEditTargetUser = true; // Owner can edit anyone
          } else if (currentUser.role === 'General Admin') {
-             canEditTargetUser = user.role !== 'Owner';
-         } else if (currentUser.role === 'Admin Developer') {
-             canEditTargetUser = !['Owner', 'General Admin'].includes(user.role);
+             canEditTargetUser = user.role !== 'Owner'; // GA cannot edit Owner
          }
 
          if (!canEditTargetUser) {
@@ -367,13 +352,12 @@ export default function ManageUsersPage() {
           case 'Admin Proyek': return <UserCog className="h-4 w-4 text-orange-600" />;
           case 'Arsitek': return <User className="h-4 w-4 text-green-600" />;
           case 'Struktur': return <User className="h-4 w-4 text-yellow-600" />;
-          case 'Admin Developer': return <Code className="h-4 w-4 text-red-600" />;
-          // Pending icon removed
+          // Removed Admin Developer case
           default: return <User className="h-4 w-4 text-muted-foreground" />;
       }
   }
 
-  // Render Access Denied if not Owner, General Admin, or Admin Developer
+  // Render Access Denied if not Owner or General Admin
   if (!isClient || !canManageUsers) {
       // Show loading skeleton or access denied message
        if (!isClient || isLoading) { // Still loading or hasn't determined user role yet
@@ -477,8 +461,7 @@ export default function ManageUsersPage() {
                                         // Filter roles that the current user (must exist here) can create
                                         .filter(division => {
                                             if (currentUser?.role === 'Owner') return true;
-                                            if (currentUser?.role === 'Admin Developer') return true;
-                                            if (currentUser?.role === 'General Admin') return !['Owner', 'Admin Developer'].includes(division);
+                                            if (currentUser?.role === 'General Admin') return division !== 'Owner'; // GA cannot create Owner
                                             return false;
                                         })
                                         .map((division) => (
@@ -538,29 +521,25 @@ export default function ManageUsersPage() {
                     users.map((user) => {
                        const isSelf = user.id === currentUser?.id; // Check against context user ID
                         const isLastGeneralAdmin = user.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1;
-                        const isLastAdminDeveloper = user.role === 'Admin Developer' && users.filter(u => u.role === 'Admin Developer').length <= 1;
+                        // Removed isLastAdminDeveloper check
 
                          const disableDelete = !canManageUsers ||
-                                                (isSelf && ['General Admin', 'Admin Developer'].includes(currentUser?.role || '')) ||
-                                                (isLastGeneralAdmin && ['General Admin', 'Admin Developer'].includes(currentUser?.role || '')) ||
-                                                (isLastAdminDeveloper && ['General Admin', 'Admin Developer'].includes(currentUser?.role || ''));
+                                                (isSelf && currentUser?.role === 'General Admin') || // GA cannot delete self
+                                                (isLastGeneralAdmin && currentUser?.role === 'General Admin'); // GA cannot delete last GA
+                                                // Removed Admin Developer delete checks
 
                           let disableEdit = !canManageUsers ||
-                                            // user.role === 'Pending' || // Removed Pending check
-                                            (currentUser?.role === 'General Admin' && user.role === 'Owner') ||
-                                            (currentUser?.role === 'Admin Developer' && ['Owner', 'General Admin'].includes(user.role));
+                                            (currentUser?.role === 'General Admin' && user.role === 'Owner'); // GA cannot edit Owner
 
 
                         const isPasswordVisible = visiblePasswords[user.id] || false;
                         const canViewPassword = canManageUsers && (
                             currentUser?.role === 'Owner' ||
-                            currentUser?.role === 'General Admin' ||
-                            (currentUser?.role === 'Admin Developer' && !['Owner', 'General Admin'].includes(user.role))
-                        );
+                            currentUser?.role === 'General Admin'
+                        ); // Only Owner and GA can view passwords
 
 
                         return (
-                          // Removed Pending styling
                           <TableRow key={user.id}>
                             <TableCell className="font-medium break-words">{user.username}</TableCell> {/* Allow username to wrap */}
                              <TableCell className="hidden sm:table-cell"> {/* Hide password cell on small screens */}
@@ -598,7 +577,6 @@ export default function ManageUsersPage() {
                             </TableCell>
                             <TableCell className="text-right space-x-0 sm:space-x-1 whitespace-nowrap"> {/* Adjust spacing and prevent wrap */}
                                {/* Edit User Button */}
-                               {/* user.role !== 'Pending' check removed */}
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -680,8 +658,8 @@ export default function ManageUsersPage() {
                                    value={field.value}
                                    disabled={
                                        isProcessing ||
-                                       (currentUser?.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1) ||
-                                       (currentUser?.role === 'Admin Developer' && editingUser?.id === currentUser?.id && users.filter(u => u.role === 'Admin Developer').length <= 1)
+                                       // Prevent GA from changing role of last GA
+                                       (currentUser?.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1)
                                     }
                                 >
                                     <FormControl>
@@ -693,8 +671,7 @@ export default function ManageUsersPage() {
                                         {divisions
                                             .filter(division => {
                                                 if (currentUser?.role === 'Owner') return true;
-                                                if (currentUser?.role === 'Admin Developer') return true;
-                                                if (currentUser?.role === 'General Admin') return !['Owner', 'Admin Developer'].includes(division);
+                                                if (currentUser?.role === 'General Admin') return division !== 'Owner'; // GA cannot assign Owner role
                                                 return false;
                                             })
                                             .map((division) => (
@@ -708,9 +685,7 @@ export default function ManageUsersPage() {
                                 {(currentUser?.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1) && (
                                     <p className="text-xs text-muted-foreground">{isClient ? usersDict.cannotChangeLastAdminRoleHint : defaultDict.manageUsersPage.cannotChangeLastAdminRoleHint}</p>
                                 )}
-                                 {(currentUser?.role === 'Admin Developer' && editingUser?.id === currentUser?.id && users.filter(u => u.role === 'Admin Developer').length <= 1) && (
-                                     <p className="text-xs text-muted-foreground">{isClient ? usersDict.cannotChangeLastDevAdminRoleHint : defaultDict.manageUsersPage.cannotChangeLastDevAdminRoleHint}</p>
-                                 )}
+                                 {/* Removed Admin Developer Hint */}
                               </FormItem>
                             )}
                         />

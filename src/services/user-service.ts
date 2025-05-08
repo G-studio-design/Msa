@@ -15,7 +15,6 @@ export interface User {
     email?: string;
     whatsappNumber?: string; // Added WhatsApp number
     profilePictureUrl?: string; // Added profile picture URL
-    // googleUid removed - no longer used
     displayName?: string;
     createdAt?: string; // Use ISO string for dates
 }
@@ -73,15 +72,18 @@ async function readUsers(): Promise<User[]> {
             return [];
         }
         // Add default empty strings for new fields if they don't exist
-        return (parsedData as any[]).map(user => ({
-            ...user,
-            email: user.email || '',
-            whatsappNumber: user.whatsappNumber || '',
-            profilePictureUrl: user.profilePictureUrl || undefined, // Keep undefined if not present
-            displayName: user.displayName || user.username, // Set displayName default to username
-            role: user.role === 'Pending' ? 'Arsitek' : user.role, // Convert any lingering Pending roles
-            googleUid: undefined, // Ensure googleUid is removed
-        })) as User[];
+        // Remove 'Admin Developer' role if found
+        return (parsedData as any[])
+            .filter(user => user.role !== 'Admin Developer') // Filter out Admin Developer role
+            .map(user => ({
+                ...user,
+                email: user.email || '',
+                whatsappNumber: user.whatsappNumber || '',
+                profilePictureUrl: user.profilePictureUrl || undefined, // Keep undefined if not present
+                displayName: user.displayName || user.username, // Set displayName default to username
+                role: user.role, // Keep the existing role (after filtering)
+                googleUid: undefined, // Ensure googleUid is removed
+            })) as User[];
     } catch (error) {
         console.error("Error reading or parsing user database:", error);
         try {
@@ -103,10 +105,13 @@ async function readUsers(): Promise<User[]> {
 async function writeUsers(users: User[]): Promise<void> {
     try {
         // Ensure no passwordHash fields are written and googleUid is removed
-        const usersToWrite = users.map(u => {
-            const { passwordHash, googleUid, ...userWithoutSensitive } = u as any;
-            return userWithoutSensitive;
-        });
+        // Ensure no Admin Developer roles are written back (redundant if readUsers filters, but safe)
+        const usersToWrite = users
+            .filter(u => u.role !== 'Admin Developer')
+            .map(u => {
+                const { passwordHash, googleUid, ...userWithoutSensitive } = u as any;
+                return userWithoutSensitive;
+            });
         await fs.writeFile(DB_PATH, JSON.stringify(usersToWrite, null, 2), 'utf8');
         console.log("User data written to DB_PATH successfully."); // Log success
     } catch (error) {
@@ -125,8 +130,8 @@ async function writeUsers(users: User[]): Promise<void> {
 export async function findUserByUsername(username: string): Promise<User | null> {
     const users = await readUsers();
     const lowerCaseUsername = username.toLowerCase();
-    // Ensure we don't return 'Pending' users if any somehow remain
-    return users.find(u => u.username.toLowerCase() === lowerCaseUsername && u.role !== 'Pending') || null;
+    // Ensure we don't return 'Pending' users or 'Admin Developer'
+    return users.find(u => u.username.toLowerCase() === lowerCaseUsername && u.role !== 'Admin Developer') || null;
 }
 
 /**
@@ -136,8 +141,8 @@ export async function findUserByUsername(username: string): Promise<User | null>
  */
 export async function findUserById(userId: string): Promise<User | null> {
     const users = await readUsers();
-    // Ensure we don't return 'Pending' users if any somehow remain
-    return users.find(u => u.id === userId && u.role !== 'Pending') || null;
+    // Ensure we don't return 'Pending' users or 'Admin Developer'
+    return users.find(u => u.id === userId && u.role !== 'Admin Developer') || null;
 }
 
 /**
@@ -145,19 +150,17 @@ export async function findUserById(userId: string): Promise<User | null> {
  * SECURITY RISK: This is insecure. Use password hashing in production.
  * @param username The username.
  * @param password The plain text password to verify.
- * @returns A promise that resolves to the User object if credentials are valid, otherwise null.
+ * @returns A promise that resolves to the User object (without password) if credentials are valid, otherwise null.
  */
-export async function verifyUserCredentials(username: string, password: string): Promise<User | null> {
+export async function verifyUserCredentials(username: string, password: string): Promise<Omit<User, 'password'> | null> {
     console.log(`Verifying credentials for username: "${username}"`);
     const user = await findUserByUsername(username);
 
     if (!user) {
-        console.log(`User "${username}" not found.`);
+        console.log(`User "${username}" not found or is Admin Developer.`);
         return null;
     }
     console.log(`User "${username}" found. ID: ${user.id}, Role: ${user.role}`);
-
-    // Pending role check removed
 
     if (!user.password) {
          console.error(`Login failed for ${username}: User has no password stored.`);
@@ -178,17 +181,18 @@ export async function verifyUserCredentials(username: string, password: string):
 /**
  * Adds a new user directly (typically by an admin). Stores password in plain text.
  * SECURITY RISK: Storing plain text passwords is highly insecure.
+ * Cannot add user with 'Admin Developer' role.
  *
  * @param userData Data for the new user (username, password, role).
  * @returns A promise that resolves to the newly created User object (without password).
- * @throws An error if the username already exists or another issue occurs.
+ * @throws An error if the username already exists, role is 'Admin Developer', or another issue occurs.
  */
 export async function addUser(userData: AddUserData): Promise<Omit<User, 'password'>> {
     console.log('Attempting to add user:', userData.username, userData.role);
     const users = await readUsers();
 
-    if (userData.role === 'Pending') {
-        console.error('Cannot add user with role "Pending".');
+    if (userData.role === 'Admin Developer') {
+        console.error('Cannot add user with role "Admin Developer".');
         throw new Error('INVALID_ROLE');
     }
 
@@ -219,19 +223,32 @@ export async function addUser(userData: AddUserData): Promise<Omit<User, 'passwo
 }
 
 /**
- * Deletes a user account.
+ * Deletes a user account. Cannot delete 'Admin Developer'.
  * @param userId The ID of the user to delete.
  * @returns A promise that resolves when the operation is complete.
- * @throws An error if the user is not found.
+ * @throws An error if the user is not found or is an Admin Developer.
  */
 export async function deleteUser(userId: string): Promise<void> {
     console.log(`Attempting to delete user with ID: ${userId}`);
     let users = await readUsers();
+    const userToDelete = users.find(u => u.id === userId);
+
+    if (!userToDelete) {
+        console.error(`User with ID "${userId}" not found for deletion.`);
+        throw new Error('USER_NOT_FOUND');
+    }
+
+    if (userToDelete.role === 'Admin Developer') {
+        console.error(`Cannot delete user with role "Admin Developer". ID: ${userId}`);
+        throw new Error('CANNOT_DELETE_ADMIN_DEVELOPER'); // Specific error
+    }
+
     const initialLength = users.length;
     users = users.filter(u => u.id !== userId);
 
     if (users.length === initialLength) {
-        console.error(`User with ID "${userId}" not found for deletion.`);
+        // This case should technically not be reached due to the find check, but kept as safeguard
+        console.error(`User with ID "${userId}" not found during filter (unexpected).`);
         throw new Error('USER_NOT_FOUND');
     }
 
@@ -241,9 +258,10 @@ export async function deleteUser(userId: string): Promise<void> {
 
 /**
  * Updates a user's profile information (username, role, email, whatsapp, picture). Password is not updated here.
+ * Cannot update role to 'Admin Developer'.
  * @param updateData Data containing userId and fields to update.
  * @returns A promise that resolves when the operation is complete.
- * @throws An error if the user is not found or the new username is taken.
+ * @throws An error if the user is not found, the new username is taken, or attempting to set role to 'Admin Developer'.
  */
 export async function updateUserProfile(updateData: UpdateProfileData): Promise<void> {
     console.log(`Attempting to update profile for user ID: ${updateData.userId}`);
@@ -256,8 +274,8 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
         throw new Error('USER_NOT_FOUND');
     }
 
-    if (updateData.role === 'Pending') {
-         console.error('Cannot update user role to "Pending".');
+    if (updateData.role === 'Admin Developer') {
+         console.error('Cannot update user role to "Admin Developer".');
          throw new Error('INVALID_ROLE');
      }
 
@@ -343,22 +361,14 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
 }
 
 /**
- * Gets all users from the database, including passwords.
+ * Gets all users from the database, including passwords. Excludes 'Admin Developer' role.
  * SECURITY RISK: Returning passwords should only be done for privileged roles (Owner, General Admin).
  * The consuming component (ManageUsersPage) should handle role-based access control.
- * Filters out any 'Pending' users.
- * @returns A promise that resolves to an array of all active User objects (including passwords).
+ * @returns A promise that resolves to an array of all active User objects (excluding Admin Developer, including passwords).
  */
 export async function getAllUsers(): Promise<User[]> {
-    const users = await readUsers();
-    // Filter out pending users before returning
-    const activeUsers = users.filter(u => u.role !== 'Pending');
+    const users = await readUsers(); // readUsers already filters out Admin Developers
     // Return the full user object, including password
     // The frontend will handle displaying/hiding based on the logged-in user's role
-    return activeUsers;
+    return users;
 }
-
-
-// --- Google Sign-In related functions Removed ---
-// export async function findOrCreateUserByGoogleUid(...) {...}
-// export async function activateUser(...) {...}

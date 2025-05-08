@@ -14,9 +14,7 @@ const id = {
     redirecting: 'Mengalihkan ke dasbor...',
     fail: 'Login Gagal',
     invalidCredentials: 'Nama pengguna atau kata sandi salah.',
-    bypassButton: 'Lewati Login sebagai Admin (Dev)',
-    bypassTitle: 'Lewati Login',
-    bypassing: 'Melewati...',
+    // Removed bypass translations
      validation: {
         usernameRequired: 'Nama pengguna wajib diisi.',
         passwordRequired: 'Kata sandi wajib diisi.',

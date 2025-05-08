@@ -14,9 +14,7 @@ const en = {
     redirecting: 'Redirecting to dashboard...',
     fail: 'Login Failed',
     invalidCredentials: 'Invalid username or password.',
-    bypassButton: 'Bypass Login as Admin (Dev)',
-    bypassTitle: 'Bypass Login',
-    bypassing: 'Bypassing...',
+    // Removed bypass translations
     validation: {
         usernameRequired: 'Username is required.',
         passwordRequired: 'Password is required.',

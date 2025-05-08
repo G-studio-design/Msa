@@ -150,12 +150,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [language]);
 
   const menuItems = [
-    { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
-    { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
-    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Developer"] }, // Restricted access
+    { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur"] }, // Removed Admin Developer
+    { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur"] }, // Removed Admin Developer
+    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers" as LayoutDictKeys, roles: ["Owner", "General Admin"] }, // Restricted access, removed Admin Developer
     { href: "/dashboard/admin-actions", icon: UserCog, labelKey: "adminActions" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek"] }, // Added Admin Proyek
     { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport" as LayoutDictKeys, roles: ["Owner", "General Admin"] }, // Added Monthly Report
-    { href: "/dashboard/settings", icon: Settings, labelKey: "settings" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "Admin Developer"] },
+    { href: "/dashboard/settings", icon: Settings, labelKey: "settings" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur"] }, // Removed Admin Developer
   ];
 
   // Filter menu items based on the current user's role from context
@@ -172,7 +172,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           case 'Admin Proyek': return UserCog; // Keep the icon for Admin Proyek
           case 'Arsitek': return User;
           case 'Struktur': return User;
-          case 'Admin Developer': return Code;
+          // Removed Admin Developer case
           default: return User;
       }
   }
@@ -193,7 +193,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
    const getTranslatedRole = (role: string): string => {
        if (!isClient) return '...'; // Avoid server/client mismatch
        const rolesDict = dict?.manageUsersPage?.roles;
-       return rolesDict?.[role as keyof typeof rolesDict] || role; // Fallback to original role
+       // Handle potential undefined rolesDict or specific role key
+       const roleKey = role.replace(/\s+/g, '') as keyof NonNullable<typeof rolesDict>; // Ensure key exists
+       return rolesDict?.[roleKey] || role; // Fallback to original role
    }
 
     // Helper function to format timestamps relatively (or absolute if needed)
