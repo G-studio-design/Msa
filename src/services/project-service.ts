@@ -12,9 +12,13 @@ export interface WorkflowHistoryEntry {
     timestamp: string; // ISO string
 }
 
-// Helper function to sanitize text for use in a path
+// Helper function to sanitize text for use in a path component
 function sanitizeForPath(text: string): string {
-  return text.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_-]/g, '');
+  // Replace spaces with underscores, remove non-alphanumeric characters (except underscore and hyphen)
+  return text
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_-]/g, '');
 }
 
 // Define the structure of an uploaded file entry
@@ -22,7 +26,7 @@ export interface FileEntry {
     name: string;
     uploadedBy: string; // Username or ID of the uploader
     timestamp: string; // ISO string
-    path?: string; // Simulated folder path, e.g., projects/project_id-project_title/filename.ext
+    path: string; // Simulated folder path, e.g., projects/project_id-project_title/filename.ext
     // In a real app, you'd store a URL or file ID here
     // url?: string;
 }
@@ -76,11 +80,12 @@ async function readProjects(): Promise<Project[]> {
             await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
             return [];
         }
+        // Ensure path property exists for all files, construct if missing
         return (parsedData as Project[]).map(project => ({
             ...project,
             files: project.files.map(file => ({
                 ...file,
-                // Ensure path exists, construct if missing (for older data)
+                // Construct path if missing (for older data or initial load)
                 path: file.path || `projects/${project.id}-${sanitizeForPath(project.title)}/${file.name}`
             }))
         }));
@@ -117,6 +122,7 @@ async function writeProjects(projects: Project[]): Promise<void> {
 /**
  * Adds a new project to the database.
  * Initializes the project with the starting workflow state.
+ * Generates a simulated folder path for project files.
  * Notifies the 'Admin Proyek' division using the notification service.
  * @param projectData Data for the new project.
  * @returns A promise that resolves to the newly created Project object.
@@ -127,13 +133,14 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
     const now = new Date().toISOString();
     const projectId = `project_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const projectTitleSanitized = sanitizeForPath(projectData.title);
+    // Define the base path for this project's files (simulated folder)
     const basePath = `projects/${projectId}-${projectTitleSanitized}`;
 
     // Add timestamps and paths to initial files
     const filesWithMetadata: FileEntry[] = projectData.initialFiles.map(file => ({
         ...file,
         timestamp: now,
-        path: `${basePath}/${file.name}`,
+        path: `${basePath}/${file.name}`, // Assign the generated path
     }));
 
     // Define the initial workflow state
@@ -157,15 +164,16 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
             })),
             { division: 'System', action: `Assigned to ${initialAssignedDivision} for ${initialNextAction}`, timestamp: now }
         ],
-        files: filesWithMetadata,
+        files: filesWithMetadata, // Use files with added path and timestamp
         createdAt: now,
         createdBy: projectData.createdBy,
     };
 
     projects.push(newProject);
     await writeProjects(projects);
-    console.log(`Project "${newProject.title}" (ID: ${newProject.id}) added successfully. Assigned to ${initialAssignedDivision} for ${initialNextAction}.`);
+    console.log(`Project "${newProject.title}" (ID: ${newProject.id}) added successfully. Path: ${basePath}. Assigned to ${initialAssignedDivision} for ${initialNextAction}.`);
 
+    // Notify Admin Proyek
     await notifyUsersByRole(initialAssignedDivision, `New project "${newProject.title}" created. Please upload the offer document.`, newProject.id);
 
     return newProject;
@@ -178,6 +186,7 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
 export async function getAllProjects(): Promise<Project[]> {
     console.log("Fetching all projects from database.");
     const projects = await readProjects();
+    // Sort by creation date descending before returning
     projects.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return projects;
 }
@@ -199,7 +208,7 @@ export async function getProjectById(projectId: string): Promise<Project | null>
 
 /**
  * Updates an existing project in the database.
- * Use this for updating status, progress, adding files, history, etc.
+ * Generates paths for any new files added during the update.
  * Notifies the newly assigned division if the assignment changes.
  * @param updatedProject The full project object with updated values.
  * @returns A promise that resolves when the update is complete.
@@ -217,30 +226,45 @@ export async function updateProject(updatedProject: Project): Promise<void> {
 
     const originalProject = projects[projectIndex];
     const projectTitleSanitized = sanitizeForPath(updatedProject.title);
+    // Define the base path using the potentially updated title
     const basePath = `projects/${updatedProject.id}-${projectTitleSanitized}`;
 
-    // Ensure new files get a path
+    // Ensure new files added in this update get a path
     const updatedFilesWithPath = updatedProject.files.map(file => {
-        if (!file.path) { // If a new file from an update doesn't have a path yet
+        // Check if this file entry already has a path (from original project or previous updates)
+        // and if it lacks one (meaning it's newly added in this `updatedProject` payload)
+        if (!file.path) {
+            console.log(`Assigning path to new file "${file.name}" in project ${updatedProject.id}`);
             return {
                 ...file,
-                path: `${basePath}/${file.name}`
+                path: `${basePath}/${file.name}` // Assign the correct path
             };
         }
-        return file;
+        // If title changed, existing paths might need updating (handled in updateProjectTitle)
+        // For this update function, we primarily focus on assigning paths to *new* files.
+        // However, we should ensure the path uses the potentially updated title.
+         const currentFileName = file.name; // Get the filename
+         const expectedPath = `${basePath}/${currentFileName}`;
+         if (file.path !== expectedPath) {
+            console.log(`Correcting path for existing file "${file.name}" due to potential title change. Old: ${file.path}, New: ${expectedPath}`);
+            return { ...file, path: expectedPath };
+         }
+
+        return file; // Return existing file entry as is if path exists and matches
     });
 
 
     projects[projectIndex] = {
-        ...originalProject,
-        ...updatedProject,
-        files: updatedFilesWithPath, // Use files with new paths
-        workflowHistory: updatedProject.workflowHistory || originalProject.workflowHistory,
+        ...originalProject, // Keep original fields not explicitly updated
+        ...updatedProject, // Apply all updates from the payload
+        files: updatedFilesWithPath, // Use files with paths assigned/corrected
+        workflowHistory: updatedProject.workflowHistory || originalProject.workflowHistory, // Merge history if needed
     };
 
     await writeProjects(projects);
     console.log(`Project ${updatedProject.id} updated successfully.`);
 
+     // Notify the newly assigned division if it changed
      const newlyAssignedDivision = projects[projectIndex].assignedDivision;
      if (newlyAssignedDivision && newlyAssignedDivision !== originalProject.assignedDivision) {
         const nextActionDesc = projects[projectIndex].nextAction || 'action';
@@ -251,7 +275,7 @@ export async function updateProject(updatedProject: Project): Promise<void> {
 
 /**
  * Updates the title of a specific project.
- * Also updates file paths if the title changes.
+ * Updates the `path` property for all existing files within that project.
  * @param projectId The ID of the project to update.
  * @param newTitle The new title for the project.
  * @returns A promise that resolves when the update is complete.
@@ -267,23 +291,35 @@ export async function updateProjectTitle(projectId: string, newTitle: string): P
          throw new Error('PROJECT_NOT_FOUND');
      }
 
-     const oldTitleSanitized = sanitizeForPath(projects[projectIndex].title);
+     const originalProject = projects[projectIndex];
+     const oldTitleSanitized = sanitizeForPath(originalProject.title);
      const newTitleSanitized = sanitizeForPath(newTitle);
 
-     projects[projectIndex].title = newTitle;
-
-     // If title changed, update file paths
+     // Only proceed with path updates if the sanitized title actually changes
      if (oldTitleSanitized !== newTitleSanitized) {
-        const oldBasePath = `projects/${projectId}-${oldTitleSanitized}`;
-        const newBasePath = `projects/${projectId}-${newTitleSanitized}`;
-        projects[projectIndex].files = projects[projectIndex].files.map(file => ({
-            ...file,
-            path: file.path?.replace(oldBasePath, newBasePath) // Update path if it existed
-        }));
+         console.log(`Sanitized title changed for project ${projectId}. Updating file paths.`);
+         const oldBasePath = `projects/${projectId}-${oldTitleSanitized}`;
+         const newBasePath = `projects/${projectId}-${newTitleSanitized}`;
+
+         // Update file paths for all existing files
+         projects[projectIndex].files = originalProject.files.map(file => {
+             // Construct the expected new path based on the new title
+             const expectedNewPath = `${newBasePath}/${file.name}`;
+             // Log the change
+             console.log(` -> Updating path for file "${file.name}": From "${file.path}" to "${expectedNewPath}"`);
+             return {
+                 ...file,
+                 path: expectedNewPath // Update the path
+             };
+         });
+     } else {
+        console.log(`Sanitized title for project ${projectId} remains the same. No file path update needed.`);
      }
+
+    // Update the project title itself
+    projects[projectIndex].title = newTitle;
 
 
      await writeProjects(projects);
      console.log(`Title for project ${projectId} updated successfully.`);
 }
-
