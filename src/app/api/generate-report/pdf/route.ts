@@ -1,42 +1,31 @@
 // src/app/api/generate-report/pdf/route.ts
 import { NextResponse } from 'next/server';
 import PdfPrinter from 'pdfmake';
+import pdfMakeLib from 'pdfmake/build/pdfmake.js'; // Import for VFS assignment
+import pdfFonts from 'pdfmake/build/vfs_fonts.js';   // VFS data
 import type { TDocumentDefinitions, TFontDictionary } from 'pdfmake/interfaces';
 import { createPdfDocDefinition } from '@/lib/report-generator';
 import type { Project } from '@/services/project-service';
 
-// Attempt to load vfs_fonts.js
-// This is critical for pdfmake to work correctly with fonts.
-let vfsFonts;
-try {
-    // Use require for vfs_fonts.js as it's typically a CommonJS module that populates pdfMake.vfs
-    vfsFonts = require('pdfmake/build/vfs_fonts.js');
-    if (!vfsFonts || !vfsFonts.pdfMake || !vfsFonts.pdfMake.vfs) {
-        console.error("Critical: pdfmake/build/vfs_fonts.js loaded but pdfMake.vfs is not populated.");
-        // This state will likely lead to errors later, caught by the main try-catch.
-    }
-} catch (e) {
-    console.error("Critical: Failed to require pdfmake/build/vfs_fonts.js.", e);
-    // PDF generation will likely fail if fonts aren't available.
+// Assign VFS to the pdfMake library instance
+// This is the standard way to make fonts available to pdfMake
+if (pdfMakeLib && pdfFonts && pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) {
+  pdfMakeLib.vfs = pdfFonts.pdfMake.vfs;
+} else {
+  console.error("CRITICAL: pdfMake.vfs could not be populated from vfs_fonts.js. PDF generation will likely fail.");
+  // Consider returning an error response immediately if VFS fails to load
 }
 
-// Define font dictionary for PdfPrinter
-// Fallback to empty string for Buffer.from if vfs or font keys are missing to avoid undefined errors.
-// PdfPrinter will later fail if font data is truly missing.
-const fonts: TFontDictionary = {
-  Roboto: {
-    normal: Buffer.from(vfsFonts?.pdfMake?.vfs?.['Roboto-Regular.ttf'] || '', 'base64'),
-    bold: Buffer.from(vfsFonts?.pdfMake?.vfs?.['Roboto-Medium.ttf'] || '', 'base64'),
-    italics: Buffer.from(vfsFonts?.pdfMake?.vfs?.['Roboto-Italic.ttf'] || '', 'base64'),
-    bolditalics: Buffer.from(vfsFonts?.pdfMake?.vfs?.['Roboto-MediumItalic.ttf'] || '', 'base64'),
+// Font descriptors for PdfPrinter. These names must match those in the VFS.
+// When using VFS, pdfmake looks up these font files (e.g., 'Roboto-Regular.ttf') from the pdfMakeLib.vfs object.
+const printerFonts: TFontDictionary = {
+  Roboto: { // This is the font family name you'll use in your document definition styles
+    normal: 'Roboto-Regular.ttf',
+    bold: 'Roboto-Medium.ttf',
+    italics: 'Roboto-Italic.ttf',
+    bolditalics: 'Roboto-MediumItalic.ttf',
   }
 };
-
-// Sanity check for font loading
-if (typeof fonts.Roboto.normal === 'string' || fonts.Roboto.normal.length === 0) {
-    console.warn("Warning: Roboto-Regular font buffer is empty or not a buffer. PDF generation might fail or use default fonts.");
-}
-
 
 export async function POST(request: Request) {
   try {
@@ -54,6 +43,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required report data', details: 'Ensure all project arrays, month, and year are provided.' }, { status: 400 });
     }
 
+    // Ensure VFS is loaded before proceeding, crucial for server environments
+    if (!pdfMakeLib.vfs || Object.keys(pdfMakeLib.vfs).length === 0) {
+        console.error("FATAL: pdfMake.vfs is not loaded or empty. Cannot generate PDF.");
+        return NextResponse.json({ error: 'Internal Server Error', details: 'Font system not initialized for PDF generation.' }, { status: 500 });
+    }
+
+
     const docDefinition = await createPdfDocDefinition(
         completed,
         canceled,
@@ -63,13 +59,13 @@ export async function POST(request: Request) {
         chartImageDataUrl
     );
 
-    const printer = new PdfPrinter(fonts);
+    // Pass the font descriptors to PdfPrinter
+    const printer = new PdfPrinter(printerFonts);
     const pdfDoc = printer.createPdfKitDocument(docDefinition);
 
     const chunks: Buffer[] = [];
     pdfDoc.on('data', chunk => chunks.push(chunk));
     
-    // Wrap stream events in a promise for better error handling
     return await new Promise<NextResponse>((resolvePromise, rejectPromise) => {
         pdfDoc.on('end', () => {
             try {
@@ -88,13 +84,12 @@ export async function POST(request: Request) {
             }
         });
 
-        pdfDoc.on('error', (streamError: Error) => { // Explicitly type streamError
+        pdfDoc.on('error', (streamError: Error) => {
             console.error('Error during PDF stream generation (pdfDoc.on(error)):', streamError);
             rejectPromise(new Error(`PDF stream error: ${streamError.message}`)); 
         });
         pdfDoc.end();
     }).catch(promiseError => {
-        // This .catch() is for the new Promise created for stream handling
         console.error('Error in PDF stream promise chain:', promiseError);
         return NextResponse.json({ 
             error: 'Failed to process PDF stream', 
