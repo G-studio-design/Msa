@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, FileText, Download, Users, CalendarCheck, CalendarX, Activity, BarChart3, CheckSquare, XSquare } from 'lucide-react';
+import { Loader2, FileText, Download, Users, CalendarCheck, CalendarX, Activity, BarChart3, CheckSquare, XSquare, PieChart } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
@@ -37,6 +37,14 @@ import { getAllProjects, type Project } from '@/services/project-service';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { generateExcelReport } from '@/lib/report-generator';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { Pie, ResponsiveContainer, PieChart as RechartsPieChart, Cell } from "recharts";
+import { toPng } from 'html-to-image';
+
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -49,6 +57,12 @@ interface MonthlyReportData {
   year: string;
 }
 
+const CHART_COLORS = {
+    inProgress: "hsl(var(--chart-1))", // Blueish
+    completed: "hsl(var(--chart-2))", // Greenish
+    canceled: "hsl(var(--chart-3))", // Reddish
+};
+
 export default function MonthlyReportPage() {
   const { toast } = useToast();
   const { language } = useLanguage();
@@ -60,9 +74,11 @@ export default function MonthlyReportPage() {
 
   const [isLoading, setIsLoading] = React.useState(false);
   const [isDownloadingExcel, setIsDownloadingExcel] = React.useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = React.useState(false);
   const [selectedMonth, setSelectedMonth] = React.useState<string>(String(new Date().getMonth() + 1).padStart(2, '0'));
   const [selectedYear, setSelectedYear] = React.useState<string>(String(new Date().getFullYear()));
   const [reportData, setReportData] = React.useState<MonthlyReportData | null>(null);
+  const chartRef = React.useRef<HTMLDivElement>(null); // Ref for the chart container
 
   React.useEffect(() => {
     setIsClient(true);
@@ -103,7 +119,7 @@ export default function MonthlyReportPage() {
 
     try {
         const allProjects = await getAllProjects();
-        const month = parseInt(selectedMonth, 10); // 1-indexed
+        const month = parseInt(selectedMonth, 10); 
         const year = parseInt(selectedYear, 10);
 
         const startDateOfMonth = new Date(year, month - 1, 1);
@@ -218,7 +234,57 @@ export default function MonthlyReportPage() {
     } finally {
         setIsDownloadingExcel(false);
     }
-};
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!reportData || !isClient) return;
+    setIsDownloadingPdf(true);
+
+    let chartImageDataUrl: string | undefined = undefined;
+    if (chartRef.current) {
+        try {
+            chartImageDataUrl = await toPng(chartRef.current, { 
+                quality: 0.95, 
+                backgroundColor: 'white', // Important for non-transparent background
+             });
+        } catch (error) {
+            console.error('Error capturing chart image:', error);
+            toast({ variant: 'destructive', title: 'Chart Capture Error', description: 'Could not capture chart image for PDF.' });
+        }
+    }
+
+    try {
+        const response = await fetch('/api/generate-report/pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ...reportData,
+                chartImageDataUrl, // Send chart image data
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: "Unknown error during PDF generation." }));
+            throw new Error(errorData.details || errorData.error || 'Failed to generate PDF report from server.');
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Monthly_Report_${reportData.monthName}_${reportData.year}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast({ title: reportDict.toast?.downloadedPdf || "PDF Report Downloaded", description: `Report ${a.download} downloaded.` });
+    } catch (error) {
+        console.error('Failed to download PDF report:', error);
+        toast({ variant: 'destructive', title: reportDict.errorDownloadingReport || "Download Error", description: (error as Error).message || 'Unknown error during PDF download.' });
+    } finally {
+        setIsDownloadingPdf(false);
+    }
+  };
 
 
   if (!isClient || !currentUser) {
@@ -235,7 +301,8 @@ export default function MonthlyReportPage() {
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-32" />
             </div>
-            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-40 w-full" /> {/* Chart Skeleton */}
+            <Skeleton className="h-40 w-full mt-4" /> {/* Table Skeleton */}
           </CardContent>
         </Card>
       </div>
@@ -296,6 +363,12 @@ export default function MonthlyReportPage() {
       return getLastTimestamp(b) - getLastTimestamp(a);
   });
 
+   const summaryChartData = reportData ? [
+        { name: reportDict.inProgressProjectsShort, value: reportData.inProgress.length, fill: CHART_COLORS.inProgress },
+        { name: reportDict.completedProjectsShort, value: reportData.completed.length, fill: CHART_COLORS.completed },
+        { name: reportDict.canceledProjectsShort, value: reportData.canceled.length, fill: CHART_COLORS.canceled },
+   ].filter(item => item.value > 0) : [];
+
 
   return (
     <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
@@ -351,39 +424,70 @@ export default function MonthlyReportPage() {
 
           {reportData && !isLoading && (
              <>
-                <Card className="mt-6 shadow-md border-primary/30">
-                     <CardHeader className="pb-2">
+                <div ref={chartRef} className="bg-card p-4 rounded-lg shadow-md border-primary/30"> {/* Added ref here for chart capture */}
+                    <CardHeader className="pb-2">
                          <CardTitle className="text-lg flex items-center gap-2">
-                            <BarChart3 className="h-5 w-5 text-primary" />
-                           {reportDict.reportFor} {reportData.monthName} {reportData.year}
+                            <PieChart className="h-5 w-5 text-primary" /> 
+                           {reportDict.reportFor} {reportData.monthName} {reportData.year} - Summary
                         </CardTitle>
                      </CardHeader>
                      <CardContent>
-                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center md:text-left">
-                             <Card className="bg-blue-500/10 p-4 rounded-lg">
-                                 <div className="flex items-center justify-center md:justify-start gap-2">
-                                   <Activity className="h-5 w-5 text-blue-600" />
-                                   <p className="text-sm font-medium text-blue-700">{reportDict.inProgressProjectsShort}</p>
-                                 </div>
-                                 <p className="text-2xl font-bold text-blue-800">{reportData.inProgress.length}</p>
-                             </Card>
-                             <Card className="bg-green-500/10 p-4 rounded-lg">
-                                 <div className="flex items-center justify-center md:justify-start gap-2">
-                                   <CheckSquare className="h-5 w-5 text-green-600" />
-                                   <p className="text-sm font-medium text-green-700">{reportDict.completedProjectsShort}</p>
-                                 </div>
-                                 <p className="text-2xl font-bold text-green-800">{reportData.completed.length}</p>
-                             </Card>
-                             <Card className="bg-red-500/10 p-4 rounded-lg">
-                                <div className="flex items-center justify-center md:justify-start gap-2">
-                                   <XSquare className="h-5 w-5 text-red-600" />
-                                   <p className="text-sm font-medium text-red-700">{reportDict.canceledProjectsShort}</p>
-                                 </div>
-                                 <p className="text-2xl font-bold text-red-800">{reportData.canceled.length}</p>
-                             </Card>
-                         </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                             <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-1 gap-4 text-center md:text-left">
+                                 <Card className="bg-blue-500/10 p-4 rounded-lg">
+                                     <div className="flex items-center justify-center md:justify-start gap-2">
+                                       <Activity className="h-5 w-5 text-blue-600" />
+                                       <p className="text-sm font-medium text-blue-700">{reportDict.inProgressProjectsShort}</p>
+                                     </div>
+                                     <p className="text-2xl font-bold text-blue-800">{reportData.inProgress.length}</p>
+                                 </Card>
+                                 <Card className="bg-green-500/10 p-4 rounded-lg">
+                                     <div className="flex items-center justify-center md:justify-start gap-2">
+                                       <CheckSquare className="h-5 w-5 text-green-600" />
+                                       <p className="text-sm font-medium text-green-700">{reportDict.completedProjectsShort}</p>
+                                     </div>
+                                     <p className="text-2xl font-bold text-green-800">{reportData.completed.length}</p>
+                                 </Card>
+                                 <Card className="bg-red-500/10 p-4 rounded-lg">
+                                    <div className="flex items-center justify-center md:justify-start gap-2">
+                                       <XSquare className="h-5 w-5 text-red-600" />
+                                       <p className="text-sm font-medium text-red-700">{reportDict.canceledProjectsShort}</p>
+                                     </div>
+                                     <p className="text-2xl font-bold text-red-800">{reportData.canceled.length}</p>
+                                 </Card>
+                             </div>
+                             {summaryChartData.length > 0 ? (
+                                <ChartContainer config={{}} className="h-[200px] sm:h-[250px] w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <RechartsPieChart>
+                                            <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                                            <Pie data={summaryChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} labelLine={false} label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+                                                const RADIAN = Math.PI / 180;
+                                                const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                                                const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                                                const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                                                return (
+                                                    <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={10}>
+                                                        {`${(percent * 100).toFixed(0)}%`}
+                                                    </text>
+                                                );
+                                            }}>
+                                                {summaryChartData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                                                ))}
+                                            </Pie>
+                                        </RechartsPieChart>
+                                    </ResponsiveContainer>
+                                </ChartContainer>
+                             ) : (
+                                <div className="flex items-center justify-center h-[200px] text-muted-foreground">
+                                    <PieChart className="h-8 w-8 mr-2"/>
+                                    No data for chart.
+                                </div>
+                             )}
+                        </div>
                      </CardContent>
-                </Card>
+                </div>
 
                 {allReportedProjects.length > 0 ? (
                 <Card className="mt-6 shadow-md">
@@ -458,9 +562,13 @@ export default function MonthlyReportPage() {
                         </ScrollArea>
                     </CardContent>
                     <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 border-t pt-4 mt-4">
-                      <Button variant="outline" onClick={handleDownloadExcel} disabled={isDownloadingExcel} className="w-full sm:w-auto">
+                      <Button variant="outline" onClick={handleDownloadExcel} disabled={isDownloadingExcel || isDownloadingPdf} className="w-full sm:w-auto">
                         {isDownloadingExcel ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
                         {isClient ? (isDownloadingExcel ? reportDict.downloadingButton : reportDict.downloadExcel) : defaultDict.monthlyReportPage.downloadExcel}
+                      </Button>
+                       <Button variant="default" onClick={handleDownloadPdf} disabled={isDownloadingPdf || isDownloadingExcel} className="w-full sm:w-auto">
+                        {isDownloadingPdf ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                        {isClient ? (isDownloadingPdf ? reportDict.downloadingButton : reportDict.downloadPdf) : defaultDict.monthlyReportPage.downloadPdf}
                       </Button>
                     </CardFooter>
                 </Card>
