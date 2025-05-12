@@ -96,10 +96,10 @@ const en = {
     submittingButton: 'Submitting...',
     ownerActionTitle: 'Owner Action Required',
     ownerActionDesc: 'Review the submitted documents and decide whether to proceed.',
-    cancelProgressButton: 'Cancel Project', // Changed from 'Cancel Progress'
+    cancelProgressButton: 'Cancel Project', 
     continueProgressButton: 'Continue Progress',
     cancelDialogTitle: 'Are you sure?',
-    cancelDialogDesc: 'Canceling this project cannot be undone. The status will be marked as Canceled.', // Updated
+    cancelDialogDesc: 'Canceling this project cannot be undone. The status will be marked as Canceled.', 
     cancelDialogCancel: 'Back',
     cancelDialogConfirm: 'Confirm Cancelation',
     scheduleSidangTitle: 'Schedule Sidang ({role})',
@@ -112,11 +112,11 @@ const en = {
     addCalendarButton: 'Add Sidang to Google Calendar',
     addingCalendarButton: 'Adding...',
     sidangOutcomeTitle: 'Declare Sidang Outcome',
-    sidangOutcomeDesc: 'Mark the project as completed successfully or failed based on the sidang results.', // Updated
+    sidangOutcomeDesc: 'Mark the project as completed successfully or failed based on the sidang results.', 
     markSuccessButton: 'Mark as Success',
     markFailButton: 'Mark as Fail',
-    completedMessage: 'Project Completed Successfully!', // Updated
-    canceledMessage: 'Project Canceled', // Updated
+    completedMessage: 'Project Completed Successfully!', 
+    canceledMessage: 'Project Canceled', 
     uploadedFilesTitle: 'Uploaded Files',
     uploadedFilesDesc: 'History of files uploaded during the process.',
     loadingFiles: 'Loading file list...',
@@ -137,7 +137,6 @@ const en = {
     viewDetails: 'View Details',
     backToList: 'Back to List',
     downloadFileTooltip: 'Download File',
-    // Revision specific translations
     reviseProjectTitle: 'Request Revision',
     revisionNoteLabel: 'Revision Note (Required)',
     revisionNotePlaceholder: 'Explain why this project needs revision...',
@@ -156,12 +155,12 @@ const en = {
       progressSubmitted: 'Progress Submitted',
       notifiedNextStep: 'Notified {division} for next step.',
       onlyOwnerDecision: 'Only Owner can make this decision.',
-      projectCanceled: 'Project Canceled', // Updated
+      projectCanceled: 'Project Canceled', 
       offerApproved: 'Offer Approved',
       offerApprovedDesc: 'General Admin notified for DP Invoice.',
       dpApproved: 'DP Invoice Approved',
       dpApprovedDesc: 'Project Admin notified for Admin Files.',
-      progressCompleted: 'Project Completed Successfully!', // Updated
+      progressCompleted: 'Project Completed Successfully!', 
       failNotImplemented: 'Fail logic not implemented yet.',
       missingScheduleInfo: 'Missing Schedule Info',
       provideDateTimeLoc: 'Please provide date, time, and location.',
@@ -357,6 +356,7 @@ const en = {
       generateReportButton: "Generate Report",
       generatingReportButton: "Generating...",
       noDataForMonth: "No project data found for the selected month and year.",
+      tryDifferentMonthYear: "Try selecting a different month or year.",
       totalProjects: "Total Projects Reviewed:",
       totalProjectsDesc: "Total: {total} (Completed: {completed}, Canceled: {canceled}, In Progress: {inProgress})",
       completedProjects: "Completed Projects:",

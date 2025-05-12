@@ -29,13 +29,12 @@ import {
 } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, FileText, Download, Users, CalendarCheck, CalendarX, Activity } from 'lucide-react'; // Added Activity icon
+import { Loader2, FileText, Download, Users, CalendarCheck, CalendarX, Activity, BarChart3, CheckSquare, XSquare } from 'lucide-react'; // Added BarChart3, CheckSquare, XSquare
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAllProjects, type Project, type WorkflowHistoryEntry } from '@/services/project-service';
-import { generateExcelReport } from '@/lib/report-generator'; // generatePdfReport will be called via API
+import { getAllProjects, type Project } from '@/services/project-service';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
@@ -46,6 +45,8 @@ interface MonthlyReportData {
   completed: Project[];
   canceled: Project[];
   inProgress: Project[];
+  monthName: string;
+  year: string;
 }
 
 export default function MonthlyReportPage() {
@@ -58,7 +59,8 @@ export default function MonthlyReportPage() {
   const [dashboardDict, setDashboardDict] = React.useState(() => dict.dashboardPage);
 
   const [isLoading, setIsLoading] = React.useState(false);
-  const [isDownloading, setIsDownloading] = React.useState(false);
+  const [isDownloadingExcel, setIsDownloadingExcel] = React.useState(false);
+  const [isDownloadingPdf, setIsDownloadingPdf] = React.useState(false);
   const [selectedMonth, setSelectedMonth] = React.useState<string>(String(new Date().getMonth() + 1).padStart(2, '0'));
   const [selectedYear, setSelectedYear] = React.useState<string>(String(new Date().getFullYear()));
   const [reportData, setReportData] = React.useState<MonthlyReportData | null>(null);
@@ -107,26 +109,25 @@ export default function MonthlyReportPage() {
 
         const startDateOfMonth = new Date(year, month - 1, 1);
         startDateOfMonth.setHours(0, 0, 0, 0);
-        const endDateOfMonth = new Date(year, month, 0); // Last day of the (selected month - 1), effectively the last day of selected month
+        const endDateOfMonth = new Date(year, month, 0); 
         endDateOfMonth.setHours(23, 59, 59, 999);
+        
+        const monthName = startDateOfMonth.toLocaleString(language, { month: 'long' });
+
 
         const getFinalStatusTimestamp = (project: Project, targetStatus: 'Completed' | 'Canceled'): Date | null => {
             const actionKeywords = targetStatus === 'Completed'
-                ? ['completed', 'success'] // Keywords indicating completion
-                : ['cancel']; // Keywords indicating cancellation
+                ? ['completed', 'success', 'marked as completed', 'marked as success'] 
+                : ['cancel', 'canceled project']; 
 
-            // Search backwards through history for the relevant action
             for (let i = project.workflowHistory.length - 1; i >= 0; i--) {
                 const entry = project.workflowHistory[i];
                 if (actionKeywords.some(keyword => entry.action.toLowerCase().includes(keyword))) {
                     try {
                         return new Date(entry.timestamp);
-                    } catch (e) { return null; } // Invalid timestamp
+                    } catch (e) { return null; } 
                 }
             }
-            // If current status matches target but no explicit history entry found,
-            // use the timestamp of the last history entry if the project's current status is the target status.
-            // This handles cases where status might be set without a specific "Marked as X" action.
             if (project.status === targetStatus && project.workflowHistory.length > 0) {
                  const lastEntry = project.workflowHistory[project.workflowHistory.length -1];
                  if (lastEntry && lastEntry.timestamp) {
@@ -159,22 +160,15 @@ export default function MonthlyReportPage() {
             } else if (project.status === 'Canceled' && cancellationDate && cancellationDate >= startDateOfMonth && cancellationDate <= endDateOfMonth) {
                 canceledThisMonth.push(project);
             } else {
-                // Check for "In Progress" during the month
-                // 1. Project must be created on or before the last day of the reporting month.
                 if (projectCreationDate > endDateOfMonth) {
                     continue;
                 }
-
-                // 2. Project must not have been completed or canceled *before* the start of the reporting month.
                 if (completionDate && completionDate < startDateOfMonth) {
-                    continue; // Completed before this month
+                    continue; 
                 }
                 if (cancellationDate && cancellationDate < startDateOfMonth) {
-                    continue; // Canceled before this month
+                    continue; 
                 }
-
-                // If it reaches here, it was active during the month or started during the month and wasn't finalized before it.
-                // Or it was finalized *after* this month (meaning it was in progress during this month).
                 inProgressThisMonth.push(project);
             }
         }
@@ -183,6 +177,8 @@ export default function MonthlyReportPage() {
             completed: completedThisMonth,
             canceled: canceledThisMonth,
             inProgress: inProgressThisMonth,
+            monthName: monthName,
+            year: selectedYear
         });
 
     } catch (error: any) {
@@ -194,26 +190,44 @@ export default function MonthlyReportPage() {
   };
 
 
-  const handleDownload = async (format: 'excel' | 'pdf') => {
+  const handleDownloadExcel = async () => {
     if (!reportData || !isClient) return;
-    setIsDownloading(true);
-
+    setIsDownloadingExcel(true);
     try {
-      const monthName = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1).toLocaleString(language, { month: 'long' });
-      const filenameBase = `Monthly_Report_${monthName}_${selectedYear}`;
+        const filenameBase = `Monthly_Report_${reportData.monthName}_${reportData.year}`;
+        // Dynamically import to avoid issues if generateExcelReport is large or has many deps
+        const { generateExcelReport } = await import('@/lib/report-generator');
+        const fileContent = await generateExcelReport(reportData.completed, reportData.canceled, reportData.inProgress);
+        
+        if (!fileContent.trim()) {
+            toast({ variant: 'destructive', title: "Report Empty", description: `The generated Excel report content is empty.` });
+            setIsDownloadingExcel(false);
+            return;
+        }
 
-      let fileContent: string | Blob; // Changed to Blob for PDF
-      let blobType = '';
-      let fileExtension = '';
-      let toastTitle = '';
+        const blob = new Blob([fileContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filenameBase}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast({ title: reportDict.toast?.downloadedExcel || "Excel Report Downloaded", description: `Report ${a.download} downloaded.` });
+    } catch (error) {
+        console.error(`Failed to download Excel report:`, error);
+        toast({ variant: 'destructive', title: reportDict.errorDownloadingReport || "Download Error", description: (error as Error).message || 'Unknown error' });
+    } finally {
+        setIsDownloadingExcel(false);
+    }
+};
 
-      if (format === 'excel') {
-        fileContent = await generateExcelReport(reportData.completed, reportData.canceled, reportData.inProgress);
-        blobType = 'text/csv;charset=utf-8;';
-        fileExtension = '.csv';
-        toastTitle = reportDict.toast?.downloadedExcel || "Excel Report Downloaded";
-      } else { // PDF
-        // Call the API route for PDF generation
+  const handleDownloadPdf = async () => {
+    if (!reportData || !isClient) return;
+    setIsDownloadingPdf(true);
+    try {
+        const filenameBase = `Monthly_Report_${reportData.monthName}_${reportData.year}`;
         const response = await fetch('/api/generate-report/pdf', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -221,8 +235,8 @@ export default function MonthlyReportPage() {
                 completed: reportData.completed,
                 canceled: reportData.canceled,
                 inProgress: reportData.inProgress,
-                monthName,
-                year: selectedYear,
+                monthName: reportData.monthName,
+                year: reportData.year,
             }),
         });
 
@@ -232,37 +246,29 @@ export default function MonthlyReportPage() {
             throw new Error(errorData.details || `Failed to generate PDF: ${response.statusText}`);
         }
 
-        fileContent = await response.blob(); // Get response as Blob
-        blobType = 'application/pdf';
-        fileExtension = '.pdf';
-        toastTitle = reportDict.toast?.downloadedPdf || "PDF Report Downloaded";
-      }
-
-      if ((typeof fileContent === 'string' && !fileContent.trim()) || (fileContent instanceof Blob && fileContent.size === 0) ) {
-          toast({ variant: 'destructive', title: "Report Empty", description: `The generated ${format.toUpperCase()} report content is empty.` });
-          setIsDownloading(false);
-          return;
-      }
-
-      const blob = fileContent instanceof Blob ? fileContent : new Blob([fileContent], { type: blobType });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${filenameBase}${fileExtension}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      toast({ title: toastTitle, description: `Report ${filenameBase}${fileExtension} downloaded.` });
-
+        const fileContent = await response.blob();
+        if (fileContent.size === 0) {
+            toast({ variant: 'destructive', title: "Report Empty", description: `The generated PDF report content is empty.` });
+            setIsDownloadingPdf(false);
+            return;
+        }
+        const url = URL.createObjectURL(fileContent);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filenameBase}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast({ title: reportDict.toast?.downloadedPdf || "PDF Report Downloaded", description: `Report ${a.download} downloaded.` });
     } catch (error) {
-      console.error(`Failed to download ${format} report:`, error);
-      toast({ variant: 'destructive', title: reportDict.errorDownloadingReport || "Download Error", description: (error as Error).message || 'Unknown error' });
+        console.error(`Failed to download PDF report:`, error);
+        toast({ variant: 'destructive', title: reportDict.errorDownloadingReport || "Download Error", description: (error as Error).message || 'Unknown error' });
     } finally {
-      setIsDownloading(false);
+        setIsDownloadingPdf(false);
     }
-  };
+};
+
 
   if (!isClient || !currentUser) {
     return (
@@ -307,8 +313,7 @@ export default function MonthlyReportPage() {
     label: new Date(currentYear, i).toLocaleString(language, { month: 'long' }),
   }));
 
-  const allReportedProjects = reportData ? [...reportData.inProgress, ...reportData.completed, ...reportData.canceled ] : []; // Display order: In Progress, Completed, Canceled
-  // Sort within status groups by last activity date or creation date
+  const allReportedProjects = reportData ? [...reportData.inProgress, ...reportData.completed, ...reportData.canceled ] : []; 
   allReportedProjects.sort((a, b) => {
       const getLastTimestamp = (project: Project): number => {
           if (project.workflowHistory && project.workflowHistory.length > 0) {
@@ -320,16 +325,15 @@ export default function MonthlyReportPage() {
             return new Date(project.createdAt).getTime();
           } catch { return 0; }
       };
-      // Primary sort by status type (In Progress, Completed, Canceled)
       const statusOrderValue = (project: Project) => {
           let currentStatus = project.status;
           if (reportData?.inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
-              currentStatus = 'In Progress'; // Treat as 'In Progress' for sorting if it was active during the month
+              currentStatus = 'In Progress'; 
           }
           if (currentStatus === 'In Progress') return 0;
           if (currentStatus === 'Completed') return 1;
           if (currentStatus === 'Canceled') return 2;
-          return 3; // Should not happen with the current filtering
+          return 3; 
       };
 
       const orderA = statusOrderValue(a);
@@ -338,7 +342,6 @@ export default function MonthlyReportPage() {
       if (orderA !== orderB) {
           return orderA - orderB;
       }
-      // Secondary sort by last activity date (descending)
       return getLastTimestamp(b) - getLastTimestamp(a);
   });
 
@@ -351,11 +354,11 @@ export default function MonthlyReportPage() {
           <CardDescription>{isClient ? reportDict.description : defaultDict.monthlyReportPage.description}</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 items-end">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6 items-end">
             <div className="space-y-1">
               <Label htmlFor="month-select">{isClient ? reportDict.selectMonthLabel : defaultDict.monthlyReportPage.selectMonthLabel}</Label>
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger id="month-select">
+                <SelectTrigger id="month-select" className="w-full">
                   <SelectValue placeholder={isClient ? reportDict.selectMonthPlaceholder : defaultDict.monthlyReportPage.selectMonthPlaceholder}/>
                 </SelectTrigger>
                 <SelectContent>
@@ -370,7 +373,7 @@ export default function MonthlyReportPage() {
             <div className="space-y-1">
               <Label htmlFor="year-select">{isClient ? reportDict.selectYearLabel : defaultDict.monthlyReportPage.selectYearLabel}</Label>
               <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger id="year-select">
+                <SelectTrigger id="year-select" className="w-full">
                   <SelectValue placeholder={isClient ? reportDict.selectYearPlaceholder : defaultDict.monthlyReportPage.selectYearPlaceholder} />
                 </SelectTrigger>
                 <SelectContent>
@@ -382,39 +385,68 @@ export default function MonthlyReportPage() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleGenerateReport} disabled={isLoading || !selectedMonth || !selectedYear} className="w-full sm:w-auto">
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            <Button onClick={handleGenerateReport} disabled={isLoading || !selectedMonth || !selectedYear} className="w-full md:w-auto md:self-end">
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <BarChart3 className="mr-2 h-4 w-4" />}
               {isClient ? (isLoading ? reportDict.generatingReportButton : reportDict.generateReportButton) : defaultDict.monthlyReportPage.generateReportButton}
             </Button>
           </div>
 
-          {isLoading ? (
+          {isLoading && (
              <div className="text-center py-8">
-               <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+               <Loader2 className="h-10 w-10 animate-spin mx-auto text-primary" />
+               <p className="mt-2 text-muted-foreground">{isClient ? reportDict.generatingReportButton : defaultDict.monthlyReportPage.generatingReportButton}</p>
              </div>
-          ) : reportData ? (
-            reportData.completed.length > 0 || reportData.canceled.length > 0 || reportData.inProgress.length > 0 ? (
-                <Card className="mt-6 border-primary">
-                    <CardHeader>
-                        <CardTitle className="text-lg">{reportDict.reportFor} {months.find(m => m.value === selectedMonth)?.label} {selectedYear}</CardTitle>
-                         <CardDescription>
-                           {reportDict.totalProjectsDesc
-                             .replace('{total}', (reportData.completed.length + reportData.canceled.length + reportData.inProgress.length).toString())
-                             .replace('{inProgress}', reportData.inProgress.length.toString())
-                             .replace('{completed}', reportData.completed.length.toString())
-                             .replace('{canceled}', reportData.canceled.length.toString())
-                           }
-                         </CardDescription>
+          )}
+
+          {reportData && !isLoading && (
+             <>
+                <Card className="mt-6 shadow-md border-primary/30">
+                     <CardHeader className="pb-2">
+                         <CardTitle className="text-lg flex items-center gap-2">
+                            <BarChart3 className="h-5 w-5 text-primary" />
+                           {reportDict.reportFor} {reportData.monthName} {reportData.year}
+                        </CardTitle>
+                     </CardHeader>
+                     <CardContent>
+                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center md:text-left">
+                             <Card className="bg-blue-500/10 p-4 rounded-lg">
+                                 <div className="flex items-center justify-center md:justify-start gap-2">
+                                   <Activity className="h-5 w-5 text-blue-600" />
+                                   <p className="text-sm font-medium text-blue-700">{reportDict.inProgressProjectsShort}</p>
+                                 </div>
+                                 <p className="text-2xl font-bold text-blue-800">{reportData.inProgress.length}</p>
+                             </Card>
+                             <Card className="bg-green-500/10 p-4 rounded-lg">
+                                 <div className="flex items-center justify-center md:justify-start gap-2">
+                                   <CheckSquare className="h-5 w-5 text-green-600" />
+                                   <p className="text-sm font-medium text-green-700">{reportDict.completedProjectsShort}</p>
+                                 </div>
+                                 <p className="text-2xl font-bold text-green-800">{reportData.completed.length}</p>
+                             </Card>
+                             <Card className="bg-red-500/10 p-4 rounded-lg">
+                                <div className="flex items-center justify-center md:justify-start gap-2">
+                                   <XSquare className="h-5 w-5 text-red-600" />
+                                   <p className="text-sm font-medium text-red-700">{reportDict.canceledProjectsShort}</p>
+                                 </div>
+                                 <p className="text-2xl font-bold text-red-800">{reportData.canceled.length}</p>
+                             </Card>
+                         </div>
+                     </CardContent>
+                </Card>
+
+                {allReportedProjects.length > 0 ? (
+                <Card className="mt-6 shadow-md">
+                    <CardHeader className="pb-2">
+                         <CardTitle className="text-lg">{reportDict.tableCaption}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <ScrollArea className="max-h-[60vh] w-full">
+                        <ScrollArea className="max-h-[60vh] w-full rounded-md border">
                             <Table>
-                                <TableCaption className="mt-4">{reportDict.tableCaption}</TableCaption>
-                                <TableHeader>
+                                <TableHeader className="sticky top-0 bg-secondary/80 backdrop-blur-sm">
                                     <TableRow>
-                                        <TableHead>{reportDict.tableHeaderTitle}</TableHead>
-                                        <TableHead>{reportDict.tableHeaderStatus}</TableHead>
-                                        <TableHead>{reportDict.tableHeaderLastActivityDate}</TableHead>
+                                        <TableHead className="w-[200px] sm:w-[250px]">{reportDict.tableHeaderTitle}</TableHead>
+                                        <TableHead className="w-[120px] sm:w-[150px]">{reportDict.tableHeaderStatus}</TableHead>
+                                        <TableHead className="w-[150px] sm:w-[180px]">{reportDict.tableHeaderLastActivityDate}</TableHead>
                                         <TableHead>{reportDict.tableHeaderContributors}</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -425,7 +457,7 @@ export default function MonthlyReportPage() {
                                         const lastActivityDate = lastActivityEntry ? formatDateOnly(lastActivityEntry.timestamp) : formatDateOnly(project.createdAt);
                                         let statusIcon;
                                         let badgeVariant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-                                        let badgeClassName = "";
+                                        let badgeClassName = "font-semibold";
 
                                         let displayStatus = project.status;
                                         if (reportData.inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
@@ -434,36 +466,36 @@ export default function MonthlyReportPage() {
 
                                         switch (displayStatus) {
                                             case 'Completed':
-                                                statusIcon = <CalendarCheck className="mr-1 h-3 w-3" />;
+                                                statusIcon = <CalendarCheck className="mr-1.5 h-3.5 w-3.5" />;
                                                 badgeVariant = 'default';
-                                                badgeClassName = 'bg-green-500 hover:bg-green-600 text-white';
+                                                badgeClassName += ' bg-green-500 hover:bg-green-600 text-white';
                                                 break;
                                             case 'Canceled':
-                                                statusIcon = <CalendarX className="mr-1 h-3 w-3" />;
+                                                statusIcon = <CalendarX className="mr-1.5 h-3.5 w-3.5" />;
                                                 badgeVariant = 'destructive';
                                                 break;
                                             case 'In Progress':
                                             default:
-                                                statusIcon = <Activity className="mr-1 h-3 w-3" />;
+                                                statusIcon = <Activity className="mr-1.5 h-3.5 w-3.5" />;
                                                 badgeVariant = 'secondary';
-                                                badgeClassName = 'bg-blue-500 text-white hover:bg-blue-600';
+                                                badgeClassName += ' bg-blue-500 text-white hover:bg-blue-600';
                                                 break;
                                         }
 
                                         return (
-                                            <TableRow key={project.id}>
-                                                <TableCell className="font-medium">{project.title}</TableCell>
-                                                <TableCell>
+                                            <TableRow key={project.id} className="hover:bg-muted/30 transition-colors">
+                                                <TableCell className="font-medium py-3">{project.title}</TableCell>
+                                                <TableCell className="py-3">
                                                     <Badge variant={badgeVariant} className={badgeClassName}>
                                                          {statusIcon}
                                                          {getTranslatedStatus(displayStatus)}
                                                      </Badge>
                                                 </TableCell>
-                                                <TableCell>{lastActivityDate}</TableCell>
-                                                <TableCell className="text-xs text-muted-foreground">
-                                                    <div className="flex items-center gap-1">
-                                                        <Users className="h-3 w-3"/>
-                                                        <span>{contributors || reportDict.none}</span>
+                                                <TableCell className="py-3 text-sm text-muted-foreground">{lastActivityDate}</TableCell>
+                                                <TableCell className="text-xs text-muted-foreground py-3">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Users className="h-3.5 w-3.5"/>
+                                                        <span className="truncate max-w-[150px] sm:max-w-xs">{contributors || reportDict.none}</span>
                                                     </div>
                                                 </TableCell>
                                             </TableRow>
@@ -475,23 +507,25 @@ export default function MonthlyReportPage() {
                         </ScrollArea>
                     </CardContent>
                     <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 border-t pt-4 mt-4">
-                      <Button variant="outline" onClick={() => handleDownload('excel')} disabled={isDownloading || !reportData} className="w-full sm:w-auto">
-                        {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                        {isClient ? (isDownloading ? reportDict.downloadingButton : reportDict.downloadExcel) : defaultDict.monthlyReportPage.downloadExcel}
+                      <Button variant="outline" onClick={handleDownloadExcel} disabled={isDownloadingExcel || isDownloadingPdf} className="w-full sm:w-auto">
+                        {isDownloadingExcel ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                        {isClient ? (isDownloadingExcel ? reportDict.downloadingButton : reportDict.downloadExcel) : defaultDict.monthlyReportPage.downloadExcel}
                       </Button>
-                      <Button variant="outline" onClick={() => handleDownload('pdf')} disabled={isDownloading || !reportData} className="w-full sm:w-auto">
-                        {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                        {isClient ? (isDownloading ? reportDict.downloadingButton : reportDict.downloadPdf) : defaultDict.monthlyReportPage.downloadPdf}
+                      <Button variant="outline" onClick={handleDownloadPdf} disabled={isDownloadingPdf || isDownloadingExcel} className="w-full sm:w-auto">
+                        {isDownloadingPdf ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                         {isClient ? (isDownloadingPdf ? reportDict.downloadingButton : reportDict.downloadPdf) : defaultDict.monthlyReportPage.downloadPdf}
                       </Button>
                     </CardFooter>
                 </Card>
             ) : (
-               <div className="text-center py-8 text-muted-foreground flex flex-col items-center gap-2">
-                  <FileText className="h-8 w-8" />
-                  {reportDict.noDataForMonth}
+               <div className="text-center py-10 text-muted-foreground flex flex-col items-center gap-3 mt-6 border rounded-lg">
+                  <FileText className="h-10 w-10" />
+                  <p className="text-lg">{reportDict.noDataForMonth}</p>
+                  <p className="text-sm">{reportDict.tryDifferentMonthYear || "Try selecting a different month or year."}</p>
                </div>
-            )
-          ) : null}
+            )}
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

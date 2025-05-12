@@ -96,10 +96,10 @@ const id = {
     submittingButton: 'Mengirim...',
     ownerActionTitle: 'Tindakan Pemilik Diperlukan',
     ownerActionDesc: 'Tinjau dokumen yang dikirim dan putuskan apakah akan melanjutkan.',
-    cancelProgressButton: 'Batalkan Proyek', // Updated
+    cancelProgressButton: 'Batalkan Proyek', 
     continueProgressButton: 'Lanjutkan Progres',
     cancelDialogTitle: 'Apakah Anda yakin?',
-    cancelDialogDesc: 'Membatalkan proyek ini tidak dapat dibatalkan. Status akan ditandai sebagai Dibatalkan.', // Updated
+    cancelDialogDesc: 'Membatalkan proyek ini tidak dapat dibatalkan. Status akan ditandai sebagai Dibatalkan.', 
     cancelDialogCancel: 'Kembali',
     cancelDialogConfirm: 'Konfirmasi Pembatalan',
     scheduleSidangTitle: 'Jadwalkan Sidang ({role})',
@@ -112,11 +112,11 @@ const id = {
     addCalendarButton: 'Tambahkan Sidang ke Google Kalender',
     addingCalendarButton: 'Menambahkan...',
     sidangOutcomeTitle: 'Nyatakan Hasil Sidang',
-    sidangOutcomeDesc: 'Tandai proyek sebagai berhasil diselesaikan atau gagal berdasarkan hasil sidang.', // Updated
+    sidangOutcomeDesc: 'Tandai proyek sebagai berhasil diselesaikan atau gagal berdasarkan hasil sidang.', 
     markSuccessButton: 'Tandai sebagai Berhasil',
     markFailButton: 'Tandai sebagai Gagal',
-    completedMessage: 'Proyek Berhasil Diselesaikan!', // Updated
-    canceledMessage: 'Proyek Dibatalkan', // Updated
+    completedMessage: 'Proyek Berhasil Diselesaikan!', 
+    canceledMessage: 'Proyek Dibatalkan', 
     uploadedFilesTitle: 'File Terunggah',
     uploadedFilesDesc: 'Riwayat file yang diunggah selama proses.',
     loadingFiles: 'Memuat daftar file...',
@@ -137,7 +137,6 @@ const id = {
     viewDetails: 'Lihat Detail',
     backToList: 'Kembali ke Daftar',
     downloadFileTooltip: 'Unduh File',
-    // Revision specific translations
     reviseProjectTitle: 'Minta Revisi',
     revisionNoteLabel: 'Catatan Revisi (Wajib)',
     revisionNotePlaceholder: 'Jelaskan mengapa proyek ini memerlukan revisi...',
@@ -156,7 +155,7 @@ const id = {
         progressSubmitted: 'Progres Terkirim',
         notifiedNextStep: 'Memberitahu {division} untuk langkah selanjutnya.',
         onlyOwnerDecision: 'Hanya Pemilik yang dapat membuat keputusan ini.',
-        projectCanceled: 'Proyek Dibatalkan', // Updated
+        projectCanceled: 'Proyek Dibatalkan', 
         offerApproved: 'Penawaran Disetujui',
         offerApprovedDesc: 'Admin Umum diberitahu untuk Faktur DP.',
         dpApproved: 'Faktur DP Disetujui',
@@ -357,6 +356,7 @@ const id = {
        generateReportButton: "Buat Laporan",
        generatingReportButton: "Membuat...",
        noDataForMonth: "Tidak ada data proyek ditemukan untuk bulan dan tahun yang dipilih.",
+       tryDifferentMonthYear: "Coba pilih bulan atau tahun yang berbeda.",
        totalProjects: "Total Proyek Ditinjau:",
        totalProjectsDesc: "Total: {total} (Selesai: {completed}, Dibatalkan: {canceled}, Sedang Berjalan: {inProgress})",
        completedProjects: "Proyek Selesai:",

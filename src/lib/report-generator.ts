@@ -1,11 +1,9 @@
 // src/lib/report-generator.ts
-'use server'; // Mark as server-only if all its usages are server-side (like via API routes)
+'use server'; 
 
 import type { Project } from '@/services/project-service';
 import { format, parseISO } from 'date-fns';
-// pdfmake types are still useful for structuring the document definition,
-// but the actual PDF generation will happen in the API route.
-import type { TDocumentDefinitions, TFontDictionary } from 'pdfmake/interfaces';
+import type { TDocumentDefinitions, Content, StyleDictionary } from 'pdfmake/interfaces';
 
 
 // --- Helper Functions (can be used by both Excel and PDF generation) ---
@@ -102,26 +100,21 @@ export async function generateExcelReport(
 }
 
 
-// PDF generation logic will be moved to `src/app/api/generate-report/pdf/route.ts`
-// We can keep the helper functions here as they are generic.
-
-// Helper function to create the PDF document definition
-// This can be called by the API route.
-export async function createPdfDocDefinition( // Made this function async
+export async function createPdfDocDefinition(
     completed: Project[],
     canceled: Project[],
     inProgress: Project[],
     monthName: string,
     year: string
-): Promise<TDocumentDefinitions> { // Return type is now Promise<TDocumentDefinitions>
+): Promise<TDocumentDefinitions> {
      const tableBody = (projects: Project[]) => {
-        const body = [
-            [
+        const body: Content[][] = [ // Type for table cells
+            [ // Header row
                 { text: 'Project Title', style: 'tableHeader' },
                 { text: 'Status', style: 'tableHeader' },
                 { text: 'Last Activity / End Date', style: 'tableHeader' },
                 { text: 'Contributors', style: 'tableHeader' },
-                { text: 'Progress (%)', style: 'tableHeader', alignment: 'right' as const },
+                { text: 'Progress (%)', style: 'tableHeader', alignment: 'right' },
                 { text: 'Created By', style: 'tableHeader' },
                 { text: 'Created At', style: 'tableHeader' },
             ]
@@ -133,13 +126,13 @@ export async function createPdfDocDefinition( // Made this function async
                 displayStatus = 'In Progress';
             }
             body.push([
-                project.title,
-                displayStatus,
-                getLastActivityDate(project),
-                getContributors(project),
-                { text: project.progress.toString(), alignment: 'right' as const },
-                project.createdBy,
-                formatDateOnly(project.createdAt),
+                { text: project.title, style: 'tableCell' },
+                { text: displayStatus, style: 'tableCell' },
+                { text: getLastActivityDate(project), style: 'tableCell' },
+                { text: getContributors(project), style: 'tableCell' },
+                { text: project.progress.toString(), alignment: 'right', style: 'tableCell' },
+                { text: project.createdBy, style: 'tableCell' },
+                { text: formatDateOnly(project.createdAt), style: 'tableCell' },
             ]);
         });
         return body;
@@ -164,11 +157,30 @@ export async function createPdfDocDefinition( // Made this function async
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
+    // Placeholder for logo - replace with actual base64 encoded image or URL
+    // const logoBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAEBSURBVHjaYvz//z8DJQAggJiQ2sDMPDwslC8H4gYgZgDiNgjZAZkDEEAgPgCqk2AxkOwApAZAHA9sBpLNAfkVAH+fzWL9X7M4IKH+KzQv0FYg3YGCQAGYPhJ6gBwLg3D6gA729//9R8GgDkQYwPjL7DAjVv7/L8h0A6iFIPmHAF8k7M7/D8Lp/zAUYTAwJADVqA/VQc0zQPyOa8wYwvzHzDAmA+g9GIAVgcgLMA8gxoAZB8gZkGsGkGkDAYAAYAA2D4xmgYwBc0BMB8hYAKQOAMkeIMsBikEkCYMAAggASacSBjYBqSIAAgwA6L0YSAk2kL8AAAAASUVORK5CYII=";
 
     const docDefinition: TDocumentDefinitions = {
+        // header: (currentPage, pageCount, pageSize) => {
+        //     return {
+        //         columns: [
+        //             { image: logoBase64, width: 50, alignment: 'left', margin: [40, 20, 0, 0] },
+        //             { text: 'Msarch App - Monthly Report', style: 'documentHeader', alignment: 'center', margin: [0, 25, 0, 0] },
+        //             { text: `Page ${currentPage} of ${pageCount}`, alignment: 'right', margin: [0, 20, 40, 0], style: 'pageNumber' }
+        //         ]
+        //     };
+        // },
+        footer: (currentPage, pageCount) => {
+            return {
+                columns: [
+                    { text: `Generated on: ${format(new Date(), 'PPpp')}`, alignment: 'left', style: 'pageFooter', margin: [40, 10, 0, 0] },
+                    { text: `Page ${currentPage} of ${pageCount}`, alignment: 'right', style: 'pageFooter', margin: [0, 10, 40, 0] }
+                ]
+            };
+        },
         content: [
-            { text: `Monthly Project Report - ${monthName} ${year}`, style: 'header' },
-            { text: `Generated on: ${format(new Date(), 'PPpp')}`, style: 'subheader' },
+            { text: `Monthly Project Report`, style: 'reportTitle' },
+            { text: `${monthName} ${year}`, style: 'reportSubtitle' },
             {
                 text: [
                     { text: 'Summary:\n', style: 'sectionHeader'},
@@ -177,41 +189,66 @@ export async function createPdfDocDefinition( // Made this function async
                     `  - Completed: ${completed.length}\n`,
                     `  - Canceled: ${canceled.length}\n`,
                 ],
-                margin: [0, 0, 0, 20] as [number, number, number, number],
+                margin: [0, 0, 0, 20], style: 'summaryText'
             },
         ],
         styles: {
-            header: {
-                fontSize: 18,
+            reportTitle: {
+                fontSize: 22,
                 bold: true,
-                alignment: 'center' as const,
-                margin: [0, 0, 0, 20] as [number, number, number, number],
+                alignment: 'center',
+                margin: [0, 0, 0, 5], // Top margin adjusted due to header
+                color: '#2C5282' // Dark Blue
             },
-            subheader: {
-                fontSize: 10,
+            reportSubtitle: {
+                fontSize: 16,
                 italics: true,
-                alignment: 'center' as const,
-                margin: [0, 0, 0, 10] as [number, number, number, number],
+                alignment: 'center',
+                margin: [0, 0, 0, 20],
+                color: '#4A5568' // Medium Gray
             },
             sectionHeader: {
                 fontSize: 14,
                 bold: true,
-                margin: [0, 10, 0, 5] as [number, number, number, number],
+                margin: [0, 15, 0, 8],
+                color: '#2D3748' // Darker Gray
+            },
+            summaryText: {
+                fontSize: 11,
+                lineHeight: 1.4,
             },
             tableHeader: {
                 bold: true,
                 fontSize: 10,
-                fillColor: '#eeeeee',
-                alignment: 'left' as const
+                fillColor: '#EBF8FF', // Light Blue
+                color: '#1A365D', // Darker Blue text for header
+                alignment: 'left',
+                margin: [0, 5, 0, 5] as [number, number, number, number], // Padding for header cells
+            },
+            tableCell: {
+                fontSize: 9,
+                margin: [0, 3, 0, 3] as [number, number, number, number], // Padding for body cells
             },
             tableExample: {
-                 margin: [0, 5, 0, 15] as [number, number, number, number],
-                 fontSize: 9
+                 margin: [0, 5, 0, 15],
+            },
+            // documentHeader: {
+            //     fontSize: 14,
+            //     bold: true,
+            //     color: '#2C5282'
+            // },
+            pageNumber: {
+                fontSize: 9,
+                color: '#718096' // Light Gray
+            },
+            pageFooter: {
+                 fontSize: 9,
+                 color: '#A0AEC0' // Lighter Gray
             }
-        },
+        } as StyleDictionary, // Cast to StyleDictionary
         defaultStyle: {
-            // font: 'Roboto', // Font will be set in the API route
             fontSize: 10,
+            color: '#4A5568' // Default text color
         }
     };
 
@@ -221,25 +258,22 @@ export async function createPdfDocDefinition( // Made this function async
             style: 'tableExample',
             table: {
                 headerRows: 1,
-                 widths: ['*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'],
+                widths: ['*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'],
                 body: tableBody(allProjectsForPdf),
             },
             layout: {
-                fillColor: function (rowIndex: number) {
-                    return (rowIndex % 2 === 0) ? '#f9f9f9' : null;
+                fillColor: (rowIndex: number | undefined, node: any, columnIndex: number | undefined) => {
+                    if (rowIndex === undefined) return null; // Should not happen with headerRows: 1
+                    return (rowIndex % 2 === 0) ? '#F7FAFC' : null; // Light Gray for even data rows
                 },
-                hLineWidth: function (i: number, node: any) { // node type can be more specific if needed
-                    return (i === 0 || i === node.table.body.length) ? 1 : 1;
-                },
-                vLineWidth: function (i: number, node: any) { // node type
-                    return (i === 0 || i === node.table.widths.length) ? 1 : 1;
-                },
-                hLineColor: function (i: number, node: any) { // node type
-                    return (i === 0 || i === node.table.body.length) ? '#cccccc' : '#dddddd';
-                },
-                vLineColor: function (i: number, node: any) { // node type
-                     return (i === 0 || i === node.table.widths.length) ? '#cccccc' : '#dddddd';
-                },
+                hLineWidth: (i: number, node: any) => (i === 0 || i === node.table.body.length) ? 1.5 : 1,
+                vLineWidth: (i: number, node: any) => (i === 0 || i === node.table.widths.length) ? 1.5 : 1,
+                hLineColor: (i: number, node: any) => (i === 0 || i === node.table.body.length) ? '#A0AEC0' : '#E2E8F0', // Gray borders
+                vLineColor: (i: number, node: any) => (i === 0 || i === node.table.widths.length) ? '#A0AEC0' : '#E2E8F0',
+                paddingTop: (i: number, node: any) => (i === 0) ? 8 : 6, // More padding for header
+                paddingBottom: (i: number, node: any) => (i === 0) ? 8 : 6,
+                paddingLeft: (i: number, node: any) => 5,
+                paddingRight: (i: number, node: any) => 5,
             }
         });
     } else {
