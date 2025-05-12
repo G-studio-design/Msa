@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, FileText, Download, Users, CalendarCheck, CalendarX, Activity, BarChart3, CheckSquare, XSquare, PieChart as PieChartIcon } from 'lucide-react'; // Renamed PieChart to PieChartIcon
+import { Loader2, FileText, Download, Users, CalendarCheck, CalendarX, Activity, BarChart3, CheckSquare, XSquare, PieChart as PieChartIcon, FileWord } from 'lucide-react'; // Added FileWord
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
@@ -36,7 +36,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getAllProjects, type Project } from '@/services/project-service';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { generateExcelReport } from '@/lib/report-generator';
+import { generateExcelReport } from '@/lib/report-generator'; // generatePdfReport removed
 import {
   ChartContainer,
   ChartTooltip,
@@ -74,7 +74,7 @@ export default function MonthlyReportPage() {
 
   const [isLoading, setIsLoading] = React.useState(false);
   const [isDownloadingExcel, setIsDownloadingExcel] = React.useState(false);
-  const [isDownloadingPdf, setIsDownloadingPdf] = React.useState(false);
+  const [isDownloadingWord, setIsDownloadingWord] = React.useState(false); // New state for Word download
   const [selectedMonth, setSelectedMonth] = React.useState<string>(String(new Date().getMonth() + 1).padStart(2, '0'));
   const [selectedYear, setSelectedYear] = React.useState<string>(String(new Date().getFullYear()));
   const [reportData, setReportData] = React.useState<MonthlyReportData | null>(null);
@@ -240,28 +240,26 @@ export default function MonthlyReportPage() {
     }
   };
 
-  const handleDownloadPdf = async () => {
+  const handleDownloadWord = async () => {
     if (!reportData || !isClient) return;
-    setIsDownloadingPdf(true);
+    setIsDownloadingWord(true);
 
-    // chartImageDataUrl is captured but not sent for now to simplify server-side PDF generation
     let chartImageDataUrl: string | undefined = undefined;
     if (chartRef.current) {
         try {
             chartImageDataUrl = await toPng(chartRef.current, {
                 quality: 0.95,
                 backgroundColor: 'white',
-                skipFonts: true, // Potentially skip fonts if they cause issues with html-to-image
+                skipFonts: true,
              });
         } catch (error) {
             console.error('Error capturing chart image:', error);
-            toast({ variant: 'destructive', title: 'Chart Capture Error', description: 'Could not capture chart image for PDF.' });
-            // Proceed without chart image if capture fails
+            toast({ variant: 'destructive', title: 'Chart Capture Error', description: 'Could not capture chart image for Word report.' });
         }
     }
 
     try {
-        const response = await fetch('/api/generate-report/pdf', {
+        const response = await fetch('/api/generate-report/word', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -270,21 +268,20 @@ export default function MonthlyReportPage() {
                 inProgress: reportData.inProgress,
                 monthName: reportData.monthName,
                 year: reportData.year,
-                // chartImageDataUrl, // Not sending this for now to simplify
+                chartImageDataUrl,
             }),
         });
 
         if (!response.ok) {
-            let errorDetails = 'Failed to generate PDF report from server.';
-            const responseText = await response.text(); // Read body once as text
+            let errorDetails = 'Failed to generate Word report from server.';
+            const responseText = await response.text();
             try {
-                const errorData = JSON.parse(responseText); // Try to parse as JSON
+                const errorData = JSON.parse(responseText);
                 errorDetails = errorData.details || errorData.error || errorDetails;
-                console.error("Server error details for PDF generation:", errorData);
+                console.error("Server error details for Word generation:", errorData);
             } catch (e) {
-                // If response is not JSON, use the responseText or a generic message
                 errorDetails = responseText || response.statusText || `Server returned status ${response.status}.`;
-                console.error("Non-JSON error response from server for PDF generation:", responseText);
+                console.error("Non-JSON error response from server for Word generation:", responseText);
             }
             throw new Error(errorDetails);
         }
@@ -293,21 +290,21 @@ export default function MonthlyReportPage() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Monthly_Report_${reportData.monthName}_${reportData.year}.pdf`;
+        a.download = `Monthly_Report_${reportData.monthName}_${reportData.year}.docx`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        toast({ title: reportDict.toast?.downloadedPdf || "PDF Report Downloaded", description: `Report ${a.download} downloaded.` });
+        toast({ title: reportDict.toast?.downloadedWord || "Word Report Downloaded", description: `Report ${a.download} downloaded.` });
     } catch (error: any) {
-        console.error('Failed to download PDF report (client-side):', error);
+        console.error('Failed to download Word report (client-side):', error);
         toast({
             variant: 'destructive',
             title: reportDict.errorDownloadingReport || "Download Error",
-            description: error.message || 'Unknown error during PDF download.'
+            description: error.message || 'Unknown error during Word download.'
         });
     } finally {
-        setIsDownloadingPdf(false);
+        setIsDownloadingWord(false);
     }
   };
 
@@ -449,7 +446,7 @@ export default function MonthlyReportPage() {
 
           {reportData && !isLoading && (
              <>
-                <div ref={chartRef} className="bg-card p-4 rounded-lg shadow-md border-primary/30"> {/* Added ref here for chart capture */}
+                <div ref={chartRef} className="bg-card p-4 rounded-lg shadow-md border-primary/30">
                     <CardHeader className="pb-2">
                          <CardTitle className="text-lg flex items-center gap-2">
                             <PieChartIcon className="h-5 w-5 text-primary" />
@@ -587,13 +584,13 @@ export default function MonthlyReportPage() {
                         </ScrollArea>
                     </CardContent>
                     <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 border-t pt-4 mt-4">
-                      <Button variant="outline" onClick={handleDownloadExcel} disabled={isDownloadingExcel || isDownloadingPdf} className="w-full sm:w-auto">
+                      <Button variant="outline" onClick={handleDownloadExcel} disabled={isDownloadingExcel || isDownloadingWord} className="w-full sm:w-auto">
                         {isDownloadingExcel ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
                         {isClient ? (isDownloadingExcel ? reportDict.downloadingButton : reportDict.downloadExcel) : defaultDict.monthlyReportPage.downloadExcel}
                       </Button>
-                       <Button variant="default" onClick={handleDownloadPdf} disabled={isDownloadingPdf || isDownloadingExcel} className="w-full sm:w-auto">
-                        {isDownloadingPdf ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                        {isClient ? (isDownloadingPdf ? reportDict.downloadingButton : reportDict.downloadPdf) : defaultDict.monthlyReportPage.downloadPdf}
+                       <Button variant="default" onClick={handleDownloadWord} disabled={isDownloadingWord || isDownloadingExcel} className="w-full sm:w-auto">
+                        {isDownloadingWord ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileWord className="mr-2 h-4 w-4" />}
+                        {isClient ? (isDownloadingWord ? reportDict.downloadingButton : reportDict.downloadWord) : defaultDict.monthlyReportPage.downloadWord}
                       </Button>
                     </CardFooter>
                 </Card>
@@ -611,4 +608,3 @@ export default function MonthlyReportPage() {
     </div>
   );
 }
-

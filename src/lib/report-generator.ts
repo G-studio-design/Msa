@@ -3,9 +3,9 @@
 
 import type { Project } from '@/services/project-service';
 import { format, parseISO } from 'date-fns';
-import type { TDocumentDefinitions, Content, StyleDictionary } from 'pdfmake/interfaces';
+import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType, BorderStyle, VerticalAlign, AlignmentType, HeadingLevel } from 'docx';
 
-// --- Helper Functions (can be used by both Excel and PDF generation) ---
+// --- Helper Functions (can be used by both Excel and Word generation) ---
 
 function formatDateOnly(timestamp: string): string {
     if (!timestamp) return "N/A";
@@ -106,51 +106,20 @@ export async function generateExcelReport(
     return rows.join('\n');
 }
 
-// --- PDF Document Definition Creation Function ---
-export async function createPdfDocDefinition(
+// --- Word Document Generation Function ---
+export async function generateWordReport(
     completed: Project[],
     canceled: Project[],
     inProgress: Project[],
     monthName: string,
-    year: string
-    // chartImageDataUrl?: string; // Temporarily removed for simplification
-): Promise<TDocumentDefinitions> {
-     const tableBody = (projects: Project[]) => {
-        const body: Content[][] = [
-            [
-                { text: 'Project Title', style: 'tableHeader' },
-                { text: 'Status', style: 'tableHeader' },
-                { text: 'Last Activity / End Date', style: 'tableHeader' },
-                { text: 'Contributors', style: 'tableHeader' },
-                { text: 'Progress (%)', style: 'tableHeader', alignment: 'right' as const },
-                { text: 'Created By', style: 'tableHeader' },
-                { text: 'Created At', style: 'tableHeader' },
-            ]
-        ];
-
-        projects.forEach(project => {
-            let displayStatus = project.status;
-            if (inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
-                displayStatus = 'In Progress';
-            }
-            body.push([
-                project.title,
-                displayStatus,
-                getLastActivityDate(project),
-                getContributors(project),
-                { text: project.progress.toString(), alignment: 'right' as const },
-                project.createdBy,
-                formatDateOnly(project.createdAt),
-            ]);
-        });
-        return body;
-    };
-
-    const allProjectsForPdf = [...inProgress, ...completed, ...canceled];
-     allProjectsForPdf.sort((a, b) => {
+    year: string,
+    chartImageDataUrl?: string
+): Promise<Buffer> {
+    const allProjectsForWord = [...inProgress, ...completed, ...canceled];
+     allProjectsForWord.sort((a, b) => {
         const statusOrderValue = (project: Project, inProgressList: Project[]) => {
             let currentStatus = project.status;
-             if (inProgressList.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
+             if (inProgressList.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled'))) {
                 currentStatus = 'In Progress';
             }
             if (currentStatus === 'In Progress') return 0;
@@ -165,121 +134,189 @@ export async function createPdfDocDefinition(
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-
-    const docDefinitionContent: Content[] = [
-        { text: `Monthly Project Report - ${monthName} ${year}`, style: 'header' },
-        { text: `Generated on: ${format(new Date(), 'PPpp')}`, style: 'subheader' },
+    const sections = [
         {
-            text: [
-                { text: 'Summary:\n', style: 'sectionHeader'},
-                `Total Projects Reviewed: ${completed.length + canceled.length + inProgress.length}\n`,
-                `  - In Progress: ${inProgress.length}\n`,
-                `  - Completed: ${completed.length}\n`,
-                `  - Canceled: ${canceled.length}\n`,
+            properties: {},
+            children: [
+                new Paragraph({
+                    text: `Monthly Project Report - ${monthName} ${year}`,
+                    heading: HeadingLevel.TITLE,
+                    alignment: AlignmentType.CENTER,
+                }),
+                new Paragraph({
+                    text: `Generated on: ${format(new Date(), 'PPpp')}`,
+                    style: "Subheader",
+                    alignment: AlignmentType.CENTER,
+                }),
+                new Paragraph({
+                    text: "Summary:",
+                    heading: HeadingLevel.HEADING_1,
+                }),
+                new Paragraph({ text: `Total Projects Reviewed: ${completed.length + canceled.length + inProgress.length}` }),
+                new Paragraph({ text: `  - In Progress: ${inProgress.length}` }),
+                new Paragraph({ text: `  - Completed: ${completed.length}` }),
+                new Paragraph({ text: `  - Canceled: ${canceled.length}` }),
+                new Paragraph({ text: "" }), // Spacer
             ],
-            margin: [0, 0, 0, 20] as [number, number, number, number],
         },
     ];
 
-    // Chart image inclusion logic is temporarily removed from here.
-    // It can be added back once basic PDF generation is confirmed working.
-    // if (chartImageDataUrl) {
-    //     docDefinitionContent.push({ text: 'Project Completion Overview:', style: 'sectionHeader' });
-    //     docDefinitionContent.push({
-    //         image: chartImageDataUrl,
-    //         width: 500,
-    //         alignment: 'center' as const,
-    //         margin: [0, 0, 0, 20] as [number, number, number, number],
-    //     });
-    // }
-
-
-    if (allProjectsForPdf.length > 0) {
-        docDefinitionContent.push({ text: 'All Projects Detailed List:', style: 'sectionHeader' });
-        docDefinitionContent.push({
-            style: 'tableExample',
-            table: {
-                headerRows: 1,
-                 widths: ['*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'],
-                body: tableBody(allProjectsForPdf),
-            },
-            layout: {
-                fillColor: function (rowIndex: number) {
-                    return (rowIndex % 2 === 0) ? '#f9f9f9' : null;
-                },
-                hLineWidth: function (i: number, node: any) { 
-                    return (i === 0 || i === node.table.body.length) ? 1 : 1;
-                },
-                vLineWidth: function (i: number, node: any) { 
-                    return (i === 0 || i === node.table.widths.length) ? 1 : 1;
-                },
-                hLineColor: function (i: number, node: any) { 
-                    return (i === 0 || i === node.table.body.length) ? '#cccccc' : '#dddddd';
-                },
-                vLineColor: function (i: number, node: any) { 
-                     return (i === 0 || i === node.table.widths.length) ? '#cccccc' : '#dddddd';
-                },
-            }
-        });
-    } else {
-         docDefinitionContent.push({ text: 'No project activity recorded for this month.', style: 'sectionHeader', alignment: 'center' as const });
+    if (chartImageDataUrl) {
+        // Assuming chartImageDataUrl is a base64 encoded PNG
+        const imageBuffer = Buffer.from(chartImageDataUrl.split(',')[1], 'base64');
+        sections[0].children.push(
+            new Paragraph({
+                text: "Project Status Overview:",
+                heading: HeadingLevel.HEADING_1,
+            }),
+            new Paragraph({
+                children: [
+                    new TextRun({
+                        children: [imageBuffer],
+                        type: "image",
+                        options: {
+                            data: imageBuffer,
+                            transformation: {
+                                width: 500, // Adjust as needed
+                                height: 250, // Adjust as needed
+                            },
+                        },
+                    }),
+                ],
+                alignment: AlignmentType.CENTER,
+            }),
+            new Paragraph({ text: "" }) // Spacer
+        );
     }
 
-    const styles: StyleDictionary = {
-        header: {
-            fontSize: 18,
-            bold: true,
-            alignment: 'center' as const,
-            margin: [0, 0, 0, 20] as [number, number, number, number],
-            color: 'hsl(var(--primary))' // Using CSS variable for primary color
-        },
-        subheader: {
-            fontSize: 10,
-            italics: true,
-            alignment: 'center' as const,
-            margin: [0, 0, 0, 10] as [number, number, number, number],
-            color: '#555555'
-        },
-        sectionHeader: {
-            fontSize: 14,
-            bold: true,
-            margin: [0, 15, 0, 8] as [number, number, number, number], // Increased top margin
-            color: 'hsl(var(--foreground))' // Using CSS variable
-        },
-        tableHeader: {
-            bold: true,
-            fontSize: 10,
-            fillColor: 'hsl(187, 100%, 42%)', // Teal accent color directly
-            color: '#FFFFFF', // White text
-            alignment: 'left' as const,
-            margin: [0, 4, 0, 4] as [number, number, number, number] 
-        },
-        tableExample: {
-             margin: [0, 5, 0, 15] as [number, number, number, number],
-             fontSize: 9,
-             color: 'hsl(var(--card-foreground))' // Using CSS variable
-        }
-    };
 
-    const docDefinition: TDocumentDefinitions = {
-        content: docDefinitionContent,
-        styles: styles,
-        defaultStyle: {
-            font: 'Roboto', // This will be defined in the API route with vfs_fonts
-            fontSize: 10,
-        },
-        pageMargins: [40, 60, 40, 60], // [left, top, right, bottom]
-        footer: function(currentPage, pageCount) {
-            return {
-                text: `Page ${currentPage.toString()} of ${pageCount}`,
-                alignment: 'center' as const,
-                fontSize: 8,
-                margin: [0, 20, 0, 0] as [number, number, number, number],
-                color: '#aaaaaa'
-            };
-        },
-    };
+    if (allProjectsForWord.length > 0) {
+        sections[0].children.push(
+            new Paragraph({
+                text: "All Projects Detailed List:",
+                heading: HeadingLevel.HEADING_1,
+            })
+        );
 
-    return docDefinition;
+        const headerRow = new TableRow({
+            children: [
+                new TableCell({ children: [new Paragraph({ text: "Project Title", style: "TableHeader" })], verticalAlign: VerticalAlign.CENTER }),
+                new TableCell({ children: [new Paragraph({ text: "Status", style: "TableHeader" })], verticalAlign: VerticalAlign.CENTER }),
+                new TableCell({ children: [new Paragraph({ text: "Last Activity / End Date", style: "TableHeader" })], verticalAlign: VerticalAlign.CENTER }),
+                new TableCell({ children: [new Paragraph({ text: "Contributors", style: "TableHeader" })], verticalAlign: VerticalAlign.CENTER }),
+                new TableCell({ children: [new Paragraph({ text: "Progress (%)", style: "TableHeader", alignment: AlignmentType.RIGHT })], verticalAlign: VerticalAlign.CENTER }),
+                new TableCell({ children: [new Paragraph({ text: "Created By", style: "TableHeader" })], verticalAlign: VerticalAlign.CENTER }),
+                new TableCell({ children: [new Paragraph({ text: "Created At", style: "TableHeader" })], verticalAlign: VerticalAlign.CENTER }),
+            ],
+            tableHeader: true,
+        });
+
+        const dataRows = allProjectsForWord.map((project, index) => {
+            let displayStatus = project.status;
+            if (inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
+                displayStatus = 'In Progress';
+            }
+            return new TableRow({
+                children: [
+                    new TableCell({ children: [new Paragraph(project.title)] }),
+                    new TableCell({ children: [new Paragraph(displayStatus)] }),
+                    new TableCell({ children: [new Paragraph(getLastActivityDate(project))] }),
+                    new TableCell({ children: [new Paragraph(getContributors(project))] }),
+                    new TableCell({ children: [new Paragraph({ text: project.progress.toString(), alignment: AlignmentType.RIGHT })] }),
+                    new TableCell({ children: [new Paragraph(project.createdBy)] }),
+                    new TableCell({ children: [new Paragraph(formatDateOnly(project.createdAt))] }),
+                ],
+                // Simple alternating row color (optional, as Word handles this differently)
+                // cantrips: {
+                //     background: index % 2 === 0 ? "F9F9F9" : undefined,
+                // },
+            });
+        });
+
+        const table = new Table({
+            rows: [headerRow, ...dataRows],
+            width: {
+                size: 100,
+                type: WidthType.PERCENTAGE,
+            },
+            columnWidths: [3000, 1500, 1500, 1500, 1000, 1000, 1000], // Example widths, adjust as needed
+            borders: {
+                top: { style: BorderStyle.SINGLE, size: 1, color: "DDDDDD" },
+                bottom: { style: BorderStyle.SINGLE, size: 1, color: "DDDDDD" },
+                left: { style: BorderStyle.SINGLE, size: 1, color: "DDDDDD" },
+                right: { style: BorderStyle.SINGLE, size: 1, color: "DDDDDD" },
+                insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "EEEEEE" },
+                insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "EEEEEE" },
+            },
+        });
+        sections[0].children.push(table);
+
+    } else {
+        sections[0].children.push(
+            new Paragraph({ text: "No project activity recorded for this month.", alignment: AlignmentType.CENTER })
+        );
+    }
+
+    const doc = new Document({
+        sections: sections,
+        styles: {
+            paragraphStyles: [
+                {
+                    id: "Subheader",
+                    name: "Subheader",
+                    basedOn: "Normal",
+                    next: "Normal",
+                    run: {
+                        size: 20, // 10pt
+                        italics: true,
+                        color: "555555",
+                    },
+                    paragraph: {
+                        spacing: { after: 200 }, // 10pt spacing after
+                    },
+                },
+                {
+                    id: "TableHeader",
+                    name: "Table Header",
+                    basedOn: "Normal",
+                    next: "Normal",
+                    run: {
+                        bold: true,
+                        size: 20, // 10pt
+                        color: "FFFFFF",
+                    },
+                    paragraph: {
+                        alignment: AlignmentType.LEFT,
+                        spacing: { before: 80, after: 80 }, // 4pt spacing
+                    },
+                },
+            ],
+            default: {
+                heading1: {
+                    run: {
+                        size: 28, // 14pt
+                        bold: true,
+                        color: "2E74B5", // Dark Blue
+                    },
+                    paragraph: {
+                        spacing: { after: 240, before: 300 }, // 12pt after, 15pt before
+                    },
+                },
+                 title: { // Corrected from headingTitle to title
+                    run: {
+                        size: 36, // 18pt
+                        bold: true,
+                        color: "1F4E79", // Darker Blue
+                    },
+                    paragraph: {
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 400 }, // 20pt spacing after
+                    },
+                },
+            }
+        },
+    });
+
+    const buffer = await Packer.toBuffer(doc);
+    return buffer;
 }
-

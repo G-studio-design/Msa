@@ -366,7 +366,7 @@ const id = {
        inProgressProjects: "Proyek Sedang Berjalan:",
        inProgressProjectsShort: "Sedang Berjalan",
        downloadExcel: "Unduh Excel (.csv)",
-       downloadPdf: "Unduh PDF (.pdf)",
+       downloadWord: "Unduh Word (.docx)", // Added Word download text
        downloadingButton: "Mengunduh...",
        errorGeneratingReport: "Kesalahan saat membuat laporan.",
        errorDownloadingReport: "Kesalahan saat mengunduh laporan.",
@@ -380,7 +380,7 @@ const id = {
        tableHeaderContributors: "Kontributor",
        toast: {
            downloadedExcel: "Laporan Excel (CSV) Diunduh",
-           downloadedPdf: "Laporan PDF Diunduh",
+           downloadedWord: "Laporan Word (.docx) Diunduh", // Added Word download toast
        }
    },
    // Notifications (General)

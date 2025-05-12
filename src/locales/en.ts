@@ -366,7 +366,7 @@ const en = {
       inProgressProjects: "In Progress Projects:",
       inProgressProjectsShort: "In Progress",
       downloadExcel: "Download Excel (.csv)",
-      downloadPdf: "Download PDF (.pdf)",
+      downloadWord: "Download Word (.docx)", // Added Word download text
       downloadingButton: "Downloading...",
       errorGeneratingReport: "Error generating report.",
       errorDownloadingReport: "Error downloading report.",
@@ -380,7 +380,7 @@ const en = {
       tableHeaderContributors: "Contributors",
       toast: {
           downloadedExcel: "Excel Report (CSV) Downloaded",
-          downloadedPdf: "PDF Report Downloaded",
+          downloadedWord: "Word Report (.docx) Downloaded", // Added Word download toast
       }
   },
   // Notifications (General)
