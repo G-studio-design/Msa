@@ -244,17 +244,19 @@ export default function MonthlyReportPage() {
     if (!reportData || !isClient) return;
     setIsDownloadingPdf(true);
 
+    // chartImageDataUrl is captured but not sent for now to simplify server-side PDF generation
     let chartImageDataUrl: string | undefined = undefined;
     if (chartRef.current) {
         try {
             chartImageDataUrl = await toPng(chartRef.current, {
                 quality: 0.95,
                 backgroundColor: 'white',
-                skipFonts: true,
+                skipFonts: true, // Potentially skip fonts if they cause issues with html-to-image
              });
         } catch (error) {
             console.error('Error capturing chart image:', error);
             toast({ variant: 'destructive', title: 'Chart Capture Error', description: 'Could not capture chart image for PDF.' });
+            // Proceed without chart image if capture fails
         }
     }
 
@@ -263,8 +265,12 @@ export default function MonthlyReportPage() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                ...reportData,
-                chartImageDataUrl,
+                completed: reportData.completed,
+                canceled: reportData.canceled,
+                inProgress: reportData.inProgress,
+                monthName: reportData.monthName,
+                year: reportData.year,
+                // chartImageDataUrl, // Not sending this for now to simplify
             }),
         });
 

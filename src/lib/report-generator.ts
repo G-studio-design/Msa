@@ -55,7 +55,7 @@ export async function generateExcelReport(
     const allProjects = [...inProgress, ...completed, ...canceled ];
     allProjects.sort((a, b) => {
         const statusOrder = (status: string) => {
-            if (inProgress.some(p => p.id === a.id && (status === 'Completed' || status === 'Canceled'))) return 0;
+            if (inProgress.some(p => p.id === a.id && (status === 'Completed' || status === 'Canceled'))) return 0; // If it's in the 'inProgress' list but also marked completed/canceled, treat as inProgress for sorting
             if (status === 'In Progress') return 0;
             if (status === 'Completed') return 1;
             if (status === 'Canceled') return 2;
@@ -86,6 +86,7 @@ export async function generateExcelReport(
 
     allProjects.forEach(project => {
         let displayStatus = project.status;
+        // If a project is in the inProgress list but its status is Completed/Canceled, show it as In Progress for this report's context
         if (inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
             displayStatus = 'In Progress';
         }
@@ -111,8 +112,8 @@ export async function createPdfDocDefinition(
     canceled: Project[],
     inProgress: Project[],
     monthName: string,
-    year: string,
-    chartImageDataUrl?: string // Optional: Data URL of the chart image
+    year: string
+    // chartImageDataUrl?: string; // Temporarily removed for simplification
 ): Promise<TDocumentDefinitions> {
      const tableBody = (projects: Project[]) => {
         const body: Content[][] = [
@@ -180,15 +181,17 @@ export async function createPdfDocDefinition(
         },
     ];
 
-    if (chartImageDataUrl) {
-        docDefinitionContent.push({ text: 'Project Completion Overview:', style: 'sectionHeader' });
-        docDefinitionContent.push({
-            image: chartImageDataUrl,
-            width: 500, // Adjust width as needed
-            alignment: 'center' as const,
-            margin: [0, 0, 0, 20] as [number, number, number, number],
-        });
-    }
+    // Chart image inclusion logic is temporarily removed from here.
+    // It can be added back once basic PDF generation is confirmed working.
+    // if (chartImageDataUrl) {
+    //     docDefinitionContent.push({ text: 'Project Completion Overview:', style: 'sectionHeader' });
+    //     docDefinitionContent.push({
+    //         image: chartImageDataUrl,
+    //         width: 500,
+    //         alignment: 'center' as const,
+    //         margin: [0, 0, 0, 20] as [number, number, number, number],
+    //     });
+    // }
 
 
     if (allProjectsForPdf.length > 0) {
@@ -228,7 +231,7 @@ export async function createPdfDocDefinition(
             bold: true,
             alignment: 'center' as const,
             margin: [0, 0, 0, 20] as [number, number, number, number],
-            color: '#23527c' // Dark Blue
+            color: 'hsl(var(--primary))' // Using CSS variable for primary color
         },
         subheader: {
             fontSize: 10,
@@ -240,21 +243,21 @@ export async function createPdfDocDefinition(
         sectionHeader: {
             fontSize: 14,
             bold: true,
-            margin: [0, 15, 0, 8] as [number, number, number, number],
-            color: '#333333'
+            margin: [0, 15, 0, 8] as [number, number, number, number], // Increased top margin
+            color: 'hsl(var(--foreground))' // Using CSS variable
         },
         tableHeader: {
             bold: true,
             fontSize: 10,
-            fillColor: '#0097A7', // Teal
+            fillColor: 'hsl(187, 100%, 42%)', // Teal accent color directly
             color: '#FFFFFF', // White text
             alignment: 'left' as const,
-            margin: [0, 4, 0, 4] as [number, number, number, number] // Add some padding
+            margin: [0, 4, 0, 4] as [number, number, number, number] 
         },
         tableExample: {
              margin: [0, 5, 0, 15] as [number, number, number, number],
              fontSize: 9,
-             color: '#444444'
+             color: 'hsl(var(--card-foreground))' // Using CSS variable
         }
     };
 
@@ -262,7 +265,7 @@ export async function createPdfDocDefinition(
         content: docDefinitionContent,
         styles: styles,
         defaultStyle: {
-            font: 'Roboto', // This will be defined in the API route
+            font: 'Roboto', // This will be defined in the API route with vfs_fonts
             fontSize: 10,
         },
         pageMargins: [40, 60, 40, 60], // [left, top, right, bottom]
@@ -279,3 +282,4 @@ export async function createPdfDocDefinition(
 
     return docDefinition;
 }
+
