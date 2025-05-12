@@ -3,7 +3,7 @@ const en = {
   // Login Page
   login: {
     title: 'Msarch app Login',
-    description: 'Enter your credentials.', // Simplified description
+    description: 'Enter your credentials.',
     usernameLabel: 'Username',
     usernamePlaceholder: 'Enter your username',
     passwordLabel: 'Password',
@@ -14,7 +14,6 @@ const en = {
     redirecting: 'Redirecting to dashboard...',
     fail: 'Login Failed',
     invalidCredentials: 'Invalid username or password.',
-    // Removed bypass translations
     validation: {
         usernameRequired: 'Username is required.',
         passwordRequired: 'Password is required.',
@@ -28,7 +27,7 @@ const en = {
     projects: 'Projects',
     manageUsers: 'Manage Users',
     adminActions: 'Admin Actions',
-    monthlyReport: 'Monthly Report', // Added translation
+    monthlyReport: 'Monthly Report',
     settings: 'Settings',
     logout: 'Logout',
     appTitle: 'Msarch app',
@@ -68,18 +67,18 @@ const en = {
       pendingstructurefiles: 'Structure',
       pendingfinalcheck: 'Pending Final Check',
       pendingscheduling: 'Pending Scheduling',
-      owner: 'Owner', // Added translation for roles used in 'assignedTo'
+      owner: 'Owner',
       generaladmin: 'General Admin',
       adminproyek: 'Project Admin',
       arsitek: 'Architect',
       struktur: 'Structure',
     },
     progress: '{progress}% Complete',
-    averageProgressTitle: 'Average Progress', // Added
-    averageProgressDesc: 'Average completion rate across all your projects.', // Added
-    projectProgressChartTitle: 'Active Project Progress', // Added
-    projectProgressChartDesc: 'Visualization of current project completion rates.', // Added
-    noActiveProjectsForChart: 'No active projects to display in the chart.', // Added
+    averageProgressTitle: 'Average Progress',
+    averageProgressDesc: 'Average completion rate across all your projects.',
+    projectProgressChartTitle: 'Active Project Progress',
+    projectProgressChartDesc: 'Visualization of current project completion rates.',
+    noActiveProjectsForChart: 'No active projects to display in the chart.',
   },
   // Projects Page
   projectsPage: {
@@ -97,10 +96,10 @@ const en = {
     submittingButton: 'Submitting...',
     ownerActionTitle: 'Owner Action Required',
     ownerActionDesc: 'Review the submitted documents and decide whether to proceed.',
-    cancelProgressButton: 'Cancel Progress',
+    cancelProgressButton: 'Cancel Project', // Changed from 'Cancel Progress'
     continueProgressButton: 'Continue Progress',
     cancelDialogTitle: 'Are you sure?',
-    cancelDialogDesc: 'Canceling this progress cannot be undone. The status will be marked as Canceled.',
+    cancelDialogDesc: 'Canceling this project cannot be undone. The status will be marked as Canceled.', // Updated
     cancelDialogCancel: 'Back',
     cancelDialogConfirm: 'Confirm Cancelation',
     scheduleSidangTitle: 'Schedule Sidang ({role})',
@@ -113,11 +112,11 @@ const en = {
     addCalendarButton: 'Add Sidang to Google Calendar',
     addingCalendarButton: 'Adding...',
     sidangOutcomeTitle: 'Declare Sidang Outcome',
-    sidangOutcomeDesc: 'Mark the progress as completed successfully or failed based on the sidang results.',
+    sidangOutcomeDesc: 'Mark the project as completed successfully or failed based on the sidang results.', // Updated
     markSuccessButton: 'Mark as Success',
     markFailButton: 'Mark as Fail',
-    completedMessage: 'Progress Completed Successfully!',
-    canceledMessage: 'Progress Canceled',
+    completedMessage: 'Project Completed Successfully!', // Updated
+    canceledMessage: 'Project Canceled', // Updated
     uploadedFilesTitle: 'Uploaded Files',
     uploadedFilesDesc: 'History of files uploaded during the process.',
     loadingFiles: 'Loading file list...',
@@ -136,6 +135,15 @@ const en = {
     viewDetails: 'View Details',
     backToList: 'Back to List',
     downloadFileTooltip: 'Download File',
+    // Revision specific translations
+    reviseProjectTitle: 'Request Revision',
+    revisionNoteLabel: 'Revision Note (Required)',
+    revisionNotePlaceholder: 'Explain why this project needs revision...',
+    reviseButton: 'Request Revision',
+    revisingButton: 'Requesting Revision...',
+    confirmRevisionTitle: 'Confirm Revision Request',
+    confirmRevisionDesc: 'This will send the project back to the previous stage for correction. Are you sure?',
+    confirmRevisionButton: 'Yes, Request Revision',
     toast: {
       permissionDenied: 'Permission Denied',
       notYourTurn: 'Not your turn to update progress.',
@@ -146,12 +154,12 @@ const en = {
       progressSubmitted: 'Progress Submitted',
       notifiedNextStep: 'Notified {division} for next step.',
       onlyOwnerDecision: 'Only Owner can make this decision.',
-      progressCanceled: 'Progress Canceled',
+      projectCanceled: 'Project Canceled', // Updated
       offerApproved: 'Offer Approved',
       offerApprovedDesc: 'General Admin notified for DP Invoice.',
       dpApproved: 'DP Invoice Approved',
       dpApprovedDesc: 'Project Admin notified for Admin Files.',
-      progressCompleted: 'Progress Completed Successfully!',
+      progressCompleted: 'Project Completed Successfully!', // Updated
       failNotImplemented: 'Fail logic not implemented yet.',
       missingScheduleInfo: 'Missing Schedule Info',
       provideDateTimeLoc: 'Please provide date, time, and location.',
@@ -166,6 +174,11 @@ const en = {
       errorFindingSchedule: 'Error',
       couldNotFindSchedule: 'Could not find scheduling information.',
       downloadStarted: 'Download Started',
+      revisionPermissionDenied: 'You do not have permission to request a revision for this project at its current stage.',
+      revisionSuccess: 'Revision Requested',
+      revisionSuccessDesc: 'Project sent back to {division} for revision.',
+      revisionError: 'Revision Error',
+      revisionNoteRequired: 'A note is required to request a revision.',
     }
   },
   // Add Project Page

@@ -3,7 +3,7 @@ const id = {
   // Login Page
   login: {
     title: 'Login Msarch app',
-    description: 'Masukkan kredensial Anda.', // Simplified description
+    description: 'Masukkan kredensial Anda.',
     usernameLabel: 'Nama Pengguna',
     usernamePlaceholder: 'Masukkan nama pengguna Anda',
     passwordLabel: 'Kata Sandi',
@@ -14,7 +14,6 @@ const id = {
     redirecting: 'Mengalihkan ke dasbor...',
     fail: 'Login Gagal',
     invalidCredentials: 'Nama pengguna atau kata sandi salah.',
-    // Removed bypass translations
      validation: {
         usernameRequired: 'Nama pengguna wajib diisi.',
         passwordRequired: 'Kata sandi wajib diisi.',
@@ -28,7 +27,7 @@ const id = {
     projects: 'Proyek',
     manageUsers: 'Kelola Pengguna',
     adminActions: 'Tindakan Admin',
-    monthlyReport: 'Laporan Bulanan', // Added translation
+    monthlyReport: 'Laporan Bulanan',
     settings: 'Pengaturan',
     logout: 'Keluar',
     appTitle: 'Msarch app',
@@ -68,18 +67,18 @@ const id = {
       pendingstructurefiles: 'Struktur',
       pendingfinalcheck: 'Menunggu Pemeriksaan Akhir',
       pendingscheduling: 'Menunggu Penjadwalan',
-      owner: 'Pemilik', // Added translation for roles used in 'assignedTo'
+      owner: 'Pemilik',
       generaladmin: 'Admin Umum',
       adminproyek: 'Admin Proyek',
       arsitek: 'Arsitek',
       struktur: 'Struktur',
     },
      progress: '{progress}% Selesai',
-     averageProgressTitle: 'Rata-rata Progres', // Added
-     averageProgressDesc: 'Tingkat penyelesaian rata-rata di semua proyek Anda.', // Added
-     projectProgressChartTitle: 'Progres Proyek Aktif', // Added
-     projectProgressChartDesc: 'Visualisasi tingkat penyelesaian proyek saat ini.', // Added
-     noActiveProjectsForChart: 'Tidak ada proyek aktif untuk ditampilkan dalam diagram.', // Added
+     averageProgressTitle: 'Rata-rata Progres',
+     averageProgressDesc: 'Tingkat penyelesaian rata-rata di semua proyek Anda.',
+     projectProgressChartTitle: 'Progres Proyek Aktif',
+     projectProgressChartDesc: 'Visualisasi tingkat penyelesaian proyek saat ini.',
+     noActiveProjectsForChart: 'Tidak ada proyek aktif untuk ditampilkan dalam diagram.',
   },
   // Projects Page
   projectsPage: {
@@ -97,10 +96,10 @@ const id = {
     submittingButton: 'Mengirim...',
     ownerActionTitle: 'Tindakan Pemilik Diperlukan',
     ownerActionDesc: 'Tinjau dokumen yang dikirim dan putuskan apakah akan melanjutkan.',
-    cancelProgressButton: 'Batalkan Progres',
+    cancelProgressButton: 'Batalkan Proyek', // Updated
     continueProgressButton: 'Lanjutkan Progres',
     cancelDialogTitle: 'Apakah Anda yakin?',
-    cancelDialogDesc: 'Membatalkan progres ini tidak dapat dibatalkan. Status akan ditandai sebagai Dibatalkan.',
+    cancelDialogDesc: 'Membatalkan proyek ini tidak dapat dibatalkan. Status akan ditandai sebagai Dibatalkan.', // Updated
     cancelDialogCancel: 'Kembali',
     cancelDialogConfirm: 'Konfirmasi Pembatalan',
     scheduleSidangTitle: 'Jadwalkan Sidang ({role})',
@@ -113,11 +112,11 @@ const id = {
     addCalendarButton: 'Tambahkan Sidang ke Google Kalender',
     addingCalendarButton: 'Menambahkan...',
     sidangOutcomeTitle: 'Nyatakan Hasil Sidang',
-    sidangOutcomeDesc: 'Tandai progres sebagai berhasil diselesaikan atau gagal berdasarkan hasil sidang.',
+    sidangOutcomeDesc: 'Tandai proyek sebagai berhasil diselesaikan atau gagal berdasarkan hasil sidang.', // Updated
     markSuccessButton: 'Tandai sebagai Berhasil',
     markFailButton: 'Tandai sebagai Gagal',
-    completedMessage: 'Progres Berhasil Diselesaikan!',
-    canceledMessage: 'Progres Dibatalkan',
+    completedMessage: 'Proyek Berhasil Diselesaikan!', // Updated
+    canceledMessage: 'Proyek Dibatalkan', // Updated
     uploadedFilesTitle: 'File Terunggah',
     uploadedFilesDesc: 'Riwayat file yang diunggah selama proses.',
     loadingFiles: 'Memuat daftar file...',
@@ -136,6 +135,15 @@ const id = {
     viewDetails: 'Lihat Detail',
     backToList: 'Kembali ke Daftar',
     downloadFileTooltip: 'Unduh File',
+    // Revision specific translations
+    reviseProjectTitle: 'Minta Revisi',
+    revisionNoteLabel: 'Catatan Revisi (Wajib)',
+    revisionNotePlaceholder: 'Jelaskan mengapa proyek ini memerlukan revisi...',
+    reviseButton: 'Minta Revisi',
+    revisingButton: 'Meminta Revisi...',
+    confirmRevisionTitle: 'Konfirmasi Permintaan Revisi',
+    confirmRevisionDesc: 'Ini akan mengirim proyek kembali ke tahap sebelumnya untuk diperbaiki. Apakah Anda yakin?',
+    confirmRevisionButton: 'Ya, Minta Revisi',
      toast: {
         permissionDenied: 'Izin Ditolak',
         notYourTurn: 'Bukan giliran Anda untuk memperbarui progres.',
@@ -146,7 +154,7 @@ const id = {
         progressSubmitted: 'Progres Terkirim',
         notifiedNextStep: 'Memberitahu {division} untuk langkah selanjutnya.',
         onlyOwnerDecision: 'Hanya Pemilik yang dapat membuat keputusan ini.',
-        progressCanceled: 'Progres Dibatalkan',
+        projectCanceled: 'Proyek Dibatalkan', // Updated
         offerApproved: 'Penawaran Disetujui',
         offerApprovedDesc: 'Admin Umum diberitahu untuk Faktur DP.',
         dpApproved: 'Faktur DP Disetujui',
@@ -166,6 +174,11 @@ const id = {
         errorFindingSchedule: 'Kesalahan',
         couldNotFindSchedule: 'Tidak dapat menemukan informasi penjadwalan.',
         downloadStarted: 'Unduhan Dimulai',
+        revisionPermissionDenied: 'Anda tidak memiliki izin untuk meminta revisi untuk proyek ini pada tahap saat ini.',
+        revisionSuccess: 'Permintaan Revisi Berhasil',
+        revisionSuccessDesc: 'Proyek dikirim kembali ke {division} untuk direvisi.',
+        revisionError: 'Kesalahan Revisi',
+        revisionNoteRequired: 'Catatan diperlukan untuk meminta revisi.',
       }
   },
    // Add Project Page
