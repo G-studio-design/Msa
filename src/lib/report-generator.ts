@@ -3,11 +3,12 @@
 
 import type { Project } from '@/services/project-service';
 import { format, parseISO } from 'date-fns';
+// pdfmake types are still useful for structuring the document definition,
+// but the actual PDF generation will happen in the API route.
 import type { TDocumentDefinitions, TFontDictionary } from 'pdfmake/interfaces';
-// Import pdfmake itself
-import PdfPrinter from 'pdfmake';
 
-// --- Helper Functions ---
+
+// --- Helper Functions (can be used by both Excel and PDF generation) ---
 
 function formatDateOnly(timestamp: string): string {
     if (!timestamp) return "N/A";
@@ -47,26 +48,26 @@ function escapeCsvValue(value: string | number | undefined | null): string {
     return strValue;
 }
 
-// --- Report Generation Functions ---
+// --- Excel Report Generation Function ---
 
 export async function generateExcelReport(
     completed: Project[],
     canceled: Project[],
     inProgress: Project[]
 ): Promise<string> {
-    const allProjects = [...inProgress, ...completed, ...canceled ]; 
+    const allProjects = [...inProgress, ...completed, ...canceled ];
     allProjects.sort((a, b) => {
         const statusOrder = (status: string) => {
-            if (inProgress.some(p => p.id === a.id && (status === 'Completed' || status === 'Canceled'))) return 0; 
+            if (inProgress.some(p => p.id === a.id && (status === 'Completed' || status === 'Canceled'))) return 0;
             if (status === 'In Progress') return 0;
             if (status === 'Completed') return 1;
             if (status === 'Canceled') return 2;
-            return 3; 
+            return 3;
         };
         const orderA = statusOrder(a.status);
         const orderB = statusOrder(b.status);
         if (orderA !== orderB) return orderA - orderB;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); 
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
     const headers = [
@@ -100,37 +101,27 @@ export async function generateExcelReport(
     return rows.join('\n');
 }
 
-// Define fonts for pdfmake
-// Correctly load vfs_fonts.js for server-side usage.
-const pdfMakeVfs = require('pdfmake/build/vfs_fonts.js').pdfMake.vfs;
 
-const fonts: TFontDictionary = {
-  Roboto: {
-    normal: Buffer.from(pdfMakeVfs['Roboto-Regular.ttf'], 'base64'),
-    bold: Buffer.from(pdfMakeVfs['Roboto-Medium.ttf'], 'base64'),
-    italics: Buffer.from(pdfMakeVfs['Roboto-Italic.ttf'], 'base64'),
-    bolditalics: Buffer.from(pdfMakeVfs['Roboto-MediumItalic.ttf'], 'base64'),
-  }
-};
+// PDF generation logic will be moved to `src/app/api/generate-report/pdf/route.ts`
+// We can keep the helper functions here as they are generic.
 
-
-export async function generatePdfReport(
+// Helper function to create the PDF document definition
+// This can be called by the API route.
+export function createPdfDocDefinition(
     completed: Project[],
     canceled: Project[],
     inProgress: Project[],
     monthName: string,
     year: string
-): Promise<Uint8Array> {
-    const printer = new PdfPrinter(fonts);
-
-    const tableBody = (projects: Project[]) => {
+): TDocumentDefinitions {
+     const tableBody = (projects: Project[]) => {
         const body = [
             [
                 { text: 'Project Title', style: 'tableHeader' },
                 { text: 'Status', style: 'tableHeader' },
                 { text: 'Last Activity / End Date', style: 'tableHeader' },
                 { text: 'Contributors', style: 'tableHeader' },
-                { text: 'Progress (%)', style: 'tableHeader', alignment: 'right' },
+                { text: 'Progress (%)', style: 'tableHeader', alignment: 'right' as const },
                 { text: 'Created By', style: 'tableHeader' },
                 { text: 'Created At', style: 'tableHeader' },
             ]
@@ -146,20 +137,20 @@ export async function generatePdfReport(
                 displayStatus,
                 getLastActivityDate(project),
                 getContributors(project),
-                { text: project.progress.toString(), alignment: 'right' },
+                { text: project.progress.toString(), alignment: 'right' as const },
                 project.createdBy,
                 formatDateOnly(project.createdAt),
             ]);
         });
         return body;
     };
-    
+
     const allProjectsForPdf = [...inProgress, ...completed, ...canceled];
      allProjectsForPdf.sort((a, b) => {
         const statusOrderValue = (project: Project, inProgressList: Project[]) => {
             let currentStatus = project.status;
              if (inProgressList.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
-                currentStatus = 'In Progress'; 
+                currentStatus = 'In Progress';
             }
             if (currentStatus === 'In Progress') return 0;
             if (currentStatus === 'Completed') return 1;
@@ -186,40 +177,40 @@ export async function generatePdfReport(
                     `  - Completed: ${completed.length}\n`,
                     `  - Canceled: ${canceled.length}\n`,
                 ],
-                margin: [0, 0, 0, 20] 
+                margin: [0, 0, 0, 20] as [number, number, number, number],
             },
         ],
         styles: {
             header: {
                 fontSize: 18,
                 bold: true,
-                alignment: 'center',
+                alignment: 'center' as const,
                 margin: [0, 0, 0, 20] as [number, number, number, number],
             },
             subheader: {
                 fontSize: 10,
                 italics: true,
-                alignment: 'center',
+                alignment: 'center' as const,
                 margin: [0, 0, 0, 10] as [number, number, number, number],
             },
             sectionHeader: {
                 fontSize: 14,
                 bold: true,
-                margin: [0, 10, 0, 5] as [number, number, number, number], 
+                margin: [0, 10, 0, 5] as [number, number, number, number],
             },
             tableHeader: {
                 bold: true,
                 fontSize: 10,
                 fillColor: '#eeeeee',
-                alignment: 'left'
+                alignment: 'left' as const
             },
             tableExample: {
-                 margin: [0, 5, 0, 15] as [number, number, number, number], 
+                 margin: [0, 5, 0, 15] as [number, number, number, number],
                  fontSize: 9
             }
         },
         defaultStyle: {
-            font: 'Roboto', 
+            // font: 'Roboto', // Font will be set in the API route
             fontSize: 10,
         }
     };
@@ -230,7 +221,7 @@ export async function generatePdfReport(
             style: 'tableExample',
             table: {
                 headerRows: 1,
-                 widths: ['*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'], 
+                 widths: ['*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'],
                 body: tableBody(allProjectsForPdf),
             },
             layout: {
@@ -252,16 +243,7 @@ export async function generatePdfReport(
             }
         });
     } else {
-         docDefinition.content.push({ text: 'No project activity recorded for this month.', style: 'sectionHeader', alignment: 'center' });
+         docDefinition.content.push({ text: 'No project activity recorded for this month.', style: 'sectionHeader', alignment: 'center' as const });
     }
-
-    const pdfDoc = printer.createPdfKitDocument(docDefinition);
-    
-    const chunks: Buffer[] = [];
-    return new Promise<Uint8Array>((resolve, reject) => {
-        pdfDoc.on('data', chunk => chunks.push(chunk));
-        pdfDoc.on('end', () => resolve(Buffer.concat(chunks)));
-        pdfDoc.on('error', err => reject(err));
-        pdfDoc.end();
-    });
+    return docDefinition;
 }

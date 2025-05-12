@@ -201,12 +201,12 @@ export default function MonthlyReportPage() {
     try {
       const monthName = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1).toLocaleString(language, { month: 'long' });
       const filenameBase = `Monthly_Report_${monthName}_${selectedYear}`;
-      
-      let fileContent: string | Uint8Array | Blob;
+
+      let fileContent: string | Blob; // Changed to Blob for PDF
       let blobType = '';
       let fileExtension = '';
       let toastTitle = '';
-      
+
       if (format === 'excel') {
         fileContent = await generateExcelReport(reportData.completed, reportData.canceled, reportData.inProgress);
         blobType = 'text/csv;charset=utf-8;';
@@ -228,21 +228,22 @@ export default function MonthlyReportPage() {
 
         if (!response.ok) {
             const errorData = await response.json();
+            console.error("PDF Generation API Error:", errorData);
             throw new Error(errorData.details || `Failed to generate PDF: ${response.statusText}`);
         }
-        
-        fileContent = await response.blob();
-        blobType = 'application/pdf'; 
-        fileExtension = '.pdf'; 
+
+        fileContent = await response.blob(); // Get response as Blob
+        blobType = 'application/pdf';
+        fileExtension = '.pdf';
         toastTitle = reportDict.toast?.downloadedPdf || "PDF Report Downloaded";
       }
 
-      if ((typeof fileContent === 'string' && !fileContent.trim()) || (fileContent instanceof Uint8Array && fileContent.length === 0) || (fileContent instanceof Blob && fileContent.size === 0) ) {
+      if ((typeof fileContent === 'string' && !fileContent.trim()) || (fileContent instanceof Blob && fileContent.size === 0) ) {
           toast({ variant: 'destructive', title: "Report Empty", description: `The generated ${format.toUpperCase()} report content is empty.` });
           setIsDownloading(false);
           return;
       }
-      
+
       const blob = fileContent instanceof Blob ? fileContent : new Blob([fileContent], { type: blobType });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -330,7 +331,7 @@ export default function MonthlyReportPage() {
           if (currentStatus === 'Canceled') return 2;
           return 3; // Should not happen with the current filtering
       };
-      
+
       const orderA = statusOrderValue(a);
       const orderB = statusOrderValue(b);
 
@@ -442,7 +443,7 @@ export default function MonthlyReportPage() {
                                                 badgeVariant = 'destructive';
                                                 break;
                                             case 'In Progress':
-                                            default: 
+                                            default:
                                                 statusIcon = <Activity className="mr-1 h-3 w-3" />;
                                                 badgeVariant = 'secondary';
                                                 badgeClassName = 'bg-blue-500 text-white hover:bg-blue-600';
