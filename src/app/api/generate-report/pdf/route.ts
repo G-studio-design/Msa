@@ -1,16 +1,29 @@
 // src/app/api/generate-report/pdf/route.ts
+
+// Static import for side-effects:
+// This ensures pdfMake.vfs is set when the module is loaded, making it available
+// globally for any PdfPrinter instances or internal pdfmake operations.
+import 'pdfmake/build/vfs_fonts.js';
+
+import PdfPrinter from 'pdfmake'; // Import PdfPrinter class
 import { NextResponse, type NextRequest } from 'next/server';
 import { createPdfDocDefinition } from '@/lib/report-generator'; // Import the definition creator
 import type { Project } from '@/services/project-service';
-import PdfPrinter from 'pdfmake';
 import type { TFontDictionary } from 'pdfmake/interfaces';
 
-// Define fonts for pdfmake
-// It's important to load vfs_fonts.js correctly for server-side usage.
-// This dynamic import helps ensure it's loaded in the Node.js environment of the API route.
-async function getPdfMakeVfs() {
-  const vfs = await import('pdfmake/build/vfs_fonts.js');
-  return vfs.pdfMake.vfs;
+// Store the VFS data once, globally for this module, to avoid re-importing repeatedly.
+let vfsDataInstance: any = null;
+
+async function getInitializedVfsData() {
+    if (!vfsDataInstance) {
+        // Dynamically import to get the vfs object containing font data.
+        // The global side-effect of setting pdfMake.vfs should have already occurred
+        // due to the static import 'pdfmake/build/vfs_fonts.js' at the top of this file.
+        // This function now primarily serves to access the vfs data for creating font buffers.
+        const vfsModule = await import('pdfmake/build/vfs_fonts.js');
+        vfsDataInstance = vfsModule.pdfMake.vfs;
+    }
+    return vfsDataInstance;
 }
 
 export async function POST(request: NextRequest) {
@@ -28,10 +41,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required report data' }, { status: 400 });
     }
 
-    const vfs = await getPdfMakeVfs();
+    // Get VFS data for creating font buffers
+    const vfs = await getInitializedVfsData();
 
     const fonts: TFontDictionary = {
-      Roboto: { // Ensure this font key matches what's used in docDefinition.defaultStyle.font
+      Roboto: {
         normal: Buffer.from(vfs['Roboto-Regular.ttf'], 'base64'),
         bold: Buffer.from(vfs['Roboto-Medium.ttf'], 'base64'),
         italics: Buffer.from(vfs['Roboto-Italic.ttf'], 'base64'),
@@ -40,7 +54,7 @@ export async function POST(request: NextRequest) {
     };
 
     const printer = new PdfPrinter(fonts);
-    // Await the call to createPdfDocDefinition as it's now async
+    // Await the call to createPdfDocDefinition as it's async
     const docDefinition = await createPdfDocDefinition(completed, canceled, inProgress, monthName, year);
     
     // Explicitly set defaultStyle font if not already in createPdfDocDefinition
@@ -56,7 +70,10 @@ export async function POST(request: NextRequest) {
     await new Promise<void>((resolve, reject) => {
         pdfDoc.on('data', chunk => chunks.push(chunk));
         pdfDoc.on('end', () => resolve());
-        pdfDoc.on('error', err => reject(err));
+        pdfDoc.on('error', err => {
+            console.error('Error in PDF stream:', err);
+            reject(err);
+        });
         pdfDoc.end();
     });
 
@@ -71,10 +88,14 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Error generating PDF report in API route:', error);
-    // Check if the error is from fontkit trying to access data.trie
-    if (error.message && error.message.includes('data.trie')) {
-        console.error("Fontkit 'data.trie' error. This might indicate an issue with how pdfmake or its dependencies handle font data in this environment.");
+    let detailMessage = 'An unexpected error occurred.';
+    if (error.message) {
+        detailMessage = error.message;
+        if (error.message.includes('data.trie')) {
+            detailMessage = "Fontkit 'data.trie' error. This indicates an issue with font data handling in the server environment. Ensure 'vfs_fonts.js' is correctly processed.";
+            console.error(detailMessage); // Log specific error type
+        }
     }
-    return NextResponse.json({ error: 'Failed to generate PDF report', details: error.message, stack: error.stack }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to generate PDF report', details: detailMessage, stack: error.stack }, { status: 500 });
   }
 }
