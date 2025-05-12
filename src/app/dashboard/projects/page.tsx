@@ -52,7 +52,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAllProjects, updateProject, reviseProject, type Project, type WorkflowHistoryEntry, type FileEntry } from '@/services/project-service';
+import { getAllProjects, updateProject, reviseProject, getProjectById, type Project, type WorkflowHistoryEntry, type FileEntry } from '@/services/project-service';
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -282,7 +282,7 @@ export default function ProjectsPage() {
         progress: newProgress,
         nextAction: nextActionDescription,
         workflowHistory: [...selectedProject.workflowHistory, historyEntry],
-        files: [...selectedProject.files, ...(newFiles as FileEntry[])],
+        files: [...selectedProject.files, ...(newFiles as FileEntry[])], // Cast to FileEntry[] as path will be added by updateProject
       };
 
      try {
@@ -293,6 +293,7 @@ export default function ProjectsPage() {
             setAllProjects(prev => prev.map(p => p.id === newlyUpdatedProject.id ? newlyUpdatedProject : p));
              if (selectedProject?.id === newlyUpdatedProject.id) setSelectedProject(newlyUpdatedProject);
         } else {
+            // Fallback if getProjectById fails, use locally constructed data
             setAllProjects(prev => prev.map(p => p.id === updatedProjectData.id ? updatedProjectData : p));
              if (selectedProject?.id === updatedProjectData.id) setSelectedProject(updatedProjectData);
         }
@@ -438,17 +439,22 @@ export default function ProjectsPage() {
         if (!isClient) return;
         console.log(`Simulating download for file: ${file.name} from path: ${file.path}`);
         setIsDownloading(true);
+        // Simulate file content creation (replace with actual file fetching logic if files are stored remotely)
         const fileContent = `Simulated content for ${file.name}.\nOriginal path: ${file.path}.\nUploaded by ${file.uploadedBy} on ${formatDateOnly(file.timestamp)}.`;
-        const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8;' });
+        const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8;' }); // Adjust MIME type if needed
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${file.name}.txt`;
+        // Ensure the downloaded file has an appropriate extension, or use a generic one like .txt
+        const fileNameParts = file.name.split('.');
+        const extension = fileNameParts.length > 1 ? `.${fileNameParts.pop()}` : '.txt'; // Fallback to .txt if no extension
+        a.download = `${fileNameParts.join('.')}${extension}`; // Reconstruct name with original or fallback extension
+
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        toast({ title: projectsDict.toast.downloadStarted, description: `Simulated download of ${file.name}.txt` });
+        toast({ title: projectsDict.toast.downloadStarted, description: `Simulated download of ${a.download}` });
         setIsDownloading(false);
     };
 

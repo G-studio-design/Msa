@@ -360,6 +360,23 @@
         "division": "Admin Proyek",
         "action": "Uploaded Offer Document",
         "timestamp": "2025-05-08T08:39:04.956Z"
+      },
+      {
+        "division": "Owner",
+        "action": "Approved Offer",
+        "timestamp": "2025-05-12T05:11:42.927Z"
+      },
+      {
+        "division": "Owner",
+        "action": "Requested Revision. Sent back to Admin Proyek for Re-evaluate/Revise Offer (DP Stage Revision).",
+        "timestamp": "2025-05-12T05:12:11.803Z",
+        "note": "kurang di harganya"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "Uploaded Offer Document",
+        "timestamp": "2025-05-12T05:13:18.279Z",
+        "note": "sudah direvisi"
       }
     ],
     "files": [
@@ -368,6 +385,12 @@
         "uploadedBy": "komangmerta",
         "timestamp": "2025-05-08T08:39:04.956Z",
         "path": "projects/project_1746693288292_u0huv-canggu_school/pot.pdf"
+      },
+      {
+        "name": "pemecahan nangka 2.pdf",
+        "uploadedBy": "komangmerta",
+        "timestamp": "2025-05-12T05:13:18.279Z",
+        "path": "projects/project_1746693288292_u0huv-canggu_school/pemecahan nangka 2.pdf"
       }
     ],
     "createdAt": "2025-05-08T08:34:48.292Z",
