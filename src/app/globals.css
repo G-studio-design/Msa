@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%; /* White */
@@ -68,13 +64,14 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    /* font-family is handled by layout.tsx with Inter font variable */
   }
 }
 
 @layer utilities {
   /* Teal accent for interactive elements - applies to ShadCN components and custom elements */
   .accent-teal {
-    @apply text-[hsl(var(--accent-foreground))];
+    @apply text-[hsl(var(--primary-foreground))]; /* Changed to primary-foreground for better contrast */
     background-color: hsl(187, 100%, 42%); /* Teal */
   }
   .accent-teal:hover {
