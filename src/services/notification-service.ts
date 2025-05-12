@@ -36,6 +36,11 @@ async function readNotifications(): Promise<Notification[]> {
 
     try {
         const data = await fs.readFile(DB_PATH, 'utf8');
+        if (data.trim() === "") {
+            console.warn("Notification database file is empty. Initializing with an empty array.");
+            await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
+            return [];
+        }
         const parsedData = JSON.parse(data);
         if (!Array.isArray(parsedData)) {
             console.error("Notification database file does not contain a valid JSON array. Resetting.");
@@ -44,8 +49,11 @@ async function readNotifications(): Promise<Notification[]> {
         }
         // Basic validation/migration could happen here if needed
         return parsedData as Notification[];
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error reading or parsing notification database:", error);
+        if (error instanceof SyntaxError) {
+            console.warn(`SyntaxError in notification database: ${error.message}. Attempting to reset.`);
+        }
         try {
             console.log("Attempting to reset notification database due to read/parse error.");
             await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
@@ -95,9 +103,13 @@ async function findUsersByRole(role: string): Promise<User[]> {
 export async function notifyUsersByRole(role: string, message: string, projectId?: string): Promise<void> {
     console.log(`Sending notification to role "${role}": ${message}${projectId ? ` (Project: ${projectId})` : ''}`);
     try {
+        if (!role) {
+            console.warn(`No target role specified for notification: "${message}". Skipping.`);
+            return;
+        }
         const targetUsers = await findUsersByRole(role);
         if (targetUsers.length === 0) {
-            console.warn(`No users found with role "${role}" to notify.`);
+            console.warn(`No users found with role "${role}" to notify for message: "${message}".`);
             return;
         }
 
@@ -201,5 +213,3 @@ export async function clearAllNotifications(): Promise<void> {
         throw new Error("Could not clear notification data.");
     }
 }
-
-    

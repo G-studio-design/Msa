@@ -50,7 +50,7 @@ export interface Project {
 // Define the structure for adding a new project
 export interface AddProjectData {
     title: string;
-    initialFiles: Omit<FileEntry, 'timestamp' | 'path' | 'size'>[]; // Files provided at creation
+    initialFiles: Omit<FileEntry, 'timestamp' | 'path' >[]; // Files provided at creation, size was removed earlier.
     createdBy: string;
 }
 
@@ -70,6 +70,11 @@ async function readProjects(): Promise<Project[]> {
 
     try {
         const data = await fs.readFile(DB_PATH, 'utf8');
+        if (data.trim() === "") {
+            console.warn("Project database file is empty. Initializing with an empty array.");
+            await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
+            return [];
+        }
         const parsedData = JSON.parse(data);
         if (!Array.isArray(parsedData)) {
             console.error("Project database file does not contain a valid JSON array. Resetting.");
@@ -90,8 +95,11 @@ async function readProjects(): Promise<Project[]> {
                 return file;
             })
         }));
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error reading or parsing project database:", error);
+         if (error instanceof SyntaxError) {
+            console.warn(`SyntaxError in project database: ${error.message}. Attempting to reset.`);
+        }
          try {
              console.log("Attempting to reset project database due to read/parse error.");
              await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
@@ -152,7 +160,8 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
 
 
     const filesWithMetadata: FileEntry[] = projectData.initialFiles.map(file => ({
-        ...file,
+        name: file.name, // name comes from AddProjectData
+        uploadedBy: file.uploadedBy, // uploadedBy comes from AddProjectData
         timestamp: now,
         path: `${projectRelativeFolderPath}/${file.name}`, // Path relative to base dir
     }));
@@ -247,7 +256,14 @@ export async function updateProject(updatedProject: Project): Promise<void> {
     console.log(`Project ${updatedProject.id} updated successfully.`);
 
      const newlyAssignedDivision = projects[projectIndex].assignedDivision;
-     if (newlyAssignedDivision && newlyAssignedDivision !== originalProject.assignedDivision && projects[projectIndex].status !== 'Completed' && projects[projectIndex].status !== 'Canceled') {
+     const currentStatus = projects[projectIndex].status;
+     if (newlyAssignedDivision && 
+        newlyAssignedDivision !== originalProject.assignedDivision && 
+        currentStatus !== 'Completed' && currentStatus !== 'Canceled' &&
+        !(currentStatus === 'Pending Approval' && newlyAssignedDivision === 'Owner') && // Don't notify owner on self-assignment to approve
+        !(currentStatus === 'Pending DP Invoice' && newlyAssignedDivision === 'General Admin') && // Don't notify GA on self-assignment
+        !(currentStatus === 'Pending Scheduling' && (newlyAssignedDivision === 'General Admin' || newlyAssignedDivision === 'Owner')) // Don't notify GA/Owner on self-assignment
+        ) {
         const nextActionDesc = projects[projectIndex].nextAction || 'action';
        await notifyUsersByRole(newlyAssignedDivision, `Project "${projects[projectIndex].title}" requires your ${nextActionDesc}.`, projects[projectIndex].id);
      }

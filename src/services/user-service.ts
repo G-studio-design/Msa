@@ -65,6 +65,11 @@ async function readUsers(): Promise<User[]> {
 
     try {
         const data = await fs.readFile(DB_PATH, 'utf8');
+        if (data.trim() === "") {
+            console.warn("User database file is empty. Initializing with an empty array.");
+            await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
+            return [];
+        }
         const parsedData = JSON.parse(data);
         if (!Array.isArray(parsedData)) {
             console.error("User database file does not contain a valid JSON array. Resetting.");
@@ -84,8 +89,11 @@ async function readUsers(): Promise<User[]> {
                 role: user.role, // Keep the existing role (after filtering)
                 googleUid: undefined, // Ensure googleUid is removed
             })) as User[];
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error reading or parsing user database:", error);
+        if (error instanceof SyntaxError) {
+            console.warn(`SyntaxError in user database: ${error.message}. Attempting to reset.`);
+        }
         try {
             console.log("Attempting to reset user database due to read/parse error.");
             await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
@@ -315,6 +323,13 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
 
     await writeUsers(users);
     console.log(`User profile for ${updateData.userId} updated successfully in database file.`);
+
+    // Notify admins of profile change
+    const adminRolesToNotify = ['Owner', 'General Admin'];
+    const currentUser = users[userIndex]; // Get the updated user object
+    adminRolesToNotify.forEach(async (role) => {
+        await notifyUsersByRole(role, `User profile for "${currentUser.username}" (Role: ${currentUser.role}) has been updated.`);
+    });
 }
 
 
@@ -358,6 +373,13 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
 
     await writeUsers(users);
     console.log(`Password for user ${updateData.userId} updated successfully (Plain text - INSECURE).`);
+
+     // Notify admins of password change
+     const adminRolesToNotify = ['Owner', 'General Admin'];
+     const currentUser = users[userIndex];
+     adminRolesToNotify.forEach(async (role) => {
+         await notifyUsersByRole(role, `Password for user "${currentUser.username}" (Role: ${currentUser.role}) has been changed.`);
+     });
 }
 
 /**
