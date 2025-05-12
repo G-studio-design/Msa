@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
     const printer = new PdfPrinter(fonts);
     const docDefinition = await createPdfDocDefinition(completed, canceled, inProgress, monthName, year);
     
+    // Ensure defaultStyle exists and set the font
     if (!docDefinition.defaultStyle) {
         docDefinition.defaultStyle = {};
     }
@@ -107,3 +108,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to generate PDF report', details: detailMessage, stack: error.stack, cause: error.cause ? String(error.cause) : undefined }, { status: 500 });
   }
 }
+
+```

@@ -50,16 +50,6 @@
     "whatsappNumber": ""
   },
   {
-    "id": "usr_dev_ran",
-    "username": "dev_admn",
-    "role": "Admin Developer",
-    "password": "admin123",
-    "email": "dev_admn@placeholder.example.com",
-    "displayName": "dev_admn",
-    "createdAt": "2025-05-02T17:05:00.000Z",
-    "whatsappNumber": ""
-  },
-  {
     "id": "usr_7",
     "username": "admin",
     "role": "General Admin",
@@ -94,7 +84,7 @@
     "username": "sudina",
     "password": "sudina123",
     "role": "Owner",
-    "email": "sudina@placeholder.example.com",
+    "email": "iwayangovina@gmail.com",
     "whatsappNumber": "",
     "displayName": "sudina",
     "createdAt": "2025-05-01T21:03:03.687Z"
