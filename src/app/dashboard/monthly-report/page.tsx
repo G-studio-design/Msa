@@ -35,7 +35,7 @@ import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllProjects, type Project, type WorkflowHistoryEntry } from '@/services/project-service';
-import { generateExcelReport, generatePdfReport } from '@/lib/report-generator';
+import { generateExcelReport } from '@/lib/report-generator'; // generatePdfReport will be called via API
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
@@ -202,7 +202,7 @@ export default function MonthlyReportPage() {
       const monthName = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1).toLocaleString(language, { month: 'long' });
       const filenameBase = `Monthly_Report_${monthName}_${selectedYear}`;
       
-      let fileContent: string | Uint8Array;
+      let fileContent: string | Uint8Array | Blob;
       let blobType = '';
       let fileExtension = '';
       let toastTitle = '';
@@ -213,19 +213,37 @@ export default function MonthlyReportPage() {
         fileExtension = '.csv';
         toastTitle = reportDict.toast?.downloadedExcel || "Excel Report Downloaded";
       } else { // PDF
-        fileContent = await generatePdfReport(reportData.completed, reportData.canceled, reportData.inProgress, monthName, selectedYear);
+        // Call the API route for PDF generation
+        const response = await fetch('/api/generate-report/pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                completed: reportData.completed,
+                canceled: reportData.canceled,
+                inProgress: reportData.inProgress,
+                monthName,
+                year: selectedYear,
+            }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.details || `Failed to generate PDF: ${response.statusText}`);
+        }
+        
+        fileContent = await response.blob();
         blobType = 'application/pdf'; 
         fileExtension = '.pdf'; 
         toastTitle = reportDict.toast?.downloadedPdf || "PDF Report Downloaded";
       }
 
-      if ((typeof fileContent === 'string' && !fileContent.trim()) || (fileContent instanceof Uint8Array && fileContent.length === 0) ) {
+      if ((typeof fileContent === 'string' && !fileContent.trim()) || (fileContent instanceof Uint8Array && fileContent.length === 0) || (fileContent instanceof Blob && fileContent.size === 0) ) {
           toast({ variant: 'destructive', title: "Report Empty", description: `The generated ${format.toUpperCase()} report content is empty.` });
           setIsDownloading(false);
           return;
       }
       
-      const blob = new Blob([fileContent], { type: blobType });
+      const blob = fileContent instanceof Blob ? fileContent : new Blob([fileContent], { type: blobType });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
