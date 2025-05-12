@@ -249,8 +249,8 @@ export default function MonthlyReportPage() {
         try {
             chartImageDataUrl = await toPng(chartRef.current, {
                 quality: 0.95,
-                backgroundColor: 'white', // Important for non-transparent background
-                skipFonts: true, // Attempt to fix font issues
+                backgroundColor: 'white', 
+                skipFonts: true, 
              });
         } catch (error) {
             console.error('Error capturing chart image:', error);
@@ -264,13 +264,22 @@ export default function MonthlyReportPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 ...reportData,
-                chartImageDataUrl, // Send chart image data
+                chartImageDataUrl, 
             }),
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: "Unknown error during PDF generation." }));
-            throw new Error(errorData.details || errorData.error || 'Failed to generate PDF report from server.');
+            let errorDetails = 'Failed to generate PDF report from server.';
+            try {
+                const errorData = await response.json();
+                errorDetails = errorData.details || errorData.error || errorDetails;
+                console.error("Server error details for PDF generation:", errorData);
+            } catch (e) {
+                // If response is not JSON, use the status text or a generic message
+                errorDetails = response.statusText || `Server returned status ${response.status}.`;
+                console.error("Non-JSON error response from server for PDF generation:", await response.text());
+            }
+            throw new Error(errorDetails);
         }
 
         const blob = await response.blob();
@@ -283,9 +292,13 @@ export default function MonthlyReportPage() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         toast({ title: reportDict.toast?.downloadedPdf || "PDF Report Downloaded", description: `Report ${a.download} downloaded.` });
-    } catch (error) {
-        console.error('Failed to download PDF report:', error);
-        toast({ variant: 'destructive', title: reportDict.errorDownloadingReport || "Download Error", description: (error as Error).message || 'Unknown error during PDF download.' });
+    } catch (error: any) {
+        console.error('Failed to download PDF report (client-side):', error);
+        toast({ 
+            variant: 'destructive', 
+            title: reportDict.errorDownloadingReport || "Download Error", 
+            description: error.message || 'Unknown error during PDF download.' 
+        });
     } finally {
         setIsDownloadingPdf(false);
     }
