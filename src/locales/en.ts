@@ -2,7 +2,7 @@
 const en = {
   // Login Page
   login: {
-    title: 'Msaarch APP Login',
+    title: 'Msarch app Login',
     description: 'Enter your credentials.', // Simplified description
     usernameLabel: 'Username',
     usernamePlaceholder: 'Enter your username',
@@ -31,7 +31,7 @@ const en = {
     monthlyReport: 'Monthly Report', // Added translation
     settings: 'Settings',
     logout: 'Logout',
-    appTitle: 'Msaarch APP',
+    appTitle: 'Msarch app',
     toggleMenu: 'Toggle Menu Panel',
   },
   // Dashboard Page
@@ -73,7 +73,6 @@ const en = {
       adminproyek: 'Project Admin',
       arsitek: 'Architect',
       struktur: 'Structure',
-      admindeveloper: 'Admin Developer',
     },
     progress: '{progress}% Complete',
     averageProgressTitle: 'Average Progress', // Added
@@ -81,7 +80,6 @@ const en = {
     projectProgressChartTitle: 'Active Project Progress', // Added
     projectProgressChartDesc: 'Visualization of current project completion rates.', // Added
     noActiveProjectsForChart: 'No active projects to display in the chart.', // Added
-    // Removed statusDistributionTitle and statusDistributionDesc
   },
   // Projects Page
   projectsPage: {
@@ -137,7 +135,7 @@ const en = {
     noProjectsFound: 'No projects match the current filters.',
     viewDetails: 'View Details',
     backToList: 'Back to List',
-    downloadFileTooltip: 'Download File', // Updated as it now downloads actual files
+    downloadFileTooltip: 'Download File',
     toast: {
       permissionDenied: 'Permission Denied',
       notYourTurn: 'Not your turn to update progress.',
@@ -167,7 +165,7 @@ const en = {
       eventId: 'Event ID: {id}',
       errorFindingSchedule: 'Error',
       couldNotFindSchedule: 'Could not find scheduling information.',
-      downloadStarted: 'Download Started', // Updated
+      downloadStarted: 'Download Started',
     }
   },
   // Add Project Page
@@ -193,7 +191,7 @@ const en = {
   // Manage Users Page
   manageUsersPage: {
     title: 'Manage Users',
-    description: 'Add, edit, or remove user accounts (Owner, General Admin, Admin Developer only).',
+    description: 'Add, edit, or remove user accounts (Owner, General Admin only).',
     addUserButton: 'Add User',
     addUserDialogTitle: 'Add New User',
     addUserDialogDesc: 'Enter the details for the new user account.',
@@ -226,14 +224,12 @@ const en = {
     deleteDialogCancel: 'Cancel',
     deleteDialogConfirm: 'Delete User',
     cannotChangeLastAdminRoleHint: 'Cannot change the role of the last General Admin.',
-    cannotChangeLastDevAdminRoleHint: 'Cannot change the role of the last Admin Developer.',
     roles: {
       Owner: 'Owner',
       'General Admin': 'General Admin',
       'Admin Proyek': 'Project Admin',
       Arsitek: 'Architect',
       Struktur: 'Structure',
-      'Admin Developer': 'Admin Developer',
     },
     toast: {
       userAdded: 'User Added',
@@ -246,13 +242,8 @@ const en = {
       usernameExists: 'Username already exists.',
       cannotDeleteSelf: 'You cannot delete your own account.',
       cannotDeleteLastAdmin: 'Cannot delete the last General Admin.',
-      cannotDeleteLastDevAdmin: 'Cannot delete the last Admin Developer.',
-      cannotChangeLastAdminRole: 'Cannot change the role of the last General Admin.',
-      cannotChangeLastDevAdminRole: 'Cannot change the role of the last Admin Developer.',
       permissionDenied: 'Permission Denied',
       editPermissionDenied: 'You do not have permission to edit this user.',
-      devCannotEditOwnerGA: 'Admin Developer cannot edit Owner or General Admin.',
-      gaCannotEditOwnerDev: 'General Admin cannot edit Owner or Admin Developer.',
       userNotFound: 'User not found.',
     },
     validation: {
@@ -351,14 +342,14 @@ const en = {
       generateReportButton: "Generate Report",
       generatingReportButton: "Generating...",
       noDataForMonth: "No project data found for the selected month and year.",
-      totalProjects: "Total Projects Reviewed:", // General, specific counts below
+      totalProjects: "Total Projects Reviewed:",
       totalProjectsDesc: "Total: {total} (Completed: {completed}, Canceled: {canceled}, In Progress: {inProgress})",
       completedProjects: "Completed Projects:",
       completedProjectsShort: "Completed",
       canceledProjects: "Canceled Projects:",
       canceledProjectsShort: "Canceled",
-      inProgressProjects: "In Progress Projects:", // New
-      inProgressProjectsShort: "In Progress", // New
+      inProgressProjects: "In Progress Projects:",
+      inProgressProjectsShort: "In Progress",
       downloadExcel: "Download Excel (.csv)",
       downloadPdf: "Download PDF (.pdf)",
       downloadingButton: "Downloading...",
@@ -369,8 +360,8 @@ const en = {
       tableCaption: "List of projects active, completed, or canceled in the selected month.",
       tableHeaderTitle: "Project Title",
       tableHeaderStatus: "Status",
-      tableHeaderLastActivityDate: "Last Activity / End Date", // Changed from CompletionDate
-      tableHeaderCompletionDate: "Completion/Cancel Date", // Kept for backward compatibility if some logic uses it, prefer LastActivityDate
+      tableHeaderLastActivityDate: "Last Activity / End Date",
+      tableHeaderCompletionDate: "Completion/Cancel Date",
       tableHeaderContributors: "Contributors",
       toast: {
           downloadedExcel: "Excel Report (CSV) Downloaded",

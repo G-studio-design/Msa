@@ -8,7 +8,7 @@ import { AuthProvider } from '@/context/AuthContext'; // Import AuthProvider
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
-  title: 'Msaarch APP', // Updated application title
+  title: 'Msarch app', // Updated application title
   description: 'Employee task management application for various divisions.',
 };
 

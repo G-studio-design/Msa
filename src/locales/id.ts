@@ -2,7 +2,7 @@
 const id = {
   // Login Page
   login: {
-    title: 'Login Msaarch APP',
+    title: 'Login Msarch app',
     description: 'Masukkan kredensial Anda.', // Simplified description
     usernameLabel: 'Nama Pengguna',
     usernamePlaceholder: 'Masukkan nama pengguna Anda',
@@ -31,7 +31,7 @@ const id = {
     monthlyReport: 'Laporan Bulanan', // Added translation
     settings: 'Pengaturan',
     logout: 'Keluar',
-    appTitle: 'Msaarch APP',
+    appTitle: 'Msarch app',
     toggleMenu: 'Buka/Tutup Panel Menu',
   },
   // Dashboard Page
@@ -73,7 +73,6 @@ const id = {
       adminproyek: 'Admin Proyek',
       arsitek: 'Arsitek',
       struktur: 'Struktur',
-      admindeveloper: 'Admin Pengembang',
     },
      progress: '{progress}% Selesai',
      averageProgressTitle: 'Rata-rata Progres', // Added
@@ -81,7 +80,6 @@ const id = {
      projectProgressChartTitle: 'Progres Proyek Aktif', // Added
      projectProgressChartDesc: 'Visualisasi tingkat penyelesaian proyek saat ini.', // Added
      noActiveProjectsForChart: 'Tidak ada proyek aktif untuk ditampilkan dalam diagram.', // Added
-     // Removed statusDistributionTitle and statusDistributionDesc
   },
   // Projects Page
   projectsPage: {
@@ -137,7 +135,7 @@ const id = {
     noProjectsFound: 'Tidak ada proyek yang cocok dengan filter saat ini.',
     viewDetails: 'Lihat Detail',
     backToList: 'Kembali ke Daftar',
-    downloadFileTooltip: 'Unduh File', // Updated
+    downloadFileTooltip: 'Unduh File',
      toast: {
         permissionDenied: 'Izin Ditolak',
         notYourTurn: 'Bukan giliran Anda untuk memperbarui progres.',
@@ -167,7 +165,7 @@ const id = {
         eventId: 'ID Acara: {id}',
         errorFindingSchedule: 'Kesalahan',
         couldNotFindSchedule: 'Tidak dapat menemukan informasi penjadwalan.',
-        downloadStarted: 'Unduhan Dimulai', // Updated
+        downloadStarted: 'Unduhan Dimulai',
       }
   },
    // Add Project Page
@@ -193,7 +191,7 @@ const id = {
   // Manage Users Page
   manageUsersPage: {
     title: 'Kelola Pengguna',
-    description: 'Tambah, ubah, atau hapus akun pengguna (Hanya Pemilik, Admin Umum, Admin Pengembang).',
+    description: 'Tambah, ubah, atau hapus akun pengguna (Hanya Pemilik, Admin Umum).',
     addUserButton: 'Tambah Pengguna',
     addUserDialogTitle: 'Tambah Pengguna Baru',
     addUserDialogDesc: 'Masukkan detail untuk akun pengguna baru.',
@@ -226,14 +224,12 @@ const id = {
     deleteDialogCancel: 'Batal',
     deleteDialogConfirm: 'Hapus Pengguna',
     cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin Umum terakhir.',
-    cannotChangeLastDevAdminRoleHint: 'Tidak dapat mengubah peran Admin Pengembang terakhir.',
     roles: {
        Owner: 'Pemilik',
        'General Admin': 'Admin Umum',
        'Admin Proyek': 'Admin Proyek',
        Arsitek: 'Arsitek',
        Struktur: 'Struktur',
-       'Admin Developer': 'Admin Pengembang',
      },
     toast: {
         userAdded: 'Pengguna Ditambahkan',
@@ -246,13 +242,8 @@ const id = {
         usernameExists: 'Nama pengguna sudah ada.',
         cannotDeleteSelf: 'Anda tidak dapat menghapus akun Anda sendiri.',
         cannotDeleteLastAdmin: 'Tidak dapat menghapus Admin Umum terakhir.',
-        cannotDeleteLastDevAdmin: 'Tidak dapat menghapus Admin Pengembang terakhir.',
-        cannotChangeLastAdminRole: 'Tidak dapat mengubah peran Admin Umum terakhir.',
-        cannotChangeLastDevAdminRole: 'Tidak dapat mengubah peran Admin Pengembang terakhir.',
         permissionDenied: 'Izin Ditolak',
         editPermissionDenied: 'Anda tidak memiliki izin untuk mengubah pengguna ini.',
-        devCannotEditOwnerGA: 'Admin Pengembang tidak dapat mengubah Pemilik atau Admin Umum.',
-        gaCannotEditOwnerDev: 'Admin Umum tidak dapat mengubah Pemilik atau Admin Pengembang.',
         userNotFound: 'Pengguna tidak ditemukan.',
     },
     validation: {
@@ -357,8 +348,8 @@ const id = {
        completedProjectsShort: "Selesai",
        canceledProjects: "Proyek Dibatalkan:",
        canceledProjectsShort: "Dibatalkan",
-       inProgressProjects: "Proyek Sedang Berjalan:", // New
-       inProgressProjectsShort: "Sedang Berjalan", // New
+       inProgressProjects: "Proyek Sedang Berjalan:",
+       inProgressProjectsShort: "Sedang Berjalan",
        downloadExcel: "Unduh Excel (.csv)",
        downloadPdf: "Unduh PDF (.pdf)",
        downloadingButton: "Mengunduh...",
@@ -369,8 +360,8 @@ const id = {
        tableCaption: "Daftar proyek aktif, selesai, atau dibatalkan pada bulan yang dipilih.",
        tableHeaderTitle: "Judul Proyek",
        tableHeaderStatus: "Status",
-       tableHeaderLastActivityDate: "Aktivitas Terakhir / Tanggal Selesai", // Changed from CompletionDate
-       tableHeaderCompletionDate: "Tanggal Selesai/Batal", // Kept for backward compatibility
+       tableHeaderLastActivityDate: "Aktivitas Terakhir / Tanggal Selesai",
+       tableHeaderCompletionDate: "Tanggal Selesai/Batal",
        tableHeaderContributors: "Kontributor",
        toast: {
            downloadedExcel: "Laporan Excel (CSV) Diunduh",

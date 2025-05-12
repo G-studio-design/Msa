@@ -1,4 +1,3 @@
-
 [
   {
     "id": "project_1746135389371_75z4h",
@@ -337,6 +336,76 @@
       }
     ],
     "createdAt": "2025-05-05T07:37:34.602Z",
+    "createdBy": "sudina"
+  },
+  {
+    "id": "project_1746693288292_u0huv",
+    "title": "CANGGU SCHOOL",
+    "status": "Pending Approval",
+    "progress": 20,
+    "assignedDivision": "Owner",
+    "nextAction": "Approve Offer Document",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project",
+        "timestamp": "2025-05-08T08:34:48.292Z"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Upload Offer Document",
+        "timestamp": "2025-05-08T08:34:48.292Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "Uploaded Offer Document",
+        "timestamp": "2025-05-08T08:39:04.956Z"
+      }
+    ],
+    "files": [
+      {
+        "name": "pot.pdf",
+        "uploadedBy": "komangmerta",
+        "timestamp": "2025-05-08T08:39:04.956Z",
+        "path": "projects/project_1746693288292_u0huv-canggu_school/pot.pdf"
+      }
+    ],
+    "createdAt": "2025-05-08T08:34:48.292Z",
+    "createdBy": "sudina"
+  },
+  {
+    "id": "project_1747023425785_bktvp",
+    "title": "proyek hotel seminyak",
+    "status": "Pending Offer",
+    "progress": 10,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Upload Offer Document",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project",
+        "timestamp": "2025-05-12T04:17:05.785Z"
+      },
+      {
+        "division": "sudina",
+        "action": "Uploaded initial file: POOL.pdf",
+        "timestamp": "2025-05-12T04:17:05.785Z"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Upload Offer Document",
+        "timestamp": "2025-05-12T04:17:05.785Z"
+      }
+    ],
+    "files": [
+      {
+        "name": "POOL.pdf",
+        "uploadedBy": "sudina",
+        "timestamp": "2025-05-12T04:17:05.785Z",
+        "path": "projects/project_1747023425785_bktvp-proyek_hotel_seminyak/POOL.pdf"
+      }
+    ],
+    "createdAt": "2025-05-12T04:17:05.785Z",
     "createdBy": "sudina"
   }
 ]

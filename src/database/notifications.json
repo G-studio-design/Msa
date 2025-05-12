@@ -54,5 +54,45 @@
     "message": "Project \"projek villa cemagi\" requires your Approve Offer Document.",
     "timestamp": "2025-05-05T07:38:45.054Z",
     "isRead": true
+  },
+  {
+    "id": "notif_1746693288304_2r64m",
+    "userId": "usr_ap_ran",
+    "projectId": "project_1746693288292_u0huv",
+    "message": "New project \"CANGGU SCHOOL\" created. Please upload the offer document.",
+    "timestamp": "2025-05-08T08:34:48.304Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1746693532248_w7cdk",
+    "userId": "usr_owner_ran",
+    "projectId": "project_1746693288292_u0huv",
+    "message": "Project \"CANGGU SCHOOL\" requires your Approve Offer Document.",
+    "timestamp": "2025-05-08T08:38:52.248Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1746693532249_wgjoy",
+    "userId": "usr_wayangovina",
+    "projectId": "project_1746693288292_u0huv",
+    "message": "Project \"CANGGU SCHOOL\" requires your Approve Offer Document.",
+    "timestamp": "2025-05-08T08:38:52.248Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1746693532249_jhgin",
+    "userId": "usr_1746133383687_vijmn",
+    "projectId": "project_1746693288292_u0huv",
+    "message": "Project \"CANGGU SCHOOL\" requires your Approve Offer Document.",
+    "timestamp": "2025-05-08T08:38:52.248Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747023425791_9dt47",
+    "userId": "usr_ap_ran",
+    "projectId": "project_1747023425785_bktvp",
+    "message": "New project \"proyek hotel seminyak\" created. Please upload the offer document.",
+    "timestamp": "2025-05-12T04:17:05.791Z",
+    "isRead": false
   }
 ]
