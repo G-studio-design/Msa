@@ -25,11 +25,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  TableCaption,
 } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, FileText, Download, Users, CalendarCheck, CalendarX, Activity, BarChart3, CheckSquare, XSquare } from 'lucide-react'; // Added BarChart3, CheckSquare, XSquare
+import { Loader2, FileText, Download, Users, CalendarCheck, CalendarX, Activity, BarChart3, CheckSquare, XSquare } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
@@ -37,6 +36,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getAllProjects, type Project } from '@/services/project-service';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { generateExcelReport } from '@/lib/report-generator';
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -60,7 +60,6 @@ export default function MonthlyReportPage() {
 
   const [isLoading, setIsLoading] = React.useState(false);
   const [isDownloadingExcel, setIsDownloadingExcel] = React.useState(false);
-  const [isDownloadingPdf, setIsDownloadingPdf] = React.useState(false);
   const [selectedMonth, setSelectedMonth] = React.useState<string>(String(new Date().getMonth() + 1).padStart(2, '0'));
   const [selectedYear, setSelectedYear] = React.useState<string>(String(new Date().getFullYear()));
   const [reportData, setReportData] = React.useState<MonthlyReportData | null>(null);
@@ -195,8 +194,6 @@ export default function MonthlyReportPage() {
     setIsDownloadingExcel(true);
     try {
         const filenameBase = `Monthly_Report_${reportData.monthName}_${reportData.year}`;
-        // Dynamically import to avoid issues if generateExcelReport is large or has many deps
-        const { generateExcelReport } = await import('@/lib/report-generator');
         const fileContent = await generateExcelReport(reportData.completed, reportData.canceled, reportData.inProgress);
         
         if (!fileContent.trim()) {
@@ -220,52 +217,6 @@ export default function MonthlyReportPage() {
         toast({ variant: 'destructive', title: reportDict.errorDownloadingReport || "Download Error", description: (error as Error).message || 'Unknown error' });
     } finally {
         setIsDownloadingExcel(false);
-    }
-};
-
-  const handleDownloadPdf = async () => {
-    if (!reportData || !isClient) return;
-    setIsDownloadingPdf(true);
-    try {
-        const filenameBase = `Monthly_Report_${reportData.monthName}_${reportData.year}`;
-        const response = await fetch('/api/generate-report/pdf', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                completed: reportData.completed,
-                canceled: reportData.canceled,
-                inProgress: reportData.inProgress,
-                monthName: reportData.monthName,
-                year: reportData.year,
-            }),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error("PDF Generation API Error:", errorData);
-            throw new Error(errorData.details || `Failed to generate PDF: ${response.statusText}`);
-        }
-
-        const fileContent = await response.blob();
-        if (fileContent.size === 0) {
-            toast({ variant: 'destructive', title: "Report Empty", description: `The generated PDF report content is empty.` });
-            setIsDownloadingPdf(false);
-            return;
-        }
-        const url = URL.createObjectURL(fileContent);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${filenameBase}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        toast({ title: reportDict.toast?.downloadedPdf || "PDF Report Downloaded", description: `Report ${a.download} downloaded.` });
-    } catch (error) {
-        console.error(`Failed to download PDF report:`, error);
-        toast({ variant: 'destructive', title: reportDict.errorDownloadingReport || "Download Error", description: (error as Error).message || 'Unknown error' });
-    } finally {
-        setIsDownloadingPdf(false);
     }
 };
 
@@ -507,13 +458,9 @@ export default function MonthlyReportPage() {
                         </ScrollArea>
                     </CardContent>
                     <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 border-t pt-4 mt-4">
-                      <Button variant="outline" onClick={handleDownloadExcel} disabled={isDownloadingExcel || isDownloadingPdf} className="w-full sm:w-auto">
+                      <Button variant="outline" onClick={handleDownloadExcel} disabled={isDownloadingExcel} className="w-full sm:w-auto">
                         {isDownloadingExcel ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
                         {isClient ? (isDownloadingExcel ? reportDict.downloadingButton : reportDict.downloadExcel) : defaultDict.monthlyReportPage.downloadExcel}
-                      </Button>
-                      <Button variant="outline" onClick={handleDownloadPdf} disabled={isDownloadingPdf || isDownloadingExcel} className="w-full sm:w-auto">
-                        {isDownloadingPdf ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                         {isClient ? (isDownloadingPdf ? reportDict.downloadingButton : reportDict.downloadPdf) : defaultDict.monthlyReportPage.downloadPdf}
                       </Button>
                     </CardFooter>
                 </Card>
