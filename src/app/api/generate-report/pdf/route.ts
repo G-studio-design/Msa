@@ -1,30 +1,15 @@
 // src/app/api/generate-report/pdf/route.ts
 
 // Static import for side-effects:
-// This ensures pdfMake.vfs is set when the module is loaded, making it available
-// globally for any PdfPrinter instances or internal pdfmake operations.
+// This ensures pdfMake.vfs is set when the module is loaded.
 import 'pdfmake/build/vfs_fonts.js';
-
-import PdfPrinter from 'pdfmake'; // Import PdfPrinter class
+// Import PdfPrinter class
+import PdfPrinter from 'pdfmake';
+import type { TDocumentDefinitions, TFontDictionary } from 'pdfmake/interfaces';
 import { NextResponse, type NextRequest } from 'next/server';
 import { createPdfDocDefinition } from '@/lib/report-generator'; // Import the definition creator
 import type { Project } from '@/services/project-service';
-import type { TFontDictionary } from 'pdfmake/interfaces';
 
-// Store the VFS data once, globally for this module, to avoid re-importing repeatedly.
-let vfsDataInstance: any = null;
-
-async function getInitializedVfsData() {
-    if (!vfsDataInstance) {
-        // Dynamically import to get the vfs object containing font data.
-        // The global side-effect of setting pdfMake.vfs should have already occurred
-        // due to the static import 'pdfmake/build/vfs_fonts.js' at the top of this file.
-        // This function now primarily serves to access the vfs data for creating font buffers.
-        const vfsModule = await import('pdfmake/build/vfs_fonts.js');
-        vfsDataInstance = vfsModule.pdfMake.vfs;
-    }
-    return vfsDataInstance;
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,8 +26,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required report data' }, { status: 400 });
     }
 
-    // Get VFS data for creating font buffers
-    const vfs = await getInitializedVfsData();
+    // Access VFS data. After `import 'pdfmake/build/vfs_fonts.js'`,
+    // pdfMake.vfs should be populated on the global `pdfMake` object.
+    // In a Node.js environment, this might be `global.pdfMake.vfs` or `(globalThis as any).pdfMake.vfs`.
+    const vfs = (globalThis as any)?.pdfMake?.vfs;
+
+    if (!vfs || !vfs['Roboto-Regular.ttf']) {
+        const errorMessage = "Font VFS data not found. `pdfMake.vfs` is not populated or Roboto-Regular.ttf is missing. Ensure 'pdfmake/build/vfs_fonts.js' is correctly processed and pdfMake is available in the global scope.";
+        console.error(errorMessage);
+        // Log available keys in vfs if vfs exists
+        if (vfs) {
+            console.log('Available keys in vfs:', Object.keys(vfs).slice(0, 10)); // Log first 10 keys
+        } else {
+            console.log('globalThis.pdfMake.vfs object itself is undefined.');
+            if ((globalThis as any)?.pdfMake) {
+                console.log('globalThis.pdfMake exists, keys:', Object.keys((globalThis as any).pdfMake));
+            } else {
+                console.log('globalThis.pdfMake does not exist.');
+            }
+        }
+        throw new Error(errorMessage);
+    }
 
     const fonts: TFontDictionary = {
       Roboto: {
@@ -68,7 +72,7 @@ export async function POST(request: NextRequest) {
 
     const chunks: Buffer[] = [];
     await new Promise<void>((resolve, reject) => {
-        pdfDoc.on('data', chunk => chunks.push(chunk));
+        pdfDoc.on('data', chunk => chunks.push(chunk as Buffer)); // Ensure chunk is treated as Buffer
         pdfDoc.on('end', () => resolve());
         pdfDoc.on('error', err => {
             console.error('Error in PDF stream:', err);
@@ -91,11 +95,15 @@ export async function POST(request: NextRequest) {
     let detailMessage = 'An unexpected error occurred.';
     if (error.message) {
         detailMessage = error.message;
-        if (error.message.includes('data.trie')) {
-            detailMessage = "Fontkit 'data.trie' error. This indicates an issue with font data handling in the server environment. Ensure 'vfs_fonts.js' is correctly processed.";
+        if (error.message.includes('data.trie') || error.message.includes("Font VFS data not found")) {
+            detailMessage = `Fontkit/VFS initialization error: ${error.message}. This often indicates an issue with font data handling in the server environment.`;
             console.error(detailMessage); // Log specific error type
         }
     }
-    return NextResponse.json({ error: 'Failed to generate PDF report', details: detailMessage, stack: error.stack }, { status: 500 });
+     // Also log error.cause if it exists, as pdfmake errors can be nested.
+    if(error.cause){
+        console.error("Error Cause:", error.cause);
+    }
+    return NextResponse.json({ error: 'Failed to generate PDF report', details: detailMessage, stack: error.stack, cause: error.cause ? String(error.cause) : undefined }, { status: 500 });
   }
 }
