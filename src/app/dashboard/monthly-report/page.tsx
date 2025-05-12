@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, FileText, Download, Users, CalendarCheck, CalendarX, Activity, BarChart3, CheckSquare, XSquare, PieChart as PieChartIcon, FileWord } from 'lucide-react'; // Added FileWord
+import { Loader2, FileText, Download, Users, CalendarCheck, CalendarX, Activity, BarChart3, CheckSquare, XSquare, PieChart as PieChartIcon, FileCode } from 'lucide-react'; // Changed FileWord to FileCode
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
@@ -36,7 +36,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getAllProjects, type Project } from '@/services/project-service';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { generateExcelReport } from '@/lib/report-generator'; // generatePdfReport removed
+import { generateExcelReport } from '@/lib/report-generator';
 import {
   ChartContainer,
   ChartTooltip,
@@ -74,11 +74,11 @@ export default function MonthlyReportPage() {
 
   const [isLoading, setIsLoading] = React.useState(false);
   const [isDownloadingExcel, setIsDownloadingExcel] = React.useState(false);
-  const [isDownloadingWord, setIsDownloadingWord] = React.useState(false); // New state for Word download
+  const [isDownloadingWord, setIsDownloadingWord] = React.useState(false);
   const [selectedMonth, setSelectedMonth] = React.useState<string>(String(new Date().getMonth() + 1).padStart(2, '0'));
   const [selectedYear, setSelectedYear] = React.useState<string>(String(new Date().getFullYear()));
   const [reportData, setReportData] = React.useState<MonthlyReportData | null>(null);
-  const chartRef = React.useRef<HTMLDivElement>(null); // Ref for the chart container
+  const chartRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     setIsClient(true);
@@ -589,7 +589,7 @@ export default function MonthlyReportPage() {
                         {isClient ? (isDownloadingExcel ? reportDict.downloadingButton : reportDict.downloadExcel) : defaultDict.monthlyReportPage.downloadExcel}
                       </Button>
                        <Button variant="default" onClick={handleDownloadWord} disabled={isDownloadingWord || isDownloadingExcel} className="w-full sm:w-auto">
-                        {isDownloadingWord ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileWord className="mr-2 h-4 w-4" />}
+                        {isDownloadingWord ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileCode className="mr-2 h-4 w-4" />}
                         {isClient ? (isDownloadingWord ? reportDict.downloadingButton : reportDict.downloadWord) : defaultDict.monthlyReportPage.downloadWord}
                       </Button>
                     </CardFooter>

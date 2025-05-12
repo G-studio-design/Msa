@@ -3,7 +3,7 @@
 
 import type { Project } from '@/services/project-service';
 import { format, parseISO } from 'date-fns';
-import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType, BorderStyle, VerticalAlign, AlignmentType, HeadingLevel } from 'docx';
+import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType, BorderStyle, VerticalAlign, AlignmentType, HeadingLevel, ImageRun } from 'docx';
 
 // --- Helper Functions (can be used by both Excel and Word generation) ---
 
@@ -55,7 +55,8 @@ export async function generateExcelReport(
     const allProjects = [...inProgress, ...completed, ...canceled ];
     allProjects.sort((a, b) => {
         const statusOrder = (status: string) => {
-            if (inProgress.some(p => p.id === a.id && (status === 'Completed' || status === 'Canceled'))) return 0; // If it's in the 'inProgress' list but also marked completed/canceled, treat as inProgress for sorting
+            // If it's in the 'inProgress' list but also marked completed/canceled, treat as inProgress for sorting
+            if (inProgress.some(p => p.id === a.id && (status === 'Completed' || status === 'Canceled'))) return 0;
             if (status === 'In Progress') return 0;
             if (status === 'Completed') return 1;
             if (status === 'Canceled') return 2;
@@ -119,7 +120,7 @@ export async function generateWordReport(
      allProjectsForWord.sort((a, b) => {
         const statusOrderValue = (project: Project, inProgressList: Project[]) => {
             let currentStatus = project.status;
-             if (inProgressList.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled'))) {
+             if (inProgressList.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
                 currentStatus = 'In Progress';
             }
             if (currentStatus === 'In Progress') return 0;
@@ -163,30 +164,32 @@ export async function generateWordReport(
 
     if (chartImageDataUrl) {
         // Assuming chartImageDataUrl is a base64 encoded PNG
-        const imageBuffer = Buffer.from(chartImageDataUrl.split(',')[1], 'base64');
-        sections[0].children.push(
-            new Paragraph({
-                text: "Project Status Overview:",
-                heading: HeadingLevel.HEADING_1,
-            }),
-            new Paragraph({
-                children: [
-                    new TextRun({
-                        children: [imageBuffer],
-                        type: "image",
-                        options: {
+        try {
+            const imageBuffer = Buffer.from(chartImageDataUrl.split(',')[1], 'base64');
+            sections[0].children.push(
+                new Paragraph({
+                    text: "Project Status Overview:",
+                    heading: HeadingLevel.HEADING_1,
+                }),
+                new Paragraph({
+                    children: [
+                        new ImageRun({ // Use ImageRun instead of TextRun for images
                             data: imageBuffer,
                             transformation: {
-                                width: 500, // Adjust as needed
-                                height: 250, // Adjust as needed
+                                width: 500,
+                                height: 250,
                             },
-                        },
-                    }),
-                ],
-                alignment: AlignmentType.CENTER,
-            }),
-            new Paragraph({ text: "" }) // Spacer
-        );
+                        }),
+                    ],
+                    alignment: AlignmentType.CENTER,
+                }),
+                new Paragraph({ text: "" }) // Spacer
+            );
+        } catch (error) {
+            console.error("Error processing chart image for Word report:", error);
+            // Optionally add a paragraph indicating the image couldn't be loaded
+            sections[0].children.push(new Paragraph({ text: "Error: Chart image could not be loaded."}));
+        }
     }
 
 
@@ -226,10 +229,6 @@ export async function generateWordReport(
                     new TableCell({ children: [new Paragraph(project.createdBy)] }),
                     new TableCell({ children: [new Paragraph(formatDateOnly(project.createdAt))] }),
                 ],
-                // Simple alternating row color (optional, as Word handles this differently)
-                // cantrips: {
-                //     background: index % 2 === 0 ? "F9F9F9" : undefined,
-                // },
             });
         });
 
@@ -239,7 +238,7 @@ export async function generateWordReport(
                 size: 100,
                 type: WidthType.PERCENTAGE,
             },
-            columnWidths: [3000, 1500, 1500, 1500, 1000, 1000, 1000], // Example widths, adjust as needed
+            columnWidths: [3000, 1500, 1500, 1500, 1000, 1000, 1000],
             borders: {
                 top: { style: BorderStyle.SINGLE, size: 1, color: "DDDDDD" },
                 bottom: { style: BorderStyle.SINGLE, size: 1, color: "DDDDDD" },
@@ -282,35 +281,35 @@ export async function generateWordReport(
                     next: "Normal",
                     run: {
                         bold: true,
-                        size: 20, // 10pt
-                        color: "FFFFFF",
+                        size: 20,
+                        color: "000000", // Black for better readability on white background
                     },
                     paragraph: {
                         alignment: AlignmentType.LEFT,
-                        spacing: { before: 80, after: 80 }, // 4pt spacing
+                        spacing: { before: 80, after: 80 },
                     },
                 },
             ],
             default: {
                 heading1: {
                     run: {
-                        size: 28, // 14pt
+                        size: 28,
                         bold: true,
-                        color: "2E74B5", // Dark Blue
+                        color: "2E74B5",
                     },
                     paragraph: {
-                        spacing: { after: 240, before: 300 }, // 12pt after, 15pt before
+                        spacing: { after: 240, before: 300 },
                     },
                 },
-                 title: { // Corrected from headingTitle to title
+                 title: {
                     run: {
-                        size: 36, // 18pt
+                        size: 36,
                         bold: true,
-                        color: "1F4E79", // Darker Blue
+                        color: "1F4E79",
                     },
                     paragraph: {
                         alignment: AlignmentType.CENTER,
-                        spacing: { after: 400 }, // 20pt spacing after
+                        spacing: { after: 400 },
                     },
                 },
             }
