@@ -35,7 +35,7 @@ import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllProjects, type Project, type WorkflowHistoryEntry } from '@/services/project-service';
-import { generateExcelReport, generatePdfReport } from '../../../lib/report-generator'; // Updated import path
+import { generateExcelReport, generatePdfReport } from '@/lib/report-generator';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
@@ -202,7 +202,7 @@ export default function MonthlyReportPage() {
       const monthName = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1).toLocaleString(language, { month: 'long' });
       const filenameBase = `Monthly_Report_${monthName}_${selectedYear}`;
       
-      let fileContent: string | Uint8Array = ''; // Can be string (CSV) or Uint8Array (PDF)
+      let fileContent: string | Uint8Array;
       let blobType = '';
       let fileExtension = '';
       let toastTitle = '';
@@ -214,22 +214,17 @@ export default function MonthlyReportPage() {
         toastTitle = reportDict.toast?.downloadedExcel || "Excel Report Downloaded";
       } else { // PDF
         fileContent = await generatePdfReport(reportData.completed, reportData.canceled, reportData.inProgress, monthName, selectedYear);
-        if (!fileContent || (typeof fileContent === 'string' && fileContent.trim() === "") || (fileContent instanceof Uint8Array && fileContent.length === 0) ) {
-            toast({ variant: 'destructive', title: "Report Empty", description: "The generated PDF report content is empty." });
-            setIsDownloading(false);
-            return;
-        }
         blobType = 'application/pdf'; 
         fileExtension = '.pdf'; 
         toastTitle = reportDict.toast?.downloadedPdf || "PDF Report Downloaded";
       }
 
-      if (!fileContent && format === 'excel') { // Also check for excel if it could be empty
-        toast({ variant: 'destructive', title: "Report Empty", description: "The generated Excel report content is empty." });
-        setIsDownloading(false);
-        return;
+      if ((typeof fileContent === 'string' && !fileContent.trim()) || (fileContent instanceof Uint8Array && fileContent.length === 0) ) {
+          toast({ variant: 'destructive', title: "Report Empty", description: `The generated ${format.toUpperCase()} report content is empty.` });
+          setIsDownloading(false);
+          return;
       }
-
+      
       const blob = new Blob([fileContent], { type: blobType });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -293,7 +288,8 @@ export default function MonthlyReportPage() {
     label: new Date(currentYear, i).toLocaleString(language, { month: 'long' }),
   }));
 
-  const allReportedProjects = reportData ? [...reportData.completed, ...reportData.canceled, ...reportData.inProgress] : [];
+  const allReportedProjects = reportData ? [...reportData.inProgress, ...reportData.completed, ...reportData.canceled ] : []; // Display order: In Progress, Completed, Canceled
+  // Sort within status groups by last activity date or creation date
   allReportedProjects.sort((a, b) => {
       const getLastTimestamp = (project: Project): number => {
           if (project.workflowHistory && project.workflowHistory.length > 0) {
@@ -305,7 +301,26 @@ export default function MonthlyReportPage() {
             return new Date(project.createdAt).getTime();
           } catch { return 0; }
       };
-      return getLastTimestamp(b) - getLastTimestamp(a); // Sort descending (newest first)
+      // Primary sort by status type (In Progress, Completed, Canceled)
+      const statusOrderValue = (project: Project) => {
+          let currentStatus = project.status;
+          if (reportData?.inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
+              currentStatus = 'In Progress'; // Treat as 'In Progress' for sorting if it was active during the month
+          }
+          if (currentStatus === 'In Progress') return 0;
+          if (currentStatus === 'Completed') return 1;
+          if (currentStatus === 'Canceled') return 2;
+          return 3; // Should not happen with the current filtering
+      };
+      
+      const orderA = statusOrderValue(a);
+      const orderB = statusOrderValue(b);
+
+      if (orderA !== orderB) {
+          return orderA - orderB;
+      }
+      // Secondary sort by last activity date (descending)
+      return getLastTimestamp(b) - getLastTimestamp(a);
   });
 
 
@@ -366,9 +381,9 @@ export default function MonthlyReportPage() {
                          <CardDescription>
                            {reportDict.totalProjectsDesc
                              .replace('{total}', (reportData.completed.length + reportData.canceled.length + reportData.inProgress.length).toString())
+                             .replace('{inProgress}', reportData.inProgress.length.toString())
                              .replace('{completed}', reportData.completed.length.toString())
                              .replace('{canceled}', reportData.canceled.length.toString())
-                             .replace('{inProgress}', reportData.inProgress.length.toString())
                            }
                          </CardDescription>
                     </CardHeader>
@@ -394,8 +409,6 @@ export default function MonthlyReportPage() {
                                         let badgeClassName = "";
 
                                         let displayStatus = project.status;
-                                        // If the project is in the "inProgress" category from reportData, but its status is "Completed" or "Canceled"
-                                        // it means it was completed/canceled *after* the reporting month. For the report, show its status at the end of the month as "In Progress".
                                         if (reportData.inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
                                             displayStatus = 'In Progress';
                                         }
@@ -411,7 +424,7 @@ export default function MonthlyReportPage() {
                                                 badgeVariant = 'destructive';
                                                 break;
                                             case 'In Progress':
-                                            default: // For all other in-progress like statuses
+                                            default: 
                                                 statusIcon = <Activity className="mr-1 h-3 w-3" />;
                                                 badgeVariant = 'secondary';
                                                 badgeClassName = 'bg-blue-500 text-white hover:bg-blue-600';
@@ -465,4 +478,3 @@ export default function MonthlyReportPage() {
     </div>
   );
 }
-

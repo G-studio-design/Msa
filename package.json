@@ -42,6 +42,7 @@
     "lucide-react": "^0.475.0",
     "next": "15.2.3",
     "patch-package": "^8.0.0",
+    "pdfmake": "^0.2.10",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
@@ -53,6 +54,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/pdfmake": "^0.2.9",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/recharts": "^1.8.29",
