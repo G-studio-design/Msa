@@ -40,7 +40,8 @@ export async function POST(request: NextRequest) {
     };
 
     const printer = new PdfPrinter(fonts);
-    const docDefinition = createPdfDocDefinition(completed, canceled, inProgress, monthName, year);
+    // Await the call to createPdfDocDefinition as it's now async
+    const docDefinition = await createPdfDocDefinition(completed, canceled, inProgress, monthName, year);
     
     // Explicitly set defaultStyle font if not already in createPdfDocDefinition
     if (!docDefinition.defaultStyle) {

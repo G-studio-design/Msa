@@ -107,13 +107,13 @@ export async function generateExcelReport(
 
 // Helper function to create the PDF document definition
 // This can be called by the API route.
-export function createPdfDocDefinition(
+export async function createPdfDocDefinition( // Made this function async
     completed: Project[],
     canceled: Project[],
     inProgress: Project[],
     monthName: string,
     year: string
-): TDocumentDefinitions {
+): Promise<TDocumentDefinitions> { // Return type is now Promise<TDocumentDefinitions>
      const tableBody = (projects: Project[]) => {
         const body = [
             [
