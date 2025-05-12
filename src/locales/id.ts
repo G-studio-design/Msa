@@ -132,6 +132,8 @@ const id = {
     filterStatusLabel: 'Filter Status',
     filterClear: 'Tampilkan Semua',
     noProjectsFound: 'Tidak ada proyek yang cocok dengan filter saat ini.',
+    searchPlaceholder: "Cari proyek berdasarkan judul...",
+    noSearchResults: "Tidak ada proyek ditemukan yang cocok dengan pencarian Anda.",
     viewDetails: 'Lihat Detail',
     backToList: 'Kembali ke Daftar',
     downloadFileTooltip: 'Unduh File',

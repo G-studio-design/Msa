@@ -30,7 +30,8 @@ import {
   ArrowLeft,
   Download,
   FolderOpen,
-  RefreshCw, // Icon for Revise
+  RefreshCw, 
+  Search, // Added Search icon
 } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -96,10 +97,12 @@ export default function ProjectsPage() {
   const [scheduleLocation, setScheduleLocation] = React.useState('');
   const [isAddingToCalendar, setIsAddingToCalendar] = React.useState(false);
   const [isDownloading, setIsDownloading] = React.useState(false);
-  const [revisionNote, setRevisionNote] = React.useState(''); // State for revision note
-  const [isRevising, setIsRevising] = React.useState(false); // State for revision process
+  const [revisionNote, setRevisionNote] = React.useState(''); 
+  const [isRevising, setIsRevising] = React.useState(false); 
 
   const [statusFilter, setStatusFilter] = React.useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = React.useState(''); // State for search term
+  const [displayedProjects, setDisplayedProjects] = React.useState<Project[]>([]); // State for projects to display
 
   React.useEffect(() => {
       if (isClient && allProjects.length > 0 && !isLoadingProjects) {
@@ -282,7 +285,8 @@ export default function ProjectsPage() {
         progress: newProgress,
         nextAction: nextActionDescription,
         workflowHistory: [...selectedProject.workflowHistory, historyEntry],
-        files: [...selectedProject.files, ...(newFiles as FileEntry[])], // Cast to FileEntry[] as path will be added by updateProject
+        // New files are passed without path; updateProject service function will construct paths.
+        files: [...selectedProject.files, ...(newFiles as any)], // Cast to any temporarily
       };
 
      try {
@@ -398,23 +402,35 @@ export default function ProjectsPage() {
       }
     };
 
-    const filteredProjects = React.useMemo(() => {
+    const roleFilteredProjects = React.useMemo(() => {
         if (!currentUser || !isClient || isLoadingProjects) return [];
-        let roleFilteredProjects = allProjects;
+        let projectsToFilter = allProjects;
          if (currentUser.role === 'Admin Proyek') {
-              roleFilteredProjects = allProjects;
+            projectsToFilter = allProjects; // Admin Proyek sees all
          }
          else if (!['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role)) {
-             roleFilteredProjects = allProjects.filter(project =>
+            projectsToFilter = allProjects.filter(project =>
                  project.assignedDivision === currentUser.role ||
                  (project.nextAction && project.nextAction.toLowerCase().includes(currentUser.role.toLowerCase()))
              );
          }
-         if (statusFilter.length > 0) {
-             return roleFilteredProjects.filter(project => statusFilter.includes(project.status));
-         }
-         return roleFilteredProjects;
-    }, [currentUser, allProjects, isClient, isLoadingProjects, statusFilter]);
+         return projectsToFilter;
+    }, [currentUser, allProjects, isClient, isLoadingProjects]);
+
+    // Effect to update displayedProjects based on filters and search term
+    React.useEffect(() => {
+        let currentProjects = roleFilteredProjects;
+        if (statusFilter.length > 0) {
+            currentProjects = currentProjects.filter(project => statusFilter.includes(project.status));
+        }
+        if (searchTerm.trim() !== '') {
+            currentProjects = currentProjects.filter(project =>
+                project.title.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+        }
+        setDisplayedProjects(currentProjects);
+    }, [searchTerm, statusFilter, roleFilteredProjects]);
+
 
     const handleStatusFilterChange = (status: string) => {
         setStatusFilter(prev => prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]);
@@ -437,19 +453,19 @@ export default function ProjectsPage() {
 
    const handleDownloadFile = (file: FileEntry) => {
         if (!isClient) return;
-        console.log(`Simulating download for file: ${file.name} from path: ${file.path}`);
+        // In a real app, this would trigger a backend API call to stream the file.
+        // For now, it's a simulation. The `file.path` is relative to `PROJECT_FILES_BASE_DIR`.
+        // To simulate a download, we'd need the file content.
+        console.log(`Simulating download for file: ${file.name} from relative path: ${file.path}`);
         setIsDownloading(true);
-        // Simulate file content creation (replace with actual file fetching logic if files are stored remotely)
-        const fileContent = `Simulated content for ${file.name}.\nOriginal path: ${file.path}.\nUploaded by ${file.uploadedBy} on ${formatDateOnly(file.timestamp)}.`;
-        const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8;' }); // Adjust MIME type if needed
+        
+        // Simulate creating file content for download
+        const fileContent = `Simulated content for ${file.name}.\nOriginal relative path in project folder: ${file.path}.\nUploaded by ${file.uploadedBy} on ${formatDateOnly(file.timestamp)}.`;
+        const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        // Ensure the downloaded file has an appropriate extension, or use a generic one like .txt
-        const fileNameParts = file.name.split('.');
-        const extension = fileNameParts.length > 1 ? `.${fileNameParts.pop()}` : '.txt'; // Fallback to .txt if no extension
-        a.download = `${fileNameParts.join('.')}${extension}`; // Reconstruct name with original or fallback extension
-
+        a.download = file.name; // Use the original file name for download
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -461,6 +477,10 @@ export default function ProjectsPage() {
    const handleReviseSubmit = async () => {
        if (!currentUser || !selectedProject || !['Owner', 'General Admin'].includes(currentUser.role)) {
            toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.revisionPermissionDenied });
+           return;
+       }
+       if (!revisionNote.trim()) {
+           toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: projectsDict.toast.revisionNoteRequired });
            return;
        }
        setIsRevising(true);
@@ -518,20 +538,32 @@ export default function ProjectsPage() {
               <CardTitle className="text-xl md:text-2xl">{projectsDict.projectListTitle || 'Project List'}</CardTitle>
               <CardDescription>{projectsDict.projectListDescription || 'View and manage ongoing projects.'}</CardDescription>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild><Button variant="outline" className="w-full sm:w-auto"><ListFilter className="mr-2 h-4 w-4" /><span className="truncate">{projectsDict.filterButton || 'Filter by Status'}</span>{statusFilter.length > 0 && ` (${statusFilter.length})`}</Button></DropdownMenuTrigger>
-               <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>{projectsDict.filterStatusLabel || 'Filter Statuses'}</DropdownMenuLabel><DropdownMenuSeparator />
-                {projectStatuses.map((status) => (<DropdownMenuCheckboxItem key={status} checked={statusFilter.includes(status)} onCheckedChange={() => handleStatusFilterChange(status)}>{getTranslatedStatus(status)}</DropdownMenuCheckboxItem>))}
-                <DropdownMenuSeparator /><DropdownMenuCheckboxItem checked={statusFilter.length === 0} onCheckedChange={() => setStatusFilter([])} className="text-muted-foreground">{projectsDict.filterClear || 'Show All'}</DropdownMenuCheckboxItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                <div className="relative flex-grow sm:flex-grow-0">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        type="search"
+                        placeholder={projectsDict.searchPlaceholder || "Search projects..."}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-8 w-full sm:w-[200px] md:w-[250px]" // Adjust width as needed
+                    />
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild><Button variant="outline" className="w-full sm:w-auto"><ListFilter className="mr-2 h-4 w-4" /><span className="truncate">{projectsDict.filterButton || 'Filter by Status'}</span>{statusFilter.length > 0 && ` (${statusFilter.length})`}</Button></DropdownMenuTrigger>
+                   <DropdownMenuContent className="w-56">
+                    <DropdownMenuLabel>{projectsDict.filterStatusLabel || 'Filter Statuses'}</DropdownMenuLabel><DropdownMenuSeparator />
+                    {projectStatuses.map((status) => (<DropdownMenuCheckboxItem key={status} checked={statusFilter.includes(status)} onCheckedChange={() => handleStatusFilterChange(status)}>{getTranslatedStatus(status)}</DropdownMenuCheckboxItem>))}
+                    <DropdownMenuSeparator /><DropdownMenuCheckboxItem checked={statusFilter.length === 0} onCheckedChange={() => setStatusFilter([])} className="text-muted-foreground">{projectsDict.filterClear || 'Show All'}</DropdownMenuCheckboxItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredProjects.length === 0 ? (<p className="text-muted-foreground text-center py-4">{projectsDict.noProjectsFound || 'No projects match the current filters.'}</p>) : (
-              filteredProjects.map((projectItem) => (
+            {displayedProjects.length === 0 ? (<p className="text-muted-foreground text-center py-4">{searchTerm ? projectsDict.noSearchResults : projectsDict.noProjectsFound || 'No projects match the current filters.'}</p>) : (
+              displayedProjects.map((projectItem) => (
                 <Card key={projectItem.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedProject(projectItem)}>
                   <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6">
                     <div className="flex-1 min-w-0"><CardTitle className="text-base sm:text-lg">{projectItem.title}</CardTitle><CardDescription className="text-xs text-muted-foreground mt-1 truncate">{projectsDict.assignedLabel}: {getTranslatedStatus(projectItem.assignedDivision) || projectsDict.none} {projectItem.nextAction ? `| ${projectsDict.nextActionLabel}: ${projectItem.nextAction}` : ''}</CardDescription></div>
@@ -671,6 +703,7 @@ export default function ProjectsPage() {
                                   <div className="flex items-center gap-2 flex-grow min-w-0"><FileText className="h-5 w-5 text-primary flex-shrink-0" />
                                       <div className="flex-1 min-w-0">
                                         <span className="text-sm font-medium break-all">{file.name}</span>
+                                        {/* Display the relative path from project.files[].path which is like "project_id-sanitized_title/filename.ext" */}
                                         {file.path && (<p className="text-xs text-muted-foreground/70 flex items-center gap-1 truncate"><FolderOpen className="h-3 w-3 flex-shrink-0" />{file.path}</p>)}
                                       </div>
                                   </div>

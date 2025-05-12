@@ -22,12 +22,15 @@ function sanitizeForPath(text: string): string {
     .replace(/[^a-z0-9_-]/g, '');
 }
 
+const PROJECT_FILES_BASE_DIR = path.resolve(process.cwd(), 'src', 'database', 'project_files');
+
 // Define the structure of an uploaded file entry
 export interface FileEntry {
     name: string;
     uploadedBy: string; // Username or ID of the uploader
     timestamp: string; // ISO string
-    path: string; // Simulated folder path, e.g., projects/project_id-project_title/filename.ext
+    // Path relative to PROJECT_FILES_BASE_DIR, e.g., "project_id-sanitized_title/filename.ext"
+    path: string; 
 }
 
 // Define the structure of a Project
@@ -47,7 +50,7 @@ export interface Project {
 // Define the structure for adding a new project
 export interface AddProjectData {
     title: string;
-    initialFiles: Omit<FileEntry, 'timestamp' | 'path'>[]; // Files provided at creation
+    initialFiles: Omit<FileEntry, 'timestamp' | 'path' | 'size'>[]; // Files provided at creation
     createdBy: string;
 }
 
@@ -73,12 +76,19 @@ async function readProjects(): Promise<Project[]> {
             await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
             return [];
         }
+        // Ensure files have a path. If not, construct one (legacy data handling).
         return (parsedData as Project[]).map(project => ({
             ...project,
-            files: project.files.map(file => ({
-                ...file,
-                path: file.path || `projects/${project.id}-${sanitizeForPath(project.title)}/${file.name}`
-            }))
+            files: project.files.map(file => {
+                if (!file.path) {
+                    // Construct a path if missing, relative to the project files base dir
+                    const projectTitleSanitized = sanitizeForPath(project.title);
+                    const relativePath = `${project.id}-${projectTitleSanitized}/${file.name}`;
+                    console.warn(`File "${file.name}" in project "${project.id}" was missing a path. Assigning: ${relativePath}`);
+                    return { ...file, path: relativePath };
+                }
+                return file;
+            })
         }));
     } catch (error) {
         console.error("Error reading or parsing project database:", error);
@@ -103,20 +113,48 @@ async function writeProjects(projects: Project[]): Promise<void> {
     }
 }
 
+// Ensure the base directory for project files exists
+async function ensureProjectFilesBaseDirExists(): Promise<void> {
+    try {
+        await fs.mkdir(PROJECT_FILES_BASE_DIR, { recursive: true });
+        console.log(`Project files base directory ensured at: ${PROJECT_FILES_BASE_DIR}`);
+    } catch (error) {
+        console.error(`Error creating project files base directory ${PROJECT_FILES_BASE_DIR}:`, error);
+        throw new Error('Failed to create project files base directory.');
+    }
+}
+
+
 // --- Main Service Functions ---
 
 export async function addProject(projectData: AddProjectData): Promise<Project> {
     console.log('Adding new project:', projectData.title, 'by', projectData.createdBy);
+    await ensureProjectFilesBaseDirExists(); // Ensure base directory exists
+
     const projects = await readProjects();
     const now = new Date().toISOString();
     const projectId = `project_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const projectTitleSanitized = sanitizeForPath(projectData.title);
-    const basePath = `projects/${projectId}-${projectTitleSanitized}`;
+    
+    // Folder path relative to PROJECT_FILES_BASE_DIR
+    const projectRelativeFolderPath = `${projectId}-${projectTitleSanitized}`;
+    // Absolute path for server-side operations
+    const projectAbsoluteFolderPath = path.join(PROJECT_FILES_BASE_DIR, projectRelativeFolderPath);
+
+    try {
+        await fs.mkdir(projectAbsoluteFolderPath, { recursive: true });
+        console.log(`Created folder for project ${projectId} at: ${projectAbsoluteFolderPath}`);
+    } catch (error) {
+        console.error(`Error creating folder for project ${projectId} at ${projectAbsoluteFolderPath}:`, error);
+        // Decide if this is a critical error. For now, let's proceed but log heavily.
+        // throw new Error('Failed to create project folder.'); 
+    }
+
 
     const filesWithMetadata: FileEntry[] = projectData.initialFiles.map(file => ({
         ...file,
         timestamp: now,
-        path: `${basePath}/${file.name}`,
+        path: `${projectRelativeFolderPath}/${file.name}`, // Path relative to base dir
     }));
 
     const initialStatus = 'Pending Offer';
@@ -146,7 +184,7 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
 
     projects.push(newProject);
     await writeProjects(projects);
-    console.log(`Project "${newProject.title}" (ID: ${newProject.id}) added successfully. Path: ${basePath}. Assigned to ${initialAssignedDivision} for ${initialNextAction}.`);
+    console.log(`Project "${newProject.title}" (ID: ${newProject.id}) added successfully. Relative folder path: ${projectRelativeFolderPath}. Assigned to ${initialAssignedDivision} for ${initialNextAction}.`);
 
     await notifyUsersByRole(initialAssignedDivision, `New project "${newProject.title}" created. Please upload the offer document.`, newProject.id);
 
@@ -172,6 +210,7 @@ export async function getProjectById(projectId: string): Promise<Project | null>
 
 export async function updateProject(updatedProject: Project): Promise<void> {
     console.log(`Updating project with ID: ${updatedProject.id}`);
+    await ensureProjectFilesBaseDirExists();
     let projects = await readProjects();
     const projectIndex = projects.findIndex(p => p.id === updatedProject.id);
 
@@ -182,25 +221,25 @@ export async function updateProject(updatedProject: Project): Promise<void> {
 
     const originalProject = projects[projectIndex];
     const projectTitleSanitized = sanitizeForPath(updatedProject.title);
-    const basePath = `projects/${updatedProject.id}-${projectTitleSanitized}`;
-
-    const updatedFilesWithPath = updatedProject.files.map(file => {
-        if (!file.path) {
-            console.log(`Assigning path to new file "${file.name}" in project ${updatedProject.id}`);
-            return { ...file, path: `${basePath}/${file.name}` };
-        }
-        const currentFileName = file.name;
-        const expectedPath = `${basePath}/${currentFileName}`;
-        if (file.path !== expectedPath && originalProject.title !== updatedProject.title) { // Only update if title actually changed
-           console.log(`Correcting path for existing file "${file.name}" due to project title change. Old: ${file.path}, New: ${expectedPath}`);
-           return { ...file, path: expectedPath };
+    // Folder path relative to PROJECT_FILES_BASE_DIR
+    const projectRelativeFolderPath = `${updatedProject.id}-${projectTitleSanitized}`;
+    
+    const updatedFilesWithRelativePath = updatedProject.files.map(file => {
+        // If a file is newly added via updateProject, it might not have a path or an incorrect one.
+        // We assume new files are just metadata (name, uploader) and need their path constructed.
+        // Existing files should already have correct relative paths.
+        // This logic primarily ensures new files get a path; existing paths are trusted unless title changes.
+        if (!file.path || !file.path.startsWith(`${updatedProject.id}-`)) { // Simple check if it's a new file or path needs fixing
+            console.log(`Assigning/Correcting path for file "${file.name}" in project ${updatedProject.id}`);
+            return { ...file, path: `${projectRelativeFolderPath}/${file.name}` };
         }
         return file;
     });
 
+
     projects[projectIndex] = {
-        ...updatedProject, // Apply all updates from the payload first
-        files: updatedFilesWithPath, // Then ensure files have correct paths
+        ...updatedProject,
+        files: updatedFilesWithRelativePath,
         workflowHistory: updatedProject.workflowHistory || originalProject.workflowHistory,
     };
 
@@ -216,44 +255,62 @@ export async function updateProject(updatedProject: Project): Promise<void> {
 
 export async function updateProjectTitle(projectId: string, newTitle: string): Promise<void> {
     console.log(`Updating title for project ID: ${projectId} to "${newTitle}"`);
-     let projects = await readProjects();
-     const projectIndex = projects.findIndex(p => p.id === projectId);
+    await ensureProjectFilesBaseDirExists();
+    let projects = await readProjects();
+    const projectIndex = projects.findIndex(p => p.id === projectId);
 
-     if (projectIndex === -1) {
-         console.error(`Project with ID "${projectId}" not found for title update.`);
-         throw new Error('PROJECT_NOT_FOUND');
-     }
+    if (projectIndex === -1) {
+        console.error(`Project with ID "${projectId}" not found for title update.`);
+        throw new Error('PROJECT_NOT_FOUND');
+    }
 
-     const originalProject = projects[projectIndex];
-     const oldTitleSanitized = sanitizeForPath(originalProject.title);
-     const newTitleSanitized = sanitizeForPath(newTitle);
+    const originalProject = projects[projectIndex];
+    const oldSanitizedTitle = sanitizeForPath(originalProject.title);
+    const newSanitizedTitle = sanitizeForPath(newTitle);
 
-     if (oldTitleSanitized !== newTitleSanitized) {
-         console.log(`Sanitized title changed for project ${projectId}. Updating file paths.`);
-         const newBasePath = `projects/${projectId}-${newTitleSanitized}`;
+    const oldProjectRelativeFolderPath = `${projectId}-${oldSanitizedTitle}`;
+    const newProjectRelativeFolderPath = `${projectId}-${newSanitizedTitle}`;
 
-         projects[projectIndex].files = originalProject.files.map(file => {
-             const expectedNewPath = `${newBasePath}/${file.name}`;
-             console.log(` -> Updating path for file "${file.name}": From "${file.path}" to "${expectedNewPath}"`);
-             return { ...file, path: expectedNewPath };
-         });
-     } else {
-        console.log(`Sanitized title for project ${projectId} remains the same. No file path update needed.`);
-     }
+    const oldProjectAbsoluteFolderPath = path.join(PROJECT_FILES_BASE_DIR, oldProjectRelativeFolderPath);
+    const newProjectAbsoluteFolderPath = path.join(PROJECT_FILES_BASE_DIR, newProjectRelativeFolderPath);
+
+    if (oldProjectRelativeFolderPath !== newProjectRelativeFolderPath) {
+        console.log(`Sanitized title changed for project ${projectId}. Renaming folder and updating file paths.`);
+        try {
+            // Check if old folder exists before attempting to rename
+             try {
+                await fs.access(oldProjectAbsoluteFolderPath);
+                await fs.rename(oldProjectAbsoluteFolderPath, newProjectAbsoluteFolderPath);
+                console.log(`Renamed folder from "${oldProjectAbsoluteFolderPath}" to "${newProjectAbsoluteFolderPath}"`);
+             } catch (renameError: any) {
+                 if (renameError.code === 'ENOENT') {
+                    console.warn(`Old project folder "${oldProjectAbsoluteFolderPath}" not found. Creating new folder "${newProjectAbsoluteFolderPath}" instead.`);
+                    await fs.mkdir(newProjectAbsoluteFolderPath, { recursive: true });
+                 } else {
+                    throw renameError; // Re-throw other errors
+                 }
+             }
+
+            projects[projectIndex].files = originalProject.files.map(file => {
+                const updatedRelativePath = `${newProjectRelativeFolderPath}/${file.name}`;
+                console.log(` -> Updating path for file "${file.name}": To "${updatedRelativePath}"`);
+                return { ...file, path: updatedRelativePath };
+            });
+        } catch (error) {
+            console.error(`Error renaming folder or updating file paths for project ${projectId}:`, error);
+            // Potentially revert title change or handle error appropriately
+            // For now, we'll proceed with title change in JSON but log the folder issue.
+        }
+    } else {
+        console.log(`Sanitized title for project ${projectId} remains the same. No folder or file path update needed.`);
+    }
 
     projects[projectIndex].title = newTitle;
     await writeProjects(projects);
-    console.log(`Title for project ${projectId} updated successfully.`);
+    console.log(`Title for project ${projectId} updated successfully in JSON.`);
 }
 
-/**
- * Reverts a project to its previous workflow stage.
- * @param projectId The ID of the project to revise.
- * @param reviserRole The role of the user initiating the revision.
- * @param revisionNote An optional note explaining the reason for revision.
- * @returns A promise that resolves to the updated Project object.
- * @throws an error if the project is not found or if the status is not revisable.
- */
+
 export async function reviseProject(projectId: string, reviserRole: string, revisionNote?: string): Promise<Project> {
     console.log(`Revising project ID: ${projectId} by ${reviserRole}. Note: "${revisionNote || 'N/A'}"`);
     let projects = await readProjects();
@@ -268,44 +325,35 @@ export async function reviseProject(projectId: string, reviserRole: string, revi
     let previousStatus = '';
     let previousAssignedDivision = '';
     let previousNextAction = '';
-    let newProgress = currentProject.progress; // Default to current progress
+    let newProgress = currentProject.progress; 
 
-    // Determine the previous state based on the current state
     switch (currentProject.status) {
-        case 'Pending Approval': // Could be for Offer or DP Invoice
-            if (currentProject.nextAction?.includes('Offer')) { // Assuming nextAction helps differentiate
+        case 'Pending Approval': 
+            if (currentProject.progress === 20) { // Offer Approval stage
                 previousStatus = 'Pending Offer';
                 previousAssignedDivision = 'Admin Proyek';
                 previousNextAction = 'Revise & Re-submit Offer Document';
-                newProgress = 15; // Slightly rolled back
-            } else if (currentProject.nextAction?.includes('DP Invoice')) {
+                newProgress = 15; 
+            } else if (currentProject.progress === 30) { // DP Invoice Approval stage
                 previousStatus = 'Pending DP Invoice';
                 previousAssignedDivision = 'General Admin';
                 previousNextAction = 'Revise & Re-submit DP Invoice';
-                newProgress = 25; // Slightly rolled back
+                newProgress = 25; 
             } else {
-                throw new Error(`Cannot revise project in status "${currentProject.status}" with next action "${currentProject.nextAction}". Unknown approval type.`);
+                throw new Error(`Cannot revise project in status "${currentProject.status}" with progress ${currentProject.progress}. Unknown approval type.`);
             }
             break;
         case 'Pending DP Invoice':
-            previousStatus = 'Pending Offer'; // Assuming revision sends it way back to Offer stage for re-evaluation by Admin Proyek.
-            previousAssignedDivision = 'Admin Proyek';
-            previousNextAction = 'Re-evaluate/Revise Offer (DP Stage Revision)';
-            newProgress = 15;
+            previousStatus = 'Pending Approval'; 
+            previousAssignedDivision = 'Owner';
+            previousNextAction = 'Re-Approve Offer (Issue with DP Gen)'; // Owner needs to re-approve offer
+            newProgress = 20; // Back to offer approval progress
             break;
         case 'Pending Admin Files':
-            previousStatus = 'Pending Approval'; // Assuming it means DP Invoice was approved, now AP needs to revise Admin files
-            previousAssignedDivision = 'Owner'; // Send back to Owner to re-approve (or AP to fix files if Owner is the one revising)
-            previousNextAction = 'Re-approve DP Invoice (Admin Files Revised)';
-            // Or, more directly:
-            // previousStatus = 'Pending Admin Files'; // Stays here
-            // previousAssignedDivision = 'Admin Proyek';
-            // previousNextAction = 'Revise Admin Files';
-            // For now, let's assume it goes back to the step *before* Admin Files for simplicity
-            previousStatus = 'Pending Approval'; // Assuming it means DP Invoice stage
-            previousAssignedDivision = 'Owner'; // Re-approve DP
+            previousStatus = 'Pending Approval'; 
+            previousAssignedDivision = 'Owner'; 
             previousNextAction = 'Re-Approve DP Invoice (Issue with Admin Files)';
-            newProgress = 35;
+            newProgress = 30; // Back to DP invoice approval progress
             break;
         case 'Pending Architect Files':
             previousStatus = 'Pending Admin Files';
@@ -333,9 +381,9 @@ export async function reviseProject(projectId: string, reviserRole: string, revi
             break;
         case 'Scheduled':
             previousStatus = 'Pending Scheduling';
-            previousAssignedDivision = 'General Admin'; // Or Owner, depending on who schedules
+            previousAssignedDivision = 'General Admin'; 
             previousNextAction = 'Reschedule Sidang';
-            newProgress = 90; // Keep high as it was already scheduled
+            newProgress = 90; 
             break;
         default:
             console.error(`Project status "${currentProject.status}" is not revisable.`);
@@ -361,7 +409,7 @@ export async function reviseProject(projectId: string, reviserRole: string, revi
     await writeProjects(projects);
     console.log(`Project ${projectId} revised. New status: ${previousStatus}, Assigned to: ${previousAssignedDivision}`);
 
-    // Notify the division responsible for the revised step
+    
     await notifyUsersByRole(
         previousAssignedDivision,
         `Project "${projects[projectIndex].title}" requires revision for: ${previousNextAction}. ${revisionNote ? `Note: ${revisionNote}` : ''}`,

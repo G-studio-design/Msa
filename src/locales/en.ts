@@ -132,6 +132,8 @@ const en = {
     filterStatusLabel: 'Filter Statuses',
     filterClear: 'Show All',
     noProjectsFound: 'No projects match the current filters.',
+    searchPlaceholder: "Search projects by title...",
+    noSearchResults: "No projects found matching your search.",
     viewDetails: 'View Details',
     backToList: 'Back to List',
     downloadFileTooltip: 'Download File',
