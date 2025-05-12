@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, FileText, Download, Users, CalendarCheck, CalendarX, Activity, BarChart3, CheckSquare, XSquare, PieChart } from 'lucide-react';
+import { Loader2, FileText, Download, Users, CalendarCheck, CalendarX, Activity, BarChart3, CheckSquare, XSquare, PieChart as PieChartIcon } from 'lucide-react'; // Renamed PieChart to PieChartIcon
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
@@ -42,7 +42,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Pie, ResponsiveContainer, PieChart as RechartsPieChart, Cell } from "recharts";
+import { Pie, ResponsiveContainer, PieChart as RechartsPieChart, Cell } from "recharts"; // RechartsPieChart for clarity
 import { toPng } from 'html-to-image';
 
 
@@ -119,28 +119,28 @@ export default function MonthlyReportPage() {
 
     try {
         const allProjects = await getAllProjects();
-        const month = parseInt(selectedMonth, 10); 
+        const month = parseInt(selectedMonth, 10);
         const year = parseInt(selectedYear, 10);
 
         const startDateOfMonth = new Date(year, month - 1, 1);
         startDateOfMonth.setHours(0, 0, 0, 0);
-        const endDateOfMonth = new Date(year, month, 0); 
+        const endDateOfMonth = new Date(year, month, 0);
         endDateOfMonth.setHours(23, 59, 59, 999);
-        
+
         const monthName = startDateOfMonth.toLocaleString(language, { month: 'long' });
 
 
         const getFinalStatusTimestamp = (project: Project, targetStatus: 'Completed' | 'Canceled'): Date | null => {
             const actionKeywords = targetStatus === 'Completed'
-                ? ['completed', 'success', 'marked as completed', 'marked as success'] 
-                : ['cancel', 'canceled project']; 
+                ? ['completed', 'success', 'marked as completed', 'marked as success']
+                : ['cancel', 'canceled project'];
 
             for (let i = project.workflowHistory.length - 1; i >= 0; i--) {
                 const entry = project.workflowHistory[i];
                 if (actionKeywords.some(keyword => entry.action.toLowerCase().includes(keyword))) {
                     try {
                         return new Date(entry.timestamp);
-                    } catch (e) { return null; } 
+                    } catch (e) { return null; }
                 }
             }
             if (project.status === targetStatus && project.workflowHistory.length > 0) {
@@ -175,15 +175,19 @@ export default function MonthlyReportPage() {
             } else if (project.status === 'Canceled' && cancellationDate && cancellationDate >= startDateOfMonth && cancellationDate <= endDateOfMonth) {
                 canceledThisMonth.push(project);
             } else {
+                // Check if project was created *after* the reporting month ended
                 if (projectCreationDate > endDateOfMonth) {
-                    continue;
+                    continue; // Skip projects not yet started in the reporting month
                 }
+                // Check if project was completed *before* the reporting month started
                 if (completionDate && completionDate < startDateOfMonth) {
-                    continue; 
+                    continue; // Skip projects already completed before this month
                 }
+                // Check if project was canceled *before* the reporting month started
                 if (cancellationDate && cancellationDate < startDateOfMonth) {
-                    continue; 
+                    continue; // Skip projects already canceled before this month
                 }
+                // If none of the above, it was in progress during the month (or started within it and not yet finished/canceled in it)
                 inProgressThisMonth.push(project);
             }
         }
@@ -211,7 +215,7 @@ export default function MonthlyReportPage() {
     try {
         const filenameBase = `Monthly_Report_${reportData.monthName}_${reportData.year}`;
         const fileContent = await generateExcelReport(reportData.completed, reportData.canceled, reportData.inProgress);
-        
+
         if (!fileContent.trim()) {
             toast({ variant: 'destructive', title: "Report Empty", description: `The generated Excel report content is empty.` });
             setIsDownloadingExcel(false);
@@ -243,9 +247,10 @@ export default function MonthlyReportPage() {
     let chartImageDataUrl: string | undefined = undefined;
     if (chartRef.current) {
         try {
-            chartImageDataUrl = await toPng(chartRef.current, { 
-                quality: 0.95, 
+            chartImageDataUrl = await toPng(chartRef.current, {
+                quality: 0.95,
                 backgroundColor: 'white', // Important for non-transparent background
+                skipFonts: true, // Attempt to fix font issues
              });
         } catch (error) {
             console.error('Error capturing chart image:', error);
@@ -331,7 +336,7 @@ export default function MonthlyReportPage() {
     label: new Date(currentYear, i).toLocaleString(language, { month: 'long' }),
   }));
 
-  const allReportedProjects = reportData ? [...reportData.inProgress, ...reportData.completed, ...reportData.canceled ] : []; 
+  const allReportedProjects = reportData ? [...reportData.inProgress, ...reportData.completed, ...reportData.canceled ] : [];
   allReportedProjects.sort((a, b) => {
       const getLastTimestamp = (project: Project): number => {
           if (project.workflowHistory && project.workflowHistory.length > 0) {
@@ -346,12 +351,12 @@ export default function MonthlyReportPage() {
       const statusOrderValue = (project: Project) => {
           let currentStatus = project.status;
           if (reportData?.inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
-              currentStatus = 'In Progress'; 
+              currentStatus = 'In Progress';
           }
           if (currentStatus === 'In Progress') return 0;
           if (currentStatus === 'Completed') return 1;
           if (currentStatus === 'Canceled') return 2;
-          return 3; 
+          return 3;
       };
 
       const orderA = statusOrderValue(a);
@@ -427,7 +432,7 @@ export default function MonthlyReportPage() {
                 <div ref={chartRef} className="bg-card p-4 rounded-lg shadow-md border-primary/30"> {/* Added ref here for chart capture */}
                     <CardHeader className="pb-2">
                          <CardTitle className="text-lg flex items-center gap-2">
-                            <PieChart className="h-5 w-5 text-primary" /> 
+                            <PieChartIcon className="h-5 w-5 text-primary" />
                            {reportDict.reportFor} {reportData.monthName} {reportData.year} - Summary
                         </CardTitle>
                      </CardHeader>
@@ -481,7 +486,7 @@ export default function MonthlyReportPage() {
                                 </ChartContainer>
                              ) : (
                                 <div className="flex items-center justify-center h-[200px] text-muted-foreground">
-                                    <PieChart className="h-8 w-8 mr-2"/>
+                                    <PieChartIcon className="h-8 w-8 mr-2"/>
                                     No data for chart.
                                 </div>
                              )}
