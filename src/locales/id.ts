@@ -2,7 +2,7 @@
 const id = {
   // Login Page
   login: {
-    title: 'Login Msarch app',
+    title: 'Login Msarch App',
     description: 'Masukkan kredensial Anda.',
     usernameLabel: 'Nama Pengguna',
     usernamePlaceholder: 'Masukkan nama pengguna Anda',
@@ -30,7 +30,7 @@ const id = {
     monthlyReport: 'Laporan Bulanan',
     settings: 'Pengaturan',
     logout: 'Keluar',
-    appTitle: 'Msarch app',
+    appTitle: 'Msarch App',
     toggleMenu: 'Buka/Tutup Panel Menu',
   },
   // Dashboard Page
@@ -401,3 +401,4 @@ const id = {
 };
 
 export default id;
+

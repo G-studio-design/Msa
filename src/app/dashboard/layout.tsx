@@ -246,7 +246,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <Building className="h-5 w-5 sm:h-6 sm:w-6" /> 
                 
                  <span className="hidden sm:inline">{isClient && layoutDict ? layoutDict.appTitle : defaultDict?.dashboardLayout?.appTitle}</span> 
-                 <span className="sm:hidden">Msarch</span> 
+                 <span className="sm:hidden">{isClient && layoutDict ? layoutDict.appTitle : defaultDict?.dashboardLayout?.appTitle}</span> 
               </Link>
 
             
@@ -420,3 +420,4 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
+

@@ -2,7 +2,7 @@
 const en = {
   // Login Page
   login: {
-    title: 'Msarch app Login',
+    title: 'Msarch App Login',
     description: 'Enter your credentials.',
     usernameLabel: 'Username',
     usernamePlaceholder: 'Enter your username',
@@ -30,7 +30,7 @@ const en = {
     monthlyReport: 'Monthly Report',
     settings: 'Settings',
     logout: 'Logout',
-    appTitle: 'Msarch app',
+    appTitle: 'Msarch App',
     toggleMenu: 'Toggle Menu Panel',
   },
   // Dashboard Page
@@ -401,3 +401,4 @@ const en = {
 };
 
 export default en;
+
