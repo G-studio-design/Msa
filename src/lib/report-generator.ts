@@ -31,11 +31,12 @@ function getLastActivityDate(project: Project, lang: Language = 'en'): string {
 
 function getContributors(project: Project, dict: ReturnType<typeof getDictionary>['monthlyReportPage']): string {
     if (!project.files || project.files.length === 0) {
-        return dict.none || "None";
+        return dict.none || (lang === 'id' ? "Tidak Ada" : "None");
     }
     const contributors = [...new Set(project.files.map(f => f.uploadedBy))];
     return contributors.join(', ');
 }
+let lang: Language = 'en'; // Define lang at a broader scope if it's used by getContributors
 
 function escapeCsvValue(value: string | number | undefined | null): string {
     if (value === undefined || value === null) {
@@ -55,9 +56,10 @@ export async function generateExcelReport(
     completed: Project[],
     canceled: Project[],
     inProgress: Project[],
-    lang: Language = 'en' // Added language parameter
+    currentLanguage: Language = 'en' // Renamed parameter to avoid conflict with global lang
 ): Promise<string> {
-    const dict = getDictionary(lang); // Get dictionary for the specified language
+    lang = currentLanguage; // Set global lang for helpers
+    const dict = getDictionary(lang); 
     const reportDict = dict.monthlyReportPage;
 
     const allProjects = [...inProgress, ...completed, ...canceled ];
@@ -84,15 +86,14 @@ export async function generateExcelReport(
         return dateB - dateA;
     });
 
-    // Use translated headers
     const headers = [
         reportDict.tableHeaderTitle,
         reportDict.tableHeaderStatus,
         reportDict.tableHeaderLastActivityDate,
         reportDict.tableHeaderContributors,
-        "Progress (%)", // This can also be translated if needed
-        dict.projectsPage.uploadedByOn.split(" ")[2], // "By" from "Uploaded by {user} on {date}"
-        "Created At" // This can also be translated
+        lang === 'id' ? "Progres (%)" : "Progress (%)", 
+        dict.projectsPage.uploadedByOn.split(" ")[lang === 'id' ? 2 : 2],
+        lang === 'id' ? 'Dibuat Pada' : "Created At" 
     ];
     const rows = [headers.map(escapeCsvValue).join(',')];
 
@@ -124,12 +125,13 @@ export async function generateWordReport(
     completed: Project[],
     canceled: Project[],
     inProgress: Project[],
-    monthName: string, // monthName is already localized by the client
+    monthName: string,
     year: string,
     chartImageDataUrl?: string,
-    lang: Language = 'en' // Added language parameter
+    currentLanguage: Language = 'en'
 ): Promise<Buffer> {
-    const dict = getDictionary(lang); // Get dictionary for the specified language
+    lang = currentLanguage; // Set global lang for helpers
+    const dict = getDictionary(lang);
     const reportDict = dict.monthlyReportPage;
     const dashboardStatusDict = dict.dashboardPage.status;
 
@@ -157,17 +159,17 @@ export async function generateWordReport(
             properties: {},
             children: [
                 new Paragraph({
-                    text: `${reportDict.title} - ${monthName} ${year}`, // Translated title
+                    text: `${reportDict.title} - ${monthName} ${year}`,
                     heading: HeadingLevel.TITLE,
                     alignment: AlignmentType.CENTER,
                 }),
                 new Paragraph({
-                    text: `${lang === 'id' ? 'Dibuat pada' : 'Generated on'}: ${format(new Date(), 'PPpp', { locale: lang === 'id' ? IndonesianLocale : EnglishLocale })}`, // Translated generated on
-                    style: "SubheaderStyle", // Using defined style
+                    text: `${lang === 'id' ? 'Dibuat pada' : 'Generated on'}: ${format(new Date(), 'PPpp', { locale: lang === 'id' ? IndonesianLocale : EnglishLocale })}`,
+                    style: "SubheaderStyle",
                     alignment: AlignmentType.CENTER,
                 }),
                 new Paragraph({
-                    text: `${lang === 'id' ? 'Ringkasan' : 'Summary'}:`, // Translated Summary
+                    text: `${lang === 'id' ? 'Ringkasan' : 'Summary'}:`,
                     heading: HeadingLevel.HEADING_1,
                     style: "SectionHeaderStyle",
                 }),
@@ -175,7 +177,7 @@ export async function generateWordReport(
                 new Paragraph({ text: `    - ${reportDict.inProgressProjectsShort}: ${inProgress.length}`, style: "SummaryTextStyle" }),
                 new Paragraph({ text: `    - ${reportDict.completedProjectsShort}: ${completed.length}`, style: "SummaryTextStyle" }),
                 new Paragraph({ text: `    - ${reportDict.canceledProjectsShort}: ${canceled.length}`, style: "SummaryTextStyle" }),
-                new Paragraph({ text: "" }), // Spacer
+                new Paragraph({ text: "" }), 
             ],
         },
     ];
@@ -185,7 +187,7 @@ export async function generateWordReport(
             const imageBuffer = Buffer.from(chartImageDataUrl.split(',')[1], 'base64');
             sections[0].children.push(
                 new Paragraph({
-                    text: lang === 'id' ? "Gambaran Status Proyek:" : "Project Status Overview:", // Translated chart title
+                    text: lang === 'id' ? "Gambaran Status Proyek:" : "Project Status Overview:",
                     heading: HeadingLevel.HEADING_1,
                     style: "SectionHeaderStyle",
                 }),
@@ -194,14 +196,14 @@ export async function generateWordReport(
                         new ImageRun({
                             data: imageBuffer,
                             transformation: {
-                                width: 500, // Adjusted for better fit
+                                width: 500, 
                                 height: 250,
                             },
                         }),
                     ],
                     alignment: AlignmentType.CENTER,
                 }),
-                new Paragraph({ text: "" }) // Spacer
+                new Paragraph({ text: "" }) 
             );
         } catch (error) {
             console.error("Error processing chart image for Word report:", error);
@@ -213,7 +215,7 @@ export async function generateWordReport(
     if (allProjectsForWord.length > 0) {
         sections[0].children.push(
             new Paragraph({
-                text: lang === 'id' ? "Daftar Detail Semua Proyek:" : "All Projects Detailed List:", // Translated list title
+                text: lang === 'id' ? "Daftar Detail Semua Proyek:" : "All Projects Detailed List:",
                 heading: HeadingLevel.HEADING_1,
                 style: "SectionHeaderStyle",
             })
@@ -221,13 +223,13 @@ export async function generateWordReport(
 
         const headerRow = new TableRow({
             children: [
-                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderTitle, style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "E0E0E0"} }),
-                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderStatus, style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "E0E0E0"} }),
-                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderLastActivityDate, style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "E0E0E0"} }),
-                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderContributors, style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "E0E0E0"} }),
-                new TableCell({ children: [new Paragraph({ text: `Progress (%)`, style: "TableHeaderStyle", alignment: AlignmentType.RIGHT })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "E0E0E0"} }),
-                new TableCell({ children: [new Paragraph({ text: lang === 'id' ? 'Dibuat Oleh' : 'Created By', style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "E0E0E0"} }),
-                new TableCell({ children: [new Paragraph({ text: lang === 'id' ? 'Dibuat Pada' : 'Created At', style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "E0E0E0"} }),
+                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderTitle, style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "4F81BD"} }), // Darker Blue
+                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderStatus, style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "4F81BD"} }),
+                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderLastActivityDate, style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "4F81BD"} }),
+                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderContributors, style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "4F81BD"} }),
+                new TableCell({ children: [new Paragraph({ text: lang === 'id' ? 'Progres (%)' : 'Progress (%)', style: "TableHeaderStyle", alignment: AlignmentType.RIGHT })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "4F81BD"} }),
+                new TableCell({ children: [new Paragraph({ text: lang === 'id' ? 'Dibuat Oleh' : 'Created By', style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "4F81BD"} }),
+                new TableCell({ children: [new Paragraph({ text: lang === 'id' ? 'Dibuat Pada' : 'Created At', style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "4F81BD"} }),
             ],
             tableHeader: true,
         });
@@ -239,7 +241,7 @@ export async function generateWordReport(
             }
             const translatedDisplayStatus = (dashboardStatusDict as any)[displayStatus.toLowerCase().replace(/ /g, '')] || displayStatus;
             
-            const cellShading = index % 2 === 0 ? undefined : { type: ShadingType.SOLID, fill: "F5F5F5" }; // Zebra striping
+            const cellShading = index % 2 === 0 ? undefined : { type: ShadingType.SOLID, fill: "DCE6F1" }; // Light Blue for Zebra
 
             return new TableRow({
                 children: [
@@ -260,8 +262,8 @@ export async function generateWordReport(
                 size: 100,
                 type: WidthType.PERCENTAGE,
             },
-            columnWidths: [2500, 1200, 1500, 1800, 800, 1000, 1200], // Adjusted widths
-            borders: { // Simplified borders
+            columnWidths: [2500, 1200, 1500, 1800, 800, 1000, 1200],
+            borders: { 
                 top: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
                 bottom: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
                 left: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
@@ -290,7 +292,7 @@ export async function generateWordReport(
                     name: "Subheader Style",
                     basedOn: "Normal",
                     next: "Normal",
-                    run: { size: 20, italics: true, color: "595959" }, // 10pt, grey
+                    run: { size: 20, italics: true, color: "595959" }, 
                     paragraph: { spacing: { after: 200 } },
                 },
                 {
@@ -298,7 +300,7 @@ export async function generateWordReport(
                     name: "Table Header Style",
                     basedOn: "Normal",
                     next: "Normal",
-                    run: { bold: true, size: 20, color: "000000" }, // 10pt, black
+                    run: { bold: true, size: 20, color: "FFFFFF" }, // White text for header
                     paragraph: { alignment: AlignmentType.LEFT, spacing: { before: 80, after: 80 } },
                 },
                 {
@@ -306,7 +308,7 @@ export async function generateWordReport(
                     name: "Table Cell Style",
                     basedOn: "Normal",
                     next: "Normal",
-                    run: { size: 18, color: "262626"}, // 9pt
+                    run: { size: 18, color: "333333"}, // Darker grey text
                     paragraph: { spacing: { before: 60, after: 60 } },
                 },
                 {
@@ -314,7 +316,7 @@ export async function generateWordReport(
                     name: "Summary Text Style",
                     basedOn: "Normal",
                     next: "Normal",
-                    run: { size: 22, color: "404040"}, // 11pt
+                    run: { size: 22, color: "404040"}, 
                     paragraph: { spacing: { before: 40, after: 40 }, indent: { left: 200 }},
                 },
                  {
@@ -322,7 +324,7 @@ export async function generateWordReport(
                     name: "Section Header Style",
                     basedOn: "Normal",
                     next: "Normal",
-                    run: { size: 28, bold: true, color: "2F5496" }, // 14pt, Darker Blue
+                    run: { size: 28, bold: true, color: "2F5496" }, 
                     paragraph: { spacing: { after: 240, before: 400 } },
                 },
                 {
@@ -330,26 +332,26 @@ export async function generateWordReport(
                     name: "Error Text Style",
                     basedOn: "Normal",
                     next: "Normal",
-                    run: { size: 20, color: "C00000", italics: true}, // 10pt, Red
+                    run: { size: 20, color: "C00000", italics: true}, 
                 },
                 {
                     id: "NormalTextStyle",
                     name: "Normal Text Style",
                     basedOn: "Normal",
                     next: "Normal",
-                    run: { size: 22, color: "262626"}, // 11pt
+                    run: { size: 22, color: "262626"}, 
                 },
             ],
             default: {
                 document: {
-                     run: { font: "Calibri" }, // Set default font for the document
+                     run: { font: "Calibri" }, 
                 },
-                heading1: { // Used by SectionHeaderStyle
+                heading1: { 
                     run: { size: 28, bold: true, color: "2F5496", font: "Calibri Light" },
                     paragraph: { spacing: { after: 240, before: 400 } },
                 },
-                 title: { // Main document title
-                    run: { size: 44, bold: true, color: "1F3864", font: "Calibri Light" }, // 22pt
+                 title: { 
+                    run: { size: 44, bold: true, color: "1F3864", font: "Calibri Light" }, 
                     paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 400 } },
                 },
             }
