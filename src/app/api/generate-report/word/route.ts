@@ -77,7 +77,16 @@ export async function POST(req: NextRequest) {
         }
         
         // Ensure detailMessage is never an empty string for the response
-        const finalDetailMessage = detailMessage.trim() === '' ? 'An unspecified server error occurred.' : detailMessage;
+        let finalDetailMessage = detailMessage.trim() === '' ? 'An unspecified server error occurred.' : detailMessage;
+        
+        // Sanitize the message to remove characters that might break JSON stringification in NextResponse
+        // This replaces non-printable ASCII characters (excluding space) with an empty string.
+        // Basic printable ASCII characters (space to ~) are kept.
+        finalDetailMessage = String(finalDetailMessage || 'An unspecified error occurred.').replace(/[^\x20-\x7E]/g, '');
+        if (!finalDetailMessage.trim()) {
+            finalDetailMessage = 'Error details could not be processed or contained non-printable characters.';
+        }
+
         console.error(`[API/WordReport] Responding with error: ${finalDetailMessage}`);
 
         return NextResponse.json(
