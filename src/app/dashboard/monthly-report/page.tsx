@@ -308,7 +308,12 @@ export default function MonthlyReportPage() {
                     if (typeof errorData === 'object' && errorData !== null && Object.keys(errorData).length === 0) {
                         errorDetails = "The server returned an empty error response. Please check server logs for more details.";
                     } else {
-                         errorDetails = String(errorData.details || errorData.error || "Failed to process server error response.");
+                         const serverDetail = errorData.details || errorData.error;
+                         if (typeof serverDetail === 'string' && serverDetail.includes("Cannot read properties of undefined (reading 'children')")) {
+                             errorDetails = "The Word document could not be generated due to an internal structure error. Please contact support or try again later.";
+                         } else {
+                             errorDetails = String(serverDetail || "Failed to process server error response.");
+                         }
                     }
                  } else {
                      errorDetails = responseText.length > 500 ? responseText.substring(0,500) + "..." : responseText;
@@ -387,7 +392,7 @@ export default function MonthlyReportPage() {
   }
   
   const noData = reportData && reportData.completed.length === 0 && reportData.inProgress.length === 0 && reportData.canceled.length === 0;
-  const hasDataForChart = reportData && (reportData.completed.length > 0 || reportData.inProgress.length > 0 || reportData.canceled.length > 0);
+  const hasDataForChartFn = () => reportData && (reportData.completed.length > 0 || reportData.inProgress.length > 0 || reportData.canceled.length > 0);
 
 
   return (
@@ -531,7 +536,7 @@ export default function MonthlyReportPage() {
                 {isDownloading === 'excel' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className="mr-2 h-4 w-4" />}
                 {reportDict.downloadExcel}
               </Button>
-              <Button onClick={handleDownloadWord} disabled={isDownloading === 'word' || isGeneratingReport || (hasDataForChart && !chartImageDataUrl)} className="w-full sm:w-auto">
+              <Button onClick={handleDownloadWord} disabled={isDownloading === 'word' || isGeneratingReport || (hasDataForChartFn() && !chartImageDataUrl)} className="w-full sm:w-auto">
                  {isDownloading === 'word' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
                 {reportDict.downloadWord}
               </Button>
