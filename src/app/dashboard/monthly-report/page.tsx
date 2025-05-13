@@ -46,10 +46,8 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
 } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList } from "recharts";
 import type { Language } from '@/context/LanguageContext';
 
 
@@ -168,27 +166,23 @@ export default function MonthlyReportPage() {
 
     const filteredProjects = allProjects.filter(project => {
         try {
-            // Determine the relevant date for filtering
-            // For completed/canceled, use the last workflow entry timestamp
-            // For in-progress, it means they were active (created before/during and not completed/canceled before month end)
             let relevantDate: Date | null = null;
             if (project.status === 'Completed' || project.status === 'Canceled') {
                 if (project.workflowHistory && project.workflowHistory.length > 0) {
                     const lastEntry = project.workflowHistory[project.workflowHistory.length - 1];
                     if (lastEntry) relevantDate = parseISO(lastEntry.timestamp);
                 }
-            } else { // In Progress or other active statuses
-                 relevantDate = parseISO(project.createdAt); // Check if created within or before the month
+            } else { 
+                 relevantDate = parseISO(project.createdAt); 
             }
 
             if (!relevantDate) return false;
             
             const projectMatchesMonthYear = getYear(relevantDate) === yearInt && (getMonth(relevantDate) + 1) === monthInt;
 
-             // For in-progress, ensure they were not completed/canceled *before* this month if created earlier
              if (project.status !== 'Completed' && project.status !== 'Canceled') {
                 const createdBeforeOrDuringMonth = getYear(parseISO(project.createdAt)) < yearInt || (getYear(parseISO(project.createdAt)) === yearInt && (getMonth(parseISO(project.createdAt)) + 1) <= monthInt);
-                return createdBeforeOrDuringMonth; // Simpler: just show anything that was active (created by month end)
+                return createdBeforeOrDuringMonth; 
             }
             
             return projectMatchesMonthYear;
@@ -201,19 +195,17 @@ export default function MonthlyReportPage() {
     
     const completed = filteredProjects.filter(p => p.status === 'Completed' && getYear(parseISO(p.workflowHistory[p.workflowHistory.length -1]?.timestamp || p.createdAt)) === yearInt && (getMonth(parseISO(p.workflowHistory[p.workflowHistory.length -1]?.timestamp || p.createdAt)) + 1) === monthInt);
     const canceled = filteredProjects.filter(p => p.status === 'Canceled' && getYear(parseISO(p.workflowHistory[p.workflowHistory.length -1]?.timestamp || p.createdAt)) === yearInt && (getMonth(parseISO(p.workflowHistory[p.workflowHistory.length -1]?.timestamp || p.createdAt)) + 1) === monthInt);
-    // In-progress are those not completed or canceled WITHIN the selected month, but could have been created before.
     const inProgress = allProjects.filter(p => {
         const createdDate = parseISO(p.createdAt);
         const createdBeforeOrDuringSelectedMonth = getYear(createdDate) < yearInt || (getYear(createdDate) === yearInt && (getMonth(createdDate) + 1) <= monthInt);
         
-        if (!createdBeforeOrDuringSelectedMonth) return false; // Not active yet
+        if (!createdBeforeOrDuringSelectedMonth) return false;
 
         if (p.status === 'Completed' || p.status === 'Canceled') {
              const endDate = parseISO(p.workflowHistory[p.workflowHistory.length-1]?.timestamp || p.createdAt);
-             // If completed/canceled *after* selected month, it was in progress during selected month
              return getYear(endDate) > yearInt || (getYear(endDate) === yearInt && (getMonth(endDate) + 1) > monthInt);
         }
-        return true; // Still active
+        return true; 
     });
 
 
@@ -224,7 +216,6 @@ export default function MonthlyReportPage() {
       toast({ title: reportDict.noDataForMonth, description: reportDict.tryDifferentMonthYear });
     }
 
-    // Generate chart image after reportData is set
     setTimeout(async () => {
         if (chartContainerRef.current && (completed.length > 0 || inProgress.length > 0 || canceled.length > 0)) {
             try {
@@ -243,8 +234,8 @@ export default function MonthlyReportPage() {
                  console.warn("Chart container ref not found, cannot generate image.");
             }
         }
-        setIsGeneratingReport(false); // Ensure this is set after all async operations
-    }, 500); // Delay to ensure chart is rendered
+        setIsGeneratingReport(false); 
+    }, 500); 
 
   }, [selectedMonth, selectedYear, allProjects, toast, reportDict, language, getMonthName]);
 
@@ -256,7 +247,7 @@ export default function MonthlyReportPage() {
     setIsDownloading('excel');
     try {
       const csvData = await generateExcelReport(reportData.completed, reportData.canceled, reportData.inProgress, language);
-      const blob = new Blob([`\uFEFF${csvData}`], { type: 'text/csv;charset=utf-8;' }); // Add BOM for Excel
+      const blob = new Blob([`\uFEFF${csvData}`], { type: 'text/csv;charset=utf-8;' }); 
       const link = document.createElement("a");
       const url = URL.createObjectURL(blob);
       link.setAttribute("href", url);
@@ -281,16 +272,15 @@ export default function MonthlyReportPage() {
         return;
     }
     
-    const hasDataForChartLocal = reportData.completed.length > 0 || reportData.inProgress.length > 0 || reportData.canceled.length > 0;
-    if (hasDataForChartLocal && !chartImageDataUrl && !isGeneratingReport) { // if has data but no chart yet, and not actively generating
+    const localHasDataForChart = reportData.completed.length > 0 || reportData.inProgress.length > 0 || reportData.canceled.length > 0;
+    if (localHasDataForChart && !chartImageDataUrl && !isGeneratingReport) { 
         toast({ variant: 'destructive', title: reportDict.toast.generatingChartTitle, description: reportDict.toast.generatingChartDesc });
         return;
     }
-    if (isGeneratingReport) { // if currently generating report (which includes chart)
+    if (isGeneratingReport) { 
          toast({ variant: 'default', title: reportDict.generatingReportButton, description: reportDict.toast.generatingChartDesc});
          return;
     }
-
 
     setIsDownloading('word');
     try {
@@ -303,39 +293,38 @@ export default function MonthlyReportPage() {
                 inProgress: reportData.inProgress,
                 monthName: reportData.monthName,
                 year: reportData.year,
-                chartImageDataUrl: chartImageDataUrl, // Can be null
+                chartImageDataUrl: chartImageDataUrl, 
                 language: language,
             }),
         });
 
-        const responseText = await response.text(); // Read the response body once
-
         if (!response.ok) {
+            const responseText = await response.text();
             let errorDetails = "Failed to generate Word report from server.";
             try {
                  if (responseText.trim().startsWith('{') && responseText.trim().endsWith('}')) {
                     const errorData = JSON.parse(responseText);
-                    errorDetails = errorData.details || errorData.error || errorDetails;
-                    console.error("Server JSON error details for Word generation:", errorData);
+                    console.error("[Client/WordDownload] Raw errorData from server:", errorData); // Log raw error data
+                    if (typeof errorData === 'object' && errorData !== null && Object.keys(errorData).length === 0) {
+                        errorDetails = "The server returned an empty error response. Please check server logs for more details.";
+                        console.error("[Client/WordDownload] Server returned an empty JSON object as error.");
+                    } else {
+                         errorDetails = errorData.details || errorData.error || "Failed to process server error response.";
+                    }
                  } else {
                      errorDetails = responseText.length > 500 ? responseText.substring(0,500) + "..." : responseText;
                      if (responseText.toLowerCase().includes('<html')) {
                          errorDetails = "Server returned an HTML error page. Check server logs for details.";
                      }
-                    console.error("Non-JSON error response from server for Word generation:", responseText.substring(0,500));
                  }
             } catch (parseError) {
-                console.error("Error parsing/handling error response from server for Word generation:", parseError, "Original status:", response.statusText, "Response Text:", responseText.substring(0,500));
+                console.error("[Client/WordDownload] Error parsing/handling error response from server for Word generation:", parseError, "Original status:", response.statusText, "Response Text (snippet):", responseText.substring(0,500));
                  errorDetails = `Server returned status ${response.status}. Original error: ${responseText.substring(0,200)}`;
             }
             throw new Error(errorDetails);
         }
         
-        // If response is OK, create Blob from the responseText (assuming it's the file content if not an error)
-        // This part might need adjustment if the successful response isn't directly the file content
-        // but a Blob representing the file.
-        const blob = new Blob([responseText], { type: response.headers.get('Content-Type') || 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-
+        const blob = await response.blob();
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.href = url;
@@ -459,7 +448,7 @@ export default function MonthlyReportPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-               <div ref={chartContainerRef} className="p-4 bg-card rounded-md mb-6"> {/* Ensure this div is captured */}
+               <div ref={chartContainerRef} className="p-4 bg-card rounded-md mb-6"> 
                  {noData ? (
                     <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
                         <PieChartIcon className="h-12 w-12 mb-2 opacity-50" />
