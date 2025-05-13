@@ -4,7 +4,7 @@
 import type { Project } from '@/services/project-service';
 import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale'; // Import locales
-import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType, BorderStyle, VerticalAlign, AlignmentType, HeadingLevel, ImageRun } from 'docx';
+import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType, BorderStyle, VerticalAlign, AlignmentType, HeadingLevel, ImageRun, ShadingType } from 'docx';
 import type { Language } from '@/context/LanguageContext'; // Import Language type
 import { getDictionary } from '@/lib/translations'; // Import dictionary
 
@@ -62,16 +62,19 @@ export async function generateExcelReport(
 
     const allProjects = [...inProgress, ...completed, ...canceled ];
     allProjects.sort((a, b) => {
-        const statusOrder = (status: string) => {
-            if (inProgress.some(p => p.id === a.id && (status === 'Completed' || status === 'Canceled'))) return 0;
-            if (status === 'In Progress') return 0;
-            if (status === 'Completed') return 1;
-            if (status === 'Canceled') return 2;
+        const statusOrderValue = (project: Project, inProgressList: Project[]) => {
+            let currentStatus = project.status;
+             if (inProgressList.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
+                currentStatus = 'In Progress';
+            }
+            if (currentStatus === 'In Progress') return 0;
+            if (currentStatus === 'Completed') return 1;
+            if (currentStatus === 'Canceled') return 2;
             return 3;
         };
 
-        const orderA = statusOrder(a.status);
-        const orderB = statusOrder(b.status);
+        const orderA = statusOrderValue(a, inProgress);
+        const orderB = statusOrderValue(b, inProgress);
 
         if (orderA !== orderB) {
             return orderA - orderB;
@@ -160,17 +163,18 @@ export async function generateWordReport(
                 }),
                 new Paragraph({
                     text: `${lang === 'id' ? 'Dibuat pada' : 'Generated on'}: ${format(new Date(), 'PPpp', { locale: lang === 'id' ? IndonesianLocale : EnglishLocale })}`, // Translated generated on
-                    style: "Subheader",
+                    style: "SubheaderStyle", // Using defined style
                     alignment: AlignmentType.CENTER,
                 }),
                 new Paragraph({
                     text: `${lang === 'id' ? 'Ringkasan' : 'Summary'}:`, // Translated Summary
                     heading: HeadingLevel.HEADING_1,
+                    style: "SectionHeaderStyle",
                 }),
-                new Paragraph({ text: `${reportDict.totalProjects}: ${completed.length + canceled.length + inProgress.length}` }),
-                new Paragraph({ text: `  - ${reportDict.inProgressProjectsShort}: ${inProgress.length}` }),
-                new Paragraph({ text: `  - ${reportDict.completedProjectsShort}: ${completed.length}` }),
-                new Paragraph({ text: `  - ${reportDict.canceledProjectsShort}: ${canceled.length}` }),
+                new Paragraph({ text: `  • ${reportDict.totalProjects}: ${completed.length + canceled.length + inProgress.length}`, style: "SummaryTextStyle" }),
+                new Paragraph({ text: `    - ${reportDict.inProgressProjectsShort}: ${inProgress.length}`, style: "SummaryTextStyle" }),
+                new Paragraph({ text: `    - ${reportDict.completedProjectsShort}: ${completed.length}`, style: "SummaryTextStyle" }),
+                new Paragraph({ text: `    - ${reportDict.canceledProjectsShort}: ${canceled.length}`, style: "SummaryTextStyle" }),
                 new Paragraph({ text: "" }), // Spacer
             ],
         },
@@ -183,13 +187,14 @@ export async function generateWordReport(
                 new Paragraph({
                     text: lang === 'id' ? "Gambaran Status Proyek:" : "Project Status Overview:", // Translated chart title
                     heading: HeadingLevel.HEADING_1,
+                    style: "SectionHeaderStyle",
                 }),
                 new Paragraph({
                     children: [
                         new ImageRun({
                             data: imageBuffer,
                             transformation: {
-                                width: 500,
+                                width: 500, // Adjusted for better fit
                                 height: 250,
                             },
                         }),
@@ -200,7 +205,7 @@ export async function generateWordReport(
             );
         } catch (error) {
             console.error("Error processing chart image for Word report:", error);
-            sections[0].children.push(new Paragraph({ text: lang === 'id' ? "Kesalahan: Gambar grafik tidak dapat dimuat." : "Error: Chart image could not be loaded."}));
+            sections[0].children.push(new Paragraph({ text: lang === 'id' ? "Kesalahan: Gambar grafik tidak dapat dimuat." : "Error: Chart image could not be loaded.", style: "ErrorTextStyle"}));
         }
     }
 
@@ -210,38 +215,41 @@ export async function generateWordReport(
             new Paragraph({
                 text: lang === 'id' ? "Daftar Detail Semua Proyek:" : "All Projects Detailed List:", // Translated list title
                 heading: HeadingLevel.HEADING_1,
+                style: "SectionHeaderStyle",
             })
         );
 
         const headerRow = new TableRow({
             children: [
-                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderTitle, style: "TableHeader" })], verticalAlign: VerticalAlign.CENTER }),
-                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderStatus, style: "TableHeader" })], verticalAlign: VerticalAlign.CENTER }),
-                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderLastActivityDate, style: "TableHeader" })], verticalAlign: VerticalAlign.CENTER }),
-                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderContributors, style: "TableHeader" })], verticalAlign: VerticalAlign.CENTER }),
-                new TableCell({ children: [new Paragraph({ text: `Progress (%)`, style: "TableHeader", alignment: AlignmentType.RIGHT })], verticalAlign: VerticalAlign.CENTER }),
-                new TableCell({ children: [new Paragraph({ text: lang === 'id' ? 'Dibuat Oleh' : 'Created By', style: "TableHeader" })], verticalAlign: VerticalAlign.CENTER }),
-                new TableCell({ children: [new Paragraph({ text: lang === 'id' ? 'Dibuat Pada' : 'Created At', style: "TableHeader" })], verticalAlign: VerticalAlign.CENTER }),
+                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderTitle, style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "E0E0E0"} }),
+                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderStatus, style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "E0E0E0"} }),
+                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderLastActivityDate, style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "E0E0E0"} }),
+                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderContributors, style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "E0E0E0"} }),
+                new TableCell({ children: [new Paragraph({ text: `Progress (%)`, style: "TableHeaderStyle", alignment: AlignmentType.RIGHT })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "E0E0E0"} }),
+                new TableCell({ children: [new Paragraph({ text: lang === 'id' ? 'Dibuat Oleh' : 'Created By', style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "E0E0E0"} }),
+                new TableCell({ children: [new Paragraph({ text: lang === 'id' ? 'Dibuat Pada' : 'Created At', style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: "E0E0E0"} }),
             ],
             tableHeader: true,
         });
 
-        const dataRows = allProjectsForWord.map((project) => {
+        const dataRows = allProjectsForWord.map((project, index) => {
             let displayStatus = project.status;
             if (inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
                 displayStatus = 'In Progress';
             }
             const translatedDisplayStatus = (dashboardStatusDict as any)[displayStatus.toLowerCase().replace(/ /g, '')] || displayStatus;
+            
+            const cellShading = index % 2 === 0 ? undefined : { type: ShadingType.SOLID, fill: "F5F5F5" }; // Zebra striping
 
             return new TableRow({
                 children: [
-                    new TableCell({ children: [new Paragraph(project.title)] }),
-                    new TableCell({ children: [new Paragraph(translatedDisplayStatus)] }),
-                    new TableCell({ children: [new Paragraph(getLastActivityDate(project, lang))] }),
-                    new TableCell({ children: [new Paragraph(getContributors(project, reportDict))] }),
-                    new TableCell({ children: [new Paragraph({ text: project.progress.toString(), alignment: AlignmentType.RIGHT })] }),
-                    new TableCell({ children: [new Paragraph(project.createdBy)] }),
-                    new TableCell({ children: [new Paragraph(formatDateOnly(project.createdAt, lang))] }),
+                    new TableCell({ children: [new Paragraph({ text: project.title, style: "TableCellStyle"})], shading: cellShading }),
+                    new TableCell({ children: [new Paragraph({ text: translatedDisplayStatus, style: "TableCellStyle"})], shading: cellShading }),
+                    new TableCell({ children: [new Paragraph({ text: getLastActivityDate(project, lang), style: "TableCellStyle"})], shading: cellShading }),
+                    new TableCell({ children: [new Paragraph({ text: getContributors(project, reportDict), style: "TableCellStyle"})], shading: cellShading }),
+                    new TableCell({ children: [new Paragraph({ text: project.progress.toString(), alignment: AlignmentType.RIGHT, style: "TableCellStyle"})], shading: cellShading }),
+                    new TableCell({ children: [new Paragraph({ text: project.createdBy, style: "TableCellStyle"})], shading: cellShading }),
+                    new TableCell({ children: [new Paragraph({ text: formatDateOnly(project.createdAt, lang), style: "TableCellStyle"})], shading: cellShading }),
                 ],
             });
         });
@@ -252,79 +260,97 @@ export async function generateWordReport(
                 size: 100,
                 type: WidthType.PERCENTAGE,
             },
-            columnWidths: [3000, 1500, 1500, 1500, 1000, 1000, 1000],
-            borders: {
-                top: { style: BorderStyle.SINGLE, size: 1, color: "DDDDDD" },
-                bottom: { style: BorderStyle.SINGLE, size: 1, color: "DDDDDD" },
-                left: { style: BorderStyle.SINGLE, size: 1, color: "DDDDDD" },
-                right: { style: BorderStyle.SINGLE, size: 1, color: "DDDDDD" },
-                insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "EEEEEE" },
-                insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "EEEEEE" },
+            columnWidths: [2500, 1200, 1500, 1800, 800, 1000, 1200], // Adjusted widths
+            borders: { // Simplified borders
+                top: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
+                bottom: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
+                left: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
+                right: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
+                insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "D9D9D9" },
+                insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "D9D9D9" },
             },
         });
         sections[0].children.push(table);
 
     } else {
         sections[0].children.push(
-            new Paragraph({ text: reportDict.noDataForMonth, alignment: AlignmentType.CENTER })
+            new Paragraph({ text: reportDict.noDataForMonth, alignment: AlignmentType.CENTER, style: "NormalTextStyle" })
         );
     }
 
     const doc = new Document({
+        creator: "Msarch App",
+        title: `${reportDict.title} - ${monthName} ${year}`,
+        description: `Monthly project report for ${monthName} ${year}`,
         sections: sections,
         styles: {
             paragraphStyles: [
                 {
-                    id: "Subheader",
-                    name: "Subheader",
+                    id: "SubheaderStyle",
+                    name: "Subheader Style",
                     basedOn: "Normal",
                     next: "Normal",
-                    run: {
-                        size: 20, // 10pt
-                        italics: true,
-                        color: "555555",
-                    },
-                    paragraph: {
-                        spacing: { after: 200 }, // 10pt spacing after
-                    },
+                    run: { size: 20, italics: true, color: "595959" }, // 10pt, grey
+                    paragraph: { spacing: { after: 200 } },
                 },
                 {
-                    id: "TableHeader",
-                    name: "Table Header",
+                    id: "TableHeaderStyle",
+                    name: "Table Header Style",
                     basedOn: "Normal",
                     next: "Normal",
-                    run: {
-                        bold: true,
-                        size: 20, // 10pt
-                        color: "000000", 
-                    },
-                    paragraph: {
-                        alignment: AlignmentType.LEFT,
-                        spacing: { before: 80, after: 80 },
-                    },
+                    run: { bold: true, size: 20, color: "000000" }, // 10pt, black
+                    paragraph: { alignment: AlignmentType.LEFT, spacing: { before: 80, after: 80 } },
+                },
+                {
+                    id: "TableCellStyle",
+                    name: "Table Cell Style",
+                    basedOn: "Normal",
+                    next: "Normal",
+                    run: { size: 18, color: "262626"}, // 9pt
+                    paragraph: { spacing: { before: 60, after: 60 } },
+                },
+                {
+                    id: "SummaryTextStyle",
+                    name: "Summary Text Style",
+                    basedOn: "Normal",
+                    next: "Normal",
+                    run: { size: 22, color: "404040"}, // 11pt
+                    paragraph: { spacing: { before: 40, after: 40 }, indent: { left: 200 }},
+                },
+                 {
+                    id: "SectionHeaderStyle",
+                    name: "Section Header Style",
+                    basedOn: "Normal",
+                    next: "Normal",
+                    run: { size: 28, bold: true, color: "2F5496" }, // 14pt, Darker Blue
+                    paragraph: { spacing: { after: 240, before: 400 } },
+                },
+                {
+                    id: "ErrorTextStyle",
+                    name: "Error Text Style",
+                    basedOn: "Normal",
+                    next: "Normal",
+                    run: { size: 20, color: "C00000", italics: true}, // 10pt, Red
+                },
+                {
+                    id: "NormalTextStyle",
+                    name: "Normal Text Style",
+                    basedOn: "Normal",
+                    next: "Normal",
+                    run: { size: 22, color: "262626"}, // 11pt
                 },
             ],
             default: {
-                heading1: {
-                    run: {
-                        size: 28, // 14pt
-                        bold: true,
-                        color: "2E74B5", // Dark Blue
-                    },
-                    paragraph: {
-                        spacing: { after: 240, before: 300 }, // 12pt after, 15pt before
-                    },
+                document: {
+                     run: { font: "Calibri" }, // Set default font for the document
                 },
-                 title: {
-                    run: {
-                        size: 36, // 18pt
-                        bold: true,
-                        color: "1F4E79", // Darker Blue
-                    },
-                    paragraph: {
-                        alignment: AlignmentType.CENTER,
-                        spacing: { after: 400 }, // 20pt after
-                    },
+                heading1: { // Used by SectionHeaderStyle
+                    run: { size: 28, bold: true, color: "2F5496", font: "Calibri Light" },
+                    paragraph: { spacing: { after: 240, before: 400 } },
+                },
+                 title: { // Main document title
+                    run: { size: 44, bold: true, color: "1F3864", font: "Calibri Light" }, // 22pt
+                    paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 400 } },
                 },
             }
         },

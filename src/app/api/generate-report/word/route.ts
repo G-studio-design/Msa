@@ -7,14 +7,14 @@ import type { Language } from '@/context/LanguageContext';
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { completed, canceled, inProgress, monthName, year, chartImageDataUrl, language } = body as { // Added language
+        const { completed, canceled, inProgress, monthName, year, chartImageDataUrl, language } = body as {
             completed: Project[];
             canceled: Project[];
             inProgress: Project[];
             monthName: string;
             year: string;
             chartImageDataUrl?: string; 
-            language?: Language; // Added language
+            language?: Language;
         };
 
         if (!completed || !canceled || !inProgress || !monthName || !year) {
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
             errorMessage = error;
         }
         
+        // Ensure consistent error response structure
         return NextResponse.json({ error: 'Word Report Generation Failed', details: errorMessage }, { status: 500 });
     }
 }

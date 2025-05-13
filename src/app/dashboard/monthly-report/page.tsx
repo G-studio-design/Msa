@@ -36,7 +36,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getAllProjects, type Project } from '@/services/project-service';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { generateExcelReport } from '@/lib/report-generator'; // Removed generateWordReport as it's handled by API
+import { generateExcelReport } from '@/lib/report-generator'; // generateWordReport is handled by API
 import {
   ChartContainer,
   ChartTooltip,
@@ -274,12 +274,14 @@ export default function MonthlyReportPage() {
 
         if (!response.ok) {
             let errorDetails = 'Failed to generate Word report from server.';
-            const responseText = await response.text();
+            // Try to parse JSON error first, then fall back to text
             try {
-                const errorData = JSON.parse(responseText);
+                const errorData = await response.json();
                 errorDetails = errorData.details || errorData.error || errorDetails;
-                console.error("Server error details for Word generation:", errorData);
-            } catch (e) {
+                console.error("Server JSON error details for Word generation:", errorData);
+            } catch (jsonError) {
+                // If parsing JSON fails, it means the response was likely not JSON
+                const responseText = await response.text(); // Read as text
                 errorDetails = responseText || response.statusText || `Server returned status ${response.status}.`;
                 console.error("Non-JSON error response from server for Word generation:", responseText);
             }
