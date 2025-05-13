@@ -357,20 +357,20 @@ const en = {
       generatingReportButton: "Generating...",
       noDataForMonth: "No project data found for the selected month and year.",
       tryDifferentMonthYear: "Try selecting a different month or year.",
-      totalProjects: "Total Projects Reviewed:",
-      totalProjectsShort: "projects", // For chart tooltips etc.
-      totalProjectsDesc: "Total: {total} (Completed: {completed}, Canceled: {canceled}, In Progress: {inProgress})",
-      completedProjects: "Completed Projects:",
+      totalProjects: "Total Projects Reviewed", // Changed for Word Report title case
+      totalProjectsShort: "Projects", // For chart tooltips etc.
+      totalProjectsDesc: "Total Projects: {total} (Completed: {completed}, Canceled: {canceled}, In Progress: {inProgress})",
+      completedProjects: "Completed Projects", // Changed for Word Report title case
       completedProjectsShort: "Completed",
-      canceledProjects: "Canceled Projects:",
+      canceledProjects: "Canceled Projects", // Changed for Word Report title case
       canceledProjectsShort: "Canceled",
-      inProgressProjects: "In Progress Projects:",
+      inProgressProjects: "In Progress Projects", // Changed for Word Report title case
       inProgressProjectsShort: "In Progress",
       downloadExcel: "Download Excel (.csv)",
       downloadWord: "Download Word (.docx)",
       downloadingButton: "Downloading...",
-      errorGeneratingReport: "Error generating report.",
-      errorDownloadingReport: "Error downloading report.",
+      errorGeneratingReport: "Error Generating Report",
+      errorDownloadingReport: "Error Downloading Report",
       reportFor: "Report for",
       none: "None",
       tableCaption: "List of projects active, completed, or canceled in the selected month.",
@@ -379,9 +379,21 @@ const en = {
       tableHeaderLastActivityDate: "Last Activity / End Date",
       tableHeaderCompletionDate: "Completion/Cancel Date",
       tableHeaderContributors: "Contributors",
+      status: { // Added for chart labels in monthly report
+        completed: 'Completed',
+        inprogress: 'In Progress',
+        canceled: 'Canceled',
+      },
       toast: {
           downloadedExcel: "Excel Report (CSV) Downloaded",
           downloadedWord: "Word Report (.docx) Downloaded",
+          error: "Error",
+          couldNotLoadProjects: "Could not load project data for reports.",
+          chartImageErrorTitle: "Chart Image Error",
+          chartImageErrorDesc: "Could not generate the project status chart image.",
+          generatingChartTitle: "Chart Pending",
+          generatingChartDesc: "Chart image is being generated. Please wait a moment and try downloading again.",
+          loadingProjects: "Loading project data...",
       }
   },
   // Notifications (General)
@@ -402,3 +414,4 @@ const en = {
 };
 
 export default en;
+

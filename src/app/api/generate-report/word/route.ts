@@ -1,4 +1,3 @@
-
 // src/app/api/generate-report/word/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import { generateWordReport } from '@/lib/report-generator';
@@ -15,15 +14,15 @@ export async function POST(req: NextRequest) {
         inProgress,
         monthName,
         year,
-        chartImageDataUrl, // Expect this from the client
-        language = 'en' // Default to English if not provided
+        chartImageDataUrl, 
+        language = 'en' 
     } = body as {
         completed: Project[],
         canceled: Project[],
         inProgress: Project[],
         monthName: string,
         year: string,
-        chartImageDataUrl?: string,
+        chartImageDataUrl?: string | null, // Can be null
         language?: Language
     };
 
@@ -31,7 +30,17 @@ export async function POST(req: NextRequest) {
 
     if (!completed || !canceled || !inProgress || !monthName || !year) {
       console.error("[API/WordReport] Missing required fields in request body.");
-      return NextResponse.json({ error: 'Missing required fields', details: 'Please ensure all project data, month, and year are provided.' }, { status: 400 });
+      const missingFields = [];
+      if (!completed) missingFields.push('completed projects data');
+      if (!canceled) missingFields.push('canceled projects data');
+      if (!inProgress) missingFields.push('in-progress projects data');
+      if (!monthName) missingFields.push('monthName');
+      if (!year) missingFields.push('year');
+      
+      return NextResponse.json({ 
+          error: 'Missing required fields', 
+          details: `Please ensure all project data categories, month, and year are provided. Missing: ${missingFields.join(', ')}.` 
+      }, { status: 400 });
     }
 
     const buffer = await generateWordReport(completed, canceled, inProgress, monthName, year, chartImageDataUrl, language);
@@ -45,38 +54,33 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error: any) {
-    // Ensure error.message is a string and not empty
-    const errMessageString = (typeof error?.message === 'string' && error.message.trim() !== '') ? error.message.trim() : 'An unknown error occurred.';
+    console.error("[API/WordReport] Error generating Word report:", error);
+    
+    let errorMessage = 'Failed to generate Word report.';
+    let errorDetails = 'An unexpected error occurred on the server.';
 
-    let errorMessage = 'Failed to generate Word report.'; // Default category of error
-    let errorDetails = errMessageString;                  // Specifics of the error
-
-    // Refine based on error type from generateWordReport or other sources
-    if (errMessageString.includes('Failed to pack Word document')) {
-        errorMessage = 'Word Document Packing Error';
-        errorDetails = `The server encountered an issue while creating the Word file structure: ${errMessageString}`;
-    } else if (errMessageString.includes('Error processing chart image')) {
-        errorMessage = 'Chart Image Processing Error';
-        errorDetails = `There was a problem including the chart image in the Word document: ${errMessageString}`;
+    if (error.message) {
+        if (error.message.includes('Failed to pack Word document')) {
+            errorMessage = 'Word Document Creation Error';
+            errorDetails = `The server encountered an issue while assembling the Word file: ${error.message}`;
+        } else if (error.message.includes('Error processing chart image')) {
+            errorMessage = 'Chart Image Processing Error';
+            errorDetails = `There was a problem including the chart image in the Word document: ${error.message}`;
+        } else {
+            // Use the error message directly if it's not too technical or an HTML page
+             if (typeof error.message === 'string' && !error.message.toLowerCase().includes('<html') && error.message.trim().length > 0 && error.message.trim() !== '{}') {
+                errorDetails = error.message.substring(0, 500); // Limit length
+            }
+        }
     }
-    // Add other specific error checks here if needed
-
-    // Final detail message for client, avoiding technical jargon or overly long messages
-    let finalDetailMessage = errorDetails;
-    if (finalDetailMessage.toLowerCase().includes('<html')) { // Check if error detail contains HTML (like a Next.js error page)
-        finalDetailMessage = "Server encountered an unexpected internal error. Please check server logs.";
-    } else if (finalDetailMessage.trim() === '{}' || finalDetailMessage.trim() === '' || finalDetailMessage === 'An unknown error occurred.') { // Catch empty or overly generic details
-        finalDetailMessage = "An unspecified error occurred on the server during Word report generation. Please check server logs for more details.";
-    }
-
+    
 
     const errorResponsePayload = { 
-        error: errorMessage || "Report Generation Error", // Fallback
-        details: finalDetailMessage || "No specific details available. Check server logs." // Fallback
+        error: errorMessage,
+        details: errorDetails 
     };
     
-    console.error(`[API/WordReport] Responding with error. Original error:`, error); // Log the original error too for server-side debugging
-    console.error(`[API/WordReport] Constructed error payload:`, JSON.stringify(errorResponsePayload));
+    console.error(`[API/WordReport] Responding with error payload:`, JSON.stringify(errorResponsePayload));
     return NextResponse.json(errorResponsePayload, { status: 500 });
   }
 }

@@ -357,20 +357,20 @@ const id = {
        generatingReportButton: "Membuat...",
        noDataForMonth: "Tidak ada data proyek ditemukan untuk bulan dan tahun yang dipilih.",
        tryDifferentMonthYear: "Coba pilih bulan atau tahun yang berbeda.",
-       totalProjects: "Total Proyek Ditinjau:",
-       totalProjectsShort: "proyek", // For chart tooltips etc.
-       totalProjectsDesc: "Total: {total} (Selesai: {completed}, Dibatalkan: {canceled}, Sedang Berjalan: {inProgress})",
-       completedProjects: "Proyek Selesai:",
+       totalProjects: "Total Proyek Ditinjau",
+       totalProjectsShort: "Proyek",
+       totalProjectsDesc: "Total Proyek: {total} (Selesai: {completed}, Dibatalkan: {canceled}, Sedang Berjalan: {inProgress})",
+       completedProjects: "Proyek Selesai",
        completedProjectsShort: "Selesai",
-       canceledProjects: "Proyek Dibatalkan:",
+       canceledProjects: "Proyek Dibatalkan",
        canceledProjectsShort: "Dibatalkan",
-       inProgressProjects: "Proyek Sedang Berjalan:",
+       inProgressProjects: "Proyek Sedang Berjalan",
        inProgressProjectsShort: "Sedang Berjalan",
        downloadExcel: "Unduh Excel (.csv)",
        downloadWord: "Unduh Word (.docx)",
        downloadingButton: "Mengunduh...",
-       errorGeneratingReport: "Kesalahan saat membuat laporan.",
-       errorDownloadingReport: "Kesalahan saat mengunduh laporan.",
+       errorGeneratingReport: "Kesalahan Saat Membuat Laporan",
+       errorDownloadingReport: "Kesalahan Saat Mengunduh Laporan",
        reportFor: "Laporan untuk",
        none: "Tidak Ada",
        tableCaption: "Daftar proyek aktif, selesai, atau dibatalkan pada bulan yang dipilih.",
@@ -379,9 +379,21 @@ const id = {
        tableHeaderLastActivityDate: "Aktivitas Terakhir / Tanggal Selesai",
        tableHeaderCompletionDate: "Tanggal Selesai/Batal",
        tableHeaderContributors: "Kontributor",
+       status: { // Added for chart labels in monthly report
+         completed: 'Selesai',
+         inprogress: 'Sedang Berjalan',
+         canceled: 'Dibatalkan',
+       },
        toast: {
            downloadedExcel: "Laporan Excel (CSV) Diunduh",
            downloadedWord: "Laporan Word (.docx) Diunduh",
+           error: "Kesalahan",
+           couldNotLoadProjects: "Tidak dapat memuat data proyek untuk laporan.",
+           chartImageErrorTitle: "Kesalahan Gambar Grafik",
+           chartImageErrorDesc: "Tidak dapat menghasilkan gambar grafik status proyek.",
+           generatingChartTitle: "Grafik Sedang Dibuat",
+           generatingChartDesc: "Gambar grafik sedang dibuat. Mohon tunggu sebentar dan coba unduh lagi.",
+           loadingProjects: "Memuat data proyek...",
        }
    },
    // Notifications (General)
@@ -402,3 +414,4 @@ const id = {
 };
 
 export default id;
+
