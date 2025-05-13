@@ -36,15 +36,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getAllProjects, type Project } from '@/services/project-service';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { generateExcelReport, generateWordReport } from '@/lib/report-generator';
+import { generateExcelReport } from '@/lib/report-generator'; // Removed generateWordReport from here
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
-} from "@/components/ui/chart";
-import { Pie, ResponsiveContainer, PieChart as RechartsPieChart, Cell, TooltipProps } from "recharts"; // Added TooltipProps
+} from "@/components/ui/chart"; // Removed ChartLegend, ChartLegendContent
+import { Pie, ResponsiveContainer, PieChart as RechartsPieChart, Cell, TooltipProps } from "recharts";
 import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 
 import { toPng } from 'html-to-image';
@@ -62,19 +60,19 @@ interface MonthlyReportData {
 }
 
 const CHART_COLORS = {
-    inProgress: "hsl(210, 80%, 60%)", // Brighter Blue
-    completed: "hsl(140, 60%, 50%)", // Softer Green
-    canceled: "hsl(0, 70%, 55%)",   // Clearer Red
+    inProgress: "hsl(210, 80%, 60%)", 
+    completed: "hsl(140, 60%, 50%)", 
+    canceled: "hsl(0, 70%, 55%)",   
 };
 
 // Custom Tooltip for Recharts Pie Chart
-const CustomPieTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
+const CustomPieTooltip = ({ active, payload }: TooltipProps<ValueType, NameType>) => {
   const { language } = useLanguage();
   const dict = getDictionary(language).monthlyReportPage;
 
   if (active && payload && payload.length) {
-    const data = payload[0].payload; // Access the payload object from the item
-    const name = data.name; // The translated name from summaryChartData
+    const data = payload[0].payload; 
+    const name = data.name; 
     const value = data.value;
 
     return (
@@ -199,15 +197,12 @@ export default function MonthlyReportPage() {
             } else if (project.status === 'Canceled' && cancellationDate && cancellationDate >= startDateOfMonth && cancellationDate <= endDateOfMonth) {
                 canceledThisMonth.push(project);
             } else {
-                // Check if project was created *after* the reporting month ended
                 if (projectCreationDate > endDateOfMonth) {
                     continue;
                 }
-                // Check if project was completed *before* the reporting month started
                 if (completionDate && completionDate < startDateOfMonth) {
                     continue;
                 }
-                // Check if project was canceled *before* the reporting month started
                 if (cancellationDate && cancellationDate < startDateOfMonth) {
                     continue;
                 }
@@ -273,8 +268,6 @@ export default function MonthlyReportPage() {
             chartImageDataUrl = await toPng(chartRef.current, {
                 quality: 0.95,
                 backgroundColor: 'white',
-                // Ensure fonts are embedded or use web-safe fonts in the chart if Word compatibility is an issue
-                // skipFonts: true, // This was causing issues for some users. Test without it.
              });
         } catch (error) {
             console.error('Error capturing chart image:', error);
@@ -301,15 +294,27 @@ export default function MonthlyReportPage() {
             let errorDetails = 'Failed to generate Word report from server.';
             let responseText = '';
             try {
-                // Try to get text first, as response might not be JSON
                 responseText = await response.text();
-                const errorData = JSON.parse(responseText); // Then try to parse as JSON
-                errorDetails = errorData.details || errorData.error || errorDetails;
-                console.error("Server JSON error details for Word generation:", errorData);
-            } catch (jsonError) {
-                 // If parsing JSON fails, use the responseText (if available) or statusText
-                errorDetails = responseText || response.statusText || `Server returned status ${response.status}.`;
-                console.error("Non-JSON error response from server for Word generation:", responseText || errorDetails);
+                if (responseText.trim() === '{}') {
+                    console.error("Server responded with an empty JSON object for Word generation. Details will be generic.");
+                    errorDetails = 'Server returned an empty error object.';
+                } else if (responseText.trim().startsWith('{')) {
+                    const errorData = JSON.parse(responseText);
+                    errorDetails = errorData.details || errorData.error || errorDetails;
+                    console.error("Server JSON error details for Word generation:", errorData);
+                } else {
+                    errorDetails = responseText.length > 200 ? responseText.substring(0,200) + "..." : responseText;
+                     if (responseText.includes('<html')) { // Check if it's an HTML error page
+                        errorDetails = 'Server returned an HTML error page instead of JSON.';
+                    }
+                    console.error("Non-JSON error response from server for Word generation (raw text):", responseText);
+                }
+            } catch (parseError) {
+                 console.error("Error parsing server response for Word generation or other client-side error:", parseError);
+                 errorDetails = responseText || response.statusText || `Server returned status ${response.status}.`;
+                 if (responseText.includes('<html')) {
+                     errorDetails = 'Server returned an HTML error page that could not be parsed as JSON.';
+                 }
             }
             throw new Error(errorDetails);
         }
@@ -351,8 +356,8 @@ export default function MonthlyReportPage() {
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-32" />
             </div>
-            <Skeleton className="h-40 w-full" /> {/* Chart Skeleton */}
-            <Skeleton className="h-40 w-full mt-4" /> {/* Table Skeleton */}
+            <Skeleton className="h-40 w-full" /> 
+            <Skeleton className="h-40 w-full mt-4" /> 
           </CardContent>
         </Card>
       </div>
@@ -484,7 +489,7 @@ export default function MonthlyReportPage() {
                      <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                              <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-1 gap-4 text-center md:text-left">
-                                 <Card className="p-4 rounded-lg" style={{ backgroundColor: CHART_COLORS.inProgress + '20' }}> {/* Lighter bg with opacity */}
+                                 <Card className="p-4 rounded-lg" style={{ backgroundColor: CHART_COLORS.inProgress + '20' }}> 
                                      <div className="flex items-center justify-center md:justify-start gap-2">
                                        <Activity className="h-5 w-5" style={{ color: CHART_COLORS.inProgress }}/>
                                        <p className="text-sm font-medium" style={{ color: CHART_COLORS.inProgress }}>{reportDict.inProgressProjectsShort}</p>
@@ -507,7 +512,7 @@ export default function MonthlyReportPage() {
                                  </Card>
                              </div>
                              {summaryChartData.length > 0 ? (
-                                <ChartContainer config={{}} className="h-[220px] sm:h-[280px] w-full"> {/* Increased height */}
+                                <ChartContainer config={{}} className="h-[220px] sm:h-[280px] w-full"> 
                                     <ResponsiveContainer width="100%" height="100%">
                                         <RechartsPieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
                                             <ChartTooltip content={<CustomPieTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
@@ -517,12 +522,12 @@ export default function MonthlyReportPage() {
                                                 nameKey="name" 
                                                 cx="50%" 
                                                 cy="50%" 
-                                                outerRadius={90} // Increased radius
-                                                innerRadius={50} // Donut chart
+                                                outerRadius={90} 
+                                                innerRadius={50} 
                                                 labelLine={false} 
                                                 label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value }) => {
                                                     const RADIAN = Math.PI / 180;
-                                                    const radius = outerRadius + 15; // Position label outside
+                                                    const radius = outerRadius + 15; 
                                                     const x = cx + radius * Math.cos(-midAngle * RADIAN);
                                                     const y = cy + radius * Math.sin(-midAngle * RADIAN);
                                                     const textAnchor = x > cx ? 'start' : 'end';
@@ -537,7 +542,6 @@ export default function MonthlyReportPage() {
                                                     <Cell key={`cell-${index}`} fill={entry.fill} stroke="hsl(var(--background))" strokeWidth={2} />
                                                 ))}
                                             </Pie>
-                                            {/* <ChartLegend content={<ChartLegendContent nameKey="name" />} /> */}
                                         </RechartsPieChart>
                                     </ResponsiveContainer>
                                 </ChartContainer>

@@ -41,7 +41,6 @@ export async function POST(req: NextRequest) {
         });
 
     } catch (error: any) {
-        // Log the full error object and stack trace on the server for better debugging
         console.error('[API/WordReport] Error generating Word report:', error);
         if (error.stack) {
             console.error('[API/WordReport] Stack trace:', error.stack);
@@ -54,47 +53,36 @@ export async function POST(req: NextRequest) {
         } else if (typeof error === 'string' && error.trim() !== '') {
             detailMessage = error;
         } else {
-            // Attempt to get a string representation if possible, avoiding "[object Object]"
             const errorAsString = String(error);
             if (errorAsString !== '[object Object]' && errorAsString.trim() !== '') {
                 detailMessage = errorAsString;
             } else {
-                 // If it's an object, try to stringify it for more details, but catch stringify errors
                 try {
-                    // Include non-enumerable properties from the error object
                     const errorJsonString = JSON.stringify(error, Object.getOwnPropertyNames(error)); 
-                    if (errorJsonString !== '{}' && errorJsonString.trim() !== '') {
+                    if (errorJsonString && errorJsonString.trim() !== '' && errorJsonString !== '{}') {
                         detailMessage = `Server error object: ${errorJsonString}`;
                     } else {
-                        // If stringify results in empty object, use a more generic message or part of stack
                         detailMessage = error.stack ? String(error.stack).split('\n')[0] : 'Undescribable server error.';
                     }
                 } catch (e) {
-                    // If stringify fails, use a more generic message or part of stack
                      detailMessage = error.stack ? String(error.stack).split('\n')[0] : 'Server error (stringify failed).';
                 }
             }
         }
         
-        // Ensure detailMessage is never an empty string for the response
         let finalDetailMessage = detailMessage.trim() === '' ? 'An unspecified server error occurred.' : detailMessage;
-        
-        // Sanitize the message to remove characters that might break JSON stringification in NextResponse
-        // This replaces non-printable ASCII characters (excluding space) with an empty string.
-        // Basic printable ASCII characters (space to ~) are kept.
         finalDetailMessage = String(finalDetailMessage || 'An unspecified error occurred.').replace(/[^\x20-\x7E]/g, '');
         if (!finalDetailMessage.trim()) {
             finalDetailMessage = 'Error details could not be processed or contained non-printable characters.';
         }
 
-        console.error(`[API/WordReport] Responding with error: ${finalDetailMessage}`);
+        const errorResponsePayload = { 
+            error: 'Word Report Generation Failed', 
+            details: finalDetailMessage 
+        };
+        // Log the exact payload being sent to NextResponse.json
+        console.error(`[API/WordReport] Responding with error payload:`, JSON.stringify(errorResponsePayload));
 
-        return NextResponse.json(
-            { 
-                error: 'Word Report Generation Failed', 
-                details: finalDetailMessage 
-            }, 
-            { status: 500 }
-        );
+        return NextResponse.json(errorResponsePayload, { status: 500 });
     }
 }
