@@ -36,7 +36,7 @@ import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllProjects, type Project, type WorkflowHistoryEntry } from '@/services/project-service';
-import { generateExcelReport } from '@/lib/report-generator';
+import { generateExcelReport } from '@/lib/report-generator'; 
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { format, parseISO, getMonth, getYear } from 'date-fns';
@@ -266,7 +266,7 @@ export default function MonthlyReportPage() {
     }
   };
 
-  const handleDownloadWord = async () => {
+ const handleDownloadWord = async () => {
      if (!reportData || !selectedMonth || !selectedYear) {
         toast({ title: reportDict.toast.error, description: "Please generate a report first." });
         return;
@@ -299,17 +299,16 @@ export default function MonthlyReportPage() {
         });
 
         if (!response.ok) {
-            const responseText = await response.text();
-            let errorDetails = "Failed to generate Word report from server.";
+            const responseText = await response.text(); 
+            let errorDetails = "Failed to generate Word report from server."; 
             try {
-                 if (responseText.trim().startsWith('{') && responseText.trim().endsWith('}')) {
+                if (responseText.trim().startsWith('{') && responseText.trim().endsWith('}')) {
                     const errorData = JSON.parse(responseText);
-                    console.error("[Client/WordDownload] Raw errorData from server:", errorData); // Log raw error data
+                    console.error("[Client/WordDownload] Raw errorData from server:", JSON.stringify(errorData)); 
                     if (typeof errorData === 'object' && errorData !== null && Object.keys(errorData).length === 0) {
                         errorDetails = "The server returned an empty error response. Please check server logs for more details.";
-                        console.error("[Client/WordDownload] Server returned an empty JSON object as error.");
                     } else {
-                         errorDetails = errorData.details || errorData.error || "Failed to process server error response.";
+                         errorDetails = String(errorData.details || errorData.error || "Failed to process server error response.");
                     }
                  } else {
                      errorDetails = responseText.length > 500 ? responseText.substring(0,500) + "..." : responseText;
@@ -317,11 +316,11 @@ export default function MonthlyReportPage() {
                          errorDetails = "Server returned an HTML error page. Check server logs for details.";
                      }
                  }
-            } catch (parseError) {
-                console.error("[Client/WordDownload] Error parsing/handling error response from server for Word generation:", parseError, "Original status:", response.statusText, "Response Text (snippet):", responseText.substring(0,500));
-                 errorDetails = `Server returned status ${response.status}. Original error: ${responseText.substring(0,200)}`;
+            } catch (parseError: any) {
+                console.error("[Client/WordDownload] Error parsing/handling error response from server for Word generation:", parseError, "Raw response:", responseText?.substring(0,500));
+                errorDetails = `Server returned status ${response.status}. Original error: ${String(responseText || '').substring(0,200)}`;
             }
-            throw new Error(errorDetails);
+            throw new Error(String(errorDetails || "An unknown error occurred detailing the server response."));
         }
         
         const blob = await response.blob();
