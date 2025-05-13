@@ -34,25 +34,39 @@ export async function POST(req: NextRequest) {
     } catch (error: any) {
         console.error('Error generating Word report (API Route):', error); // Log the full error on the server
         
-        let errorMessage = 'An unexpected error occurred while generating the Word report.'; // Default user-friendly message
+        let detailMessage = 'An unknown error occurred on the server during Word report generation.'; // Default
 
-        if (error instanceof Error && error.message) {
-            errorMessage = error.message;
+        if (error instanceof Error && error.message && error.message.trim() !== '') {
+            detailMessage = error.message;
         } else if (typeof error === 'string' && error.trim() !== '') {
-            errorMessage = error;
-        } else if (error && typeof error.toString === 'function') {
-            const errStr = error.toString();
-            // Avoid using "[object Object]" or empty strings as the error message
-            if (errStr !== '[object Object]' && errStr.trim() !== '') {
-                errorMessage = errStr;
+            detailMessage = error;
+        } else {
+            // Attempt to get a string representation if possible, avoiding "[object Object]"
+            const errorAsString = String(error);
+            if (errorAsString !== '[object Object]' && errorAsString.trim() !== '') {
+                detailMessage = errorAsString;
+            } else {
+                 // If it's an object, try to stringify it for more details
+                try {
+                    const errorJsonString = JSON.stringify(error);
+                    if (errorJsonString !== '{}' && errorJsonString.trim() !== '') {
+                        detailMessage = `Server error object: ${errorJsonString}`;
+                    }
+                } catch (e) {
+                    // Ignore stringify error, stick to the default message
+                }
             }
         }
         
-        // Ensure errorMessage is a non-empty string
-        if (!errorMessage || errorMessage.trim() === '') {
-             errorMessage = 'An unspecified error occurred on the server during Word report generation.';
-        }
-        
-        return NextResponse.json({ error: 'Word Report Generation Failed', details: errorMessage }, { status: 500 });
+        // Ensure detailMessage is never an empty string for the response
+        const finalDetailMessage = detailMessage.trim() === '' ? 'An unspecified error occurred on the server.' : detailMessage;
+
+        return NextResponse.json(
+            { 
+                error: 'Word Report Generation Failed', 
+                details: finalDetailMessage 
+            }, 
+            { status: 500 }
+        );
     }
 }
