@@ -430,5 +430,28 @@
     ],
     "createdAt": "2025-05-12T04:17:05.785Z",
     "createdBy": "sudina"
+  },
+  {
+    "id": "project_1747111912588_ym2av",
+    "title": "proyek klinik kesambi",
+    "status": "Pending Offer",
+    "progress": 10,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Upload Offer Document",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project",
+        "timestamp": "2025-05-13T04:51:52.588Z"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Upload Offer Document",
+        "timestamp": "2025-05-13T04:51:52.588Z"
+      }
+    ],
+    "files": [],
+    "createdAt": "2025-05-13T04:51:52.588Z",
+    "createdBy": "sudina"
   }
 ]

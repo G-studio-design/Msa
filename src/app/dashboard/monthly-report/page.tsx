@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, FileText, Download, Users, CalendarCheck, CalendarX, Activity, BarChart3, CheckSquare, XSquare, PieChart as PieChartIcon, FileCode } from 'lucide-react'; // Changed FileWord to FileCode
+import { Loader2, FileText, Download, Users, CalendarCheck, CalendarX, Activity, BarChart3, CheckSquare, XSquare, PieChart as PieChartIcon, FileCode } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
@@ -36,13 +36,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getAllProjects, type Project } from '@/services/project-service';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { generateExcelReport } from '@/lib/report-generator';
+import { generateExcelReport } from '@/lib/report-generator'; // Removed generateWordReport as it's handled by API
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Pie, ResponsiveContainer, PieChart as RechartsPieChart, Cell } from "recharts"; // RechartsPieChart for clarity
+import { Pie, ResponsiveContainer, PieChart as RechartsPieChart, Cell } from "recharts";
 import { toPng } from 'html-to-image';
 
 
@@ -58,9 +58,9 @@ interface MonthlyReportData {
 }
 
 const CHART_COLORS = {
-    inProgress: "hsl(var(--chart-1))", // Blueish
-    completed: "hsl(var(--chart-2))", // Greenish
-    canceled: "hsl(var(--chart-3))", // Reddish
+    inProgress: "hsl(var(--chart-1))",
+    completed: "hsl(var(--chart-2))",
+    canceled: "hsl(var(--chart-3))",
 };
 
 export default function MonthlyReportPage() {
@@ -177,17 +177,16 @@ export default function MonthlyReportPage() {
             } else {
                 // Check if project was created *after* the reporting month ended
                 if (projectCreationDate > endDateOfMonth) {
-                    continue; // Skip projects not yet started in the reporting month
+                    continue; 
                 }
                 // Check if project was completed *before* the reporting month started
                 if (completionDate && completionDate < startDateOfMonth) {
-                    continue; // Skip projects already completed before this month
+                    continue; 
                 }
                 // Check if project was canceled *before* the reporting month started
                 if (cancellationDate && cancellationDate < startDateOfMonth) {
-                    continue; // Skip projects already canceled before this month
+                    continue;
                 }
-                // If none of the above, it was in progress during the month (or started within it and not yet finished/canceled in it)
                 inProgressThisMonth.push(project);
             }
         }
@@ -214,7 +213,7 @@ export default function MonthlyReportPage() {
     setIsDownloadingExcel(true);
     try {
         const filenameBase = `Monthly_Report_${reportData.monthName}_${reportData.year}`;
-        const fileContent = await generateExcelReport(reportData.completed, reportData.canceled, reportData.inProgress);
+        const fileContent = await generateExcelReport(reportData.completed, reportData.canceled, reportData.inProgress, language); // Pass language
 
         if (!fileContent.trim()) {
             toast({ variant: 'destructive', title: "Report Empty", description: `The generated Excel report content is empty.` });
@@ -269,6 +268,7 @@ export default function MonthlyReportPage() {
                 monthName: reportData.monthName,
                 year: reportData.year,
                 chartImageDataUrl,
+                language: language, // Pass current language
             }),
         });
 
@@ -450,7 +450,7 @@ export default function MonthlyReportPage() {
                     <CardHeader className="pb-2">
                          <CardTitle className="text-lg flex items-center gap-2">
                             <PieChartIcon className="h-5 w-5 text-primary" />
-                           {reportDict.reportFor} {reportData.monthName} {reportData.year} - Summary
+                           {reportDict.reportFor} {reportData.monthName} {reportData.year} - {language === 'id' ? 'Ringkasan' : 'Summary'}
                         </CardTitle>
                      </CardHeader>
                      <CardContent>

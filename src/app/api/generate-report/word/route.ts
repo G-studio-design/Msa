@@ -2,17 +2,19 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { generateWordReport } from '@/lib/report-generator';
 import type { Project } from '@/services/project-service';
+import type { Language } from '@/context/LanguageContext';
 
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { completed, canceled, inProgress, monthName, year, chartImageDataUrl } = body as {
+        const { completed, canceled, inProgress, monthName, year, chartImageDataUrl, language } = body as { // Added language
             completed: Project[];
             canceled: Project[];
             inProgress: Project[];
             monthName: string;
             year: string;
             chartImageDataUrl?: string; 
+            language?: Language; // Added language
         };
 
         if (!completed || !canceled || !inProgress || !monthName || !year) {
@@ -20,7 +22,7 @@ export async function POST(req: NextRequest) {
         }
         
         // Generate the Word document buffer
-        const wordBuffer = await generateWordReport(completed, canceled, inProgress, monthName, year, chartImageDataUrl);
+        const wordBuffer = await generateWordReport(completed, canceled, inProgress, monthName, year, chartImageDataUrl, language || 'en'); // Pass language
 
         // Return the Word document as a response
         return new NextResponse(wordBuffer, {
