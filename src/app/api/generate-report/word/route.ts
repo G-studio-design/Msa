@@ -1,3 +1,4 @@
+
 // src/app/api/generate-report/word/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import { generateWordReport } from '@/lib/report-generator';
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
 
     if (!completed || !canceled || !inProgress || !monthName || !year) {
       console.error("[API/WordReport] Missing required fields in request body.");
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      return NextResponse.json({ error: 'Missing required fields', details: 'Please ensure all project data, month, and year are provided.' }, { status: 400 });
     }
 
     const buffer = await generateWordReport(completed, canceled, inProgress, monthName, year, chartImageDataUrl, language);
@@ -44,36 +45,39 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error: any) {
-    let errorMessage = 'Failed to generate Word report.';
-    let errorDetails = error.message || 'Unknown error';
+    // Ensure error.message is a string and not empty
+    const errMessageString = (typeof error?.message === 'string' && error.message.trim() !== '') ? error.message.trim() : 'An unknown error occurred.';
 
-    if (error.message && error.message.includes('Failed to pack Word document')) {
+    let errorMessage = 'Failed to generate Word report.'; // Default category of error
+    let errorDetails = errMessageString;                  // Specifics of the error
+
+    // Refine based on error type from generateWordReport or other sources
+    if (errMessageString.includes('Failed to pack Word document')) {
         errorMessage = 'Word Document Packing Error';
-        errorDetails = `The server encountered an issue while creating the Word file structure: ${error.message}`;
-    } else if (error.message && error.message.includes('Error processing chart image')) {
+        errorDetails = `The server encountered an issue while creating the Word file structure: ${errMessageString}`;
+    } else if (errMessageString.includes('Error processing chart image')) {
         errorMessage = 'Chart Image Processing Error';
-        errorDetails = `There was a problem including the chart image in the Word document: ${error.message}`;
+        errorDetails = `There was a problem including the chart image in the Word document: ${errMessageString}`;
     }
+    // Add other specific error checks here if needed
 
-    console.error('[API/WordReport] Error generating Word report:', error);
-    if (error.stack) {
-        console.error('[API/WordReport] Stack trace:', error.stack);
-    }
-    
-    // Determine a final detail message for the client
+    // Final detail message for client, avoiding technical jargon or overly long messages
     let finalDetailMessage = errorDetails;
-    if (errorDetails.toLowerCase().includes('html')) { // If the error detail itself contains HTML (like a Next.js error page)
-        finalDetailMessage = "Server encountered an unexpected internal error while generating the report.";
-    } else if (errorDetails.trim() === '{}' || errorDetails.trim() === '') { // Catch empty or {} details
-        finalDetailMessage = "An unspecified error occurred on the server during Word report generation.";
+    if (finalDetailMessage.toLowerCase().includes('<html')) { // Check if error detail contains HTML (like a Next.js error page)
+        finalDetailMessage = "Server encountered an unexpected internal error. Please check server logs.";
+    } else if (finalDetailMessage.trim() === '{}' || finalDetailMessage.trim() === '' || finalDetailMessage === 'An unknown error occurred.') { // Catch empty or overly generic details
+        finalDetailMessage = "An unspecified error occurred on the server during Word report generation. Please check server logs for more details.";
     }
 
 
     const errorResponsePayload = { 
-        error: errorMessage, 
-        details: finalDetailMessage 
+        error: errorMessage || "Report Generation Error", // Fallback
+        details: finalDetailMessage || "No specific details available. Check server logs." // Fallback
     };
-    console.error(`[API/WordReport] Responding with error payload:`, JSON.stringify(errorResponsePayload));
+    
+    console.error(`[API/WordReport] Responding with error. Original error:`, error); // Log the original error too for server-side debugging
+    console.error(`[API/WordReport] Constructed error payload:`, JSON.stringify(errorResponsePayload));
     return NextResponse.json(errorResponsePayload, { status: 500 });
   }
 }
+
