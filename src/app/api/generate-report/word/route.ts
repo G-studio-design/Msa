@@ -14,17 +14,15 @@ export async function POST(req: NextRequest) {
             monthName: string;
             year: string;
             chartImageDataUrl?: string;
-            language?: Language; // Added language parameter
+            language?: Language; 
         };
 
         if (!completed || !canceled || !inProgress || !monthName || !year) {
-            return NextResponse.json({ error: 'Missing required report data' }, { status: 400 });
+            return NextResponse.json({ error: 'Missing required report data', details: 'Required fields for report generation are missing.' }, { status: 400 });
         }
         
-        // Generate the Word document buffer
-        const wordBuffer = await generateWordReport(completed, canceled, inProgress, monthName, year, chartImageDataUrl, language || 'en'); // Pass language
+        const wordBuffer = await generateWordReport(completed, canceled, inProgress, monthName, year, chartImageDataUrl, language || 'en');
 
-        // Return the Word document as a response
         return new NextResponse(wordBuffer, {
             status: 200,
             headers: {
@@ -34,15 +32,27 @@ export async function POST(req: NextRequest) {
         });
 
     } catch (error: any) {
-        console.error('Error generating Word report (API Route):', error);
-        let errorMessage = 'Failed to generate Word report.';
-        if (error instanceof Error) {
+        console.error('Error generating Word report (API Route):', error); // Log the full error on the server
+        
+        let errorMessage = 'An unexpected error occurred while generating the Word report.'; // Default user-friendly message
+
+        if (error instanceof Error && error.message) {
             errorMessage = error.message;
-        } else if (typeof error === 'string') {
+        } else if (typeof error === 'string' && error.trim() !== '') {
             errorMessage = error;
+        } else if (error && typeof error.toString === 'function') {
+            const errStr = error.toString();
+            // Avoid using "[object Object]" or empty strings as the error message
+            if (errStr !== '[object Object]' && errStr.trim() !== '') {
+                errorMessage = errStr;
+            }
         }
         
-        // Ensure consistent error response structure
+        // Ensure errorMessage is a non-empty string
+        if (!errorMessage || errorMessage.trim() === '') {
+             errorMessage = 'An unspecified error occurred on the server during Word report generation.';
+        }
+        
         return NextResponse.json({ error: 'Word Report Generation Failed', details: errorMessage }, { status: 500 });
     }
 }

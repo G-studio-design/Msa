@@ -295,10 +295,10 @@
   {
     "id": "project_1746430654602_0hu9m",
     "title": "projek villa cemagi",
-    "status": "Pending Approval",
+    "status": "Canceled",
     "progress": 20,
-    "assignedDivision": "Owner",
-    "nextAction": "Approve Offer Document",
+    "assignedDivision": "",
+    "nextAction": "",
     "workflowHistory": [
       {
         "division": "sudina",
@@ -319,6 +319,11 @@
         "division": "Admin Proyek",
         "action": "Uploaded Offer Document",
         "timestamp": "2025-05-05T07:40:04.326Z"
+      },
+      {
+        "division": "Owner",
+        "action": "Canceled Project",
+        "timestamp": "2025-05-13T06:20:17.753Z"
       }
     ],
     "files": [
@@ -326,13 +331,13 @@
         "name": "ABSENSI.pdf",
         "uploadedBy": "sudina",
         "timestamp": "2025-05-05T07:37:34.602Z",
-        "path": "projects/project_1746430654602_0hu9m-projek_villa_cemagi/ABSENSI.pdf"
+        "path": "project_1746430654602_0hu9m-projek_villa_cemagi/ABSENSI.pdf"
       },
       {
         "name": "3_SERTIPIKAT_PENGANGKATAN_DAN_SEWA.pdf",
         "uploadedBy": "komangmerta",
         "timestamp": "2025-05-05T07:40:04.326Z",
-        "path": "projects/project_1746430654602_0hu9m-projek_villa_cemagi/3_SERTIPIKAT_PENGANGKATAN_DAN_SEWA.pdf"
+        "path": "project_1746430654602_0hu9m-projek_villa_cemagi/3_SERTIPIKAT_PENGANGKATAN_DAN_SEWA.pdf"
       }
     ],
     "createdAt": "2025-05-05T07:37:34.602Z",
