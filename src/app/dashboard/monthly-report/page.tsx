@@ -177,11 +177,11 @@ export default function MonthlyReportPage() {
             } else {
                 // Check if project was created *after* the reporting month ended
                 if (projectCreationDate > endDateOfMonth) {
-                    continue; 
+                    continue;
                 }
                 // Check if project was completed *before* the reporting month started
                 if (completionDate && completionDate < startDateOfMonth) {
-                    continue; 
+                    continue;
                 }
                 // Check if project was canceled *before* the reporting month started
                 if (cancellationDate && cancellationDate < startDateOfMonth) {
@@ -249,7 +249,7 @@ export default function MonthlyReportPage() {
             chartImageDataUrl = await toPng(chartRef.current, {
                 quality: 0.95,
                 backgroundColor: 'white',
-                skipFonts: true,
+                skipFonts: true, // Important for Word compatibility
              });
         } catch (error) {
             console.error('Error capturing chart image:', error);
@@ -506,7 +506,7 @@ export default function MonthlyReportPage() {
                              ) : (
                                 <div className="flex items-center justify-center h-[200px] text-muted-foreground">
                                     <PieChartIcon className="h-8 w-8 mr-2"/>
-                                    No data for chart.
+                                    {language === 'id' ? 'Tidak ada data untuk grafik.' : 'No data for chart.'}
                                 </div>
                              )}
                         </div>

@@ -13,8 +13,8 @@ export async function POST(req: NextRequest) {
             inProgress: Project[];
             monthName: string;
             year: string;
-            chartImageDataUrl?: string; 
-            language?: Language;
+            chartImageDataUrl?: string;
+            language?: Language; // Added language parameter
         };
 
         if (!completed || !canceled || !inProgress || !monthName || !year) {
