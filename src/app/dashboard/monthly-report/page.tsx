@@ -81,6 +81,7 @@ export default function MonthlyReportPage() {
   const [isLoadingProjects, setIsLoadingProjects] = React.useState(true);
   const [reportData, setReportData] = React.useState<MonthlyReportData | null>(null);
   const [isGeneratingReport, setIsGeneratingReport] = React.useState(false);
+  const [isGeneratingChartImage, setIsGeneratingChartImage] = React.useState(false);
   const [isDownloading, setIsDownloading] = React.useState<'excel' | 'word' | null>(null);
 
   const chartContainerRef = React.useRef<HTMLDivElement>(null);
@@ -210,14 +211,18 @@ export default function MonthlyReportPage() {
 
 
     const currentMonthName = getMonthName(monthInt, language);
-    setReportData({ completed, inProgress, canceled, monthName: currentMonthName, year: selectedYear });
+    const newReportData = { completed, inProgress, canceled, monthName: currentMonthName, year: selectedYear };
+    setReportData(newReportData);
     
-    if (completed.length === 0 && inProgress.length === 0 && canceled.length === 0) {
+    if (newReportData.completed.length === 0 && newReportData.inProgress.length === 0 && newReportData.canceled.length === 0) {
       toast({ title: reportDict.noDataForMonth, description: reportDict.tryDifferentMonthYear });
+      setIsGeneratingReport(false);
+      return;
     }
 
+    setIsGeneratingChartImage(true);
     setTimeout(async () => {
-        if (chartContainerRef.current && (completed.length > 0 || inProgress.length > 0 || canceled.length > 0)) {
+        if (chartContainerRef.current && (newReportData.completed.length > 0 || newReportData.inProgress.length > 0 || newReportData.canceled.length > 0)) {
             try {
                 console.log("Attempting to generate chart image...");
                 const dataUrl = await toPng(chartContainerRef.current, { quality: 0.95, backgroundColor: '#ffffff', pixelRatio: 2 });
@@ -230,10 +235,11 @@ export default function MonthlyReportPage() {
             }
         } else {
             setChartImageDataUrl(null);
-            if (completed.length > 0 || inProgress.length > 0 || canceled.length > 0) {
+            if (newReportData.completed.length > 0 || newReportData.inProgress.length > 0 || newReportData.canceled.length > 0) {
                  console.warn("Chart container ref not found, cannot generate image.");
             }
         }
+        setIsGeneratingChartImage(false);
         setIsGeneratingReport(false); 
     }, 500); 
 
@@ -273,11 +279,11 @@ export default function MonthlyReportPage() {
     }
     
     const localHasDataForChart = reportData.completed.length > 0 || reportData.inProgress.length > 0 || reportData.canceled.length > 0;
-    if (localHasDataForChart && !chartImageDataUrl && !isGeneratingReport) { 
+    if (localHasDataForChart && !chartImageDataUrl && !isGeneratingReport && !isGeneratingChartImage) { 
         toast({ variant: 'destructive', title: reportDict.toast.generatingChartTitle, description: reportDict.toast.generatingChartDesc });
         return;
     }
-    if (isGeneratingReport) { 
+    if (isGeneratingReport || isGeneratingChartImage) { 
          toast({ variant: 'default', title: reportDict.generatingReportButton, description: reportDict.toast.generatingChartDesc});
          return;
     }
@@ -297,9 +303,10 @@ export default function MonthlyReportPage() {
                 language: language,
             }),
         });
+        
+        const responseText = await response.text(); 
 
         if (!response.ok) {
-            const responseText = await response.text(); 
             let errorDetails = "Failed to generate Word report from server."; 
             try {
                 if (responseText.trim().startsWith('{') && responseText.trim().endsWith('}')) {
@@ -328,7 +335,7 @@ export default function MonthlyReportPage() {
             throw new Error(String(errorDetails || "An unknown error occurred detailing the server response."));
         }
         
-        const blob = await response.blob();
+        const blob = new Blob([responseText], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.href = url;
@@ -346,7 +353,7 @@ export default function MonthlyReportPage() {
     }
   };
 
-  const years = Array.from({ length: 10 }, (_, i) => (currentYear - 5 + i).toString());
+  const years = Array.from({ length: 10 }, (_, i) => (parseInt(currentYear) - 5 + i).toString());
   const months = Array.from({ length: 12 }, (_, i) => ({ value: (i + 1).toString(), label: getMonthName(i + 1, language) }));
 
   const chartDisplayData = React.useMemo(() => {
@@ -355,7 +362,7 @@ export default function MonthlyReportPage() {
       { name: reportDict.status.inprogress, count: reportData.inProgress.length, fill: "hsl(var(--chart-2))" },
       { name: reportDict.status.completed, count: reportData.completed.length, fill: "hsl(var(--chart-1))" },
       { name: reportDict.status.canceled, count: reportData.canceled.length, fill: "hsl(var(--destructive))" },
-    ].filter(item => item.count > 0);
+    ].filter(item => item.count > 0); // Only include categories with data
   }, [reportData, reportDict.status]);
 
   const chartConfig = {
@@ -366,7 +373,7 @@ export default function MonthlyReportPage() {
   };
 
 
-  if (!isClient || isLoadingProjects && !reportData) {
+  if (!isClient || (isLoadingProjects && !reportData)) {
     return (
       <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
         <Card><CardHeader><Skeleton className="h-8 w-2/5 mb-2" /><Skeleton className="h-4 w-3/5" /></CardHeader>
@@ -422,15 +429,15 @@ export default function MonthlyReportPage() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleGenerateReport} disabled={isGeneratingReport || isLoadingProjects} className="w-full sm:w-auto md:self-end accent-teal">
-              {isGeneratingReport || isLoadingProjects && !reportData ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              {isGeneratingReport || isLoadingProjects && !reportData ? reportDict.generatingReportButton : reportDict.generateReportButton}
+            <Button onClick={handleGenerateReport} disabled={isGeneratingReport || (isLoadingProjects && !reportData)} className="w-full sm:w-auto md:self-end accent-teal">
+              {isGeneratingReport || (isLoadingProjects && !reportData) ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {isGeneratingReport || (isLoadingProjects && !reportData) ? reportDict.generatingReportButton : reportDict.generateReportButton}
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {isGeneratingReport && !reportData && (
+      {(isGeneratingReport || isGeneratingChartImage) && !reportData && (
           <div className="flex flex-col items-center justify-center text-center py-10">
               <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
               <p className="text-lg text-muted-foreground">{reportDict.generatingReportButton}</p>
@@ -452,19 +459,19 @@ export default function MonthlyReportPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-               <div ref={chartContainerRef} className="p-4 bg-card rounded-md mb-6"> 
+               <div ref={chartContainerRef} className="p-4 bg-background rounded-md mb-6"> 
                  {noData ? (
                     <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
                         <PieChartIcon className="h-12 w-12 mb-2 opacity-50" />
                         <p>{reportDict.noDataForMonth}</p>
                     </div>
                  ) : (
-                    <ChartContainer config={chartConfig} className="h-[250px] w-full">
+                    <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={chartDisplayData} layout="vertical" margin={{ left: 10, right: 30, top: 5, bottom: 5 }}>
                                 <CartesianGrid horizontal={false} strokeDasharray="3 3" />
                                 <XAxis type="number" allowDecimals={false} tick={{ fontSize: 10 }} />
-                                <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} stroke="#888888" fontSize={10} width={80} interval={0}/>
+                                <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} stroke="#888888" fontSize={10} width={language === 'id' ? 110 : 80} interval={0}/>
                                 <ChartTooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent hideLabel />} />
                                 <Bar dataKey="count" radius={4}>
                                     <LabelList dataKey="count" position="right" offset={8} className="fill-foreground" fontSize={10} />
@@ -481,7 +488,7 @@ export default function MonthlyReportPage() {
                     <TableCaption>{reportDict.tableCaption}</TableCaption>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[250px]">{reportDict.tableHeaderTitle}</TableHead>
+                        <TableHead className="w-[200px] sm:w-[250px]">{reportDict.tableHeaderTitle}</TableHead>
                         <TableHead>{reportDict.tableHeaderStatus}</TableHead>
                         <TableHead>{reportDict.tableHeaderLastActivityDate}</TableHead>
                         <TableHead>{reportDict.tableHeaderContributors}</TableHead>
@@ -493,10 +500,10 @@ export default function MonthlyReportPage() {
                     <TableBody>
                       {reportData.inProgress.map((project) => (
                         <TableRow key={`inprog-${project.id}`}>
-                          <TableCell className="font-medium truncate max-w-xs">{project.title}</TableCell>
+                          <TableCell className="font-medium truncate max-w-[150px] sm:max-w-xs">{project.title}</TableCell>
                           <TableCell><Badge variant="secondary">{dashboardDict.status.inprogress}</Badge></TableCell>
                           <TableCell>{getLastActivityDate(project)}</TableCell>
-                          <TableCell className="truncate max-w-[150px]">{getContributors(project)}</TableCell>
+                          <TableCell className="truncate max-w-[100px] sm:max-w-[150px]">{getContributors(project)}</TableCell>
                           <TableCell className="text-right">{project.progress}%</TableCell>
                           <TableCell>{project.createdBy}</TableCell>
                           <TableCell>{formatDateOnly(project.createdAt)}</TableCell>
@@ -504,10 +511,10 @@ export default function MonthlyReportPage() {
                       ))}
                       {reportData.completed.map((project) => (
                         <TableRow key={`comp-${project.id}`}>
-                          <TableCell className="font-medium truncate max-w-xs">{project.title}</TableCell>
+                          <TableCell className="font-medium truncate max-w-[150px] sm:max-w-xs">{project.title}</TableCell>
                           <TableCell><Badge className="bg-green-500 hover:bg-green-600 text-white">{dashboardDict.status.completed}</Badge></TableCell>
                           <TableCell>{getLastActivityDate(project)}</TableCell>
-                          <TableCell className="truncate max-w-[150px]">{getContributors(project)}</TableCell>
+                          <TableCell className="truncate max-w-[100px] sm:max-w-[150px]">{getContributors(project)}</TableCell>
                           <TableCell className="text-right">{project.progress}%</TableCell>
                            <TableCell>{project.createdBy}</TableCell>
                           <TableCell>{formatDateOnly(project.createdAt)}</TableCell>
@@ -515,10 +522,10 @@ export default function MonthlyReportPage() {
                       ))}
                       {reportData.canceled.map((project) => (
                         <TableRow key={`cancel-${project.id}`}>
-                          <TableCell className="font-medium truncate max-w-xs">{project.title}</TableCell>
+                          <TableCell className="font-medium truncate max-w-[150px] sm:max-w-xs">{project.title}</TableCell>
                           <TableCell><Badge variant="destructive">{dashboardDict.status.canceled}</Badge></TableCell>
                           <TableCell>{getLastActivityDate(project)}</TableCell>
-                          <TableCell className="truncate max-w-[150px]">{getContributors(project)}</TableCell>
+                          <TableCell className="truncate max-w-[100px] sm:max-w-[150px]">{getContributors(project)}</TableCell>
                           <TableCell className="text-right">{project.progress}%</TableCell>
                            <TableCell>{project.createdBy}</TableCell>
                           <TableCell>{formatDateOnly(project.createdAt)}</TableCell>
@@ -532,11 +539,20 @@ export default function MonthlyReportPage() {
             </CardContent>
             {!noData && (
             <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
-              <Button onClick={handleDownloadExcel} disabled={isDownloading === 'excel' || isGeneratingReport} className="w-full sm:w-auto">
+              <Button onClick={handleDownloadExcel} disabled={isDownloading === 'excel' || isGeneratingReport || isGeneratingChartImage} className="w-full sm:w-auto">
                 {isDownloading === 'excel' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className="mr-2 h-4 w-4" />}
                 {reportDict.downloadExcel}
               </Button>
-              <Button onClick={handleDownloadWord} disabled={isDownloading === 'word' || isGeneratingReport || (hasDataForChartFn() && !chartImageDataUrl)} className="w-full sm:w-auto">
+              <Button 
+                onClick={handleDownloadWord} 
+                disabled={
+                    isDownloading === 'word' || 
+                    isGeneratingReport || 
+                    isGeneratingChartImage ||
+                    (hasDataForChartFn() && !chartImageDataUrl)
+                } 
+                className="w-full sm:w-auto"
+               >
                  {isDownloading === 'word' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
                 {reportDict.downloadWord}
               </Button>
@@ -557,4 +573,3 @@ export default function MonthlyReportPage() {
     </div>
   );
 }
-
