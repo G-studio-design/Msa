@@ -10,7 +10,7 @@ import { getDictionary } from '@/lib/translations'; // Import dictionary
 
 // --- Helper Functions (can be used by both Excel and Word generation) ---
 
-function formatDateOnly(timestamp: string, lang: Language = 'en'): string {
+function formatDateOnly(timestamp: string | undefined | null, lang: Language = 'en'): string {
     if (!timestamp) return "N/A";
     try {
         const locale = lang === 'id' ? IndonesianLocale : EnglishLocale;
@@ -26,14 +26,14 @@ function getLastActivityDate(project: Project, lang: Language = 'en'): string {
         return formatDateOnly(project.createdAt, lang);
     }
     const lastEntry = project.workflowHistory[project.workflowHistory.length - 1];
-    return formatDateOnly(lastEntry.timestamp, lang);
+    return formatDateOnly(lastEntry?.timestamp, lang);
 }
 
 function getContributors(project: Project, dict: ReturnType<typeof getDictionary>['monthlyReportPage'], currentLang: Language): string {
     if (!project.files || project.files.length === 0) {
-        return dict.none || (currentLang === 'id' ? "Tidak Ada" : "None");
+        return dict?.none || (currentLang === 'id' ? "Tidak Ada" : "None");
     }
-    const contributors = [...new Set(project.files.map(f => f.uploadedBy))];
+    const contributors = [...new Set(project.files.map(f => f.uploadedBy || 'Unknown'))];
     return contributors.join(', ');
 }
 
@@ -61,6 +61,7 @@ export async function generateExcelReport(
 ): Promise<string> {
     const dict = getDictionary(currentLanguage);
     const reportDict = dict.monthlyReportPage;
+    const dashboardStatusDict = dict.dashboardPage.status;
 
     const allProjects = [...inProgress, ...completed, ...canceled ];
     allProjects.sort((a, b) => {
@@ -85,18 +86,21 @@ export async function generateExcelReport(
         const dateAStr = getLastActivityDate(a, currentLanguage);
         const dateBStr = getLastActivityDate(b, currentLanguage);
         
-        // Handle cases where dates might be invalid
         const dateAIsValid = dateAStr !== "Invalid Date" && dateAStr !== "N/A";
         const dateBIsValid = dateBStr !== "Invalid Date" && dateBStr !== "N/A";
 
         if (!dateAIsValid && !dateBIsValid) return 0;
-        if (!dateAIsValid) return 1; // Sort invalid dates to the end
+        if (!dateAIsValid) return 1; 
         if (!dateBIsValid) return -1;
 
-        const dateA = new Date(dateAStr).getTime();
-        const dateB = new Date(dateBStr).getTime();
-
-        return dateB - dateA;
+        try {
+            const dateA = parseISO(dateAStr).getTime();
+            const dateB = parseISO(dateBStr).getTime();
+             return dateB - dateA;
+        } catch (e) {
+            // If parsing fails after checks, treat as non-comparable
+            return 0;
+        }
     });
 
     const headers = [
@@ -115,7 +119,8 @@ export async function generateExcelReport(
         if (inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
             displayStatus = 'In Progress';
         }
-        const translatedDisplayStatus = (dict.dashboardPage.status as any)[displayStatus.toLowerCase().replace(/ /g, '')] || displayStatus;
+        const statusKey = displayStatus?.toLowerCase().replace(/ /g, '') as keyof typeof dashboardStatusDict;
+        const translatedDisplayStatus = dashboardStatusDict[statusKey] || displayStatus;
 
 
         const row = [
@@ -165,11 +170,16 @@ export async function generateWordReport(
         const orderB = statusOrderValue(b, inProgress);
 
         if (orderA !== orderB) return orderA - orderB;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        
+        try {
+            return parseISO(b.createdAt).getTime() - parseISO(a.createdAt).getTime();
+        } catch {
+            return 0;
+        }
     });
     
-    const primaryColor = "2C5E93"; 
-    const accentColorLight = "DDEBF7"; 
+    const primaryColor = "1A237E"; 
+    const accentColorLight = "EEEEEE"; 
     const textColor = "333333"; 
     const headerTextColor = "FFFFFF"; 
 
@@ -206,7 +216,7 @@ export async function generateWordReport(
                 new Paragraph({
                     children: [
                         new TextRun({
-                            text: `${reportDict.title} - ${monthName} ${year}`,
+                            text: `${reportDict?.title || "Monthly Project Report"} - ${monthName || "N/A"} ${year || "N/A"}`,
                             font: "Calibri Light",
                             size: 48, 
                             bold: true,
@@ -231,10 +241,10 @@ export async function generateWordReport(
                     style: "SectionHeaderStyle", 
                     spacing: { after: 200, before: 400 }
                 }),
-                new Paragraph({ text: `  • ${reportDict.totalProjects} ${completed.length + canceled.length + inProgress.length}`, style: "SummaryTextStyle" }),
-                new Paragraph({ text: `    - ${reportDict.inProgressProjectsShort}: ${inProgress.length}`, style: "SummaryTextStyle", indent: {left: 400} }),
-                new Paragraph({ text: `    - ${reportDict.completedProjectsShort}: ${completed.length}`, style: "SummaryTextStyle", indent: {left: 400} }),
-                new Paragraph({ text: `    - ${reportDict.canceledProjectsShort}: ${canceled.length}`, style: "SummaryTextStyle", indent: {left: 400} }),
+                new Paragraph({ text: `  • ${reportDict?.totalProjects || "Total Projects Reviewed"}: ${(completed?.length || 0) + (canceled?.length || 0) + (inProgress?.length || 0)}`, style: "SummaryTextStyle" }),
+                new Paragraph({ text: `    - ${reportDict?.inProgressProjectsShort || "In Progress"}: ${inProgress?.length || 0}`, style: "SummaryTextStyle", indent: {left: 400} }),
+                new Paragraph({ text: `    - ${reportDict?.completedProjectsShort || "Completed"}: ${completed?.length || 0}`, style: "SummaryTextStyle", indent: {left: 400} }),
+                new Paragraph({ text: `    - ${reportDict?.canceledProjectsShort || "Canceled"}: ${canceled?.length || 0}`, style: "SummaryTextStyle", indent: {left: 400} }),
                 new Paragraph({ text: "", spacing: {after: 400} }), 
             ],
         },
@@ -289,10 +299,10 @@ export async function generateWordReport(
 
         const headerRow = new TableRow({
             children: [
-                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderTitle, style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderStatus, style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderLastActivityDate, style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ text: reportDict.tableHeaderContributors, style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ text: reportDict?.tableHeaderTitle || "Project Title", style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ text: reportDict?.tableHeaderStatus || "Status", style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ text: reportDict?.tableHeaderLastActivityDate || "Last Activity / End Date", style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ text: reportDict?.tableHeaderContributors || "Contributors", style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
                 new TableCell({ children: [new Paragraph({ text: currentLanguage === 'id' ? 'Progres (%)' : 'Progress (%)', style: "TableHeaderStyle", alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
                 new TableCell({ children: [new Paragraph({ text: currentLanguage === 'id' ? 'Dibuat Oleh' : 'Created By', style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
                 new TableCell({ children: [new Paragraph({ text: currentLanguage === 'id' ? 'Dibuat Pada' : 'Created At', style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
@@ -305,19 +315,20 @@ export async function generateWordReport(
             if (inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
                 displayStatus = 'In Progress';
             }
-            const translatedDisplayStatus = (dashboardStatusDict as any)[displayStatus.toLowerCase().replace(/ /g, '')] || displayStatus;
+            const statusKey = displayStatus?.toLowerCase().replace(/ /g, '') as keyof typeof dashboardStatusDict;
+            const translatedDisplayStatus = dashboardStatusDict[statusKey] || displayStatus;
            
             const cellShading = index % 2 === 0 ? undefined : { type: ShadingType.SOLID, fill: accentColorLight }; 
 
             return new TableRow({
                 children: [
-                    new TableCell({ children: [new Paragraph({ text: project.title, style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ text: translatedDisplayStatus, style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ text: getLastActivityDate(project, currentLanguage), style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ text: getContributors(project, reportDict, currentLanguage), style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ text: project.progress.toString(), alignment: AlignmentType.CENTER, style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ text: project.createdBy, style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ text: formatDateOnly(project.createdAt, currentLanguage), style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ text: project.title || "", style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ text: translatedDisplayStatus || "", style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ text: getLastActivityDate(project, currentLanguage) || "", style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ text: getContributors(project, reportDict, currentLanguage) || "", style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ text: (project.progress || 0).toString(), alignment: AlignmentType.CENTER, style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ text: project.createdBy || "", style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ text: formatDateOnly(project.createdAt, currentLanguage) || "", style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
                 ],
             });
         });
@@ -343,7 +354,7 @@ export async function generateWordReport(
 
     } else {
         sections[0].children.push(
-            new Paragraph({ text: reportDict.noDataForMonth, alignment: AlignmentType.CENTER, style: "NormalTextStyle" })
+            new Paragraph({ text: reportDict?.noDataForMonth || (currentLanguage === 'id' ? 'Tidak ada data proyek untuk bulan ini.' : 'No project data for this month.'), alignment: AlignmentType.CENTER, style: "NormalTextStyle" })
         );
     }
 
@@ -353,8 +364,8 @@ export async function generateWordReport(
 
     const doc = new Document({
         creator: "Msarch App",
-        title: `${reportDict.title} - ${monthName} ${year}`,
-        description: `Monthly project report for ${monthName} ${year}`,
+        title: `${reportDict?.title || "Monthly Project Report"} - ${monthName || "N/A"} ${year || "N/A"}`,
+        description: `Monthly project report for ${monthName || "N/A"} ${year || "N/A"}`,
         sections: sections,
         styles: {
             paragraphStyles: [
