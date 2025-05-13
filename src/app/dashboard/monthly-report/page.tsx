@@ -36,7 +36,8 @@ import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllProjects, type Project, type WorkflowHistoryEntry } from '@/services/project-service';
-import { generateExcelReport, generateWordReport } from '@/lib/report-generator';
+import { generateExcelReport } from '@/lib/report-generator'; // Removed generatePdfReport
+import type { Language } from '@/context/LanguageContext';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
@@ -257,7 +258,7 @@ export default function MonthlyReportPage() {
             inProgress: reportData.inProgress,
             monthName: monthLabel,
             year: selectedYear,
-            chartImageDataUrl: chartImage, // Pass the base64 image data
+            chartImageDataUrl: chartImage,
             language: language,
         };
 
@@ -268,32 +269,43 @@ export default function MonthlyReportPage() {
         });
 
         if (!response.ok) {
-            let errorDetails = `Failed to generate Word report. Status: ${response.status}`;
-            const responseText = await response.text(); // Get raw response text first
+            const responseText = await response.text();
+            let descriptiveMessage = `Word report generation failed (Status: ${response.status}).`;
 
             try {
                 if (responseText.trim().startsWith('{') && responseText.trim().endsWith('}')) {
                     const errorData = JSON.parse(responseText);
-                     if (Object.keys(errorData).length === 0) { // Checks if errorData is {}
-                        errorDetails = 'Server returned an empty JSON error object for Word generation.';
+                    console.error("Server error data for Word report:", errorData);
+
+                    if (typeof errorData.details === 'string' && errorData.details.trim()) {
+                        descriptiveMessage = errorData.details;
+                    } else if (typeof errorData.error === 'string' && errorData.error.trim()) {
+                        descriptiveMessage = errorData.error;
+                    } else if (Object.keys(errorData).length === 0) {
+                        // This log was identified in the error: "Server JSON error details for Word generation: {}"
+                        // Which means errorData is {}
+                        descriptiveMessage = 'The server returned an empty error object for Word report generation.';
                     } else {
-                        errorDetails = errorData.details || errorData.error || errorDetails;
+                        descriptiveMessage = 'The server returned an unspecified error for Word report. Check server logs.';
                     }
-                    console.error("Server JSON error details for Word generation:", errorData);
-                } else {
-                     errorDetails = responseText.length > 200 ? responseText.substring(0,200) + "..." : responseText; // Truncate if too long
-                     if (responseText.includes('<html')) { // Check if it's an HTML error page
-                        errorDetails = "Server returned an HTML error page instead of Word report details.";
-                     }
-                    console.error("Non-JSON error response from server for Word generation:", responseText || errorDetails);
+                } else if (responseText.includes('<html')) {
+                    descriptiveMessage = "The server returned an HTML error page. Check server logs for details.";
+                    console.error("HTML error response from server for Word generation (first 500 chars):", responseText.substring(0, 500));
+                } else if (responseText.trim()) {
+                    descriptiveMessage = `The server returned a non-JSON error: ${responseText.substring(0, 200)}`;
+                    console.error("Raw non-JSON error response from server for Word generation:", responseText);
                 }
-            } catch (jsonError) {
-                 // If parsing JSON fails, use the responseText (if available) or statusText
-                errorDetails = responseText || response.statusText || `Server returned status ${response.status}.`;
-                console.error("Error parsing JSON error response from server for Word generation:", jsonError, "Raw response:", responseText);
+            } catch (e) {
+                console.error("Error parsing server response during Word report generation:", e, "Raw response:", responseText);
+                descriptiveMessage = `Error parsing server's error response. Raw response: ${responseText.substring(0, 200)}`;
             }
-            throw new Error(errorDetails);
+            
+            const finalErrorMessage = String(descriptiveMessage || "An unknown error occurred generating the Word report.").replace(/<[^>]*>?/gm, '').substring(0, 500);
+            
+            console.log(`Throwing error for Word report: ${finalErrorMessage}`);
+            throw new Error(finalErrorMessage); // This is where the original error was reported (line 295 in previous context)
         }
+
 
         const blob = await response.blob();
         const link = document.createElement('a');
@@ -311,7 +323,7 @@ export default function MonthlyReportPage() {
         toast({
             variant: 'destructive',
             title: reportDict.errorGeneratingReport,
-            description: error.message || 'An unexpected error occurred while preparing the Word report.',
+            description: String(error.message || 'An unexpected error occurred while preparing the Word report.'),
         });
     } finally {
         setIsGenerating(false);
@@ -512,3 +524,4 @@ export default function MonthlyReportPage() {
     </div>
   );
 }
+
