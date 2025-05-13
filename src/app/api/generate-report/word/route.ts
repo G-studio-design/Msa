@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
         inProgress: Project[],
         monthName: string,
         year: string,
-        chartImageDataUrl?: string | null, // Can be null
+        chartImageDataUrl?: string | null, 
         language?: Language
     };
 
@@ -57,31 +57,37 @@ export async function POST(req: NextRequest) {
     console.error("[API/WordReport] Error generating Word report:", error);
     
     let errorMessage = 'Failed to generate Word report.';
+    // Initialize errorDetails with a generic server error message.
+    // This will be used if error.message is not helpful or specific.
     let errorDetails = 'An unexpected error occurred on the server.';
 
     if (error.message) {
+        // If error.message contains specific keywords, provide more targeted user feedback.
         if (error.message.includes('Failed to pack Word document')) {
             errorMessage = 'Word Document Creation Error';
+            // Use the error message itself as details if it's specific enough.
             errorDetails = `The server encountered an issue while assembling the Word file: ${error.message}`;
         } else if (error.message.includes('Error processing chart image')) {
             errorMessage = 'Chart Image Processing Error';
             errorDetails = `There was a problem including the chart image in the Word document: ${error.message}`;
-        } else {
-            // Use the error message directly if it's not too technical or an HTML page
-             if (typeof error.message === 'string' && !error.message.toLowerCase().includes('<html') && error.message.trim().length > 0 && error.message.trim() !== '{}') {
-                errorDetails = error.message.substring(0, 500); // Limit length
-            }
+        } else if (typeof error.message === 'string' && 
+                   !error.message.toLowerCase().includes('<html') && // Avoid sending HTML error pages to client
+                   error.message.trim().length > 0 && 
+                   error.message.trim() !== '{}') {
+            // For other errors, if error.message is a non-empty, non-HTML string, use it as details.
+            // This is where "Cannot read properties of undefined (reading 'children')" will be captured.
+            errorDetails = error.message.substring(0, 500); // Limit length to prevent overly long messages
         }
+        // If error.message was not useful (e.g., empty, HTML, or '{}'), errorDetails remains the generic server error.
     }
     
 
     const errorResponsePayload = { 
         error: errorMessage,
-        details: errorDetails 
+        details: errorDetails // This will now correctly send the "Cannot read..." message if that's what error.message was
     };
     
     console.error(`[API/WordReport] Responding with error payload:`, JSON.stringify(errorResponsePayload));
     return NextResponse.json(errorResponsePayload, { status: 500 });
   }
 }
-

@@ -1,7 +1,7 @@
 // src/lib/report-generator.ts
 'use server';
 
-import type { Project } from '@/services/project-service';
+import type { Project, WorkflowHistoryEntry } from '@/services/project-service';
 import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 import { Document, Packer, Paragraph, TextRun, Table, TableCell, TableRow, WidthType, BorderStyle, VerticalAlign, AlignmentType, HeadingLevel, ImageRun, ShadingType, PageNumber, SectionType, ExternalHyperlink, UnderlineType } from 'docx';
@@ -29,9 +29,10 @@ function getLastActivityDate(project: Project, lang: Language = 'en'): string {
     return formatDateOnly(lastEntry?.timestamp, lang);
 }
 
-function getContributors(project: Project, dict: ReturnType<typeof getDictionary>['monthlyReportPage'], currentLang: Language): string {
+function getContributors(project: Project, reportDict: ReturnType<typeof getDictionary>['monthlyReportPage'] | undefined, currentLang: Language): string {
+    const defaultNone = currentLang === 'id' ? "Tidak Ada" : "None";
     if (!project.files || project.files.length === 0) {
-        return dict?.none || (currentLang === 'id' ? "Tidak Ada" : "None");
+        return reportDict?.none || defaultNone;
     }
     const contributors = [...new Set(project.files.map(f => f.uploadedBy || 'Unknown'))];
     return contributors.join(', ');
@@ -134,7 +135,7 @@ export async function generateWordReport(
     inProgress: Project[],
     monthName: string,
     year: string,
-    chartImageDataUrl?: string | null, // Can be null if chart gen fails
+    chartImageDataUrl?: string | null, 
     currentLanguage: Language = 'en'
 ): Promise<Buffer> {
     console.log("[ReportGenerator/Word] Starting Word report generation...");
@@ -168,10 +169,10 @@ export async function generateWordReport(
         }
     });
     
-    const primaryColor = "1A237E"; // Dark Blue from proposal
-    const accentColorLight = "EEEEEE"; // Light Gray from proposal
-    const textColor = "212121"; // Darker Gray for better readability
-    const headerTextColor = "FFFFFF"; // White
+    const primaryColor = "1A237E"; 
+    const accentColorLight = "EEEEEE"; 
+    const textColor = "212121"; 
+    const headerTextColor = "FFFFFF"; 
 
     const sections = [
         {
@@ -179,7 +180,7 @@ export async function generateWordReport(
                 type: SectionType.NEXT_PAGE, 
                 page: {
                     pageNumbers: { start: 1, formatType: PageNumber.DECIMAL },
-                     margin: { top: 720, right: 720, bottom: 720, left: 720 }, // 0.5 inch margins
+                     margin: { top: 720, right: 720, bottom: 720, left: 720 }, 
                 },
             },
             headers: {
@@ -189,13 +190,13 @@ export async function generateWordReport(
                             children: [
                                 new TextRun({
                                     text: "Msarch App",
-                                    size: 18, // 9pt
+                                    size: 18, 
                                     color: "A9A9A9",
                                     font: "Calibri Light",
                                     underline: { type: UnderlineType.SINGLE, color: "A9A9A9" },
                                 }),
                             ],
-                            link: "https://msarch.com", // Replace with actual link if available
+                            link: "https://msarch.com", 
                         })
                     ],
                     alignment: AlignmentType.RIGHT,
@@ -205,9 +206,9 @@ export async function generateWordReport(
             footers: {
                 default: new Paragraph({ 
                     children: [
-                        new TextRun({ text: `${currentLanguage === 'id' ? 'Halaman' : 'Page'} `, style: "FooterTextStyle" }),
+                        new TextRun({ text: String(currentLanguage === 'id' ? 'Halaman' : 'Page') + " ", style: "FooterTextStyle" }),
                         new TextRun({ children: [PageNumber.CURRENT], style: "FooterTextStyle"  }),
-                        new TextRun({ text: ` ${currentLanguage === 'id' ? 'dari' : 'of'} `, style: "FooterTextStyle" }),
+                        new TextRun({ text: " " + String(currentLanguage === 'id' ? 'dari' : 'of') + " ", style: "FooterTextStyle" }),
                         new TextRun({ children: [PageNumber.TOTAL_PAGES], style: "FooterTextStyle"  }),
                     ],
                     alignment: AlignmentType.CENTER,
@@ -217,7 +218,7 @@ export async function generateWordReport(
                 new Paragraph({
                     children: [
                         new TextRun({
-                            text: `${reportDict?.title || "Monthly Project Report"} - ${monthName || "N/A"} ${year || "N/A"}`,
+                            text: String((reportDict?.title || "Monthly Project Report") + ` - ${monthName || "N/A"} ${year || "N/A"}`),
                             style: "TitleStyle",
                         }),
                     ],
@@ -226,20 +227,20 @@ export async function generateWordReport(
                     spacing: { before: 800, after: 100 }, 
                 }),
                 new Paragraph({
-                    text: `${currentLanguage === 'id' ? 'Dibuat pada' : 'Generated on'}: ${format(new Date(), 'PPPPpppp', { locale })}`, 
+                    text: String(`${currentLanguage === 'id' ? 'Dibuat pada' : 'Generated on'}: ${format(new Date(), 'PPPPpppp', { locale })}`), 
                     style: "SubheaderStyle",
                     alignment: AlignmentType.CENTER,
                     spacing: { after: 400 },
                 }),
                 new Paragraph({
-                    children: [ new TextRun({ text: `${currentLanguage === 'id' ? 'Ringkasan Proyek' : 'Project Summary'}`, style: "SectionHeaderStyle" }) ],
+                    children: [ new TextRun({ text: String(currentLanguage === 'id' ? 'Ringkasan Proyek' : 'Project Summary'), style: "SectionHeaderStyle" }) ],
                     heading: HeadingLevel.HEADING_1,
                     spacing: { after: 100, before: 200 }
                 }),
-                new Paragraph({ text: `• ${reportDict?.totalProjects || "Total Projects Reviewed"}: ${(completed?.length || 0) + (canceled?.length || 0) + (inProgress?.length || 0)}`, style: "SummaryTextStyle" }),
-                new Paragraph({ text: `  - ${reportDict?.inProgressProjectsShort || "In Progress"}: ${inProgress?.length || 0}`, style: "SummaryTextStyle", indent: {left: 360} }),
-                new Paragraph({ text: `  - ${reportDict?.completedProjectsShort || "Completed"}: ${completed?.length || 0}`, style: "SummaryTextStyle", indent: {left: 360} }),
-                new Paragraph({ text: `  - ${reportDict?.canceledProjectsShort || "Canceled"}: ${canceled?.length || 0}`, style: "SummaryTextStyle", indent: {left: 360} }),
+                new Paragraph({ text: String(`• ${reportDict?.totalProjects || "Total Projects Reviewed"}: ${(completed?.length || 0) + (canceled?.length || 0) + (inProgress?.length || 0)}`), style: "SummaryTextStyle" }),
+                new Paragraph({ text: String(`  - ${reportDict?.inProgressProjectsShort || "In Progress"}: ${inProgress?.length || 0}`), style: "SummaryTextStyle", indent: {left: 360} }),
+                new Paragraph({ text: String(`  - ${reportDict?.completedProjectsShort || "Completed"}: ${completed?.length || 0}`), style: "SummaryTextStyle", indent: {left: 360} }),
+                new Paragraph({ text: String(`  - ${reportDict?.canceledProjectsShort || "Canceled"}: ${canceled?.length || 0}`), style: "SummaryTextStyle", indent: {left: 360} }),
                 new Paragraph({ text: "", spacing: {after: 200} }), 
             ],
         },
@@ -248,39 +249,57 @@ export async function generateWordReport(
     if (chartImageDataUrl) {
         try {
             console.log("[ReportGenerator/Word] Processing chart image for Word report...");
-            const imageBuffer = Buffer.from(chartImageDataUrl.split(',')[1], 'base64');
-            sections[0].children.push(
-                new Paragraph({
-                    children: [ new TextRun({ text: currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview", style: "SectionHeaderStyle" }) ],
-                    heading: HeadingLevel.HEADING_1,
-                     spacing: { after: 100, before: 200 }
-                }),
-                new Paragraph({
-                    children: [
-                        new ImageRun({
-                            data: imageBuffer,
-                            transformation: { width: 500, height: 250 }, 
-                        }),
-                    ],
-                    alignment: AlignmentType.CENTER,
-                    spacing: { after: 200 }
-                })
-            );
-            console.log("[ReportGenerator/Word] Chart image added to document.");
+            const base64Data = chartImageDataUrl.split(',')[1];
+            if (base64Data && base64Data.trim() !== '') {
+                const imageBuffer = Buffer.from(base64Data, 'base64');
+                sections[0].children.push(
+                    new Paragraph({
+                        children: [ new TextRun({ text: String(currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview"), style: "SectionHeaderStyle" }) ],
+                        heading: HeadingLevel.HEADING_1,
+                         spacing: { after: 100, before: 200 }
+                    }),
+                    new Paragraph({
+                        children: [
+                            new ImageRun({
+                                data: imageBuffer,
+                                transformation: { width: 500, height: 250 }, 
+                            }),
+                        ],
+                        alignment: AlignmentType.CENTER,
+                        spacing: { after: 200 }
+                    })
+                );
+                console.log("[ReportGenerator/Word] Chart image added to document.");
+            } else {
+                console.warn("[ReportGenerator/Word] Chart image data URL provided, but base64 data is empty. Skipping image.");
+                sections[0].children.push(
+                    new Paragraph({
+                        children: [ new TextRun({ text: String(currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview"), style: "SectionHeaderStyle" }) ],
+                        heading: HeadingLevel.HEADING_1,
+                        spacing: { after: 100, before: 200 }
+                    }),
+                    new Paragraph({
+                        text: String(currentLanguage === 'id' ? "(Grafik tidak tersedia - data kosong)" : "(Chart not available - empty data)"),
+                        alignment: AlignmentType.CENTER,
+                        style: "ErrorTextStyle",
+                        spacing: { after: 200 }
+                    })
+                );
+            }
         } catch (error) {
             console.error("[ReportGenerator/Word] Error processing chart image for Word report:", error);
-            sections[0].children.push(new Paragraph({ text: currentLanguage === 'id' ? "Kesalahan: Gambar grafik tidak dapat dimuat." : "Error: Chart image could not be loaded.", style: "ErrorTextStyle"}));
+            sections[0].children.push(new Paragraph({ text: String(currentLanguage === 'id' ? "Kesalahan: Gambar grafik tidak dapat dimuat." : "Error: Chart image could not be loaded."), style: "ErrorTextStyle"}));
         }
     } else {
          console.warn("[ReportGenerator/Word] No chart image data URL provided for Word report.");
          sections[0].children.push(
             new Paragraph({
-                children: [ new TextRun({ text: currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview", style: "SectionHeaderStyle" }) ],
+                children: [ new TextRun({ text: String(currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview"), style: "SectionHeaderStyle" }) ],
                 heading: HeadingLevel.HEADING_1,
                 spacing: { after: 100, before: 200 }
             }),
             new Paragraph({
-                text: currentLanguage === 'id' ? "(Grafik tidak tersedia)" : "(Chart not available)",
+                text: String(currentLanguage === 'id' ? "(Grafik tidak tersedia)" : "(Chart not available)"),
                 alignment: AlignmentType.CENTER,
                 style: "ErrorTextStyle",
                 spacing: { after: 200 }
@@ -292,7 +311,7 @@ export async function generateWordReport(
     if (allProjectsForWord.length > 0) {
         sections[0].children.push(
             new Paragraph({
-                 children: [ new TextRun({ text: currentLanguage === 'id' ? "Daftar Detail Proyek" : "Detailed Project List", style: "SectionHeaderStyle" }) ],
+                 children: [ new TextRun({ text: String(currentLanguage === 'id' ? "Daftar Detail Proyek" : "Detailed Project List"), style: "SectionHeaderStyle" }) ],
                 heading: HeadingLevel.HEADING_1,
                 spacing: { after: 100, before: 200 }
             })
@@ -300,13 +319,13 @@ export async function generateWordReport(
 
         const headerRow = new TableRow({
             children: [
-                new TableCell({ children: [new Paragraph({ text: reportDict?.tableHeaderTitle || "Project Title", style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ text: reportDict?.tableHeaderStatus || "Status", style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ text: reportDict?.tableHeaderLastActivityDate || "Last Activity", style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ text: reportDict?.tableHeaderContributors || "Contributors", style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ text: currentLanguage === 'id' ? 'Progres (%)' : 'Progress (%)', style: "TableHeaderStyle", alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ text: currentLanguage === 'id' ? 'Dibuat Oleh' : 'Created By', style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ text: currentLanguage === 'id' ? 'Dibuat Pada' : 'Created At', style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ text: String(reportDict?.tableHeaderTitle || "Project Title"), style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ text: String(reportDict?.tableHeaderStatus || "Status"), style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ text: String(reportDict?.tableHeaderLastActivityDate || "Last Activity"), style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ text: String(reportDict?.tableHeaderContributors || "Contributors"), style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ text: String(currentLanguage === 'id' ? 'Progres (%)' : 'Progress (%)'), style: "TableHeaderStyle", alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ text: String(currentLanguage === 'id' ? 'Dibuat Oleh' : 'Created By'), style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ text: String(currentLanguage === 'id' ? 'Dibuat Pada' : 'Created At'), style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
             ],
             tableHeader: true,
         });
@@ -323,20 +342,20 @@ export async function generateWordReport(
 
             return new TableRow({
                 children: [
-                    new TableCell({ children: [new Paragraph({ text: project.title || "", style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ text: translatedDisplayStatus || "", style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ text: getLastActivityDate(project, currentLanguage) || "", style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ text: getContributors(project, reportDict, currentLanguage) || "", style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ text: (project.progress || 0).toString(), alignment: AlignmentType.CENTER, style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ text: project.createdBy || "", style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ text: formatDateOnly(project.createdAt, currentLanguage) || "", style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ text: String(project.title || ""), style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ text: String(translatedDisplayStatus || ""), style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ text: String(getLastActivityDate(project, currentLanguage) || ""), style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ text: String(getContributors(project, reportDict, currentLanguage) || ""), style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ text: String(project.progress || 0).toString(), alignment: AlignmentType.CENTER, style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ text: String(project.createdBy || ""), style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ text: String(formatDateOnly(project.createdAt, currentLanguage) || ""), style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
                 ],
             });
         });
 
         const table = new Table({
             rows: [headerRow, ...dataRows],
-            width: { size: 9020, type: WidthType.DXA }, // Adjusted total width to better fit A4, approx 6.26 inches
+            width: { size: 9020, type: WidthType.DXA }, 
             columnWidths: [2400, 1100, 1400, 1700, 700, 900, 820], 
             borders: {
                 top: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
@@ -352,7 +371,7 @@ export async function generateWordReport(
 
     } else {
         sections[0].children.push(
-            new Paragraph({ text: reportDict?.noDataForMonth || (currentLanguage === 'id' ? 'Tidak ada data proyek untuk bulan ini.' : 'No project data for this month.'), alignment: AlignmentType.CENTER, style: "NormalTextStyle" })
+            new Paragraph({ text: String(reportDict?.noDataForMonth || (currentLanguage === 'id' ? 'Tidak ada data proyek untuk bulan ini.' : 'No project data for this month.')), alignment: AlignmentType.CENTER, style: "NormalTextStyle" })
         );
     }
 
@@ -362,7 +381,7 @@ export async function generateWordReport(
      sections[0].children.push(
         new Paragraph({
             children: [
-                new TextRun({ text: `${currentLanguage === 'id' ? 'Dihasilkan oleh Msarch App' : 'Generated by Msarch App'}`, style: "SmallMutedTextStyle"}),
+                new TextRun({ text: String(currentLanguage === 'id' ? 'Dihasilkan oleh Msarch App' : 'Generated by Msarch App'), style: "SmallMutedTextStyle"}),
             ],
             alignment: AlignmentType.RIGHT,
         })
@@ -371,8 +390,8 @@ export async function generateWordReport(
 
     const doc = new Document({
         creator: "Msarch App",
-        title: `${reportDict?.title || "Monthly Project Report"} - ${monthName || "N/A"} ${year || "N/A"}`,
-        description: `Monthly project report for ${monthName || "N/A"} ${year || "N/A"} generated by Msarch App.`,
+        title: String((reportDict?.title || "Monthly Project Report") + ` - ${monthName || "N/A"} ${year || "N/A"}`),
+        description: String(`Monthly project report for ${monthName || "N/A"} ${year || "N/A"} generated by Msarch App.`),
         sections: sections,
         styles: {
             paragraphStyles: [
@@ -408,4 +427,3 @@ export async function generateWordReport(
         throw new Error(`Failed to pack Word document: ${packError.message || String(packError)}`);
     }
 }
-
