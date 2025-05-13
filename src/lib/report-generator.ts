@@ -16,7 +16,7 @@ function formatDateOnly(timestamp: string, lang: Language = 'en'): string {
         const locale = lang === 'id' ? IndonesianLocale : EnglishLocale;
         return format(parseISO(timestamp), 'PP', { locale }); // e.g., Sep 29, 2023 or 29 Sep 2023
     } catch (e) {
-        console.error("Error formatting date:", timestamp, e);
+        console.error("[ReportGenerator] Error formatting date:", timestamp, e);
         return "Invalid Date";
     }
 }
@@ -81,11 +81,20 @@ export async function generateExcelReport(
         if (orderA !== orderB) {
             return orderA - orderB;
         }
-        // Ensure dates are valid before attempting to create Date objects
+        
         const dateAStr = getLastActivityDate(a, currentLanguage);
         const dateBStr = getLastActivityDate(b, currentLanguage);
-        const dateA = (dateAStr !== "Invalid Date" && dateAStr !== "N/A") ? new Date(dateAStr).getTime() : 0;
-        const dateB = (dateBStr !== "Invalid Date" && dateBStr !== "N/A") ? new Date(dateBStr).getTime() : 0;
+        
+        // Handle cases where dates might be invalid
+        const dateAIsValid = dateAStr !== "Invalid Date" && dateAStr !== "N/A";
+        const dateBIsValid = dateBStr !== "Invalid Date" && dateBStr !== "N/A";
+
+        if (!dateAIsValid && !dateBIsValid) return 0;
+        if (!dateAIsValid) return 1; // Sort invalid dates to the end
+        if (!dateBIsValid) return -1;
+
+        const dateA = new Date(dateAStr).getTime();
+        const dateB = new Date(dateBStr).getTime();
 
         return dateB - dateA;
     });
@@ -96,7 +105,7 @@ export async function generateExcelReport(
         reportDict.tableHeaderLastActivityDate,
         reportDict.tableHeaderContributors,
         currentLanguage === 'id' ? "Progres (%)" : "Progress (%)",
-        currentLanguage === 'id' ? 'Dibuat Oleh' : "Created By", // Changed to "Dibuat Oleh" instead of "oleh"
+        currentLanguage === 'id' ? 'Dibuat Oleh' : "Created By",
         currentLanguage === 'id' ? 'Dibuat Pada' : "Created At"
     ];
     const rows = [headers.map(escapeCsvValue).join(',')];
@@ -120,7 +129,7 @@ export async function generateExcelReport(
         ];
         rows.push(row.join(','));
     });
-
+    console.log("[ReportGenerator/Excel] Excel report data generated.");
     return rows.join('\n');
 }
 
@@ -134,6 +143,7 @@ export async function generateWordReport(
     chartImageDataUrl?: string,
     currentLanguage: Language = 'en'
 ): Promise<Buffer> {
+    console.log("[ReportGenerator/Word] Starting Word report generation...");
     const dict = getDictionary(currentLanguage);
     const reportDict = dict.monthlyReportPage;
     const dashboardStatusDict = dict.dashboardPage.status;
@@ -158,15 +168,15 @@ export async function generateWordReport(
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
     
-    const primaryColor = "2C5E93"; // A deeper, more professional blue
-    const accentColorLight = "DDEBF7"; // Light blue for accents/shading
-    const textColor = "333333"; // Dark gray for text
-    const headerTextColor = "FFFFFF"; // White for table headers
+    const primaryColor = "2C5E93"; 
+    const accentColorLight = "DDEBF7"; 
+    const textColor = "333333"; 
+    const headerTextColor = "FFFFFF"; 
 
     const sections = [
         {
             properties: {
-                type: SectionType.NEXT_PAGE, // Ensure title page is separate if needed
+                type: SectionType.NEXT_PAGE, 
                 page: {
                     pageNumbers: {
                         start: 1,
@@ -175,14 +185,14 @@ export async function generateWordReport(
                 },
             },
             headers: {
-                default: new Paragraph({ // Simple header with app name
+                default: new Paragraph({ 
                     children: [new TextRun({ text: "Msarch App", font: "Calibri", size: 18, color: "A9A9A9" })],
                     alignment: AlignmentType.RIGHT,
                     spacing: { after: 100 }
                 }),
             },
             footers: {
-                default: new Paragraph({ // Page number in footer
+                default: new Paragraph({ 
                     children: [
                         new TextRun({ text: "Page ", font: "Calibri", size: 18, color: "A9A9A9" }),
                         new TextRun({ children: [PageNumber.CURRENT], font: "Calibri", size: 18, color: "A9A9A9"  }),
@@ -198,17 +208,17 @@ export async function generateWordReport(
                         new TextRun({
                             text: `${reportDict.title} - ${monthName} ${year}`,
                             font: "Calibri Light",
-                            size: 48, // Slightly smaller for balance
+                            size: 48, 
                             bold: true,
                             color: primaryColor,
                         }),
                     ],
                     heading: HeadingLevel.TITLE,
                     alignment: AlignmentType.CENTER,
-                    spacing: { before: 2000, after: 600 }, // More space around title
+                    spacing: { before: 2000, after: 600 }, 
                 }),
                 new Paragraph({
-                    text: `${currentLanguage === 'id' ? 'Dibuat pada' : 'Generated on'}: ${format(new Date(), 'PPPPpppp', { locale })}`, // More detailed timestamp
+                    text: `${currentLanguage === 'id' ? 'Dibuat pada' : 'Generated on'}: ${format(new Date(), 'PPPPpppp', { locale })}`, 
                     style: "SubheaderStyle",
                     alignment: AlignmentType.CENTER,
                     spacing: { after: 800 },
@@ -218,20 +228,21 @@ export async function generateWordReport(
                          new TextRun({ text: `${currentLanguage === 'id' ? 'Ringkasan Proyek' : 'Project Summary'}:`, font: "Calibri", bold: true, size: 32, color: primaryColor })
                     ],
                     heading: HeadingLevel.HEADING_1,
-                    style: "SectionHeaderStyle", // Use specific style
+                    style: "SectionHeaderStyle", 
                     spacing: { after: 200, before: 400 }
                 }),
                 new Paragraph({ text: `  • ${reportDict.totalProjects} ${completed.length + canceled.length + inProgress.length}`, style: "SummaryTextStyle" }),
                 new Paragraph({ text: `    - ${reportDict.inProgressProjectsShort}: ${inProgress.length}`, style: "SummaryTextStyle", indent: {left: 400} }),
                 new Paragraph({ text: `    - ${reportDict.completedProjectsShort}: ${completed.length}`, style: "SummaryTextStyle", indent: {left: 400} }),
                 new Paragraph({ text: `    - ${reportDict.canceledProjectsShort}: ${canceled.length}`, style: "SummaryTextStyle", indent: {left: 400} }),
-                new Paragraph({ text: "", spacing: {after: 400} }), // Increased spacing
+                new Paragraph({ text: "", spacing: {after: 400} }), 
             ],
         },
     ];
 
     if (chartImageDataUrl) {
         try {
+            console.log("[ReportGenerator/Word] Processing chart image for Word report...");
             const imageBuffer = Buffer.from(chartImageDataUrl.split(',')[1], 'base64');
             sections[0].children.push(
                 new Paragraph({
@@ -256,8 +267,9 @@ export async function generateWordReport(
                     spacing: { after: 400 }
                 })
             );
+            console.log("[ReportGenerator/Word] Chart image added to document.");
         } catch (error) {
-            console.error("Error processing chart image for Word report:", error);
+            console.error("[ReportGenerator/Word] Error processing chart image for Word report:", error);
             sections[0].children.push(new Paragraph({ text: currentLanguage === 'id' ? "Kesalahan: Gambar grafik tidak dapat dimuat." : "Error: Chart image could not be loaded.", style: "ErrorTextStyle"}));
         }
     }
@@ -313,20 +325,21 @@ export async function generateWordReport(
         const table = new Table({
             rows: [headerRow, ...dataRows],
             width: {
-                size: 9020, // Standard A4 width in dxa (20ths of a point) for 1-inch margins approx
+                size: 9020, 
                 type: WidthType.DXA,
             },
-            columnWidths: [2500, 1200, 1500, 1800, 800, 1000, 1200], // Adjust as needed
+            columnWidths: [2500, 1200, 1500, 1800, 800, 1000, 1200], 
             borders: {
-                top: { style: BorderStyle.SINGLE, size: 8, color: "C0C0C0" }, // Thicker border
+                top: { style: BorderStyle.SINGLE, size: 8, color: "C0C0C0" }, 
                 bottom: { style: BorderStyle.SINGLE, size: 8, color: "C0C0C0" },
                 left: { style: BorderStyle.SINGLE, size: 8, color: "C0C0C0" },
                 right: { style: BorderStyle.SINGLE, size: 8, color: "C0C0C0" },
-                insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: "E0E0E0" }, // Lighter inner border
+                insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: "E0E0E0" }, 
                 insideVertical: { style: BorderStyle.SINGLE, size: 4, color: "E0E0E0" },
             },
         });
         sections[0].children.push(table);
+        console.log("[ReportGenerator/Word] Project table added to document.");
 
     } else {
         sections[0].children.push(
@@ -335,7 +348,7 @@ export async function generateWordReport(
     }
 
     sections[0].children.push(
-        new Paragraph({ text: "", spacing: {after: 800} }) // Add space before footer
+        new Paragraph({ text: "", spacing: {after: 800} }) 
     );
 
     const doc = new Document({
@@ -382,7 +395,7 @@ export async function generateWordReport(
                     name: "Section Header Style",
                     basedOn: "Normal",
                     next: "Normal",
-                    run: { size: 28, bold: true, color: primaryColor, font: "Calibri Light" }, // Consistent with title
+                    run: { size: 28, bold: true, color: primaryColor, font: "Calibri Light" }, 
                     paragraph: { spacing: { after: 250, before: 350 }, border: { bottom: {color: primaryColor, style: BorderStyle.SINGLE, size: 8 }}},
                 },
                 {
@@ -404,11 +417,11 @@ export async function generateWordReport(
                 document: {
                      run: { font: "Calibri", size: 24 },
                 },
-                heading1: { // Default H1, used if not overridden by named style
+                heading1: { 
                     run: { size: 32, bold: true, color: primaryColor, font: "Calibri Light" },
                     paragraph: { spacing: { after: 240, before: 400 } },
                 },
-                 title: { // Default Title, used if not overridden
+                 title: { 
                     run: { size: 48, bold: true, color: primaryColor, font: "Calibri Light" },
                     paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 600 } },
                 },
@@ -416,6 +429,17 @@ export async function generateWordReport(
         },
     });
 
-    const buffer = await Packer.toBuffer(doc);
-    return buffer;
+    try {
+        console.log("[ReportGenerator/Word] Attempting to pack Word document...");
+        const buffer = await Packer.toBuffer(doc);
+        console.log("[ReportGenerator/Word] Word document packed successfully.");
+        return buffer;
+    } catch (packError: any) {
+        console.error('[ReportGenerator/Word] Error during Packer.toBuffer:', packError);
+        if (packError.stack) {
+            console.error('[ReportGenerator/Word] Packer.toBuffer stack trace:', packError.stack);
+        }
+        // Re-throw a more informative error that can be caught by the API route
+        throw new Error(`Failed to pack Word document: ${packError.message || String(packError)}`);
+    }
 }

@@ -21,7 +21,16 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Missing required report data', details: 'Required fields for report generation are missing.' }, { status: 400 });
         }
         
+        console.log(`[API/WordReport] Generating Word report for ${monthName} ${year}, Language: ${language || 'en'}`);
+        if (chartImageDataUrl) {
+            console.log(`[API/WordReport] Chart image data URL provided (length: ${chartImageDataUrl.length})`);
+        } else {
+            console.log(`[API/WordReport] No chart image data URL provided.`);
+        }
+
         const wordBuffer = await generateWordReport(completed, canceled, inProgress, monthName, year, chartImageDataUrl, language || 'en');
+        
+        console.log(`[API/WordReport] Word report generated successfully. Buffer size: ${wordBuffer.length}`);
 
         return new NextResponse(wordBuffer, {
             status: 200,
@@ -32,9 +41,13 @@ export async function POST(req: NextRequest) {
         });
 
     } catch (error: any) {
-        console.error('Error generating Word report (API Route):', error); // Log the full error on the server
-        
-        let detailMessage = 'An unknown error occurred on the server during Word report generation.'; // Default
+        // Log the full error object and stack trace on the server for better debugging
+        console.error('[API/WordReport] Error generating Word report:', error);
+        if (error.stack) {
+            console.error('[API/WordReport] Stack trace:', error.stack);
+        }
+
+        let detailMessage = 'An unknown error occurred on the server during Word report generation.';
 
         if (error instanceof Error && error.message && error.message.trim() !== '') {
             detailMessage = error.message;
@@ -46,20 +59,26 @@ export async function POST(req: NextRequest) {
             if (errorAsString !== '[object Object]' && errorAsString.trim() !== '') {
                 detailMessage = errorAsString;
             } else {
-                 // If it's an object, try to stringify it for more details
+                 // If it's an object, try to stringify it for more details, but catch stringify errors
                 try {
-                    const errorJsonString = JSON.stringify(error);
+                    // Include non-enumerable properties from the error object
+                    const errorJsonString = JSON.stringify(error, Object.getOwnPropertyNames(error)); 
                     if (errorJsonString !== '{}' && errorJsonString.trim() !== '') {
                         detailMessage = `Server error object: ${errorJsonString}`;
+                    } else {
+                        // If stringify results in empty object, use a more generic message or part of stack
+                        detailMessage = error.stack ? String(error.stack).split('\n')[0] : 'Undescribable server error.';
                     }
                 } catch (e) {
-                    // Ignore stringify error, stick to the default message
+                    // If stringify fails, use a more generic message or part of stack
+                     detailMessage = error.stack ? String(error.stack).split('\n')[0] : 'Server error (stringify failed).';
                 }
             }
         }
         
         // Ensure detailMessage is never an empty string for the response
-        const finalDetailMessage = detailMessage.trim() === '' ? 'An unspecified error occurred on the server.' : detailMessage;
+        const finalDetailMessage = detailMessage.trim() === '' ? 'An unspecified server error occurred.' : detailMessage;
+        console.error(`[API/WordReport] Responding with error: ${finalDetailMessage}`);
 
         return NextResponse.json(
             { 
