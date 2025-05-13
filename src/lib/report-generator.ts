@@ -4,7 +4,7 @@
 import type { Project } from '@/services/project-service';
 import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
-import { Document, Packer, Paragraph, TextRun, Table, TableCell, TableRow, WidthType, BorderStyle, VerticalAlign, AlignmentType, HeadingLevel, ImageRun, ShadingType, PageNumber, SectionType, HyperlinkRef, ExternalHyperlink, UnderlineType } from 'docx';
+import { Document, Packer, Paragraph, TextRun, Table, TableCell, TableRow, WidthType, BorderStyle, VerticalAlign, AlignmentType, HeadingLevel, ImageRun, ShadingType, PageNumber, SectionType, ExternalHyperlink, UnderlineType } from 'docx';
 import type { Language } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 
@@ -168,9 +168,9 @@ export async function generateWordReport(
         }
     });
     
-    const primaryColor = "2C3E50"; // Dark Slate Blue
-    const accentColorLight = "ECF0F1"; // Very Light Grey
-    const textColor = "34495E"; // Wet Asphalt (Dark Grey Blue)
+    const primaryColor = "1A237E"; // Dark Blue from proposal
+    const accentColorLight = "EEEEEE"; // Light Gray from proposal
+    const textColor = "212121"; // Darker Gray for better readability
     const headerTextColor = "FFFFFF"; // White
 
     const sections = [
@@ -179,12 +179,25 @@ export async function generateWordReport(
                 type: SectionType.NEXT_PAGE, 
                 page: {
                     pageNumbers: { start: 1, formatType: PageNumber.DECIMAL },
-                     margin: { top: 720, right: 720, bottom: 720, left: 720 },
+                     margin: { top: 720, right: 720, bottom: 720, left: 720 }, // 0.5 inch margins
                 },
             },
             headers: {
                 default: new Paragraph({ 
-                    children: [ new HyperlinkRef("msarch_app_header_ref") ],
+                    children: [ 
+                        new ExternalHyperlink({
+                            children: [
+                                new TextRun({
+                                    text: "Msarch App",
+                                    size: 18, // 9pt
+                                    color: "A9A9A9",
+                                    font: "Calibri Light",
+                                    underline: { type: UnderlineType.SINGLE, color: "A9A9A9" },
+                                }),
+                            ],
+                            link: "https://msarch.com", // Replace with actual link if available
+                        })
+                    ],
                     alignment: AlignmentType.RIGHT,
                     spacing: { after: 100 }
                 }),
@@ -192,9 +205,9 @@ export async function generateWordReport(
             footers: {
                 default: new Paragraph({ 
                     children: [
-                        new TextRun({ text: `Page `, style: "FooterTextStyle" }),
+                        new TextRun({ text: `${currentLanguage === 'id' ? 'Halaman' : 'Page'} `, style: "FooterTextStyle" }),
                         new TextRun({ children: [PageNumber.CURRENT], style: "FooterTextStyle"  }),
-                        new TextRun({ text: " of ", style: "FooterTextStyle" }),
+                        new TextRun({ text: ` ${currentLanguage === 'id' ? 'dari' : 'of'} `, style: "FooterTextStyle" }),
                         new TextRun({ children: [PageNumber.TOTAL_PAGES], style: "FooterTextStyle"  }),
                     ],
                     alignment: AlignmentType.CENTER,
@@ -210,24 +223,24 @@ export async function generateWordReport(
                     ],
                     heading: HeadingLevel.TITLE,
                     alignment: AlignmentType.CENTER,
-                    spacing: { before: 1000, after: 200 }, 
+                    spacing: { before: 800, after: 100 }, 
                 }),
                 new Paragraph({
                     text: `${currentLanguage === 'id' ? 'Dibuat pada' : 'Generated on'}: ${format(new Date(), 'PPPPpppp', { locale })}`, 
                     style: "SubheaderStyle",
                     alignment: AlignmentType.CENTER,
-                    spacing: { after: 500 },
+                    spacing: { after: 400 },
                 }),
                 new Paragraph({
                     children: [ new TextRun({ text: `${currentLanguage === 'id' ? 'Ringkasan Proyek' : 'Project Summary'}`, style: "SectionHeaderStyle" }) ],
                     heading: HeadingLevel.HEADING_1,
-                    spacing: { after: 150, before: 300 }
+                    spacing: { after: 100, before: 200 }
                 }),
                 new Paragraph({ text: `• ${reportDict?.totalProjects || "Total Projects Reviewed"}: ${(completed?.length || 0) + (canceled?.length || 0) + (inProgress?.length || 0)}`, style: "SummaryTextStyle" }),
                 new Paragraph({ text: `  - ${reportDict?.inProgressProjectsShort || "In Progress"}: ${inProgress?.length || 0}`, style: "SummaryTextStyle", indent: {left: 360} }),
                 new Paragraph({ text: `  - ${reportDict?.completedProjectsShort || "Completed"}: ${completed?.length || 0}`, style: "SummaryTextStyle", indent: {left: 360} }),
                 new Paragraph({ text: `  - ${reportDict?.canceledProjectsShort || "Canceled"}: ${canceled?.length || 0}`, style: "SummaryTextStyle", indent: {left: 360} }),
-                new Paragraph({ text: "", spacing: {after: 300} }), 
+                new Paragraph({ text: "", spacing: {after: 200} }), 
             ],
         },
     ];
@@ -240,17 +253,17 @@ export async function generateWordReport(
                 new Paragraph({
                     children: [ new TextRun({ text: currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview", style: "SectionHeaderStyle" }) ],
                     heading: HeadingLevel.HEADING_1,
-                     spacing: { after: 150, before: 300 }
+                     spacing: { after: 100, before: 200 }
                 }),
                 new Paragraph({
                     children: [
                         new ImageRun({
                             data: imageBuffer,
-                            transformation: { width: 500, height: 250 }, // Maintain aspect ratio
+                            transformation: { width: 500, height: 250 }, 
                         }),
                     ],
                     alignment: AlignmentType.CENTER,
-                    spacing: { after: 300 }
+                    spacing: { after: 200 }
                 })
             );
             console.log("[ReportGenerator/Word] Chart image added to document.");
@@ -260,6 +273,19 @@ export async function generateWordReport(
         }
     } else {
          console.warn("[ReportGenerator/Word] No chart image data URL provided for Word report.");
+         sections[0].children.push(
+            new Paragraph({
+                children: [ new TextRun({ text: currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview", style: "SectionHeaderStyle" }) ],
+                heading: HeadingLevel.HEADING_1,
+                spacing: { after: 100, before: 200 }
+            }),
+            new Paragraph({
+                text: currentLanguage === 'id' ? "(Grafik tidak tersedia)" : "(Chart not available)",
+                alignment: AlignmentType.CENTER,
+                style: "ErrorTextStyle",
+                spacing: { after: 200 }
+            })
+        );
     }
 
 
@@ -268,7 +294,7 @@ export async function generateWordReport(
             new Paragraph({
                  children: [ new TextRun({ text: currentLanguage === 'id' ? "Daftar Detail Proyek" : "Detailed Project List", style: "SectionHeaderStyle" }) ],
                 heading: HeadingLevel.HEADING_1,
-                spacing: { after: 150, before: 300 }
+                spacing: { after: 100, before: 200 }
             })
         );
 
@@ -310,15 +336,15 @@ export async function generateWordReport(
 
         const table = new Table({
             rows: [headerRow, ...dataRows],
-            width: { size: 9020, type: WidthType.DXA },
+            width: { size: 9020, type: WidthType.DXA }, // Adjusted total width to better fit A4, approx 6.26 inches
             columnWidths: [2400, 1100, 1400, 1700, 700, 900, 820], 
             borders: {
-                top: { style: BorderStyle.SINGLE, size: 4, color: "BDC3C7" }, 
-                bottom: { style: BorderStyle.SINGLE, size: 4, color: "BDC3C7" },
-                left: { style: BorderStyle.SINGLE, size: 4, color: "BDC3C7" },
-                right: { style: BorderStyle.SINGLE, size: 4, color: "BDC3C7" },
-                insideHorizontal: { style: BorderStyle.SINGLE, size: 2, color: "DDE0E2" }, 
-                insideVertical: { style: BorderStyle.NONE }, // No vertical lines inside table
+                top: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
+                bottom: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
+                left: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
+                right: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
+                insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "D9D9D9" },
+                insideVertical: { style: BorderStyle.NONE },
             },
         });
         sections[0].children.push(table);
@@ -331,12 +357,12 @@ export async function generateWordReport(
     }
 
     sections[0].children.push(
-        new Paragraph({ text: "", spacing: {after: 600} }) 
+        new Paragraph({ text: "", spacing: {after: 400} }) 
     );
      sections[0].children.push(
         new Paragraph({
             children: [
-                new TextRun({ text: "Generated by Msarch App", style: "SmallMutedTextStyle"}),
+                new TextRun({ text: `${currentLanguage === 'id' ? 'Dihasilkan oleh Msarch App' : 'Generated by Msarch App'}`, style: "SmallMutedTextStyle"}),
             ],
             alignment: AlignmentType.RIGHT,
         })
@@ -348,35 +374,23 @@ export async function generateWordReport(
         title: `${reportDict?.title || "Monthly Project Report"} - ${monthName || "N/A"} ${year || "N/A"}`,
         description: `Monthly project report for ${monthName || "N/A"} ${year || "N/A"} generated by Msarch App.`,
         sections: sections,
-         hyperlinks: {
-            msarch_app_header_ref: new ExternalHyperlink({
-                children: [
-                    new TextRun({
-                        text: "Msarch App",
-                        style: "SmallMutedHeaderStyle",
-                    }),
-                ],
-                link: "https://msarch.com", // Replace with actual link if available
-            }),
-        },
         styles: {
             paragraphStyles: [
-                { id: "TitleStyle", name: "Title Style", basedOn: "Normal", run: { size: 44, bold: true, color: primaryColor, font: "Calibri Light" } },
-                { id: "SubheaderStyle", name: "Subheader Style", basedOn: "Normal", run: { size: 22, italics: true, color: "7F8C8D", font: "Calibri" }, paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 200 }} },
-                { id: "TableHeaderStyle", name: "Table Header Style", basedOn: "Normal", run: { bold: true, size: 20, color: headerTextColor, font: "Calibri" }, paragraph: { alignment: AlignmentType.CENTER, spacing: { before: 100, after: 100 } } },
-                { id: "TableCellStyle", name: "Table Cell Style", basedOn: "Normal", run: { size: 18, color: textColor, font: "Calibri"}, paragraph: { spacing: { before: 80, after: 80 } } },
-                { id: "SummaryTextStyle", name: "Summary Text Style", basedOn: "Normal", run: { size: 22, color: "34495E", font: "Calibri"}, paragraph: { spacing: { before: 60, after: 60 }, indent: { left: 180 }}},
-                { id: "SectionHeaderStyle", name: "Section Header Style", basedOn: "Normal", run: { size: 28, bold: true, color: primaryColor, font: "Calibri Light" }, paragraph: { spacing: { after: 200, before: 300 }, border: { bottom: {color: primaryColor, style: BorderStyle.SINGLE, size: 6 }} } },
+                { id: "TitleStyle", name: "Title Style", basedOn: "Normal", run: { size: 40, bold: true, color: primaryColor, font: "Calibri Light" } },
+                { id: "SubheaderStyle", name: "Subheader Style", basedOn: "Normal", run: { size: 22, italics: true, color: "566573", font: "Calibri" }, paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 150 }} },
+                { id: "TableHeaderStyle", name: "Table Header Style", basedOn: "Normal", run: { bold: true, size: 20, color: headerTextColor, font: "Calibri" }, paragraph: { alignment: AlignmentType.CENTER, spacing: { before: 80, after: 80 } } },
+                { id: "TableCellStyle", name: "Table Cell Style", basedOn: "Normal", run: { size: 18, color: textColor, font: "Calibri"}, paragraph: { spacing: { before: 60, after: 60 } } },
+                { id: "SummaryTextStyle", name: "Summary Text Style", basedOn: "Normal", run: { size: 22, color: textColor, font: "Calibri"}, paragraph: { spacing: { before: 40, after: 40 }, indent: { left: 180 }}},
+                { id: "SectionHeaderStyle", name: "Section Header Style", basedOn: "Normal", run: { size: 26, bold: true, color: primaryColor, font: "Calibri Light" }, paragraph: { spacing: { after: 150, before: 250 }, border: { bottom: {color: primaryColor, style: BorderStyle.SINGLE, size: 4 }} } },
                 { id: "ErrorTextStyle", name: "Error Text Style", basedOn: "Normal", run: { size: 20, color: "C0392B", italics: true, font: "Calibri"}},
                 { id: "NormalTextStyle", name: "Normal Text Style", basedOn: "Normal", run: { size: 22, color: textColor, font: "Calibri"}},
-                { id: "FooterTextStyle", name: "Footer Text Style", basedOn: "Normal", run: { size: 18, color: "A9A9A9", font: "Calibri" } },
-                { id: "SmallMutedTextStyle", name: "Small Muted Text Style", basedOn: "Normal", run: { size: 16, color: "95A5A6", font: "Calibri", italics: true } },
-                 { id: "SmallMutedHeaderStyle", name: "Small Muted Header Style", basedOn: "Normal", run: { size: 18, color: "A9A9A9", font: "Calibri Light", underline: { type: UnderlineType.SINGLE, color: "A9A9A9" } } },
+                { id: "FooterTextStyle", name: "Footer Text Style", basedOn: "Normal", run: { size: 16, color: "A9A9A9", font: "Calibri" } },
+                { id: "SmallMutedTextStyle", name: "Small Muted Text Style", basedOn: "Normal", run: { size: 16, color: "7F8C8D", font: "Calibri", italics: true } },
             ],
             default: {
                 document: { run: { font: "Calibri", size: 22, color: textColor } },
                 heading1: { run: { size: 28, bold: true, color: primaryColor, font: "Calibri Light" }, paragraph: { spacing: { after: 200, before: 300 } } },
-                title: { run: { size: 44, bold: true, color: primaryColor, font: "Calibri Light" }, paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 200, before: 1000 } } },
+                title: { run: { size: 40, bold: true, color: primaryColor, font: "Calibri Light" }, paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 100, before: 800 } } },
             }
         },
     });
