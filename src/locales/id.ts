@@ -358,6 +358,7 @@ const id = {
        noDataForMonth: "Tidak ada data proyek ditemukan untuk bulan dan tahun yang dipilih.",
        tryDifferentMonthYear: "Coba pilih bulan atau tahun yang berbeda.",
        totalProjects: "Total Proyek Ditinjau:",
+       totalProjectsShort: "proyek", // For chart tooltips etc.
        totalProjectsDesc: "Total: {total} (Selesai: {completed}, Dibatalkan: {canceled}, Sedang Berjalan: {inProgress})",
        completedProjects: "Proyek Selesai:",
        completedProjectsShort: "Selesai",
@@ -366,7 +367,7 @@ const id = {
        inProgressProjects: "Proyek Sedang Berjalan:",
        inProgressProjectsShort: "Sedang Berjalan",
        downloadExcel: "Unduh Excel (.csv)",
-       downloadWord: "Unduh Word (.docx)", // Added Word download text
+       downloadWord: "Unduh Word (.docx)",
        downloadingButton: "Mengunduh...",
        errorGeneratingReport: "Kesalahan saat membuat laporan.",
        errorDownloadingReport: "Kesalahan saat mengunduh laporan.",
@@ -380,7 +381,7 @@ const id = {
        tableHeaderContributors: "Kontributor",
        toast: {
            downloadedExcel: "Laporan Excel (CSV) Diunduh",
-           downloadedWord: "Laporan Word (.docx) Diunduh", // Added Word download toast
+           downloadedWord: "Laporan Word (.docx) Diunduh",
        }
    },
    // Notifications (General)

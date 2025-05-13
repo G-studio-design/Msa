@@ -36,13 +36,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getAllProjects, type Project } from '@/services/project-service';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { generateExcelReport } from '@/lib/report-generator'; // generateWordReport is handled by API
+import { generateExcelReport, generateWordReport } from '@/lib/report-generator';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
 } from "@/components/ui/chart";
-import { Pie, ResponsiveContainer, PieChart as RechartsPieChart, Cell } from "recharts";
+import { Pie, ResponsiveContainer, PieChart as RechartsPieChart, Cell, TooltipProps } from "recharts"; // Added TooltipProps
+import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
+
 import { toPng } from 'html-to-image';
 
 
@@ -58,10 +62,30 @@ interface MonthlyReportData {
 }
 
 const CHART_COLORS = {
-    inProgress: "hsl(var(--chart-1))",
-    completed: "hsl(var(--chart-2))",
-    canceled: "hsl(var(--chart-3))",
+    inProgress: "hsl(210, 80%, 60%)", // Brighter Blue
+    completed: "hsl(140, 60%, 50%)", // Softer Green
+    canceled: "hsl(0, 70%, 55%)",   // Clearer Red
 };
+
+// Custom Tooltip for Recharts Pie Chart
+const CustomPieTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
+  const { language } = useLanguage();
+  const dict = getDictionary(language).monthlyReportPage;
+
+  if (active && payload && payload.length) {
+    const data = payload[0].payload; // Access the payload object from the item
+    const name = data.name; // The translated name from summaryChartData
+    const value = data.value;
+
+    return (
+      <div className="rounded-lg border bg-background p-2.5 text-sm shadow-lg">
+        <p className="font-medium">{`${name}: ${value} ${dict.totalProjectsShort || 'projects'}`}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
 
 export default function MonthlyReportPage() {
   const { toast } = useToast();
@@ -127,7 +151,7 @@ export default function MonthlyReportPage() {
         const endDateOfMonth = new Date(year, month, 0);
         endDateOfMonth.setHours(23, 59, 59, 999);
 
-        const monthName = startDateOfMonth.toLocaleString(language, { month: 'long' });
+        const monthName = startDateOfMonth.toLocaleString(language === 'id' ? 'id-ID' : 'en-US', { month: 'long' });
 
 
         const getFinalStatusTimestamp = (project: Project, targetStatus: 'Completed' | 'Canceled'): Date | null => {
@@ -213,7 +237,7 @@ export default function MonthlyReportPage() {
     setIsDownloadingExcel(true);
     try {
         const filenameBase = `Monthly_Report_${reportData.monthName}_${reportData.year}`;
-        const fileContent = await generateExcelReport(reportData.completed, reportData.canceled, reportData.inProgress, language); // Pass language
+        const fileContent = await generateExcelReport(reportData.completed, reportData.canceled, reportData.inProgress, language); 
 
         if (!fileContent.trim()) {
             toast({ variant: 'destructive', title: "Report Empty", description: `The generated Excel report content is empty.` });
@@ -249,7 +273,8 @@ export default function MonthlyReportPage() {
             chartImageDataUrl = await toPng(chartRef.current, {
                 quality: 0.95,
                 backgroundColor: 'white',
-                skipFonts: true, // Important for Word compatibility
+                // Ensure fonts are embedded or use web-safe fonts in the chart if Word compatibility is an issue
+                // skipFonts: true, // This was causing issues for some users. Test without it.
              });
         } catch (error) {
             console.error('Error capturing chart image:', error);
@@ -268,22 +293,23 @@ export default function MonthlyReportPage() {
                 monthName: reportData.monthName,
                 year: reportData.year,
                 chartImageDataUrl,
-                language: language, // Pass current language
+                language: language, 
             }),
         });
 
         if (!response.ok) {
             let errorDetails = 'Failed to generate Word report from server.';
-            // Try to parse JSON error first, then fall back to text
+            let responseText = '';
             try {
-                const errorData = await response.json();
+                // Try to get text first, as response might not be JSON
+                responseText = await response.text();
+                const errorData = JSON.parse(responseText); // Then try to parse as JSON
                 errorDetails = errorData.details || errorData.error || errorDetails;
                 console.error("Server JSON error details for Word generation:", errorData);
             } catch (jsonError) {
-                // If parsing JSON fails, it means the response was likely not JSON
-                const responseText = await response.text(); // Read as text
+                 // If parsing JSON fails, use the responseText (if available) or statusText
                 errorDetails = responseText || response.statusText || `Server returned status ${response.status}.`;
-                console.error("Non-JSON error response from server for Word generation:", responseText);
+                console.error("Non-JSON error response from server for Word generation:", responseText || errorDetails);
             }
             throw new Error(errorDetails);
         }
@@ -352,7 +378,7 @@ export default function MonthlyReportPage() {
   const years = Array.from({ length: 5 }, (_, i) => String(currentYear - i));
   const months = Array.from({ length: 12 }, (_, i) => ({
     value: String(i + 1).padStart(2, '0'),
-    label: new Date(currentYear, i).toLocaleString(language, { month: 'long' }),
+    label: new Date(currentYear, i).toLocaleString(language === 'id' ? 'id-ID' : 'en-US', { month: 'long' }),
   }));
 
   const allReportedProjects = reportData ? [...reportData.inProgress, ...reportData.completed, ...reportData.canceled ] : [];
@@ -448,7 +474,7 @@ export default function MonthlyReportPage() {
 
           {reportData && !isLoading && (
              <>
-                <div ref={chartRef} className="bg-card p-4 rounded-lg shadow-md border-primary/30">
+                <div ref={chartRef} className="bg-card p-4 rounded-lg shadow-md border-primary/20">
                     <CardHeader className="pb-2">
                          <CardTitle className="text-lg flex items-center gap-2">
                             <PieChartIcon className="h-5 w-5 text-primary" />
@@ -458,55 +484,67 @@ export default function MonthlyReportPage() {
                      <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                              <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-1 gap-4 text-center md:text-left">
-                                 <Card className="bg-blue-500/10 p-4 rounded-lg">
+                                 <Card className="p-4 rounded-lg" style={{ backgroundColor: CHART_COLORS.inProgress + '20' }}> {/* Lighter bg with opacity */}
                                      <div className="flex items-center justify-center md:justify-start gap-2">
-                                       <Activity className="h-5 w-5 text-blue-600" />
-                                       <p className="text-sm font-medium text-blue-700">{reportDict.inProgressProjectsShort}</p>
+                                       <Activity className="h-5 w-5" style={{ color: CHART_COLORS.inProgress }}/>
+                                       <p className="text-sm font-medium" style={{ color: CHART_COLORS.inProgress }}>{reportDict.inProgressProjectsShort}</p>
                                      </div>
-                                     <p className="text-2xl font-bold text-blue-800">{reportData.inProgress.length}</p>
+                                     <p className="text-2xl font-bold" style={{ color: CHART_COLORS.inProgress }}>{reportData.inProgress.length}</p>
                                  </Card>
-                                 <Card className="bg-green-500/10 p-4 rounded-lg">
+                                 <Card className="p-4 rounded-lg" style={{ backgroundColor: CHART_COLORS.completed + '20' }}>
                                      <div className="flex items-center justify-center md:justify-start gap-2">
-                                       <CheckSquare className="h-5 w-5 text-green-600" />
-                                       <p className="text-sm font-medium text-green-700">{reportDict.completedProjectsShort}</p>
+                                       <CheckSquare className="h-5 w-5" style={{ color: CHART_COLORS.completed }}/>
+                                       <p className="text-sm font-medium" style={{ color: CHART_COLORS.completed }}>{reportDict.completedProjectsShort}</p>
                                      </div>
-                                     <p className="text-2xl font-bold text-green-800">{reportData.completed.length}</p>
+                                     <p className="text-2xl font-bold" style={{ color: CHART_COLORS.completed }}>{reportData.completed.length}</p>
                                  </Card>
-                                 <Card className="bg-red-500/10 p-4 rounded-lg">
+                                 <Card className="p-4 rounded-lg" style={{ backgroundColor: CHART_COLORS.canceled + '20' }}>
                                     <div className="flex items-center justify-center md:justify-start gap-2">
-                                       <XSquare className="h-5 w-5 text-red-600" />
-                                       <p className="text-sm font-medium text-red-700">{reportDict.canceledProjectsShort}</p>
+                                       <XSquare className="h-5 w-5" style={{ color: CHART_COLORS.canceled }}/>
+                                       <p className="text-sm font-medium" style={{ color: CHART_COLORS.canceled }}>{reportDict.canceledProjectsShort}</p>
                                      </div>
-                                     <p className="text-2xl font-bold text-red-800">{reportData.canceled.length}</p>
+                                     <p className="text-2xl font-bold" style={{ color: CHART_COLORS.canceled }}>{reportData.canceled.length}</p>
                                  </Card>
                              </div>
                              {summaryChartData.length > 0 ? (
-                                <ChartContainer config={{}} className="h-[200px] sm:h-[250px] w-full">
+                                <ChartContainer config={{}} className="h-[220px] sm:h-[280px] w-full"> {/* Increased height */}
                                     <ResponsiveContainer width="100%" height="100%">
-                                        <RechartsPieChart>
-                                            <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-                                            <Pie data={summaryChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} labelLine={false} label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
-                                                const RADIAN = Math.PI / 180;
-                                                const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-                                                const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                                                const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                                                return (
-                                                    <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={10}>
-                                                        {`${(percent * 100).toFixed(0)}%`}
-                                                    </text>
-                                                );
-                                            }}>
+                                        <RechartsPieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+                                            <ChartTooltip content={<CustomPieTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
+                                            <Pie 
+                                                data={summaryChartData} 
+                                                dataKey="value" 
+                                                nameKey="name" 
+                                                cx="50%" 
+                                                cy="50%" 
+                                                outerRadius={90} // Increased radius
+                                                innerRadius={50} // Donut chart
+                                                labelLine={false} 
+                                                label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value }) => {
+                                                    const RADIAN = Math.PI / 180;
+                                                    const radius = outerRadius + 15; // Position label outside
+                                                    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                                                    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                                                    const textAnchor = x > cx ? 'start' : 'end';
+                                                    return (
+                                                        <text x={x} y={y} fill="hsl(var(--foreground))" textAnchor={textAnchor} dominantBaseline="central" fontSize={11} fontWeight="medium">
+                                                            {`${name}: ${(percent * 100).toFixed(0)}% (${value})`}
+                                                        </text>
+                                                    );
+                                                }}
+                                            >
                                                 {summaryChartData.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                                                    <Cell key={`cell-${index}`} fill={entry.fill} stroke="hsl(var(--background))" strokeWidth={2} />
                                                 ))}
                                             </Pie>
+                                            {/* <ChartLegend content={<ChartLegendContent nameKey="name" />} /> */}
                                         </RechartsPieChart>
                                     </ResponsiveContainer>
                                 </ChartContainer>
                              ) : (
-                                <div className="flex items-center justify-center h-[200px] text-muted-foreground">
-                                    <PieChartIcon className="h-8 w-8 mr-2"/>
-                                    {language === 'id' ? 'Tidak ada data untuk grafik.' : 'No data for chart.'}
+                                <div className="flex items-center justify-center h-[220px] sm:h-[280px] text-muted-foreground">
+                                    <PieChartIcon className="h-10 w-10 mr-2 text-primary/50"/>
+                                    <p className="text-lg">{language === 'id' ? 'Tidak ada data untuk grafik.' : 'No data for chart.'}</p>
                                 </div>
                              )}
                         </div>
@@ -521,7 +559,7 @@ export default function MonthlyReportPage() {
                     <CardContent>
                         <ScrollArea className="max-h-[60vh] w-full rounded-md border">
                             <Table>
-                                <TableHeader className="sticky top-0 bg-secondary/80 backdrop-blur-sm">
+                                <TableHeader className="sticky top-0 bg-secondary/90 backdrop-blur-sm z-10">
                                     <TableRow>
                                         <TableHead className="w-[200px] sm:w-[250px]">{reportDict.tableHeaderTitle}</TableHead>
                                         <TableHead className="w-[120px] sm:w-[150px]">{reportDict.tableHeaderStatus}</TableHead>
@@ -546,18 +584,19 @@ export default function MonthlyReportPage() {
                                         switch (displayStatus) {
                                             case 'Completed':
                                                 statusIcon = <CalendarCheck className="mr-1.5 h-3.5 w-3.5" />;
-                                                badgeVariant = 'default';
-                                                badgeClassName += ' bg-green-500 hover:bg-green-600 text-white';
+                                                badgeClassName += ' bg-green-100 text-green-700 border-green-300';
+                                                badgeVariant = "outline";
                                                 break;
                                             case 'Canceled':
                                                 statusIcon = <CalendarX className="mr-1.5 h-3.5 w-3.5" />;
-                                                badgeVariant = 'destructive';
+                                                badgeClassName += ' bg-red-100 text-red-700 border-red-300';
+                                                 badgeVariant = "outline";
                                                 break;
                                             case 'In Progress':
                                             default:
                                                 statusIcon = <Activity className="mr-1.5 h-3.5 w-3.5" />;
-                                                badgeVariant = 'secondary';
-                                                badgeClassName += ' bg-blue-500 text-white hover:bg-blue-600';
+                                                badgeClassName += ' bg-blue-100 text-blue-700 border-blue-300';
+                                                badgeVariant = "outline";
                                                 break;
                                         }
 

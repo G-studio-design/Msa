@@ -358,6 +358,7 @@ const en = {
       noDataForMonth: "No project data found for the selected month and year.",
       tryDifferentMonthYear: "Try selecting a different month or year.",
       totalProjects: "Total Projects Reviewed:",
+      totalProjectsShort: "projects", // For chart tooltips etc.
       totalProjectsDesc: "Total: {total} (Completed: {completed}, Canceled: {canceled}, In Progress: {inProgress})",
       completedProjects: "Completed Projects:",
       completedProjectsShort: "Completed",
@@ -366,7 +367,7 @@ const en = {
       inProgressProjects: "In Progress Projects:",
       inProgressProjectsShort: "In Progress",
       downloadExcel: "Download Excel (.csv)",
-      downloadWord: "Download Word (.docx)", // Added Word download text
+      downloadWord: "Download Word (.docx)",
       downloadingButton: "Downloading...",
       errorGeneratingReport: "Error generating report.",
       errorDownloadingReport: "Error downloading report.",
@@ -380,7 +381,7 @@ const en = {
       tableHeaderContributors: "Contributors",
       toast: {
           downloadedExcel: "Excel Report (CSV) Downloaded",
-          downloadedWord: "Word Report (.docx) Downloaded", // Added Word download toast
+          downloadedWord: "Word Report (.docx) Downloaded",
       }
   },
   // Notifications (General)
