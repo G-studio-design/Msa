@@ -94,12 +94,13 @@ export async function generateExcelReport(
         if (!dateBIsValid) return -1;
 
         try {
-            const dateA = parseISO(dateAStr).getTime();
-            const dateB = parseISO(dateBStr).getTime();
-             return dateB - dateA;
+            // Assuming date strings are in a parsable format like 'YYYY-MM-DD' or ISO
+            const dateA = parseISO(a.createdAt).getTime(); // Use createdAt for primary sort within status
+            const dateB = parseISO(b.createdAt).getTime();
+             return dateB - dateA; // Sort by creation date, newest first
         } catch (e) {
-            // If parsing fails after checks, treat as non-comparable
-            return 0;
+            console.warn("[ReportGenerator/ExcelSort] Error parsing date for sorting, falling back to title sort:", e);
+            return a.title.localeCompare(b.title);
         }
     });
 
@@ -172,16 +173,18 @@ export async function generateWordReport(
         if (orderA !== orderB) return orderA - orderB;
         
         try {
+            // Sort by creation date if status is the same, newest first
             return parseISO(b.createdAt).getTime() - parseISO(a.createdAt).getTime();
-        } catch {
-            return 0;
+        } catch (e) {
+            console.warn("[ReportGenerator/WordSort] Error parsing date for sorting, falling back to title sort:", e);
+            return a.title.localeCompare(b.title);
         }
     });
     
-    const primaryColor = "1A237E"; 
-    const accentColorLight = "EEEEEE"; 
-    const textColor = "333333"; 
-    const headerTextColor = "FFFFFF"; 
+    const primaryColor = "1A237E"; // Dark Blue
+    const accentColorLight = "E8EAF6"; // Light Indigo for row shading
+    const textColor = "333333"; // Dark Gray for text
+    const headerTextColor = "FFFFFF"; // White for table header text
 
     const sections = [
         {
@@ -192,11 +195,17 @@ export async function generateWordReport(
                         start: 1,
                         formatType: PageNumber.DECIMAL,
                     },
+                     margin: {
+                        top: 720, // 0.5 inch
+                        right: 720,
+                        bottom: 720,
+                        left: 720,
+                    },
                 },
             },
             headers: {
                 default: new Paragraph({ 
-                    children: [new TextRun({ text: "Msarch App", font: "Calibri", size: 18, color: "A9A9A9" })],
+                    children: [new TextRun({ text: "Msarch App", font: "Calibri", size: 18, color: "A9A9A9" })], // Smaller, grayed out
                     alignment: AlignmentType.RIGHT,
                     spacing: { after: 100 }
                 }),
@@ -218,27 +227,27 @@ export async function generateWordReport(
                         new TextRun({
                             text: `${reportDict?.title || "Monthly Project Report"} - ${monthName || "N/A"} ${year || "N/A"}`,
                             font: "Calibri Light",
-                            size: 48, 
+                            size: 48, // Large title
                             bold: true,
                             color: primaryColor,
                         }),
                     ],
                     heading: HeadingLevel.TITLE,
                     alignment: AlignmentType.CENTER,
-                    spacing: { before: 2000, after: 600 }, 
+                    spacing: { before: 1200, after: 300 }, // More space before, less after
                 }),
                 new Paragraph({
                     text: `${currentLanguage === 'id' ? 'Dibuat pada' : 'Generated on'}: ${format(new Date(), 'PPPPpppp', { locale })}`, 
-                    style: "SubheaderStyle",
+                    style: "SubheaderStyle", // Custom style
                     alignment: AlignmentType.CENTER,
-                    spacing: { after: 800 },
+                    spacing: { after: 600 },
                 }),
                 new Paragraph({
                     children: [
                          new TextRun({ text: `${currentLanguage === 'id' ? 'Ringkasan Proyek' : 'Project Summary'}:`, font: "Calibri", bold: true, size: 32, color: primaryColor })
                     ],
                     heading: HeadingLevel.HEADING_1,
-                    style: "SectionHeaderStyle", 
+                    style: "SectionHeaderStyle", // Custom style
                     spacing: { after: 200, before: 400 }
                 }),
                 new Paragraph({ text: `  • ${reportDict?.totalProjects || "Total Projects Reviewed"}: ${(completed?.length || 0) + (canceled?.length || 0) + (inProgress?.length || 0)}`, style: "SummaryTextStyle" }),
@@ -268,8 +277,8 @@ export async function generateWordReport(
                         new ImageRun({
                             data: imageBuffer,
                             transformation: {
-                                width: 600, 
-                                height: 300,
+                                width: 550, // Adjusted width
+                                height: 275, // Adjusted height for 2:1 aspect ratio
                             },
                         }),
                     ],
@@ -336,17 +345,18 @@ export async function generateWordReport(
         const table = new Table({
             rows: [headerRow, ...dataRows],
             width: {
-                size: 9020, 
+                size: 9020, // 9020 DXA is roughly 6.26 inches, good for A4 portrait
                 type: WidthType.DXA,
             },
-            columnWidths: [2500, 1200, 1500, 1800, 800, 1000, 1200], 
-            borders: {
-                top: { style: BorderStyle.SINGLE, size: 8, color: "C0C0C0" }, 
-                bottom: { style: BorderStyle.SINGLE, size: 8, color: "C0C0C0" },
-                left: { style: BorderStyle.SINGLE, size: 8, color: "C0C0C0" },
-                right: { style: BorderStyle.SINGLE, size: 8, color: "C0C0C0" },
-                insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: "E0E0E0" }, 
-                insideVertical: { style: BorderStyle.SINGLE, size: 4, color: "E0E0E0" },
+            // Adjust column widths for better fit (total should be around 9020)
+            columnWidths: [2500, 1200, 1500, 1800, 800, 1000, 1220], 
+            borders: { // Lighter, more professional borders
+                top: { style: BorderStyle.SINGLE, size: 6, color: "BFBFBF" }, 
+                bottom: { style: BorderStyle.SINGLE, size: 6, color: "BFBFBF" },
+                left: { style: BorderStyle.SINGLE, size: 6, color: "BFBFBF" },
+                right: { style: BorderStyle.SINGLE, size: 6, color: "BFBFBF" },
+                insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: "D9D9D9" }, 
+                insideVertical: { style: BorderStyle.SINGLE, size: 4, color: "D9D9D9" },
             },
         });
         sections[0].children.push(table);
@@ -374,7 +384,7 @@ export async function generateWordReport(
                     name: "Subheader Style",
                     basedOn: "Normal",
                     next: "Normal",
-                    run: { size: 24, italics: true, color: "5A5A5A", font: "Calibri" },
+                    run: { size: 24, italics: true, color: "5A5A5A", font: "Calibri" }, // Font Calibri
                     paragraph: { spacing: { after: 200 }, alignment: AlignmentType.CENTER },
                 },
                 {
@@ -382,7 +392,7 @@ export async function generateWordReport(
                     name: "Table Header Style",
                     basedOn: "Normal",
                     next: "Normal",
-                    run: { bold: true, size: 22, color: headerTextColor, font: "Calibri" }, 
+                    run: { bold: true, size: 22, color: headerTextColor, font: "Calibri" }, // Font Calibri
                     paragraph: { alignment: AlignmentType.CENTER, spacing: { before: 120, after: 120 } },
                 },
                 {
@@ -390,7 +400,7 @@ export async function generateWordReport(
                     name: "Table Cell Style",
                     basedOn: "Normal",
                     next: "Normal",
-                    run: { size: 20, color: textColor, font: "Calibri"},
+                    run: { size: 20, color: textColor, font: "Calibri"}, // Font Calibri
                     paragraph: { spacing: { before: 100, after: 100 } },
                 },
                 {
@@ -398,7 +408,7 @@ export async function generateWordReport(
                     name: "Summary Text Style",
                     basedOn: "Normal",
                     next: "Normal",
-                    run: { size: 24, color: "4A4A4A", font: "Calibri"},
+                    run: { size: 24, color: "4A4A4A", font: "Calibri"}, // Font Calibri
                     paragraph: { spacing: { before: 80, after: 80 }, indent: { left: 200 }},
                 },
                  {
@@ -406,7 +416,7 @@ export async function generateWordReport(
                     name: "Section Header Style",
                     basedOn: "Normal",
                     next: "Normal",
-                    run: { size: 28, bold: true, color: primaryColor, font: "Calibri Light" }, 
+                    run: { size: 28, bold: true, color: primaryColor, font: "Calibri Light" }, // Font Calibri Light
                     paragraph: { spacing: { after: 250, before: 350 }, border: { bottom: {color: primaryColor, style: BorderStyle.SINGLE, size: 8 }}},
                 },
                 {
@@ -414,27 +424,27 @@ export async function generateWordReport(
                     name: "Error Text Style",
                     basedOn: "Normal",
                     next: "Normal",
-                    run: { size: 22, color: "C00000", italics: true, font: "Calibri"},
+                    run: { size: 22, color: "C00000", italics: true, font: "Calibri"}, // Font Calibri
                 },
                 {
                     id: "NormalTextStyle",
                     name: "Normal Text Style",
                     basedOn: "Normal",
                     next: "Normal",
-                    run: { size: 24, color: "262626", font: "Calibri"},
+                    run: { size: 24, color: "262626", font: "Calibri"}, // Font Calibri
                 },
             ],
             default: {
                 document: {
-                     run: { font: "Calibri", size: 24 },
+                     run: { font: "Calibri", size: 22 }, // Default font and size
                 },
-                heading1: { 
+                heading1: { // Used by HEADING_1
                     run: { size: 32, bold: true, color: primaryColor, font: "Calibri Light" },
                     paragraph: { spacing: { after: 240, before: 400 } },
                 },
-                 title: { 
+                 title: { // Used by HeadingLevel.TITLE
                     run: { size: 48, bold: true, color: primaryColor, font: "Calibri Light" },
-                    paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 600 } },
+                    paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 600, before: 1200 } },
                 },
             }
         },
