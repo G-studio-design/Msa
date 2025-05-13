@@ -281,8 +281,8 @@ export default function MonthlyReportPage() {
         return;
     }
     
-    const hasDataForChart = reportData.completed.length > 0 || reportData.inProgress.length > 0 || reportData.canceled.length > 0;
-    if (hasDataForChart && !chartImageDataUrl && !isGeneratingReport) { // if has data but no chart yet, and not actively generating
+    const hasDataForChartLocal = reportData.completed.length > 0 || reportData.inProgress.length > 0 || reportData.canceled.length > 0;
+    if (hasDataForChartLocal && !chartImageDataUrl && !isGeneratingReport) { // if has data but no chart yet, and not actively generating
         toast({ variant: 'destructive', title: reportDict.toast.generatingChartTitle, description: reportDict.toast.generatingChartDesc });
         return;
     }
@@ -308,9 +308,10 @@ export default function MonthlyReportPage() {
             }),
         });
 
+        const responseText = await response.text(); // Read the response body once
+
         if (!response.ok) {
             let errorDetails = "Failed to generate Word report from server.";
-            const responseText = await response.text();
             try {
                  if (responseText.trim().startsWith('{') && responseText.trim().endsWith('}')) {
                     const errorData = JSON.parse(responseText);
@@ -329,8 +330,12 @@ export default function MonthlyReportPage() {
             }
             throw new Error(errorDetails);
         }
+        
+        // If response is OK, create Blob from the responseText (assuming it's the file content if not an error)
+        // This part might need adjustment if the successful response isn't directly the file content
+        // but a Blob representing the file.
+        const blob = new Blob([responseText], { type: response.headers.get('Content-Type') || 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
 
-        const blob = await response.blob();
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
         link.href = url;
@@ -394,6 +399,7 @@ export default function MonthlyReportPage() {
   }
   
   const noData = reportData && reportData.completed.length === 0 && reportData.inProgress.length === 0 && reportData.canceled.length === 0;
+  const hasDataForChart = reportData && (reportData.completed.length > 0 || reportData.inProgress.length > 0 || reportData.canceled.length > 0);
 
 
   return (
