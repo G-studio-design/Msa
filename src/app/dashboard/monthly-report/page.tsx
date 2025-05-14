@@ -225,7 +225,12 @@ export default function MonthlyReportPage() {
         if (chartContainerRef.current && (newReportData.completed.length > 0 || newReportData.inProgress.length > 0 || newReportData.canceled.length > 0)) {
             try {
                 console.log("Attempting to generate chart image...");
-                const dataUrl = await toPng(chartContainerRef.current, { quality: 0.95, backgroundColor: '#ffffff', pixelRatio: 2 });
+                const dataUrl = await toPng(chartContainerRef.current, { 
+                    quality: 0.95, 
+                    backgroundColor: '#ffffff', 
+                    pixelRatio: 2,
+                    skipFonts: true // Skip font embedding to avoid errors
+                });
                 setChartImageDataUrl(dataUrl);
                 console.log("Chart image generated for report.");
             } catch (error) {
@@ -573,3 +578,4 @@ export default function MonthlyReportPage() {
     </div>
   );
 }
+
