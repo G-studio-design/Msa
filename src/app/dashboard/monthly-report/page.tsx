@@ -45,7 +45,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList, Cell } from "recharts"; // Added Cell
 import type { Language } from '@/context/LanguageContext';
 import { toPng } from 'html-to-image';
 
@@ -438,6 +438,9 @@ export default function MonthlyReportPage() {
                                 <ChartTooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent hideLabel />} />
                                 <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                                     <LabelList dataKey="count" position="right" offset={8} className="fill-foreground" fontSize={10} />
+                                    {chartDisplayData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                                    ))}
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>
