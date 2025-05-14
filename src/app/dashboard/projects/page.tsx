@@ -31,7 +31,7 @@ import {
   Download,
   FolderOpen,
   RefreshCw, 
-  Search, // Added Search icon
+  Search,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -53,7 +53,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAllProjects, updateProject, reviseProject, getProjectById, type Project, type WorkflowHistoryEntry, type FileEntry } from '@/services/project-service';
+import { getAllProjects, updateProject, reviseProject, getProjectById as fetchProjectById, type Project, type WorkflowHistoryEntry, type FileEntry } from '@/services/project-service'; // Renamed getProjectById to avoid conflict
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -73,6 +73,8 @@ const projectStatuses = [
     'Pending Final Check', 'Pending Scheduling', 'Scheduled', 'In Progress',
     'Completed', 'Canceled'
 ];
+
+const MAX_FILES_UPLOAD = 10; // Konstanta untuk batas maksimal file
 
 export default function ProjectsPage() {
   const { toast } = useToast();
@@ -101,8 +103,8 @@ export default function ProjectsPage() {
   const [isRevising, setIsRevising] = React.useState(false); 
 
   const [statusFilter, setStatusFilter] = React.useState<string[]>([]);
-  const [searchTerm, setSearchTerm] = React.useState(''); // State for search term
-  const [displayedProjects, setDisplayedProjects] = React.useState<Project[]>([]); // State for projects to display
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [displayedProjects, setDisplayedProjects] = React.useState<Project[]>([]);
 
   React.useEffect(() => {
       if (isClient && allProjects.length > 0 && !isLoadingProjects) {
@@ -113,12 +115,12 @@ export default function ProjectsPage() {
                   setSelectedProject(projectToSelect);
               } else {
                   console.warn(`Project with ID "${projectIdFromUrl}" from URL not found.`);
-                  toast({ variant: 'destructive', title: 'Error', description: 'Project specified in URL not found.' });
+                  toast({ variant: 'destructive', title: projectsDict.toast.error, description: projectsDict.toast.projectNotFound });
                   router.replace('/dashboard/projects', { scroll: false });
               }
           }
       }
-  }, [searchParams, allProjects, isClient, isLoadingProjects, router, toast]);
+  }, [searchParams, allProjects, isClient, isLoadingProjects, router, toast, projectsDict]);
 
 
   React.useEffect(() => {
@@ -131,7 +133,7 @@ export default function ProjectsPage() {
           setAllProjects(fetchedProjects);
         } catch (error) {
           console.error("Failed to fetch projects:", error);
-          toast({ variant: 'destructive', title: 'Error', description: 'Could not load project data.' });
+          toast({ variant: 'destructive', title: projectsDict.toast.error, description: projectsDict.toast.couldNotLoadProjects });
         } finally {
           setIsLoadingProjects(false);
         }
@@ -140,7 +142,7 @@ export default function ProjectsPage() {
       }
     };
     fetchProjects();
-  }, [currentUser, toast]);
+  }, [currentUser, toast, projectsDict]);
 
   React.useEffect(() => {
       const newDict = getDictionary(language);
@@ -160,12 +162,12 @@ export default function ProjectsPage() {
       });
     } catch (e) {
       console.error("Error formatting timestamp:", timestamp, e);
-      return "Invalid Date";
+      return projectsDict.invalidDate || "Invalid Date";
     }
-  }, [isClient, language]);
+  }, [isClient, language, projectsDict]);
 
-   const formatDateOnly = React.useCallback((timestamp: string): string => {
-      if (!isClient) return '...';
+   const formatDateOnly = React.useCallback((timestamp: string | undefined | null): string => {
+      if (!isClient || !timestamp) return projectsDict.notApplicable || "N/A";
       const locale = language === 'id' ? 'id-ID' : 'en-US';
       try {
             return new Date(timestamp).toLocaleDateString(locale, {
@@ -173,14 +175,23 @@ export default function ProjectsPage() {
             });
         } catch (e) {
             console.error("Error formatting date:", timestamp, e);
-            return "Invalid Date";
+            return projectsDict.invalidDate || "Invalid Date";
         }
-   }, [isClient, language]);
+   }, [isClient, language, projectsDict]);
 
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
-      setUploadedFiles(Array.from(event.target.files));
+      const filesArray = Array.from(event.target.files);
+      if (filesArray.length + uploadedFiles.length > MAX_FILES_UPLOAD) {
+        toast({
+          variant: 'destructive',
+          title: projectsDict.toast.error,
+          description: projectsDict.toast.maxFilesExceeded.replace('{max}', MAX_FILES_UPLOAD.toString()),
+        });
+        return;
+      }
+      setUploadedFiles(prevFiles => [...prevFiles, ...filesArray]);
     }
   };
 
@@ -262,20 +273,20 @@ export default function ProjectsPage() {
 
     switch (currentUser.role) {
         case 'Admin Proyek':
-             if (selectedProject.status === 'Pending Offer') { nextStatus = 'Pending Approval'; nextDivision = 'Owner'; newProgress = 20; nextActionDescription = 'Approve Offer Document'; historyEntry.action = 'Uploaded Offer Document'; }
-              else if (selectedProject.status === 'Pending Admin Files') { nextStatus = 'Pending Architect Files'; nextDivision = 'Arsitek'; newProgress = 50; nextActionDescription = 'Upload Architect Files'; historyEntry.action = 'Uploaded Admin Files'; }
-              else if (selectedProject.status === 'Pending Final Check') { nextStatus = 'Pending Scheduling'; nextDivision = 'General Admin'; newProgress = 90; nextActionDescription = 'Schedule Sidang'; historyEntry.action = 'Completed Final Check'; }
+             if (selectedProject.status === 'Pending Offer') { nextStatus = 'Pending Approval'; nextDivision = 'Owner'; newProgress = 20; nextActionDescription = projectsDict.workflowActions.approveOffer; historyEntry.action = projectsDict.workflowActions.uploadedOffer; }
+              else if (selectedProject.status === 'Pending Admin Files') { nextStatus = 'Pending Architect Files'; nextDivision = 'Arsitek'; newProgress = 50; nextActionDescription = projectsDict.workflowActions.uploadArchitectFiles; historyEntry.action = projectsDict.workflowActions.uploadedAdminFiles; }
+              else if (selectedProject.status === 'Pending Final Check') { nextStatus = 'Pending Scheduling'; nextDivision = 'General Admin'; newProgress = 90; nextActionDescription = projectsDict.workflowActions.scheduleSidang; historyEntry.action = projectsDict.workflowActions.completedFinalCheck; }
             break;
         case 'General Admin':
-            if (selectedProject.status === 'Pending DP Invoice') { nextStatus = 'Pending Approval'; nextDivision = 'Owner'; newProgress = 30; nextActionDescription = 'Approve DP Invoice'; historyEntry.action = 'Uploaded DP Invoice';}
+            if (selectedProject.status === 'Pending DP Invoice') { nextStatus = 'Pending Approval'; nextDivision = 'Owner'; newProgress = 30; nextActionDescription = projectsDict.workflowActions.approveDPInvoice; historyEntry.action = projectsDict.workflowActions.uploadedDPInvoice;}
             break;
         case 'Arsitek':
-            if (selectedProject.status === 'Pending Architect Files') { nextStatus = 'Pending Structure Files'; nextDivision = 'Struktur'; newProgress = 70; nextActionDescription = 'Upload Structure Files'; historyEntry.action = 'Uploaded Architect Files';}
+            if (selectedProject.status === 'Pending Architect Files') { nextStatus = 'Pending Structure Files'; nextDivision = 'Struktur'; newProgress = 70; nextActionDescription = projectsDict.workflowActions.uploadStructureFiles; historyEntry.action = projectsDict.workflowActions.uploadedArchitectFiles;}
             break;
         case 'Struktur':
-             if (selectedProject.status === 'Pending Structure Files') { nextStatus = 'Pending Final Check'; nextDivision = 'Admin Proyek'; newProgress = 80; nextActionDescription = 'Perform Final Check'; historyEntry.action = 'Uploaded Structure Files';}
+             if (selectedProject.status === 'Pending Structure Files') { nextStatus = 'Pending Final Check'; nextDivision = 'Admin Proyek'; newProgress = 80; nextActionDescription = projectsDict.workflowActions.performFinalCheck; historyEntry.action = projectsDict.workflowActions.uploadedStructureFiles;}
              break;
-        default: historyEntry.action = `Submitted Progress for ${selectedProject.status}`;
+        default: historyEntry.action = `${projectsDict.workflowActions.submittedProgressFor} ${getTranslatedStatus(selectedProject.status)}`;
     }
 
     const updatedProjectData: Project = {
@@ -285,32 +296,30 @@ export default function ProjectsPage() {
         progress: newProgress,
         nextAction: nextActionDescription,
         workflowHistory: [...selectedProject.workflowHistory, historyEntry],
-        // New files are passed without path; updateProject service function will construct paths.
-        files: [...selectedProject.files, ...(newFiles as any)], // Cast to any temporarily
+        files: [...selectedProject.files, ...(newFiles as any)], 
       };
 
      try {
         await updateProject(updatedProjectData);
-        const newlyUpdatedProject = await getProjectById(updatedProjectData.id);
+        const newlyUpdatedProject = await fetchProjectById(updatedProjectData.id); // Use renamed import
 
         if (newlyUpdatedProject) {
             setAllProjects(prev => prev.map(p => p.id === newlyUpdatedProject.id ? newlyUpdatedProject : p));
              if (selectedProject?.id === newlyUpdatedProject.id) setSelectedProject(newlyUpdatedProject);
         } else {
-            // Fallback if getProjectById fails, use locally constructed data
             setAllProjects(prev => prev.map(p => p.id === updatedProjectData.id ? updatedProjectData : p));
              if (selectedProject?.id === updatedProjectData.id) setSelectedProject(updatedProjectData);
         }
         setDescription('');
         setUploadedFiles([]);
         if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer' && nextStatus === 'Pending Approval') {
-            toast({ title: projectsDict.toast.offerSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
+            toast({ title: projectsDict.toast.offerSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', getTranslatedStatus(nextDivision)) });
         } else {
-            toast({ title: projectsDict.toast.progressSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', nextDivision) });
+            toast({ title: projectsDict.toast.progressSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', getTranslatedStatus(nextDivision)) });
         }
       } catch (error) {
          console.error("Error updating project:", error);
-         toast({ variant: 'destructive', title: 'Update Error', description: 'Failed to submit progress.' });
+         toast({ variant: 'destructive', title: projectsDict.toast.updateError, description: projectsDict.toast.failedToSubmitProgress });
       } finally {
          setIsSubmitting(false);
       }
@@ -330,13 +339,13 @@ export default function ProjectsPage() {
         const historyEntry: WorkflowHistoryEntry = { division: currentUser!.role, action: '', timestamp: new Date().toISOString() };
 
        if (decision === 'cancel') {
-         nextStatus = 'Canceled'; nextDivision = ''; newProgress = selectedProject.progress; nextActionDescription = ''; historyEntry.action = 'Canceled Project';
+         nextStatus = 'Canceled'; nextDivision = ''; newProgress = selectedProject.progress; nextActionDescription = ''; historyEntry.action = projectsDict.workflowActions.canceledProject;
          toast({ variant: 'destructive', title: projectsDict.toast.projectCanceled });
        } else {
          if (selectedProject.status === 'Pending Approval') {
-            if (selectedProject.progress === 20) { nextStatus = 'Pending DP Invoice'; nextDivision = 'General Admin'; newProgress = 25; nextActionDescription = 'Generate DP Invoice'; historyEntry.action = 'Approved Offer'; toast({ title: projectsDict.toast.offerApproved, description: projectsDict.toast.offerApprovedDesc });}
-            else if (selectedProject.progress === 30) { nextStatus = 'Pending Admin Files'; nextDivision = 'Admin Proyek'; newProgress = 40; nextActionDescription = 'Upload Admin Files'; historyEntry.action = 'Approved DP Invoice'; toast({ title: projectsDict.toast.dpApproved, description: projectsDict.toast.dpApprovedDesc });}
-         } else if (selectedProject.status === 'Scheduled') { nextStatus = 'Completed'; nextDivision = ''; newProgress = 100; nextActionDescription = ''; historyEntry.action = 'Marked as Completed'; toast({ title: projectsDict.toast.progressCompleted });}
+            if (selectedProject.progress === 20) { nextStatus = 'Pending DP Invoice'; nextDivision = 'General Admin'; newProgress = 25; nextActionDescription = projectsDict.workflowActions.generateDPInvoice; historyEntry.action = projectsDict.workflowActions.approvedOffer; toast({ title: projectsDict.toast.offerApproved, description: projectsDict.toast.offerApprovedDesc.replace('{division}', getTranslatedStatus(nextDivision)) });}
+            else if (selectedProject.progress === 30) { nextStatus = 'Pending Admin Files'; nextDivision = 'Admin Proyek'; newProgress = 40; nextActionDescription = projectsDict.workflowActions.uploadAdminFiles; historyEntry.action = projectsDict.workflowActions.approvedDPInvoice; toast({ title: projectsDict.toast.dpApproved, description: projectsDict.toast.dpApprovedDesc.replace('{division}', getTranslatedStatus(nextDivision)) });}
+         } else if (selectedProject.status === 'Scheduled') { nextStatus = 'Completed'; nextDivision = ''; newProgress = 100; nextActionDescription = ''; historyEntry.action = projectsDict.workflowActions.markedAsCompleted; toast({ title: projectsDict.toast.progressCompleted });}
        }
        const updatedProjectData: Project = { ...selectedProject, status: nextStatus, assignedDivision: nextDivision, progress: newProgress, nextAction: nextActionDescription, workflowHistory: [...selectedProject.workflowHistory, historyEntry]};
         try {
@@ -345,7 +354,7 @@ export default function ProjectsPage() {
              if (selectedProject?.id === updatedProjectData.id) setSelectedProject(updatedProjectData);
         } catch (error) {
             console.error("Error updating project after decision:", error);
-            toast({ variant: 'destructive', title: 'Update Error', description: 'Failed to process decision.' });
+            toast({ variant: 'destructive', title: projectsDict.toast.updateError, description: projectsDict.toast.failedToProcessDecision });
         } finally {
              setIsSubmitting(false);
         }
@@ -354,7 +363,7 @@ export default function ProjectsPage() {
 
   const handleScheduleSubmit = () => {
      if (!currentUser || !['Owner', 'General Admin'].includes(currentUser.role) || !selectedProject) {
-       toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied });
+       toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.schedulingPermissionDenied });
        return;
      }
      if (!scheduleDate || !scheduleTime || !scheduleLocation) {
@@ -364,8 +373,8 @@ export default function ProjectsPage() {
      setIsSubmitting(true);
      const sidangDateTime = new Date(`${scheduleDate}T${scheduleTime}`);
      new Promise(resolve => setTimeout(resolve, 1000)).then(async () => {
-        const historyEntry: WorkflowHistoryEntry = { division: currentUser!.role, action: `Scheduled Sidang for ${sidangDateTime.toISOString()}`, timestamp: new Date().toISOString() };
-        const updatedProjectData: Project = { ...selectedProject, status: 'Scheduled', assignedDivision: 'Owner', nextAction: 'Declare Sidang Outcome (Success/Fail)', workflowHistory: [...selectedProject.workflowHistory, historyEntry]};
+        const historyEntry: WorkflowHistoryEntry = { division: currentUser!.role, action: `${projectsDict.workflowActions.scheduledSidangFor} ${sidangDateTime.toISOString()}`, timestamp: new Date().toISOString() };
+        const updatedProjectData: Project = { ...selectedProject, status: 'Scheduled', assignedDivision: 'Owner', nextAction: projectsDict.workflowActions.declareSidangOutcome, workflowHistory: [...selectedProject.workflowHistory, historyEntry]};
         try {
             await updateProject(updatedProjectData);
             setAllProjects(prev => prev.map(p => p.id === updatedProjectData.id ? updatedProjectData : p));
@@ -375,7 +384,7 @@ export default function ProjectsPage() {
             handleAddToCalendar(sidangDateTime, scheduleLocation);
         } catch (error) {
             console.error("Error updating project after scheduling:", error);
-            toast({ variant: 'destructive', title: 'Update Error', description: 'Failed to save schedule.' });
+            toast({ variant: 'destructive', title: projectsDict.toast.updateError, description: projectsDict.toast.failedToSaveSchedule });
         } finally {
             setIsSubmitting(false);
         }
@@ -387,16 +396,16 @@ export default function ProjectsPage() {
         toast({ variant: 'destructive', title: projectsDict.toast.cannotAddCalendarYet, description: projectsDict.toast.mustScheduleFirst });
         return;
       }
-        const eventLocation = location || "Meeting Room 1";
+        const eventLocation = location || projectsDict.defaultMeetingLocation;
         const endTime = new Date(scheduledDateTime.getTime() + 60 * 60 * 1000);
-      const eventDetails = { title: `Sidang: ${selectedProject.title}`, location: eventLocation, startTime: scheduledDateTime.toISOString(), endTime: endTime.toISOString(), description: `Sidang discussion for project: ${selectedProject.title}`};
+      const eventDetails = { title: `${projectsDict.sidangEventTitlePrefix}: ${selectedProject.title}`, location: eventLocation, startTime: scheduledDateTime.toISOString(), endTime: endTime.toISOString(), description: `${projectsDict.sidangEventDescPrefix}: ${selectedProject.title}`};
       try {
         setIsAddingToCalendar(true);
         const eventId = await scheduleEvent(eventDetails);
         toast({ title: projectsDict.toast.addedToCalendar, description: projectsDict.toast.eventId.replace('{id}', eventId) });
       } catch (error) {
         console.error("Error scheduling event:", error);
-        toast({ variant: 'destructive', title: projectsDict.toast.calendarError, description: projectsDict.couldNotAddEvent });
+        toast({ variant: 'destructive', title: projectsDict.toast.calendarError, description: projectsDict.toast.couldNotAddEvent });
       } finally {
         setIsAddingToCalendar(false);
       }
@@ -406,7 +415,7 @@ export default function ProjectsPage() {
         if (!currentUser || !isClient || isLoadingProjects) return [];
         let projectsToFilter = allProjects;
          if (currentUser.role === 'Admin Proyek') {
-            projectsToFilter = allProjects; // Admin Proyek sees all
+            projectsToFilter = allProjects; 
          }
          else if (!['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role)) {
             projectsToFilter = allProjects.filter(project =>
@@ -417,7 +426,6 @@ export default function ProjectsPage() {
          return projectsToFilter;
     }, [currentUser, allProjects, isClient, isLoadingProjects]);
 
-    // Effect to update displayedProjects based on filters and search term
     React.useEffect(() => {
         let currentProjects = roleFilteredProjects;
         if (statusFilter.length > 0) {
@@ -453,24 +461,20 @@ export default function ProjectsPage() {
 
    const handleDownloadFile = (file: FileEntry) => {
         if (!isClient) return;
-        // In a real app, this would trigger a backend API call to stream the file.
-        // For now, it's a simulation. The `file.path` is relative to `PROJECT_FILES_BASE_DIR`.
-        // To simulate a download, we'd need the file content.
         console.log(`Simulating download for file: ${file.name} from relative path: ${file.path}`);
         setIsDownloading(true);
         
-        // Simulate creating file content for download
         const fileContent = `Simulated content for ${file.name}.\nOriginal relative path in project folder: ${file.path}.\nUploaded by ${file.uploadedBy} on ${formatDateOnly(file.timestamp)}.`;
         const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = file.name; // Use the original file name for download
+        a.download = file.name;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        toast({ title: projectsDict.toast.downloadStarted, description: `Simulated download of ${a.download}` });
+        toast({ title: projectsDict.toast.downloadStarted, description: projectsDict.toast.simulatedDownload.replace('{filename}', a.download) });
         setIsDownloading(false);
     };
 
@@ -489,10 +493,10 @@ export default function ProjectsPage() {
            setAllProjects(prev => prev.map(p => (p.id === revised.id ? revised : p)));
            setSelectedProject(revised);
            setRevisionNote('');
-           toast({ title: projectsDict.toast.revisionSuccess, description: projectsDict.toast.revisionSuccessDesc.replace('{division}', revised.assignedDivision) });
+           toast({ title: projectsDict.toast.revisionSuccess, description: projectsDict.toast.revisionSuccessDesc.replace('{division}', getTranslatedStatus(revised.assignedDivision)) });
        } catch (error: any) {
            console.error("Error revising project:", error);
-           toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: error.message || 'Failed to revise project.' });
+           toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: error.message || projectsDict.toast.failedToRevise });
        } finally {
            setIsRevising(false);
        }
@@ -501,7 +505,6 @@ export default function ProjectsPage() {
    const canReviseSelectedProject = React.useMemo(() => {
        if (!currentUser || !selectedProject) return false;
        if (!['Owner', 'General Admin'].includes(currentUser.role)) return false;
-       // Define stages where revision is possible by Owner/GA
        const revisableStatuses = [
            'Pending Approval', 'Pending DP Invoice', 'Pending Admin Files',
            'Pending Architect Files', 'Pending Structure Files', 'Pending Final Check',
@@ -535,26 +538,26 @@ export default function ProjectsPage() {
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <CardTitle className="text-xl md:text-2xl">{projectsDict.projectListTitle || 'Project List'}</CardTitle>
-              <CardDescription>{projectsDict.projectListDescription || 'View and manage ongoing projects.'}</CardDescription>
+              <CardTitle className="text-xl md:text-2xl">{projectsDict.projectListTitle}</CardTitle>
+              <CardDescription>{projectsDict.projectListDescription}</CardDescription>
             </div>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                 <div className="relative flex-grow sm:flex-grow-0">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         type="search"
-                        placeholder={projectsDict.searchPlaceholder || "Search projects..."}
+                        placeholder={projectsDict.searchPlaceholder}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-8 w-full sm:w-[200px] md:w-[250px]" // Adjust width as needed
+                        className="pl-8 w-full sm:w-[200px] md:w-[250px]"
                     />
                 </div>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild><Button variant="outline" className="w-full sm:w-auto"><ListFilter className="mr-2 h-4 w-4" /><span className="truncate">{projectsDict.filterButton || 'Filter by Status'}</span>{statusFilter.length > 0 && ` (${statusFilter.length})`}</Button></DropdownMenuTrigger>
+                  <DropdownMenuTrigger asChild><Button variant="outline" className="w-full sm:w-auto"><ListFilter className="mr-2 h-4 w-4" /><span className="truncate">{projectsDict.filterButton}</span>{statusFilter.length > 0 && ` (${statusFilter.length})`}</Button></DropdownMenuTrigger>
                    <DropdownMenuContent className="w-56">
-                    <DropdownMenuLabel>{projectsDict.filterStatusLabel || 'Filter Statuses'}</DropdownMenuLabel><DropdownMenuSeparator />
+                    <DropdownMenuLabel>{projectsDict.filterStatusLabel}</DropdownMenuLabel><DropdownMenuSeparator />
                     {projectStatuses.map((status) => (<DropdownMenuCheckboxItem key={status} checked={statusFilter.includes(status)} onCheckedChange={() => handleStatusFilterChange(status)}>{getTranslatedStatus(status)}</DropdownMenuCheckboxItem>))}
-                    <DropdownMenuSeparator /><DropdownMenuCheckboxItem checked={statusFilter.length === 0} onCheckedChange={() => setStatusFilter([])} className="text-muted-foreground">{projectsDict.filterClear || 'Show All'}</DropdownMenuCheckboxItem>
+                    <DropdownMenuSeparator /><DropdownMenuCheckboxItem checked={statusFilter.length === 0} onCheckedChange={() => setStatusFilter([])} className="text-muted-foreground">{projectsDict.filterClear}</DropdownMenuCheckboxItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
             </div>
@@ -562,7 +565,7 @@ export default function ProjectsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {displayedProjects.length === 0 ? (<p className="text-muted-foreground text-center py-4">{searchTerm ? projectsDict.noSearchResults : projectsDict.noProjectsFound || 'No projects match the current filters.'}</p>) : (
+            {displayedProjects.length === 0 ? (<p className="text-muted-foreground text-center py-4">{searchTerm ? projectsDict.noSearchResults : projectsDict.noProjectsFound}</p>) : (
               displayedProjects.map((projectItem) => (
                 <Card key={projectItem.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedProject(projectItem)}>
                   <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6">
@@ -573,7 +576,7 @@ export default function ProjectsPage() {
                      {projectItem.status !== 'Canceled' && projectItem.status !== 'Completed' && (<div className="flex items-center gap-2"><Progress value={projectItem.progress} className="flex-1 h-2" /><span className="text-xs text-muted-foreground font-medium">{projectItem.progress}%</span></div>)}
                     {(projectItem.status === 'Canceled' || projectItem.status === 'Completed') && (<p className={`text-sm font-medium ${projectItem.status === 'Canceled' ? 'text-destructive' : 'text-green-600'}`}>{getTranslatedStatus(projectItem.status)}</p>)}
                   </CardContent>
-                  <CardFooter className="text-xs text-muted-foreground justify-end p-4 sm:p-6 pt-0"><span className="flex items-center gap-1">{projectsDict.viewDetails || 'View Details'} <ArrowRight className="h-3 w-3" /></span></CardFooter>
+                  <CardFooter className="text-xs text-muted-foreground justify-end p-4 sm:p-6 pt-0"><span className="flex items-center gap-1">{projectsDict.viewDetails} <ArrowRight className="h-3 w-3" /></span></CardFooter>
                 </Card>
               ))
             )}
@@ -587,7 +590,7 @@ export default function ProjectsPage() {
        if (!projectsDict || !isClient) return <Skeleton className="h-64 w-full" />;
        return (
            <>
-               <Button variant="outline" onClick={() => setSelectedProject(null)} className="mb-4 w-full sm:w-auto"><ArrowLeft className="mr-2 h-4 w-4" />{projectsDict.backToList || 'Back to List'}</Button>
+               <Button variant="outline" onClick={() => setSelectedProject(null)} className="mb-4 w-full sm:w-auto"><ArrowLeft className="mr-2 h-4 w-4" />{projectsDict.backToList}</Button>
                <Card>
                    <CardHeader className="p-4 sm:p-6">
                      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
@@ -601,9 +604,16 @@ export default function ProjectsPage() {
                    <CardContent className="p-4 sm:p-6 pt-0">
                       {showUploadSection && (
                          <div className="space-y-4 border-t pt-4 mt-4">
-                           <h3 className="text-lg font-semibold">{projectsDict.uploadProgressTitle.replace('{role}', currentUser!.role)}</h3>
-                           <div className="grid w-full items-center gap-1.5"><Label htmlFor="description">{projectsDict.descriptionLabel}</Label><Textarea id="description" placeholder={projectsDict.descriptionPlaceholder.replace('{division}', project.assignedDivision)} value={description} onChange={(e) => setDescription(e.target.value)} disabled={isSubmitting}/></div>
-                           <div className="grid w-full items-center gap-1.5"><Label htmlFor="picture">{projectsDict.attachFilesLabel}</Label><Input id="picture" type="file" multiple onChange={handleFileChange} disabled={isSubmitting} /></div>
+                           <h3 className="text-lg font-semibold">{projectsDict.uploadProgressTitle.replace('{role}', getTranslatedStatus(currentUser!.role))}</h3>
+                           <div className="grid w-full items-center gap-1.5"><Label htmlFor="description">{projectsDict.descriptionLabel}</Label><Textarea id="description" placeholder={projectsDict.descriptionPlaceholder.replace('{division}', getTranslatedStatus(project.assignedDivision))} value={description} onChange={(e) => setDescription(e.target.value)} disabled={isSubmitting}/></div>
+                           <div className="grid w-full items-center gap-1.5">
+                             <Label htmlFor="project-files">{projectsDict.attachFilesLabel}</Label>
+                             <div className="flex flex-col sm:flex-row items-center gap-2">
+                               <Input id="project-files" type="file" multiple onChange={handleFileChange} disabled={isSubmitting} className="flex-grow"/>
+                               <Upload className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                             </div>
+                             <p className="text-xs text-muted-foreground">{projectsDict.filesHint.replace('{max}', MAX_FILES_UPLOAD.toString())}</p>
+                           </div>
                            {uploadedFiles.length > 0 && (
                              <div className="space-y-2 rounded-md border p-3">
                                <Label>{projectsDict.selectedFilesLabel}</Label>
@@ -631,7 +641,7 @@ export default function ProjectsPage() {
                       )}
                        {showSchedulingSection && (
                             <div className="space-y-4 border-t pt-4 mt-4">
-                              <h3 className="text-lg font-semibold">{projectsDict.scheduleSidangTitle.replace('{role}', currentUser!.role)}</h3>
+                              <h3 className="text-lg font-semibold">{projectsDict.scheduleSidangTitle.replace('{role}', getTranslatedStatus(currentUser!.role))}</h3>
                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                  <div className="space-y-1.5"><Label htmlFor="scheduleDate">{projectsDict.dateLabel}</Label><Input id="scheduleDate" type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} disabled={isSubmitting} /></div>
                                   <div className="space-y-1.5"><Label htmlFor="scheduleTime">{projectsDict.timeLabel}</Label><Input id="scheduleTime" type="time" value={scheduleTime} onChange={e => setScheduleTime(e.target.value)} disabled={isSubmitting} /></div>
@@ -642,7 +652,7 @@ export default function ProjectsPage() {
                           )}
                         {showCalendarButton && (
                            <div className="border-t pt-4 mt-4">
-                               <Button onClick={() => { const schedulingEntry = project.workflowHistory.find(entry => entry.action.startsWith('Scheduled Sidang for ')); if (schedulingEntry) { const isoString = schedulingEntry.action.replace('Scheduled Sidang for ', ''); const scheduledDateTime = new Date(isoString); const location = "Meeting Room 1"; handleAddToCalendar(scheduledDateTime, location); } else { toast({ variant: 'destructive', title: projectsDict.toast.errorFindingSchedule, description: projectsDict.couldNotFindSchedule });}}} disabled={isAddingToCalendar} variant="outline" className="w-full sm:w-auto">
+                               <Button onClick={() => { const schedulingEntry = project.workflowHistory.find(entry => entry.action.startsWith(projectsDict.workflowActions.scheduledSidangFor)); if (schedulingEntry) { const isoString = schedulingEntry.action.replace(projectsDict.workflowActions.scheduledSidangFor + ' ', ''); const scheduledDateTime = new Date(isoString); const location = projectsDict.defaultMeetingLocation; handleAddToCalendar(scheduledDateTime, location); } else { toast({ variant: 'destructive', title: projectsDict.toast.errorFindingSchedule, description: projectsDict.toast.couldNotFindSchedule });}}} disabled={isAddingToCalendar} variant="outline" className="w-full sm:w-auto">
                                    {isAddingToCalendar ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm4.5-11.5L11 14.01l-2.5-2.51L7 13l4 4 6.5-6.5L16.5 8.5z"></path></svg>}
                                   {isAddingToCalendar ? projectsDict.addingCalendarButton : projectsDict.addCalendarButton}
                                </Button>
@@ -653,12 +663,11 @@ export default function ProjectsPage() {
                              <h3 className="text-lg font-semibold">{projectsDict.sidangOutcomeTitle}</h3><p className="text-sm text-muted-foreground">{projectsDict.sidangOutcomeDesc}</p>
                                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                                  <Button onClick={() => handleDecision('continue')} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}{projectsDict.markSuccessButton}</Button>
-                                   <Button variant="destructive" onClick={() => { toast({title: projectsDict.toast.failNotImplemented})}} disabled={isSubmitting} className="w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}{projectsDict.markFailButton}</Button>
+                                   <Button variant="destructive" onClick={() => { toast({title: projectsDict.toast.failNotImplemented, description: projectsDict.toast.failNotImplementedDesc })}} disabled={isSubmitting} className="w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}{projectsDict.markFailButton}</Button>
                               </div>
                            </div>
                         )}
-                      {/* Revision Section */}
-                        {canReviseSelectedProject && (
+                      {canReviseSelectedProject && (
                            <div className="space-y-4 border-t pt-4 mt-4">
                                <h3 className="text-lg font-semibold">{projectsDict.reviseProjectTitle}</h3>
                                <div className="grid w-full items-center gap-1.5">
@@ -703,7 +712,6 @@ export default function ProjectsPage() {
                                   <div className="flex items-center gap-2 flex-grow min-w-0"><FileText className="h-5 w-5 text-primary flex-shrink-0" />
                                       <div className="flex-1 min-w-0">
                                         <span className="text-sm font-medium break-all">{file.name}</span>
-                                        {/* Display the relative path from project.files[].path which is like "project_id-sanitized_title/filename.ext" */}
                                         {file.path && (<p className="text-xs text-muted-foreground/70 flex items-center gap-1 truncate"><FolderOpen className="h-3 w-3 flex-shrink-0" />{file.path}</p>)}
                                       </div>
                                   </div>
@@ -727,7 +735,7 @@ export default function ProjectsPage() {
                                 <div>
                                     <p className="text-sm font-medium">{projectsDict.historyActionBy.replace('{action}', entry.action).replace('{division}', getTranslatedStatus(entry.division))}</p>
                                     <p className="text-xs text-muted-foreground">{formatTimestamp(entry.timestamp)}</p>
-                                    {entry.note && <p className="text-xs text-muted-foreground italic mt-1">Note: {entry.note}</p>}
+                                    {entry.note && <p className="text-xs text-muted-foreground italic mt-1">{projectsDict.revisionNotePrefix} {entry.note}</p>}
                                 </div>
                             </li>
                         ))}
@@ -744,3 +752,4 @@ export default function ProjectsPage() {
     </div>
   );
 }
+
