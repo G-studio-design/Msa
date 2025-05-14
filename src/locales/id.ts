@@ -356,6 +356,8 @@ const id = {
        generateReportButton: "Buat Laporan",
        generatingReportButton: "Membuat...",
        downloadWord: "Unduh Word (.docx)",
+       downloadReportSectionTitle: "Unduh Laporan",
+       downloadReportSectionDesc: "Unduh laporan bulanan yang telah dibuat dalam format Word.",
        downloadingWord: "Mengunduh Word...",
        noDataForMonth: "Tidak ada data proyek ditemukan untuk bulan dan tahun yang dipilih.",
        tryDifferentMonthYear: "Coba pilih bulan atau tahun yang berbeda.",
@@ -422,3 +424,4 @@ const id = {
 };
 
 export default id;
+

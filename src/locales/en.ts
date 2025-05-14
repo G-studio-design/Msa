@@ -356,6 +356,8 @@ const en = {
       generateReportButton: "Generate Report",
       generatingReportButton: "Generating...",
       downloadWord: "Download Word (.docx)",
+      downloadReportSectionTitle: "Download Report",
+      downloadReportSectionDesc: "Download the generated monthly report in Word format.",
       downloadingWord: "Downloading Word...",
       noDataForMonth: "No project data found for the selected month and year.",
       tryDifferentMonthYear: "Try selecting a different month or year.",
@@ -422,3 +424,4 @@ const en = {
 };
 
 export default en;
+
