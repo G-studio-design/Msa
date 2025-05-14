@@ -269,11 +269,11 @@ export default function MonthlyReportPage() {
           <CardDescription>{reportDict.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
             <div>
               <Label htmlFor="month-select">{reportDict.selectMonthLabel}</Label>
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                <SelectTrigger id="month-select"><SelectValue placeholder={reportDict.selectMonthPlaceholder} /></SelectTrigger>
+                <SelectTrigger id="month-select" aria-label={reportDict.selectMonthPlaceholder}><SelectValue placeholder={reportDict.selectMonthPlaceholder} /></SelectTrigger>
                 <SelectContent>
                   {months.map(m => <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>)}
                 </SelectContent>
@@ -282,13 +282,13 @@ export default function MonthlyReportPage() {
             <div>
               <Label htmlFor="year-select">{reportDict.selectYearLabel}</Label>
               <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger id="year-select"><SelectValue placeholder={reportDict.selectYearPlaceholder} /></SelectTrigger>
+                <SelectTrigger id="year-select" aria-label={reportDict.selectYearPlaceholder}><SelectValue placeholder={reportDict.selectYearPlaceholder} /></SelectTrigger>
                 <SelectContent>
                   {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleGenerateReport} disabled={isGeneratingReport || (isLoadingProjects && !reportData)} className="w-full sm:w-auto md:self-end accent-teal">
+            <Button onClick={handleGenerateReport} disabled={isGeneratingReport || (isLoadingProjects && !reportData)} className="w-full sm:w-auto sm:self-end accent-teal">
               {isGeneratingReport || (isLoadingProjects && !reportData) ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               {isGeneratingReport || (isLoadingProjects && !reportData) ? reportDict.generatingReportButton : reportDict.generateReportButton}
             </Button>
@@ -307,7 +307,7 @@ export default function MonthlyReportPage() {
         <>
           <Card>
             <CardHeader>
-              <CardTitle>{reportDict.reportFor} {reportData.monthName} {reportData.year}</CardTitle>
+              <CardTitle className="text-lg md:text-xl">{reportDict.reportFor} {reportData.monthName} {reportData.year}</CardTitle>
               <CardDescription>
                 {reportDict.totalProjectsDesc
                     .replace('{total}', (reportData.completed.length + reportData.inProgress.length + reportData.canceled.length).toString())
@@ -318,21 +318,25 @@ export default function MonthlyReportPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-               <div className="p-4 bg-background rounded-md mb-6"> 
+               <div className="p-2 sm:p-4 bg-background rounded-md mb-6"> 
                  {noData ? (
-                    <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
+                    <div className="flex flex-col items-center justify-center h-full min-h-[250px] text-center text-muted-foreground p-4">
                         <PieChartIcon className="h-12 w-12 mb-2 opacity-50" />
                         <p>{reportDict.noDataForMonth}</p>
                     </div>
                  ) : (
                     <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={chartDisplayData} layout="vertical" margin={{ left: 10, right: 30, top: 5, bottom: 5 }}>
+                            <BarChart 
+                                data={chartDisplayData} 
+                                layout="vertical" 
+                                margin={{ left: language === 'id' ? 20 : 15, right: 30, top: 5, bottom: 5 }}
+                            >
                                 <CartesianGrid horizontal={false} strokeDasharray="3 3" />
                                 <XAxis type="number" allowDecimals={false} tick={{ fontSize: 10 }} />
-                                <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} stroke="#888888" fontSize={10} width={language === 'id' ? 110 : 80} interval={0}/>
+                                <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} stroke="#888888" fontSize={10} width={language === 'id' ? 100 : 70} interval={0}/>
                                 <ChartTooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent hideLabel />} />
-                                <Bar dataKey="count" radius={4}>
+                                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                                     <LabelList dataKey="count" position="right" offset={8} className="fill-foreground" fontSize={10} />
                                 </Bar>
                             </BarChart>
@@ -347,10 +351,10 @@ export default function MonthlyReportPage() {
                     <TableCaption>{reportDict.tableCaption}</TableCaption>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-[200px] sm:w-[250px]">{reportDict.tableHeaderTitle}</TableHead>
+                        <TableHead className="min-w-[150px] sm:min-w-[200px]">{reportDict.tableHeaderTitle}</TableHead>
                         <TableHead>{reportDict.tableHeaderStatus}</TableHead>
                         <TableHead>{reportDict.tableHeaderLastActivityDate}</TableHead>
-                        <TableHead>{reportDict.tableHeaderContributors}</TableHead>
+                        <TableHead className="min-w-[120px] sm:min-w-[150px]">{reportDict.tableHeaderContributors}</TableHead>
                         <TableHead className="text-right">{language === 'id' ? 'Progres (%)' : 'Progress (%)'}</TableHead>
                         <TableHead>{language === 'id' ? 'Dibuat Oleh' : 'Created By'}</TableHead>
                         <TableHead>{language === 'id' ? 'Dibuat Pada' : 'Created At'}</TableHead>
@@ -396,7 +400,6 @@ export default function MonthlyReportPage() {
                 </ScrollArea>
               )}
             </CardContent>
-            {/* Download buttons are removed */}
           </Card>
         </>
       )}
