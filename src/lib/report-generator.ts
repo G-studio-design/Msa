@@ -8,10 +8,10 @@ import { Document, Packer, Paragraph, TextRun, Table, TableCell, TableRow, Width
 import type { Language } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 
-// Helper function to ensure text is not empty for docx, using a non-breaking space if it is.
+// Helper function to ensure text is not empty, using a non-breaking space if it is.
 const ensureNonEmpty = (text: string | null | undefined): string => {
     const trimmedText = text?.trim();
-    return !trimmedText ? "\u00A0" : trimmedText; 
+    return !trimmedText ? "\u00A0" : trimmedText; // Non-breaking space
 };
 
 
@@ -60,10 +60,12 @@ export async function generateWordReport({
     const translations = dict.monthlyReportPage;
     const dashboardTranslations = dict.dashboardPage.status;
 
-    const primaryColor = "1A237E"; 
-    const primaryForegroundColor = "FFFFFF";
-    const textColor = "000000"; 
-    const lightGrayColor = "EEEEEE"; // For table header background if primaryColor is too dark for text
+    const primaryColor = "2C3E50"; // Dark Blue-Gray
+    const primaryForegroundColor = "FFFFFF"; // White
+    const accentColor = "3498DB"; // Bright Blue
+    const textColor = "34495E"; // Dark Gray
+    const lightGrayColor = "ECF0F1"; // Very Light Gray
+    const borderColor = "BDC3C7"; // Light Silver
 
     // Define style IDs
     const DefaultParagraphStyle = "DefaultParagraphStyle";
@@ -73,47 +75,50 @@ export async function generateWordReport({
     const SummaryTextStyle = "SummaryTextStyle";
     const TableHeaderParagraphStyle = "TableHeaderParagraphStyle";
     const TableCellParagraphStyle = "TableCellParagraphStyle";
-    const FooterTextStyleName = "FooterTextStyleName";
-
+    const FooterTextStyleName = "FooterTextStyleName"; // Paragraph style for footer
+    // No specific run style needed for footer text if properties are set directly
 
     const doc = new Document({
+        creator: "Msarch App",
+        title: `${translations.title} - ${monthName} ${year}`,
+        description: translations.description,
         styles: {
             paragraphStyles: [
-                { id: DefaultParagraphStyle, name: "Default", run: { size: 20, font: "Calibri", color: textColor }, paragraph: { spacing: { after: 120 } } },
-                { id: HeaderStyle, name: "Header Style", basedOn: DefaultParagraphStyle, run: { size: 36, bold: true, color: primaryColor }, paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 400 } } },
-                { id: SubheaderStyle, name: "Subheader Style", basedOn: DefaultParagraphStyle, run: { size: 20, italics: true }, paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 200 } } },
-                { id: SectionTitleStyle, name: "Section Title Style", basedOn: DefaultParagraphStyle, run: { size: 28, bold: true, color: primaryColor }, paragraph: { spacing: { before: 300, after: 150 } } },
-                { id: SummaryTextStyle, name: "Summary Text Style", basedOn: DefaultParagraphStyle, run: { size: 22 }, paragraph: { spacing: { after: 100 } } },
+                { id: DefaultParagraphStyle, name: "Default", run: { size: 22, font: "Calibri", color: textColor }, paragraph: { spacing: { after: 120 } } },
+                { id: HeaderStyle, name: "Header Style", basedOn: DefaultParagraphStyle, run: { size: 36, bold: true, color: primaryColor }, paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 400, before: 200 } } },
+                { id: SubheaderStyle, name: "Subheader Style", basedOn: DefaultParagraphStyle, run: { size: 20, italics: true, color: textColor }, paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 300 } } },
+                { id: SectionTitleStyle, name: "Section Title Style", basedOn: DefaultParagraphStyle, run: { size: 28, bold: true, color: primaryColor }, paragraph: { spacing: { before: 400, after: 200 }, border: { bottom: { color: accentColor, space: 1, style: BorderStyle.SINGLE, size: 6 } } } },
+                { id: SummaryTextStyle, name: "Summary Text Style", basedOn: DefaultParagraphStyle, run: { size: 22 }, paragraph: { spacing: { after: 100, line: 360 } } },
                 { id: TableHeaderParagraphStyle, name: "Table Header Paragraph Style", basedOn: DefaultParagraphStyle, paragraph: { alignment: AlignmentType.CENTER } },
-                { id: TableCellParagraphStyle, name: "Table Cell Paragraph Style", basedOn: DefaultParagraphStyle },
-                { id: FooterTextStyleName, name: "Footer Text Style", basedOn: DefaultParagraphStyle, run: { size: 16, color: "888888" } , paragraph: { alignment: AlignmentType.CENTER } },
+                { id: TableCellParagraphStyle, name: "Table Cell Paragraph Style", basedOn: DefaultParagraphStyle, run: { size: 20 } },
+                { id: FooterTextStyleName, name: "Footer Text Style", basedOn: DefaultParagraphStyle, run: { size: 18, color: "7F8C8D" }, paragraph: { alignment: AlignmentType.CENTER } },
             ],
         },
         sections: [{
             properties: {
                 page: {
-                    margin: { top: 720, right: 720, bottom: 720, left: 720 }, 
+                    margin: { top: 720, right: 720, bottom: 720, left: 720 },
                 },
+                type: SectionType.NEXT_PAGE, // Ensures headers/footers apply correctly
             },
             headers: {
                 default: new Paragraph({
                     children: [
-                        new TextRun({ text: ensureNonEmpty(dict.dashboardLayout.appTitle), size: 18, color: "888888" }),
+                        new TextRun({ text: ensureNonEmpty(dict.dashboardLayout.appTitle), size: 18, color: "7F8C8D", bold: true }),
                     ],
                     alignment: AlignmentType.RIGHT,
-                    style: DefaultParagraphStyle,
+                    style: DefaultParagraphStyle, // Use a base style or create a specific header paragraph style
                 }),
             },
             footers: {
                 default: new Paragraph({
                     children: [
-                        new TextRun({ text: ensureNonEmpty(translations.page) + " ", style: FooterTextStyleName }),
+                        new TextRun({ text: ensureNonEmpty(translations.page) + " ", size: 18, color: "7F8C8D" }),
                         PageNumber.CURRENT,
-                        new TextRun({ text: " " + ensureNonEmpty(translations.of) + " ", style: FooterTextStyleName }),
+                        new TextRun({ text: " " + ensureNonEmpty(translations.of) + " ", size: 18, color: "7F8C8D" }),
                         PageNumber.TOTAL_PAGES,
                     ],
-                    alignment: AlignmentType.CENTER,
-                    style: FooterTextStyleName, 
+                    style: FooterTextStyleName, // Apply the paragraph style for alignment
                 }),
             },
             children: [
@@ -130,21 +135,26 @@ export async function generateWordReport({
                     ],
                     style: SummaryTextStyle,
                 }),
-                new Paragraph({ children: [new TextRun({ text: "\u00A0" })], spacing: {after: 300}, style: DefaultParagraphStyle }),
+                 new Paragraph({ children: [new TextRun("\u00A0")] , spacing: {after: 300}, style: DefaultParagraphStyle}), // Spacing paragraph
 
                 ...(chartImageDataUrl ? [
                     new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.chartTitleWord) })], style: SectionTitleStyle }),
-                    new ImageRun({
-                        data: Buffer.from(chartImageDataUrl.split(',')[1], 'base64'),
-                        transformation: {
-                            width: 450, 
-                            height: 250, 
-                        },
+                    new Paragraph({ // Center the image by putting it in a centered paragraph
+                        children: [
+                            new ImageRun({
+                                data: Buffer.from(chartImageDataUrl.split(',')[1], 'base64'),
+                                transformation: {
+                                    width: 480, // Adjusted for common page widths
+                                    height: 270, 
+                                },
+                            }),
+                        ],
+                        alignment: AlignmentType.CENTER,
                     }),
-                    new Paragraph({ children: [new TextRun({ text: "\u00A0" })], spacing: {after: 300}, style: DefaultParagraphStyle }),
+                    new Paragraph({ children: [new TextRun("\u00A0")] , spacing: {after: 300}, style: DefaultParagraphStyle}), // Spacing paragraph
                 ] : [
-                     new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.chartNotAvailableWord), italics: true })], style: SummaryTextStyle }),
-                     new Paragraph({ children: [new TextRun({ text: "\u00A0" })], spacing: {after: 300}, style: DefaultParagraphStyle }),
+                    new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.chartNotAvailableWord), italics: true })], style: SummaryTextStyle }),
+                    new Paragraph({ children: [new TextRun("\u00A0")] , spacing: {after: 300}, style: DefaultParagraphStyle}), // Spacing paragraph
                 ]),
                 
                 new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableCaptionWord) })], style: SectionTitleStyle }),
@@ -153,51 +163,64 @@ export async function generateWordReport({
                     rows: [
                         new TableRow({
                             children: [
-                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderTitle), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor } }),
-                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderStatus), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor } }),
-                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderLastActivityDate), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor } }),
-                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderContributors), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor } }),
-                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderProgress), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor } }),
-                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderCreatedBy), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor } }),
-                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderCreatedAt), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor } }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderTitle), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderStatus), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderLastActivityDate), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderContributors), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderProgress), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderCreatedBy), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
+                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderCreatedAt), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
                             ],
                             tableHeader: true,
                         }),
                         ...[...reportData.inProgress, ...reportData.completed, ...reportData.canceled].map((project) => {
                             let displayStatus = project.status;
                             if (reportData.inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
-                                displayStatus = 'In Progress'; 
+                                displayStatus = dashboardTranslations.inprogress; // Use translated "In Progress" for consistency
+                            } else {
+                                const statusKey = project.status.toLowerCase().replace(/ /g,'') as keyof typeof dashboardTranslations;
+                                displayStatus = dashboardTranslations[statusKey] || project.status;
                             }
-                            const statusKey = displayStatus.toLowerCase().replace(/ /g,'') as keyof typeof dashboardTranslations;
-                            const translatedStatus = dashboardTranslations[statusKey] || displayStatus;
+                            
 
                             return new TableRow({
                                 children: [
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(project.title), bold: true, size: 18 })], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translatedStatus), size: 18 })], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: getLastActivityDateForDoc(project, language), size: 18 })], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: getContributorsForDoc(project, translations), size: 18 })], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `${project.progress}%`, size: 18})], style: TableCellParagraphStyle, alignment: AlignmentType.RIGHT })], verticalAlign: VerticalAlign.CENTER }),
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(project.createdBy), size: 18 })], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: formatDateOnlyForDoc(project.createdAt, language), size: 18 })], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
+                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(project.title)})], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
+                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(displayStatus)})], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
+                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: getLastActivityDateForDoc(project, language)})], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
+                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: getContributorsForDoc(project, translations)})], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
+                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `${project.progress}%`})], style: TableCellParagraphStyle, alignment: AlignmentType.RIGHT })], verticalAlign: VerticalAlign.CENTER }),
+                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(project.createdBy)})], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
+                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: formatDateOnlyForDoc(project.createdAt, language)})], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
                                 ],
                             });
                         }),
+                         ...(reportData.completed.length === 0 && reportData.inProgress.length === 0 && reportData.canceled.length === 0 ? [
+                            new TableRow({
+                                children: [
+                                    new TableCell({
+                                        children: [new Paragraph({ text: ensureNonEmpty(translations.noDataForMonth), alignment: AlignmentType.CENTER, style: TableCellParagraphStyle })],
+                                        columnSpan: 7,
+                                        verticalAlign: VerticalAlign.CENTER,
+                                    }),
+                                ],
+                            })
+                        ] : []),
                     ],
                     width: { size: 100, type: WidthType.PERCENTAGE },
                     borders: {
-                        top: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
-                        bottom: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
-                        left: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
-                        right: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
-                        insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "D9D9D9" },
-                        insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "D9D9D9" },
+                        top: { style: BorderStyle.SINGLE, size: 2, color: borderColor },
+                        bottom: { style: BorderStyle.SINGLE, size: 2, color: borderColor },
+                        left: { style: BorderStyle.SINGLE, size: 2, color: borderColor },
+                        right: { style: BorderStyle.SINGLE, size: 2, color: borderColor },
+                        insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: lightGrayColor },
+                        insideVertical: { style: BorderStyle.SINGLE, size: 1, color: lightGrayColor },
                     }
                 }),
-                 new Paragraph({ children: [new TextRun({ text: "\u00A0" })], spacing: {after: 400}, style: DefaultParagraphStyle }), 
+                 new Paragraph({ children: [new TextRun("\u00A0")] , spacing: {after: 400}, style: DefaultParagraphStyle}), // Spacing
                  new Paragraph({
                     children: [
-                        new TextRun({ text: ensureNonEmpty(dict.dashboardLayout.appTitle), size: 16, italics: true, color: "888888" })
+                        new TextRun({ text: ensureNonEmpty(dict.dashboardLayout.appTitle), size: 18, italics: true, color: "7F8C8D" })
                     ],
                     alignment: AlignmentType.CENTER,
                     style: DefaultParagraphStyle,
@@ -206,5 +229,12 @@ export async function generateWordReport({
         }],
     });
 
-    return Packer.toBuffer(doc);
+    try {
+        const buffer = await Packer.toBuffer(doc);
+        return buffer;
+    } catch (error) {
+        console.error("Error packing document with docx:", error);
+        // Rethrow a more specific error or handle as needed
+        throw new Error(`Failed to pack Word document: ${error instanceof Error ? error.message : String(error)}`);
+    }
 }
