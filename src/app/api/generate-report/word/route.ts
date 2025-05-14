@@ -15,46 +15,45 @@ export async function POST(request: Request) {
       chartImageDataUrl
     } = body;
 
-    // Validasi input dasar
+    // Validasi input dasar yang minimal karena kita menguji versi sederhana report-generator
     if (
-      !reportData ||
-      typeof reportData.completed === 'undefined' ||
-      typeof reportData.inProgress === 'undefined' ||
-      typeof reportData.canceled === 'undefined' ||
+      !reportData || // Masih perlu reportData untuk struktur dasar, meskipun tidak semua field digunakan
       !monthName ||
       !year
-      // !language // Tidak perlu validasi bahasa lagi karena di-hardcode
     ) {
-      console.error("[API/WordReport] Missing required report data components, month, or year.");
-      return NextResponse.json({ error: "Missing required report data, month, or year." }, { status: 400 });
+      console.error("[API/WordReport] Missing required components for report generation (even for simplified version).");
+      return NextResponse.json({ error: "Missing required components for report generation." }, { status: 400 });
     }
 
     // PAKSA BAHASA INGGRIS UNTUK DEBUGGING
     const forcedLanguage: Language = 'en';
-    console.log(`[API/WordReport] Received request. Forcing language to: ${forcedLanguage} for report generation for:`, monthName, year);
+    console.log(`[API/WordReport] Received request for ultra-minimal report for:`, monthName, year, `. Forcing language to: ${forcedLanguage}`);
 
-    // Untuk pengujian dengan versi report-generator.ts yang sangat sederhana, kita bisa abaikan beberapa parameter:
+    // Memanggil generateWordReport dengan data yang ada, meskipun generateWordReport versi ultra-minimal akan mengabaikan sebagian besar.
     const buffer = await generateWordReport({
         reportData: reportData as { completed: Project[]; inProgress: Project[]; canceled: Project[]; },
         monthName,
         year,
-        language: forcedLanguage, // Gunakan bahasa yang dipaksa
-        chartImageDataUrl // Tetap teruskan, meskipun versi sederhana mungkin tidak menggunakannya
+        language: forcedLanguage, 
+        chartImageDataUrl 
     });
 
-    console.log("[API/WordReport] Word report buffer generated, size:", buffer.length);
+    console.log("[API/WordReport] Word report buffer (ultra-minimal) generated, size:", buffer.length);
 
     const headers = new Headers();
-    headers.append('Content-Disposition', `attachment; filename="monthly_report_${year}_${monthName.replace(/ /g, '_')}_${forcedLanguage}.docx"`);
+    headers.append('Content-Disposition', `attachment; filename="ultra_minimal_report_${year}_${monthName.replace(/ /g, '_')}_${forcedLanguage}.docx"`);
     headers.append('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
 
     return new Response(buffer, { headers });
 
   } catch (error: any) {
-    console.error("[API/WordReport] Error generating Word report:", error);
+    console.error("[API/WordReport] Error generating Word report (ultra-minimal):", error);
     
     let detailMessage = "An unknown error occurred during Word report generation.";
-    if (error instanceof Error) {
+    // Mengambil pesan error yang lebih spesifik jika ada
+    if (error instanceof Error && error.message.startsWith("Failed to generate ultra-minimal Word document:")) {
+        detailMessage = error.message; // Gunakan pesan error yang sudah diformat dari generateWordReport
+    } else if (error instanceof Error) {
         detailMessage = error.message;
     } else if (typeof error === 'string') {
         detailMessage = error;
@@ -62,13 +61,13 @@ export async function POST(request: Request) {
         detailMessage = error.message;
     }
 
-
     let userFriendlyError = "The Word document could not be generated due to an internal error.";
-    // Lebih spesifik dalam mendeteksi pesan kesalahan "children"
+    // Deteksi pesan kesalahan "children"
     if (detailMessage && detailMessage.toLowerCase().includes("cannot read properties of undefined (reading 'children')")) {
         userFriendlyError = "The Word document could not be generated due to an internal structure error, possibly related to empty content sections. Please contact support or try again later.";
-    } else if (detailMessage.includes("Failed to generate simplified Word document")) {
-        userFriendlyError = "The Word document could not be generated even with a simplified structure. Please contact support.";
+    } else if (detailMessage.includes("Failed to generate ultra-minimal Word document")) {
+        // Menambahkan penanganan untuk pesan error baru dari generateWordReport
+        userFriendlyError = "The Word document could not be generated even with an ultra-minimal structure. Please contact support.";
     }
 
     return NextResponse.json({
