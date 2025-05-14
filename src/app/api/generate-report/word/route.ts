@@ -10,17 +10,17 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const {
-        completed,
-        canceled,
-        inProgress,
+        completed = [], // Default to empty array
+        canceled = [],  // Default to empty array
+        inProgress = [], // Default to empty array
         monthName,
         year,
         chartImageDataUrl, 
         language = 'en' 
     } = body as {
-        completed: Project[],
-        canceled: Project[],
-        inProgress: Project[],
+        completed?: Project[], // Make them optional for initial parsing
+        canceled?: Project[],
+        inProgress?: Project[],
         monthName: string,
         year: string,
         chartImageDataUrl?: string | null, 
@@ -37,15 +37,12 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
     
-    const hasCompletedData = completed && Array.isArray(completed);
-    const hasCanceledData = canceled && Array.isArray(canceled);
-    const hasInProgressData = inProgress && Array.isArray(inProgress);
-
-    if (!hasCompletedData || !hasCanceledData || !hasInProgressData) {
-        console.error("[API/WordReport] Missing project data arrays in request body.");
+    // Ensure project data arrays are indeed arrays after potential defaults
+    if (!Array.isArray(completed) || !Array.isArray(canceled) || !Array.isArray(inProgress)) {
+        console.error("[API/WordReport] Project data (completed, canceled, or inProgress) is not an array after parsing.");
         return NextResponse.json({ 
-            error: 'Missing Project Data', 
-            details: 'Please ensure all project data categories (completed, canceled, inProgress) are provided, even if empty.' 
+            error: 'Invalid Project Data Structure', 
+            details: 'Project data categories (completed, canceled, inProgress) must be arrays.' 
         }, { status: 400 });
     }
     
@@ -67,25 +64,25 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error("[API/WordReport] Error generating Word report:", error);
     let errorMessage = 'Failed to generate Word report.';
-    let errorDetails = 'An unexpected error occurred on the server while generating the Word document.';
     
-    // Ensure originalErrorMessage is a string.
+    // Ensure originalErrorMessage is a string and get the most specific message.
     const originalErrorMessage = typeof error?.message === 'string' ? error.message : 
                                  error instanceof Error ? error.toString() : 
                                  'Internal error during Word generation.';
 
-    if (originalErrorMessage.includes("Cannot read properties of undefined (reading 'children')") || originalErrorMessage.includes("Cannot read 'children' of undefined")) {
+    let errorDetails = originalErrorMessage; // Default to the original message
+
+    if (originalErrorMessage.includes("Cannot read properties of undefined (reading 'children')")) {
         errorMessage = 'Word Document Structure Error';
-        // Pass the original specific error message in details
         errorDetails = `The Word document could not be generated due to an internal structure error, possibly related to empty content sections. Please contact support or try again later. Details: ${originalErrorMessage}`;
     } else if (originalErrorMessage.includes('Failed to pack Word document')) {
         errorMessage = 'Word Document Creation Error';
-        errorDetails = `The server encountered an issue while assembling the Word file: ${originalErrorMessage}`;
+        // errorDetails is already originalErrorMessage
     } else if (originalErrorMessage.includes('Error processing chart image')) {
         errorMessage = 'Chart Image Processing Error';
-        errorDetails = `There was a problem including the chart image in the Word document: ${originalErrorMessage}`;
+        // errorDetails is already originalErrorMessage
     } else {
-        // More robust generic fallback, ensuring errorDetails captures original if possible
+        // More robust generic fallback
         if (originalErrorMessage.trim().length > 0 && !originalErrorMessage.toLowerCase().includes('<html')) {
            errorDetails = originalErrorMessage.substring(0, 500); // Limit length
        } else if (originalErrorMessage.toLowerCase().includes('<html')) {
@@ -97,11 +94,10 @@ export async function POST(req: NextRequest) {
     
     const errorResponsePayload = { 
         error: errorMessage,
-        details: errorDetails // This 'details' is what the client uses
+        details: errorDetails 
     };
     
     console.error(`[API/WordReport] Responding with error payload:`, JSON.stringify(errorResponsePayload));
     return NextResponse.json(errorResponsePayload, { status: 500 });
   }
 }
-

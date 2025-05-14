@@ -128,11 +128,9 @@ export async function generateExcelReport(
     return rows.join('\n');
 }
 
-// Helper function to ensure TextRun content is never an empty string that docx might dislike
-// If the original text is null, undefined, or an empty string, it returns a single space.
 const ensureSingleSpaceIfEmpty = (text: any): string => {
-    const str = String(text == null ? "" : text); // Convert to string, fallback for null/undefined
-    return str.trim() === "" ? " " : str; // If whitespace-only or empty, use a space, otherwise use original string
+    const str = String(text == null ? "" : text);
+    return str.trim() === "" ? " " : str;
 };
 
 
@@ -206,10 +204,9 @@ export async function generateWordReport(
         new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(`  - ${reportDict?.inProgressProjectsShort || "In Progress"}: ${inProgress?.length || 0}`)))], style: "SummaryTextStyle", indent: {left: 360} }),
         new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(`  - ${reportDict?.completedProjectsShort || "Completed"}: ${completed?.length || 0}`)))], style: "SummaryTextStyle", indent: {left: 360} }),
         new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(`  - ${reportDict?.canceledProjectsShort || "Canceled"}: ${canceled?.length || 0}`)))], style: "SummaryTextStyle", indent: {left: 360} }),
-        new Paragraph({ children: [new TextRun(" ")], spacing: {after: 200} }), // Spacing paragraph
+        new Paragraph({ children: [new TextRun(" ")], spacing: {after: 200}, style: "NormalTextStyle" }), 
     ];
-
-    // Temporarily remove chart image generation to isolate the issue
+    
     console.log("[ReportGenerator/Word] Chart image generation temporarily disabled for debugging.");
     childrenForSection.push(
         new Paragraph({
@@ -221,7 +218,7 @@ export async function generateWordReport(
         new Paragraph({
             children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? "(Grafik dinonaktifkan untuk debugging)" : "(Chart disabled for debugging)")))],
             alignment: AlignmentType.CENTER,
-            style: "ErrorTextStyle", // Use ErrorTextStyle to make it noticeable
+            style: "ErrorTextStyle",
             spacing: { after: 200 }
         })
     );
@@ -262,13 +259,13 @@ export async function generateWordReport(
 
             return new TableRow({
                 children: [
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(project.title))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(translatedDisplayStatus))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(getLastActivityDate(project, currentLanguage)))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(getContributors(project, reportDict, currentLanguage)))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(project.progress))], alignment: AlignmentType.CENTER, style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(project.createdBy))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(formatDateOnly(project.createdAt, currentLanguage)))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(project.title)))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(translatedDisplayStatus)))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(getLastActivityDate(project, currentLanguage))))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(getContributors(project, reportDict, currentLanguage))))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(project.progress)))], alignment: AlignmentType.CENTER, style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(project.createdBy)))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(formatDateOnly(project.createdAt, currentLanguage))))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
                 ],
             });
         });
@@ -296,7 +293,7 @@ export async function generateWordReport(
     }
 
     childrenForSection.push(
-        new Paragraph({ children: [new TextRun(" ")], spacing: {after: 400} }) 
+        new Paragraph({ children: [new TextRun(" ")], spacing: {after: 400}, style: "NormalTextStyle" }) 
     );
      childrenForSection.push(
         new Paragraph({
@@ -320,7 +317,7 @@ export async function generateWordReport(
                 default: new Paragraph({
                     children: [
                         new TextRun({
-                            text: ensureSingleSpaceIfEmpty("Msarch App"),
+                            text: ensureSingleSpaceIfEmpty("Msarch App"), // Replaced ExternalHyperlink
                             style: "FooterTextStyle" 
                         })
                     ],
@@ -387,4 +384,3 @@ export async function generateWordReport(
         throw packError;
     }
 }
-
