@@ -144,223 +144,106 @@ export async function generateWordReport(
     inProgress: Project[],
     monthName: string,
     year: string,
-    chartImageDataUrl?: string | null,
+    chartImageDataUrl?: string | null, // Tetap ada untuk logika API, tapi tidak digunakan di sini untuk debugging
     currentLanguage: Language = 'en'
 ): Promise<Buffer> {
-    console.log("[ReportGenerator/Word] Starting Word report generation...");
+    console.log("[ReportGenerator/Word] Starting Word report generation with highly simplified structure...");
     const dict = getDictionary(currentLanguage);
     const reportDict = dict.monthlyReportPage;
-    const dashboardStatusDict = dict.dashboardPage.status;
     const locale = currentLanguage === 'id' ? IndonesianLocale : EnglishLocale;
-
-    const allProjectsForWord = [...inProgress, ...completed, ...canceled];
-     allProjectsForWord.sort((a, b) => {
-        const statusOrderValue = (project: Project, inProgressList: Project[]) => {
-            let currentStatus = project.status;
-             if (inProgressList.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
-                currentStatus = 'In Progress';
-            }
-            if (currentStatus === 'In Progress') return 0;
-            if (currentStatus === 'Completed') return 1;
-            if (currentStatus === 'Canceled') return 2;
-            return 3;
-        };
-        const orderA = statusOrderValue(a, inProgress);
-        const orderB = statusOrderValue(b, inProgress);
-
-        if (orderA !== orderB) return orderA - orderB;
-        
-        try {
-            return parseISO(b.createdAt).getTime() - parseISO(a.createdAt).getTime();
-        } catch (e) {
-            console.warn("[ReportGenerator/WordSort] Error parsing date for sorting, falling back to title sort:", e);
-            return a.title.localeCompare(b.title);
-        }
-    });
-    
-    const primaryColor = "1A237E"; 
-    const accentColorLight = "EEEEEE"; 
-    const textColor = "212121"; 
-    const headerTextColor = "FFFFFF";
 
     const childrenForSection: (Paragraph | Table)[] = [
         new Paragraph({
             children: [new TextRun(ensureSingleSpaceIfEmpty(String((reportDict?.title || "Monthly Project Report") + ` - ${monthName || "N/A"} ${year || "N/A"}`)))],
-            style: "TitleStyle",
             heading: HeadingLevel.TITLE,
             alignment: AlignmentType.CENTER,
-            spacing: { before: 600, after: 100 },
+            spacing: { before: 200, after: 100 },
         }),
         new Paragraph({
             children: [new TextRun(ensureSingleSpaceIfEmpty(String(`${currentLanguage === 'id' ? 'Dibuat pada' : 'Generated on'}: ${format(new Date(), 'PPPPpppp', { locale })}`)))],
-            style: "SubheaderStyle",
             alignment: AlignmentType.CENTER,
-            spacing: { after: 300 },
+            spacing: { after: 200 },
         }),
+        new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("\u00A0"))], spacing: {after: 100} }), 
         new Paragraph({
             children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Ringkasan Proyek' : 'Project Summary')))],
-            style: "SectionHeaderStyle",
             heading: HeadingLevel.HEADING_1,
-            spacing: { after: 100, before: 200 }
+            spacing: { after: 100, before: 100 }
         }),
-        new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(`• ${reportDict?.totalProjects || "Total Projects Reviewed"}: ${(completed?.length || 0) + (canceled?.length || 0) + (inProgress?.length || 0)}`)))], style: "SummaryTextStyle" }),
-        new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(`  - ${reportDict?.inProgressProjectsShort || "In Progress"}: ${inProgress?.length || 0}`)))], style: "SummaryTextStyle", indent: {left: 360} }),
-        new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(`  - ${reportDict?.completedProjectsShort || "Completed"}: ${completed?.length || 0}`)))], style: "SummaryTextStyle", indent: {left: 360} }),
-        new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(`  - ${reportDict?.canceledProjectsShort || "Canceled"}: ${canceled?.length || 0}`)))], style: "SummaryTextStyle", indent: {left: 360} }),
-        new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("\u00A0"))], spacing: {after: 200}, style: "NormalTextStyle" }), 
+        new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(`• ${reportDict?.totalProjects || "Total Projects Reviewed"}: ${(completed?.length || 0) + (canceled?.length || 0) + (inProgress?.length || 0)}`)))] }),
+        new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(`  - ${reportDict?.inProgressProjectsShort || "In Progress"}: ${inProgress?.length || 0}`)))], indent: {left: 360} }),
+        new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(`  - ${reportDict?.completedProjectsShort || "Completed"}: ${completed?.length || 0}`)))], indent: {left: 360} }),
+        new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(`  - ${reportDict?.canceledProjectsShort || "Canceled"}: ${canceled?.length || 0}`)))], indent: {left: 360} }),
+        new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("\u00A0"))], spacing: {after: 100} }), 
     ];
     
-     if (chartImageDataUrl && chartImageDataUrl.startsWith('data:image')) {
-        try {
-            console.log("[ReportGenerator/Word] Chart image data provided. Attempting to add chart image.");
-            const imageBuffer = Buffer.from(chartImageDataUrl.split(',')[1], 'base64');
-             childrenForSection.push(
-                new Paragraph({
-                    children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Tinjauan Status Proyek (Grafik)' : 'Project Status Overview (Chart)')))],
-                    style: "SectionHeaderStyle",
-                    heading: HeadingLevel.HEADING_1,
-                    spacing: { after: 100, before: 200 }
-                }),
-                new Paragraph({
-                    children: [new ImageRun({
-                        data: imageBuffer,
-                        transformation: { width: 500, height: 250 }, 
-                    })],
-                    alignment: AlignmentType.CENTER,
-                }),
-                 new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("\u00A0"))], spacing: {after: 200}, style: "NormalTextStyle" }), 
-            );
-            console.log("[ReportGenerator/Word] Chart image successfully added to document sections.");
-        } catch (imgError) {
-            console.error("[ReportGenerator/Word] Error processing chart image for Word report:", imgError);
-            // If image processing fails, we still add the section title but indicate failure to load image.
-            childrenForSection.push(
-                new Paragraph({
-                    children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Tinjauan Status Proyek (Grafik)' : 'Project Status Overview (Chart)')))],
-                    style: "SectionHeaderStyle",
-                    heading: HeadingLevel.HEADING_1,
-                    spacing: { after: 100, before: 200 }
-                }),
-                new Paragraph({
-                    children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? '(Gagal memuat gambar grafik)' : '(Failed to load chart image)')))],
-                    style: "ErrorTextStyle", 
-                    alignment: AlignmentType.CENTER,
-                }),
-                new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("\u00A0"))], spacing: {after: 200}, style: "NormalTextStyle" }), 
-            );
-        }
-    } else {
-         console.log("[ReportGenerator/Word] Chart image data not provided or invalid. Skipping chart section.");
-    }
+    // Bagian grafik sepenuhnya dinonaktifkan untuk debugging
+    console.log("[ReportGenerator/Word] Chart image section entirely skipped for debugging.");
 
 
-    if (allProjectsForWord.length > 0) {
-        childrenForSection.push(
-            new Paragraph({
-                children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? "Daftar Detail Proyek" : "Detailed Project List")))],
-                style: "SectionHeaderStyle",
-                heading: HeadingLevel.HEADING_1,
-                spacing: { after: 100, before: 200 }
-            })
-        );
+    // Selalu coba tambahkan tabel dengan data dummy untuk debugging
+    childrenForSection.push(
+        new Paragraph({
+            children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? "Daftar Detail Proyek (Data Dummy)" : "Detailed Project List (Dummy Data)")))],
+            heading: HeadingLevel.HEADING_1,
+            spacing: { after: 100, before: 100 }
+        })
+    );
 
-        const headerRow = new TableRow({
+    const headerRow = new TableRow({
+        children: [
+            new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(reportDict?.tableHeaderTitle || "Project Title")))] })]}),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(reportDict?.tableHeaderStatus || "Status")))] })]}),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(reportDict?.tableHeaderLastActivityDate || "Last Activity")))] })]}),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(reportDict?.tableHeaderContributors || "Contributors")))] })]}),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Progres (%)' : 'Progress (%)')))], alignment: AlignmentType.CENTER })]}),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Dibuat Oleh' : 'Created By')))] })]}),
+            new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Dibuat Pada' : 'Created At')))] })]}),
+        ],
+        tableHeader: true,
+    });
+    
+    const dummyDataRows: TableRow[] = [
+        new TableRow({
             children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(reportDict?.tableHeaderTitle || "Project Title")))], style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(reportDict?.tableHeaderStatus || "Status")))], style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(reportDict?.tableHeaderLastActivityDate || "Last Activity")))], style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(reportDict?.tableHeaderContributors || "Contributors")))], style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Progres (%)' : 'Progress (%)')))], style: "TableHeaderStyle", alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Dibuat Oleh' : 'Created By')))], style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Dibuat Pada' : 'Created At')))], style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("Proyek Contoh 1"))] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("Selesai"))] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("12 Mei 2024"))] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("Pengguna A, Pengguna B"))] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("100"))], alignment: AlignmentType.CENTER })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("Pemilik"))] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("01 Mei 2024"))] })] }),
             ],
-            tableHeader: true,
-        });
-        
-        // --- START: DIAGNOSTIC - Replace dynamic dataRows with dummy data ---
-        const dataRows: TableRow[] = [
-            new TableRow({
-                children: [
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("Proyek Contoh 1"))], style: "TableCellStyle" })], verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("Selesai"))], style: "TableCellStyle" })], verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("12 Mei 2024"))], style: "TableCellStyle" })], verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("Pengguna A, Pengguna B"))], style: "TableCellStyle" })], verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("100"))], alignment: AlignmentType.CENTER, style: "TableCellStyle" })], verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("Pemilik"))], style: "TableCellStyle" })], verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("01 Mei 2024"))], style: "TableCellStyle" })], verticalAlign: VerticalAlign.CENTER }),
-                ],
-            }),
-            new TableRow({
-                 children: [
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("Proyek Contoh 2"))], style: "TableCellStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: accentColorLight } }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("Sedang Berjalan"))], style: "TableCellStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: accentColorLight } }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("13 Mei 2024"))], style: "TableCellStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: accentColorLight } }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("Pengguna C"))], style: "TableCellStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: accentColorLight } }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("50"))], alignment: AlignmentType.CENTER, style: "TableCellStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: accentColorLight } }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("Admin Umum"))], style: "TableCellStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: accentColorLight } }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("10 Mei 2024"))], style: "TableCellStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: accentColorLight } }),
-                ],
-            })
-        ];
-        // --- END: DIAGNOSTIC ---
+        }),
+        new TableRow({
+             children: [
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("Proyek Contoh 2"))] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("Sedang Berjalan"))] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("13 Mei 2024"))] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("Pengguna C"))] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("50"))], alignment: AlignmentType.CENTER })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("Admin Umum"))] })] }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("10 Mei 2024"))] })] }),
+            ],
+        })
+    ];
 
-        /*
-        // --- ORIGINAL DYNAMIC dataRows (commented out for diagnostics) ---
-        const dataRows = allProjectsForWord.map((project, index) => {
-            let displayStatus = project.status;
-            if (inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
-                displayStatus = 'In Progress';
-            }
-            const statusKey = displayStatus?.toLowerCase().replace(/ /g, '') as keyof typeof dashboardStatusDict;
-            const translatedDisplayStatus = dashboardStatusDict[statusKey] || displayStatus;
-           
-            const cellShading = index % 2 === 0 ? undefined : { type: ShadingType.SOLID, fill: accentColorLight };
+    const table = new Table({
+        rows: [headerRow, ...dummyDataRows],
+        width: { size: 9020, type: WidthType.DXA }, // Ukuran standar kertas A4 landscape dalam DXA
+        // columnWidths dan borders sengaja dihilangkan untuk penyederhanaan maksimal saat debugging
+    });
+    childrenForSection.push(table);
+    console.log("[ReportGenerator/Word] Dummy project table (simplified) added to document sections.");
 
-            return new TableRow({
-                children: [
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(project.title)))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(translatedDisplayStatus)))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(getLastActivityDate(project, currentLanguage))))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(getContributors(project, reportDict, currentLanguage))))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(project.progress)))], alignment: AlignmentType.CENTER, style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(project.createdBy)))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(formatDateOnly(project.createdAt, currentLanguage))))], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                ],
-            });
-        });
-        // --- END ORIGINAL DYNAMIC dataRows ---
-        */
-
-
-        const table = new Table({
-            rows: [headerRow, ...dataRows],
-            width: { size: 9020, type: WidthType.DXA }, 
-            columnWidths: [2400, 1100, 1400, 1700, 700, 900, 820], 
-            borders: {
-                top: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
-                bottom: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
-                left: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
-                right: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
-                insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "D9D9D9" },
-                insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "D9D9D9" },
-            },
-        });
-        childrenForSection.push(table);
-        console.log("[ReportGenerator/Word] Project table added to document sections.");
-
-    } else {
-        childrenForSection.push(
-            new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(reportDict?.noDataForMonth || (currentLanguage === 'id' ? 'Tidak ada data proyek untuk bulan ini.' : 'No project data for this month.'))))], alignment: AlignmentType.CENTER, style: "NormalTextStyle" })
-        );
-    }
 
     childrenForSection.push(
-        new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("\u00A0"))], spacing: {after: 400}, style: "NormalTextStyle" }) 
+        new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty("\u00A0"))], spacing: {after: 200} }) 
     );
      childrenForSection.push(
         new Paragraph({
             children: [
-                new TextRun({ text: ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Dihasilkan oleh Msarch App' : 'Generated by Msarch App')), style: "SmallMutedTextStyle"}),
+                new TextRun({ text: ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Dihasilkan oleh Msarch App' : 'Generated by Msarch App'))}),
             ],
             alignment: AlignmentType.RIGHT,
         })
@@ -368,30 +251,25 @@ export async function generateWordReport(
 
     const sections = [
         {
-            properties: {
+            properties: { // Properti section yang sangat dasar
                 type: SectionType.NEXT_PAGE,
-                page: {
-                    pageNumbers: { start: 1, formatType: PageNumber.DECIMAL },
-                     margin: { top: 720, right: 720, bottom: 720, left: 720 }, 
-                },
+                 margin: { top: 720, right: 720, bottom: 720, left: 720 }, 
             },
-            headers: {
+            headers: { // Header yang sangat sederhana
                  default: new Paragraph({
-                    children: [new TextRun({ text: ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Laporan Bulanan Proyek - Msarch App' : 'Monthly Project Report - Msarch App')), style: "FooterTextStyle"})],
+                    children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Laporan Bulanan - Msarch App' : 'Monthly Report - Msarch App')))],
                     alignment: AlignmentType.RIGHT,
-                    spacing: { after: 100 },
                 }),
             },
-            footers: {
+            footers: { // Footer yang sangat sederhana, tanpa PageNumber untuk sementara
                 default: new Paragraph({
                     children: [
-                        new TextRun({ text: ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Halaman ' : 'Page ')), style: "FooterTextStyle" }),
-                        PageNumber.CURRENT,
-                        new TextRun({ text: ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? ' dari ' : ' of ')), style: "FooterTextStyle" }),
-                        PageNumber.TOTAL_PAGES,
+                        new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Halaman' : 'Page'))),
+                        // PageNumber.CURRENT, // Sementara dihilangkan untuk debugging
+                        // new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? ' dari ' : ' of '))),
+                        // PageNumber.TOTAL_PAGES, // Sementara dihilangkan untuk debugging
                     ],
                     alignment: AlignmentType.CENTER,
-                    style: "FooterTextStyle"
                 }),
             },
             children: childrenForSection,
@@ -404,42 +282,23 @@ export async function generateWordReport(
         title: String((reportDict?.title || "Monthly Project Report") + ` - ${monthName || "N/A"} ${year || "N/A"}`),
         description: String(`Monthly project report for ${monthName || "N/A"} ${year || "N/A"} generated by Msarch App.`),
         sections: sections,
-        styles: {
-            paragraphStyles: [
-                { id: "BaseNormal", name: "Base Normal", run: { font: "Calibri", size: 22, color: textColor } },
-                { id: "TitleStyle", name: "Title Style", basedOn: "BaseNormal", run: { size: 44, bold: true, color: primaryColor, font: "Calibri Light" } },
-                { id: "SubheaderStyle", name: "Subheader Style", basedOn: "BaseNormal", run: { size: 22, italics: true, color: "5A5A5A" }, paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 150 }} },
-                { id: "TableHeaderStyle", name: "Table Header Style", basedOn: "BaseNormal", run: { bold: true, size: 20, color: headerTextColor }, paragraph: { alignment: AlignmentType.CENTER, spacing: { before: 100, after: 100 } } },
-                { id: "TableCellStyle", name: "Table Cell Style", basedOn: "BaseNormal", run: { size: 18 }, paragraph: { spacing: { before: 80, after: 80 } } },
-                { id: "SummaryTextStyle", name: "Summary Text Style", basedOn: "BaseNormal", run: { size: 22 }, paragraph: { spacing: { before: 60, after: 60 }, indent: { left: 180 }}},
-                { id: "SectionHeaderStyle", name: "Section Header Style", basedOn: "BaseNormal", run: { size: 28, bold: true, color: primaryColor, font: "Calibri Light" }, paragraph: { spacing: { after: 150, before: 250 }, border: { bottom: {color: primaryColor, style: BorderStyle.SINGLE, size: 6 }} } },
-                { id: "ErrorTextStyle", name: "Error Text Style", basedOn: "BaseNormal", run: { size: 20, color: "C0392B", italics: true }}, 
-                { id: "NormalTextStyle", name: "Normal Text Style", basedOn: "BaseNormal", run: { size: 22}},
-                { id: "FooterTextStyle", name: "Footer Text Style", basedOn: "BaseNormal", run: { size: 16, color: "A9A9A9" } },
-                { id: "SmallMutedTextStyle", name: "Small Muted Text Style", basedOn: "BaseNormal", run: { size: 16, color: "7F8C8D", italics: true } },
-            ],
-            default: {
-                document: { run: { font: "Calibri", size: 22, color: textColor } },
-                heading1: { run: { size: 28, bold: true, color: primaryColor, font: "Calibri Light" }, paragraph: { spacing: { after: 200, before: 300 } } },
-                title: { run: { size: 44, bold: true, color: primaryColor, font: "Calibri Light" }, paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 100, before: 600 } } },
-            }
-        },
+        // styles: undefined, // Semua gaya kustom dihilangkan untuk debugging
     });
 
     try {
-        console.log("[ReportGenerator/Word] Attempting to pack Word document...");
+        console.log("[ReportGenerator/Word] Attempting to pack Word document with highly simplified structure...");
         const buffer = await Packer.toBuffer(doc);
-        console.log("[ReportGenerator/Word] Word document packed successfully.");
+        console.log("[ReportGenerator/Word] Word document packed successfully (highly simplified).");
         return buffer;
     } catch (packError: any) {
-        console.error('[ReportGenerator/Word] Error during Packer.toBuffer:', packError);
+        console.error('[ReportGenerator/Word] Error during Packer.toBuffer (highly simplified):', packError);
         if (packError.message && packError.message.includes("Cannot read properties of undefined (reading 'children')")) {
-            console.error("[ReportGenerator/Word] Packer error likely due to empty content sections or malformed document structure. Check all Paragraphs, TableCells, Headers, Footers, and Sections.");
+            console.error("[ReportGenerator/Word] Packer error (highly simplified) likely due to structural issue. Further isolation needed.");
         }
         if (packError.stack) {
-            console.error('[ReportGenerator/Word] Packer.toBuffer stack trace:', packError.stack);
+            console.error('[ReportGenerator/Word] Packer.toBuffer (highly simplified) stack trace:', packError.stack);
         }
-        
-        throw packError;
+        throw packError; // Tetap lemparkan error agar API route bisa menangani
     }
 }
+
