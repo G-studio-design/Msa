@@ -1,7 +1,7 @@
 // src/lib/report-generator.ts
 'use server';
 
-import type { Project, WorkflowHistoryEntry, FileEntry } from '@/services/project-service';
+import type { Project } from '@/services/project-service';
 import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 import { Document, Packer, Paragraph, TextRun, Table, TableCell, TableRow, WidthType, BorderStyle, VerticalAlign, AlignmentType, HeadingLevel, ImageRun, ShadingType, PageNumber, SectionType, ExternalHyperlink, UnderlineType } from 'docx';
@@ -9,6 +9,13 @@ import type { Language } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 
 // --- Helper Functions ---
+
+// Ensures that the text is a non-empty string, defaulting to a single space if null, undefined, or empty after trim.
+const ensureSingleSpaceIfEmpty = (text: any): string => {
+    const str = String(text == null ? "" : text); // Handles null/undefined to ""
+    return str.trim() === "" ? " " : str; // If "" after trim, make it " ", else original.
+};
+
 
 function formatDateOnly(timestamp: string | undefined | null, lang: Language = 'en'): string {
     if (!timestamp) return "N/A";
@@ -128,11 +135,6 @@ export async function generateExcelReport(
     return rows.join('\n');
 }
 
-const ensureSingleSpaceIfEmpty = (text: any): string => {
-    const str = String(text == null ? "" : text);
-    return str.trim() === "" ? " " : str;
-};
-
 
 // --- Word Document Generation Function ---
 export async function generateWordReport(
@@ -207,21 +209,51 @@ export async function generateWordReport(
         new Paragraph({ children: [new TextRun(" ")], spacing: {after: 200}, style: "NormalTextStyle" }), 
     ];
     
-    console.log("[ReportGenerator/Word] Chart image generation temporarily disabled for debugging.");
-    childrenForSection.push(
-        new Paragraph({
-            children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview")))],
-            style: "SectionHeaderStyle",
-            heading: HeadingLevel.HEADING_1,
-            spacing: { after: 100, before: 200 }
-        }),
-        new Paragraph({
-            children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? "(Grafik dinonaktifkan untuk debugging)" : "(Chart disabled for debugging)")))],
-            alignment: AlignmentType.CENTER,
-            style: "ErrorTextStyle",
-            spacing: { after: 200 }
-        })
-    );
+    // Chart Image Section
+    if (chartImageDataUrl && chartImageDataUrl.startsWith('data:image')) {
+        console.log("[ReportGenerator/Word] Chart image data provided. Attempting to add to document.");
+        try {
+            const imageBuffer = Buffer.from(chartImageDataUrl.replace(/^data:image\/\w+;base64,/, ""), 'base64');
+            childrenForSection.push(
+                new Paragraph({
+                    children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview")))],
+                    style: "SectionHeaderStyle",
+                    heading: HeadingLevel.HEADING_1,
+                    spacing: { after: 100, before: 200 }
+                }),
+                new Paragraph({
+                    children: [
+                        new ImageRun({
+                            data: imageBuffer,
+                            transformation: { width: 500, height: 300 }, // Adjust as needed
+                        }),
+                    ],
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 200 }
+                })
+            );
+            console.log("[ReportGenerator/Word] Chart image added to document sections.");
+        } catch (imgError: any) {
+            console.error("[ReportGenerator/Word] Error processing or adding chart image:", imgError);
+            childrenForSection.push(
+                new Paragraph({
+                    children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? "Tinjauan Status Proyek (Gagal Memuat Gambar)" : "Project Status Overview (Failed to Load Image)")))],
+                    style: "SectionHeaderStyle",
+                    heading: HeadingLevel.HEADING_1,
+                    spacing: { after: 100, before: 200 }
+                }),
+                new Paragraph({
+                    children: [new TextRun(ensureSingleSpaceIfEmpty(String(imgError.message || "Error details unavailable")))],
+                    style: "ErrorTextStyle",
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 200 }
+                })
+            );
+        }
+    } else {
+        // If chartImageDataUrl is null or invalid, skip adding the chart section entirely.
+        console.log("[ReportGenerator/Word] Chart image data not provided or invalid. Skipping chart section.");
+    }
 
 
     if (allProjectsForWord.length > 0) {
@@ -284,7 +316,7 @@ export async function generateWordReport(
             },
         });
         childrenForSection.push(table);
-        console.log("[ReportGenerator/Word] Project table added to document.");
+        console.log("[ReportGenerator/Word] Project table added to document sections.");
 
     } else {
         childrenForSection.push(
@@ -316,10 +348,7 @@ export async function generateWordReport(
             headers: {
                 default: new Paragraph({
                     children: [
-                        new TextRun({
-                            text: ensureSingleSpaceIfEmpty("Msarch App"), // Replaced ExternalHyperlink
-                            style: "FooterTextStyle" 
-                        })
+                        new TextRun({ text: ensureSingleSpaceIfEmpty("Msarch App"), style: "FooterTextStyle" })
                     ],
                     alignment: AlignmentType.RIGHT,
                     spacing: { after: 100 }
@@ -381,6 +410,8 @@ export async function generateWordReport(
         if (packError.stack) {
             console.error('[ReportGenerator/Word] Packer.toBuffer stack trace:', packError.stack);
         }
+        // Rethrow the error to be caught by the API route
         throw packError;
     }
 }
+
