@@ -34,9 +34,9 @@ const getLastActivityDateForDoc = (project: Project, lang: Language): string => 
     return formatDateOnlyForDoc(lastEntry?.timestamp, lang);
 };
 
-const getContributorsForDoc = (project: Project, dict: ReturnType<typeof getDictionary>['monthlyReportPage']): string => {
+const getContributorsForDoc = (project: Project, translations: ReturnType<typeof getDictionary>['monthlyReportPage']): string => {
     if (!project.files || project.files.length === 0) {
-        return ensureNonEmpty(dict.none);
+        return ensureNonEmpty(translations.none);
     }
     const contributors = [...new Set(project.files.map(f => f.uploadedBy || 'Unknown'))];
     return ensureNonEmpty(contributors.join(', '));
@@ -60,38 +60,40 @@ export async function generateWordReport({
     const translations = dict.monthlyReportPage;
     const dashboardTranslations = dict.dashboardPage.status;
 
-    const primaryColor = "2C3E50"; // Dark Blue-Gray
+    const primaryColor = "1F618D"; // Darker Blue
     const primaryForegroundColor = "FFFFFF"; // White
-    const accentColor = "3498DB"; // Bright Blue
-    const textColor = "34495E"; // Dark Gray
-    const lightGrayColor = "ECF0F1"; // Very Light Gray
-    const borderColor = "BDC3C7"; // Light Silver
+    const accentColor = "5DADE2"; // Lighter Blue
+    const textColor = "2C3E50"; // Very Dark Blue/Gray
+    const lightGrayColor = "ECF0F1"; // Very Light Gray for alternate rows or subtle borders
+    const borderColor = "AAB7B8"; // Medium Gray for borders
 
-    // Define style IDs
-    const DefaultParagraphStyle = "DefaultParagraphStyle";
-    const HeaderStyle = "HeaderStyle";
-    const SubheaderStyle = "SubheaderStyle";
-    const SectionTitleStyle = "SectionTitleStyle";
-    const SummaryTextStyle = "SummaryTextStyle";
-    const TableHeaderParagraphStyle = "TableHeaderParagraphStyle";
-    const TableCellParagraphStyle = "TableCellParagraphStyle";
-    const FooterTextStyleName = "FooterTextStyleName"; // Paragraph style for footer
-    // No specific run style needed for footer text if properties are set directly
+    // Style IDs
+    const DefaultParagraphStyleId = "DefaultParagraphStyle";
+    const HeaderStyleId = "HeaderStyle";
+    const SubheaderStyleId = "SubheaderStyle";
+    const SectionTitleStyleId = "SectionTitleStyle";
+    const SummaryTextStyleId = "SummaryTextStyle";
+    const TableHeaderParagraphStyleId = "TableHeaderParagraphStyle";
+    const TableCellParagraphStyleId = "TableCellParagraphStyle";
+    const FooterParagraphStyleId = "FooterParagraphStyle";
+    const ChartPlaceholderStyleId = "ChartPlaceholderStyle";
+
 
     const doc = new Document({
         creator: "Msarch App",
-        title: `${translations.title} - ${monthName} ${year}`,
-        description: translations.description,
+        title: ensureNonEmpty(`${translations.title} - ${monthName} ${year}`),
+        description: ensureNonEmpty(translations.description),
         styles: {
             paragraphStyles: [
-                { id: DefaultParagraphStyle, name: "Default", run: { size: 22, font: "Calibri", color: textColor }, paragraph: { spacing: { after: 120 } } },
-                { id: HeaderStyle, name: "Header Style", basedOn: DefaultParagraphStyle, run: { size: 36, bold: true, color: primaryColor }, paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 400, before: 200 } } },
-                { id: SubheaderStyle, name: "Subheader Style", basedOn: DefaultParagraphStyle, run: { size: 20, italics: true, color: textColor }, paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 300 } } },
-                { id: SectionTitleStyle, name: "Section Title Style", basedOn: DefaultParagraphStyle, run: { size: 28, bold: true, color: primaryColor }, paragraph: { spacing: { before: 400, after: 200 }, border: { bottom: { color: accentColor, space: 1, style: BorderStyle.SINGLE, size: 6 } } } },
-                { id: SummaryTextStyle, name: "Summary Text Style", basedOn: DefaultParagraphStyle, run: { size: 22 }, paragraph: { spacing: { after: 100, line: 360 } } },
-                { id: TableHeaderParagraphStyle, name: "Table Header Paragraph Style", basedOn: DefaultParagraphStyle, paragraph: { alignment: AlignmentType.CENTER } },
-                { id: TableCellParagraphStyle, name: "Table Cell Paragraph Style", basedOn: DefaultParagraphStyle, run: { size: 20 } },
-                { id: FooterTextStyleName, name: "Footer Text Style", basedOn: DefaultParagraphStyle, run: { size: 18, color: "7F8C8D" }, paragraph: { alignment: AlignmentType.CENTER } },
+                { id: DefaultParagraphStyleId, name: "Default", run: { size: 22, font: "Calibri", color: textColor }, paragraph: { spacing: { after: 120 } } },
+                { id: HeaderStyleId, name: "Header Style", basedOn: DefaultParagraphStyleId, run: { size: 36, bold: true, color: primaryColor }, paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 400, before: 200 } } },
+                { id: SubheaderStyleId, name: "Subheader Style", basedOn: DefaultParagraphStyleId, run: { size: 20, italics: true, color: textColor }, paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 300 } } },
+                { id: SectionTitleStyleId, name: "Section Title Style", basedOn: DefaultParagraphStyleId, run: { size: 28, bold: true, color: primaryColor }, paragraph: { spacing: { before: 400, after: 200 }, border: { bottom: { color: accentColor, space: 1, style: BorderStyle.SINGLE, size: 6 } } } },
+                { id: SummaryTextStyleId, name: "Summary Text Style", basedOn: DefaultParagraphStyleId, run: { size: 22 }, paragraph: { spacing: { after: 100, line: 360 } } },
+                { id: TableHeaderParagraphStyleId, name: "Table Header Paragraph Style", basedOn: DefaultParagraphStyleId, paragraph: { alignment: AlignmentType.CENTER, spacing: {before: 60, after: 60} } },
+                { id: TableCellParagraphStyleId, name: "Table Cell Paragraph Style", basedOn: DefaultParagraphStyleId, run: { size: 20 }, paragraph: { spacing: {before: 60, after: 60} } },
+                { id: FooterParagraphStyleId, name: "Footer Paragraph Style", basedOn: DefaultParagraphStyleId, run: { size: 18, color: "7F8C8D" }, paragraph: { alignment: AlignmentType.CENTER } },
+                { id: ChartPlaceholderStyleId, name: "Chart Placeholder Style", basedOn: SummaryTextStyleId, run: { italics: true, color: "7F8C8D" } },
             ],
         },
         sections: [{
@@ -99,99 +101,100 @@ export async function generateWordReport({
                 page: {
                     margin: { top: 720, right: 720, bottom: 720, left: 720 },
                 },
-                type: SectionType.NEXT_PAGE, // Ensures headers/footers apply correctly
+                type: SectionType.NEXT_PAGE,
             },
             headers: {
                 default: new Paragraph({
+                    style: DefaultParagraphStyleId, // Use a base style for the paragraph itself
                     children: [
                         new TextRun({ text: ensureNonEmpty(dict.dashboardLayout.appTitle), size: 18, color: "7F8C8D", bold: true }),
                     ],
                     alignment: AlignmentType.RIGHT,
-                    style: DefaultParagraphStyle, // Use a base style or create a specific header paragraph style
                 }),
             },
             footers: {
                 default: new Paragraph({
+                    style: FooterParagraphStyleId, // This sets alignment and default run properties
                     children: [
-                        new TextRun({ text: ensureNonEmpty(translations.page) + " ", size: 18, color: "7F8C8D" }),
+                        new TextRun({ text: ensureNonEmpty(translations.page) + " " }),
                         PageNumber.CURRENT,
-                        new TextRun({ text: " " + ensureNonEmpty(translations.of) + " ", size: 18, color: "7F8C8D" }),
+                        new TextRun({ text: " " + ensureNonEmpty(translations.of) + " " }),
                         PageNumber.TOTAL_PAGES,
                     ],
-                    style: FooterTextStyleName, // Apply the paragraph style for alignment
                 }),
             },
             children: [
-                new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(`${translations.title} - ${monthName} ${year}`) })], style: HeaderStyle }),
-                new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(`${translations.generatedOn}: ${format(new Date(), 'PPpp', { locale: language === 'id' ? IndonesianLocale : EnglishLocale })}`) })], style: SubheaderStyle }),
+                new Paragraph({ style: HeaderStyleId, children: [new TextRun({ text: ensureNonEmpty(`${translations.title} - ${monthName} ${year}`) })] }),
+                new Paragraph({ style: SubheaderStyleId, children: [new TextRun({ text: ensureNonEmpty(`${translations.generatedOn}: ${format(new Date(), 'PPpp', { locale: language === 'id' ? IndonesianLocale : EnglishLocale })}`) })] }),
                 
-                new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.summaryTitle) })], style: SectionTitleStyle }),
+                new Paragraph({ style: SectionTitleStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.summaryTitle) })] }),
                 new Paragraph({
+                    style: SummaryTextStyleId,
                     children: [
                         new TextRun({ text: `  • ${ensureNonEmpty(translations.totalProjectsDescWord?.replace('{total}', (reportData.completed.length + reportData.inProgress.length + reportData.canceled.length).toString()))}\n` }),
                         new TextRun({ text: `  • ${ensureNonEmpty(translations.status.inprogress)}: ${reportData.inProgress.length}\n` }),
                         new TextRun({ text: `  • ${ensureNonEmpty(translations.status.completed)}: ${reportData.completed.length}\n` }),
                         new TextRun({ text: `  • ${ensureNonEmpty(translations.status.canceled)}: ${reportData.canceled.length}` }),
                     ],
-                    style: SummaryTextStyle,
                 }),
-                 new Paragraph({ children: [new TextRun("\u00A0")] , spacing: {after: 300}, style: DefaultParagraphStyle}), // Spacing paragraph
+                 new Paragraph({style: DefaultParagraphStyleId, children: [new TextRun({ text: ensureNonEmpty("\u00A0") })], spacing: {after: 300} }),
 
                 ...(chartImageDataUrl ? [
-                    new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.chartTitleWord) })], style: SectionTitleStyle }),
+                    new Paragraph({ style: SectionTitleStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.chartTitleWord) })] }),
                     new Paragraph({ // Center the image by putting it in a centered paragraph
                         children: [
                             new ImageRun({
                                 data: Buffer.from(chartImageDataUrl.split(',')[1], 'base64'),
                                 transformation: {
-                                    width: 480, // Adjusted for common page widths
+                                    width: 480, 
                                     height: 270, 
                                 },
                             }),
                         ],
                         alignment: AlignmentType.CENTER,
                     }),
-                    new Paragraph({ children: [new TextRun("\u00A0")] , spacing: {after: 300}, style: DefaultParagraphStyle}), // Spacing paragraph
+                    new Paragraph({ style: DefaultParagraphStyleId, children: [new TextRun({ text: ensureNonEmpty("\u00A0") })], spacing: {after: 300} }),
                 ] : [
-                    new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.chartNotAvailableWord), italics: true })], style: SummaryTextStyle }),
-                    new Paragraph({ children: [new TextRun("\u00A0")] , spacing: {after: 300}, style: DefaultParagraphStyle}), // Spacing paragraph
+                    new Paragraph({ style: ChartPlaceholderStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.chartNotAvailableWord) })] }),
+                    new Paragraph({ style: DefaultParagraphStyleId, children: [new TextRun({ text: ensureNonEmpty("\u00A0") })], spacing: {after: 300} }),
                 ]),
                 
-                new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableCaptionWord) })], style: SectionTitleStyle }),
+                new Paragraph({ style: SectionTitleStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.tableCaptionWord) })] }),
                 new Table({
                     columnWidths: [3000, 1200, 1500, 1500, 800, 1000, 1000], 
                     rows: [
                         new TableRow({
                             children: [
-                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderTitle), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
-                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderStatus), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
-                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderLastActivityDate), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
-                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderContributors), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
-                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderProgress), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
-                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderCreatedBy), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
-                                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderCreatedAt), bold: true, color: primaryForegroundColor, size: 20 })], style: TableHeaderParagraphStyle})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
+                                new TableCell({ children: [new Paragraph({ style: TableHeaderParagraphStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderTitle), bold: true, color: primaryForegroundColor, size: 20 })]})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
+                                new TableCell({ children: [new Paragraph({ style: TableHeaderParagraphStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderStatus), bold: true, color: primaryForegroundColor, size: 20 })]})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
+                                new TableCell({ children: [new Paragraph({ style: TableHeaderParagraphStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderLastActivityDate), bold: true, color: primaryForegroundColor, size: 20 })]})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
+                                new TableCell({ children: [new Paragraph({ style: TableHeaderParagraphStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderContributors), bold: true, color: primaryForegroundColor, size: 20 })]})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
+                                new TableCell({ children: [new Paragraph({ style: TableHeaderParagraphStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderProgress), bold: true, color: primaryForegroundColor, size: 20 })]})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
+                                new TableCell({ children: [new Paragraph({ style: TableHeaderParagraphStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderCreatedBy), bold: true, color: primaryForegroundColor, size: 20 })]})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
+                                new TableCell({ children: [new Paragraph({ style: TableHeaderParagraphStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.tableHeaderCreatedAt), bold: true, color: primaryForegroundColor, size: 20 })]})], shading: { type: ShadingType.SOLID, color: primaryColor, fill: primaryColor }, verticalAlign: VerticalAlign.CENTER }),
                             ],
                             tableHeader: true,
                         }),
-                        ...[...reportData.inProgress, ...reportData.completed, ...reportData.canceled].map((project) => {
+                        ...[...reportData.inProgress, ...reportData.completed, ...reportData.canceled].map((project, index) => {
                             let displayStatus = project.status;
                             if (reportData.inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
-                                displayStatus = dashboardTranslations.inprogress; // Use translated "In Progress" for consistency
+                                displayStatus = dashboardTranslations.inprogress;
                             } else {
                                 const statusKey = project.status.toLowerCase().replace(/ /g,'') as keyof typeof dashboardTranslations;
                                 displayStatus = dashboardTranslations[statusKey] || project.status;
                             }
                             
+                            const cellShading = index % 2 === 1 ? { type: ShadingType.SOLID, color: lightGrayColor, fill: lightGrayColor } : undefined;
 
                             return new TableRow({
                                 children: [
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(project.title)})], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(displayStatus)})], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: getLastActivityDateForDoc(project, language)})], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: getContributorsForDoc(project, translations)})], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `${project.progress}%`})], style: TableCellParagraphStyle, alignment: AlignmentType.RIGHT })], verticalAlign: VerticalAlign.CENTER }),
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: ensureNonEmpty(project.createdBy)})], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
-                                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: formatDateOnlyForDoc(project.createdAt, language)})], style: TableCellParagraphStyle })], verticalAlign: VerticalAlign.CENTER }),
+                                    new TableCell({ children: [new Paragraph({ style: TableCellParagraphStyleId, children: [new TextRun({ text: ensureNonEmpty(project.title)})]})], verticalAlign: VerticalAlign.CENTER, shading: cellShading }),
+                                    new TableCell({ children: [new Paragraph({ style: TableCellParagraphStyleId, children: [new TextRun({ text: ensureNonEmpty(displayStatus)})]})], verticalAlign: VerticalAlign.CENTER, shading: cellShading }),
+                                    new TableCell({ children: [new Paragraph({ style: TableCellParagraphStyleId, children: [new TextRun({ text: getLastActivityDateForDoc(project, language)})]})], verticalAlign: VerticalAlign.CENTER, shading: cellShading }),
+                                    new TableCell({ children: [new Paragraph({ style: TableCellParagraphStyleId, children: [new TextRun({ text: getContributorsForDoc(project, translations)})]})], verticalAlign: VerticalAlign.CENTER, shading: cellShading }),
+                                    new TableCell({ children: [new Paragraph({ style: TableCellParagraphStyleId, alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `${project.progress}%`})]})], verticalAlign: VerticalAlign.CENTER, shading: cellShading }),
+                                    new TableCell({ children: [new Paragraph({ style: TableCellParagraphStyleId, children: [new TextRun({ text: ensureNonEmpty(project.createdBy)})]})], verticalAlign: VerticalAlign.CENTER, shading: cellShading }),
+                                    new TableCell({ children: [new Paragraph({ style: TableCellParagraphStyleId, children: [new TextRun({ text: formatDateOnlyForDoc(project.createdAt, language)})]})], verticalAlign: VerticalAlign.CENTER, shading: cellShading }),
                                 ],
                             });
                         }),
@@ -199,7 +202,7 @@ export async function generateWordReport({
                             new TableRow({
                                 children: [
                                     new TableCell({
-                                        children: [new Paragraph({ text: ensureNonEmpty(translations.noDataForMonth), alignment: AlignmentType.CENTER, style: TableCellParagraphStyle })],
+                                        children: [new Paragraph({ style: TableCellParagraphStyleId, alignment: AlignmentType.CENTER, children: [new TextRun({ text: ensureNonEmpty(translations.noDataForMonth) })]})],
                                         columnSpan: 7,
                                         verticalAlign: VerticalAlign.CENTER,
                                     }),
@@ -217,13 +220,12 @@ export async function generateWordReport({
                         insideVertical: { style: BorderStyle.SINGLE, size: 1, color: lightGrayColor },
                     }
                 }),
-                 new Paragraph({ children: [new TextRun("\u00A0")] , spacing: {after: 400}, style: DefaultParagraphStyle}), // Spacing
+                 new Paragraph({ style: DefaultParagraphStyleId, children: [new TextRun({ text: ensureNonEmpty("\u00A0") })] , spacing: {after: 400}}), 
                  new Paragraph({
+                    style: FooterParagraphStyleId, // Use paragraph style for alignment and default run properties
                     children: [
-                        new TextRun({ text: ensureNonEmpty(dict.dashboardLayout.appTitle), size: 18, italics: true, color: "7F8C8D" })
+                        new TextRun({ text: ensureNonEmpty(dict.dashboardLayout.appTitle) }) // TextRun inherits from FooterParagraphStyleId.run
                     ],
-                    alignment: AlignmentType.CENTER,
-                    style: DefaultParagraphStyle,
                  })
             ],
         }],
@@ -234,7 +236,7 @@ export async function generateWordReport({
         return buffer;
     } catch (error) {
         console.error("Error packing document with docx:", error);
-        // Rethrow a more specific error or handle as needed
         throw new Error(`Failed to pack Word document: ${error instanceof Error ? error.message : String(error)}`);
     }
 }
+
