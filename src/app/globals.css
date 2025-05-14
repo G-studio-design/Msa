@@ -23,11 +23,11 @@
     --border: 0 0% 89.8%; /* Light Gray Border */
     --input: 0 0% 89.8%; /* Light Gray Input Background */
     --ring: 187 100% 42%; /* Teal */
-    --chart-1: 145 65% 45%; /* Solid Green for Completed */
-    --chart-2: 205 75% 50%; /* Nice Blue for In Progress */
-    --chart-3: 197 37% 24%; /* Kept for potential future use, e.g., a darker teal */
-    --chart-4: 43 74% 66%; /* Kept for potential future use, e.g., a yellow/orange */
-    --chart-5: 27 87% 67%; /* Kept for potential future use, e.g., another orange shade */
+    --chart-1: 120 60% 50%; /* Vibrant Green for Completed */
+    --chart-2: 210 70% 55%; /* Richer Blue for In Progress */
+    --chart-3: 197 37% 24%; 
+    --chart-4: 43 74% 66%; 
+    --chart-5: 27 87% 67%; 
     --radius: 0.5rem;
   }
   .dark {
@@ -50,8 +50,8 @@
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
     --ring: 187 90% 52%; /* Lighter Teal for Dark Mode Ring */
-    --chart-1: 145 60% 55%; /* Adjusted Green for Dark Mode */
-    --chart-2: 205 70% 60%; /* Adjusted Blue for Dark Mode */
+    --chart-1: 120 50% 60%; /* Adjusted Vibrant Green for Dark Mode */
+    --chart-2: 210 60% 65%; /* Adjusted Richer Blue for Dark Mode */
     --chart-3: 197 40% 34%;
     --chart-4: 43 70% 70%;
     --chart-5: 27 80% 70%;
