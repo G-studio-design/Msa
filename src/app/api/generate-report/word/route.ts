@@ -1,3 +1,4 @@
+
 // src/app/api/generate-report/word/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import { generateWordReport } from '@/lib/report-generator';
@@ -36,7 +37,6 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
     
-    // Check if all project arrays are provided and if at least one has data
     const hasCompletedData = completed && Array.isArray(completed);
     const hasCanceledData = canceled && Array.isArray(canceled);
     const hasInProgressData = inProgress && Array.isArray(inProgress);
@@ -51,7 +51,6 @@ export async function POST(req: NextRequest) {
     
     if (completed.length === 0 && canceled.length === 0 && inProgress.length === 0 && !chartImageDataUrl) {
         console.log("[API/WordReport] No project data and no chart to generate. Sending minimal report.");
-        // Allow generation of a minimal report (e.g. "No data") instead of erroring out
     }
 
 
@@ -70,20 +69,26 @@ export async function POST(req: NextRequest) {
     let errorMessage = 'Failed to generate Word report.';
     let errorDetails = 'An unexpected error occurred on the server while generating the Word document.';
 
-    if (error.message) {
-        if (error.message.includes('Failed to pack Word document')) {
-            errorMessage = 'Word Document Creation Error';
-            errorDetails = `The server encountered an issue while assembling the Word file: ${error.message}`;
-        } else if (error.message.includes('Error processing chart image')) {
-            errorMessage = 'Chart Image Processing Error';
-            errorDetails = `There was a problem including the chart image in the Word document: ${error.message}`;
-        } else if (error.message.includes("Cannot read properties of undefined (reading 'children')") || error.message.includes("Cannot read 'children' of undefined")) {
+    // Ensure error.message is a string, or use a fallback.
+    const detailMessage = typeof error.message === 'string' ? error.message : 'Internal error during Word generation.';
+
+    if (detailMessage.includes("Cannot read properties of undefined (reading 'children')") || detailMessage.includes("Cannot read 'children' of undefined")) {
              errorMessage = 'Word Document Structure Error';
-             errorDetails = `The Word document could not be generated due to an internal structure error, possibly related to empty content sections. Please contact support or try again later. Details: ${error.message}`;
-        } else if (typeof error.message === 'string' && !error.message.toLowerCase().includes('<html') && error.message.trim().length > 0 && error.message.trim() !== '{}') {
-            errorDetails = error.message.substring(0, 500); // Limit length
+             errorDetails = `The Word document could not be generated due to an internal structure error, possibly related to empty content sections. Please contact support or try again later. Details: ${detailMessage}`;
+        } else if (detailMessage.includes('Failed to pack Word document')) {
+            errorMessage = 'Word Document Creation Error';
+            errorDetails = `The server encountered an issue while assembling the Word file: ${detailMessage}`;
+        } else if (detailMessage.includes('Error processing chart image')) {
+            errorMessage = 'Chart Image Processing Error';
+            errorDetails = `There was a problem including the chart image in the Word document: ${detailMessage}`;
+        } else {
+             // More robust generic fallback
+             if (typeof detailMessage === 'string' && !detailMessage.toLowerCase().includes('<html') && detailMessage.trim().length > 0 && detailMessage.trim() !== '{}') {
+                errorDetails = detailMessage.substring(0, 500); // Limit length
+            } else {
+                errorDetails = 'An unspecified error occurred during Word document generation.';
+            }
         }
-    }
     
     const errorResponsePayload = { 
         error: errorMessage,
