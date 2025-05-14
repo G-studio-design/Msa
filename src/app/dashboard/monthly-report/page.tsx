@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/ui/input'; // Tetap dipertahankan jika dibutuhkan di masa depan
 import { Label } from '@/components/ui/label';
 import {
   Table,
@@ -45,7 +45,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList, Cell } from "recharts"; // Added Cell
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList, Cell } from "recharts";
 import type { Language } from '@/context/LanguageContext';
 import { toPng } from 'html-to-image';
 
@@ -290,14 +290,22 @@ export default function MonthlyReportPage() {
                 console.error("Error parsing JSON error response or reading text from server for Word generation:", jsonError, "Raw response text (if available):", responseText);
                 errorDetails = `Server returned status ${response.status}. Original error: ${String(responseText || '').substring(0,200)}`;
             }
-            throw new Error(String(errorDetails || "An unknown error occurred detailing the server response."));
+             // Menyusun pesan error yang lebih user-friendly
+            let userFriendlyError = "The Word document could not be generated due to an internal error.";
+            if(errorDetails && errorDetails.toLowerCase().includes("cannot read properties of undefined (reading 'children')")) {
+                userFriendlyError = "The Word document could not be generated due to an internal structure error, possibly related to empty content sections. Please contact support or try again later.";
+            } else if (errorDetails.includes("Failed to generate Word document")) {
+                 userFriendlyError = "The Word document could not be generated. Please contact support.";
+            }
+            
+            throw new Error(String(userFriendlyError + " Details: " + errorDetails || "An unknown error occurred detailing the server response."));
         }
         
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `monthly_report_${reportData.year}_${reportData.monthName.replace(/ /g, '_')}.docx`;
+        a.download = `monthly_report_${reportData.year}_${reportData.monthName.replace(/ /g, '_')}_${language}.docx`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -315,22 +323,29 @@ export default function MonthlyReportPage() {
   const years = Array.from({ length: 10 }, (_, i) => (parseInt(currentYear) - 5 + i).toString());
   const months = Array.from({ length: 12 }, (_, i) => ({ value: (i + 1).toString(), label: getMonthName(i + 1, language) }));
 
+  // Define literal HSL/HEX colors for the chart, matching globals.css
+  const chartLiteralColors = {
+    inProgress: "hsl(210, 70%, 55%)", // --chart-2 in globals.css
+    completed: "hsl(120, 60%, 50%)",  // --chart-1 in globals.css
+    canceled: "hsl(0, 84.2%, 60.2%)", // --destructive in globals.css
+  };
+
+  const chartConfig = React.useMemo(() => ({
+    count: { label: reportDict.totalProjectsShort, color: "hsl(0, 0%, 3.9%)" }, // Default foreground
+    [reportDict.status.inprogress]: { label: reportDict.status.inprogress, color: chartLiteralColors.inProgress },
+    [reportDict.status.completed]: { label: reportDict.status.completed, color: chartLiteralColors.completed },
+    [reportDict.status.canceled]: { label: reportDict.status.canceled, color: chartLiteralColors.canceled },
+  }), [reportDict, chartLiteralColors.inprogress, chartLiteralColors.completed, chartLiteralColors.canceled]);
+
+
   const chartDisplayData = React.useMemo(() => {
     if (!reportData) return [];
     return [
-      { name: reportDict.status.inprogress, count: reportData.inProgress.length, fill: "hsl(var(--chart-2))" },
-      { name: reportDict.status.completed, count: reportData.completed.length, fill: "hsl(var(--chart-1))" },
-      { name: reportDict.status.canceled, count: reportData.canceled.length, fill: "hsl(var(--destructive))" },
+      { name: reportDict.status.inprogress, count: reportData.inProgress.length, fill: chartConfig[reportDict.status.inprogress].color },
+      { name: reportDict.status.completed, count: reportData.completed.length, fill: chartConfig[reportDict.status.completed].color },
+      { name: reportDict.status.canceled, count: reportData.canceled.length, fill: chartConfig[reportDict.status.canceled].color },
     ].filter(item => item.count > 0); 
-  }, [reportData, reportDict.status]);
-
-  const chartConfig = {
-    count: { label: reportDict.totalProjectsShort, color: "hsl(var(--foreground))" },
-    [reportDict.status.inprogress]: { label: reportDict.status.inprogress, color: "hsl(var(--chart-2))" },
-    [reportDict.status.completed]: { label: reportDict.status.completed, color: "hsl(var(--chart-1))" },
-    [reportDict.status.canceled]: { label: reportDict.status.canceled, color: "hsl(var(--destructive))" },
-  };
-
+  }, [reportData, reportDict.status, chartConfig]);
 
   if (!isClient || (isLoadingProjects && !reportData)) {
     return (
