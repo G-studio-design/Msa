@@ -174,6 +174,205 @@ export async function generateWordReport(
     const textColor = "212121";
     const headerTextColor = "FFFFFF";
 
+    const childrenForSection = [
+        new Paragraph({
+            children: [new TextRun(String((reportDict?.title || "Monthly Project Report") + ` - ${monthName || "N/A"} ${year || "N/A"}`))],
+            style: "TitleStyle",
+            heading: HeadingLevel.TITLE,
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 600, after: 100 },
+        }),
+        new Paragraph({
+            children: [new TextRun(String(`${currentLanguage === 'id' ? 'Dibuat pada' : 'Generated on'}: ${format(new Date(), 'PPPPpppp', { locale })}`))],
+            style: "SubheaderStyle",
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 300 },
+        }),
+        new Paragraph({
+            children: [new TextRun(String(currentLanguage === 'id' ? 'Ringkasan Proyek' : 'Project Summary'))],
+            style: "SectionHeaderStyle",
+            heading: HeadingLevel.HEADING_1,
+            spacing: { after: 100, before: 200 }
+        }),
+        new Paragraph({ children: [new TextRun(String(`• ${reportDict?.totalProjects || "Total Projects Reviewed"}: ${(completed?.length || 0) + (canceled?.length || 0) + (inProgress?.length || 0)}`))], style: "SummaryTextStyle" }),
+        new Paragraph({ children: [new TextRun(String(`  - ${reportDict?.inProgressProjectsShort || "In Progress"}: ${inProgress?.length || 0}`))], style: "SummaryTextStyle", indent: {left: 360} }),
+        new Paragraph({ children: [new TextRun(String(`  - ${reportDict?.completedProjectsShort || "Completed"}: ${completed?.length || 0}`))], style: "SummaryTextStyle", indent: {left: 360} }),
+        new Paragraph({ children: [new TextRun(String(`  - ${reportDict?.canceledProjectsShort || "Canceled"}: ${canceled?.length || 0}`))], style: "SummaryTextStyle", indent: {left: 360} }),
+        new Paragraph({ children: [new TextRun(" ")], spacing: {after: 200} }),
+    ];
+
+    if (chartImageDataUrl) {
+        try {
+            console.log("[ReportGenerator/Word] Processing chart image for Word report...");
+            const base64Data = chartImageDataUrl.split(',')[1];
+            if (base64Data && base64Data.trim() !== '') {
+                const imageBuffer = Buffer.from(base64Data, 'base64');
+                 if (imageBuffer.length > 0) {
+                    childrenForSection.push(
+                        new Paragraph({
+                            children: [new TextRun(String(currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview"))],
+                            style: "SectionHeaderStyle",
+                            heading: HeadingLevel.HEADING_1,
+                            spacing: { after: 100, before: 200 }
+                        }),
+                        new Paragraph({
+                            children: [
+                                new ImageRun({
+                                    data: imageBuffer,
+                                    transformation: { width: 500, height: 250 },
+                                }),
+                            ],
+                            alignment: AlignmentType.CENTER,
+                            spacing: { after: 200 }
+                        })
+                    );
+                    console.log("[ReportGenerator/Word] Chart image added to document.");
+                 } else {
+                    console.warn("[ReportGenerator/Word] Chart image data URL provided, but resulted in an empty buffer. Skipping image.");
+                    childrenForSection.push(
+                        new Paragraph({
+                            children: [new TextRun(String(currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview"))],
+                            style: "SectionHeaderStyle",
+                            heading: HeadingLevel.HEADING_1,
+                            spacing: { after: 100, before: 200 }
+                        }),
+                        new Paragraph({ 
+                            children: [new TextRun(String(currentLanguage === 'id' ? "(Grafik tidak dapat dibuat - data gambar kosong)" : "(Chart could not be created - empty image data)"))],
+                            alignment: AlignmentType.CENTER,
+                            style: "ErrorTextStyle",
+                            spacing: { after: 200 }
+                        })
+                    );
+                }
+            } else {
+                console.warn("[ReportGenerator/Word] Chart image data URL provided, but base64 data is empty. Skipping image.");
+                childrenForSection.push(
+                    new Paragraph({
+                        children: [new TextRun(String(currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview"))],
+                        style: "SectionHeaderStyle",
+                        heading: HeadingLevel.HEADING_1,
+                        spacing: { after: 100, before: 200 }
+                    }),
+                    new Paragraph({ 
+                        children: [new TextRun(String(currentLanguage === 'id' ? "(Grafik tidak tersedia - data kosong)" : "(Chart not available - empty data)"))],
+                        alignment: AlignmentType.CENTER,
+                        style: "ErrorTextStyle",
+                        spacing: { after: 200 }
+                    })
+                );
+            }
+        } catch (error) {
+            console.error("[ReportGenerator/Word] Error processing chart image for Word report:", error);
+            childrenForSection.push(new Paragraph({ children: [new TextRun(String(currentLanguage === 'id' ? "Kesalahan: Gambar grafik tidak dapat dimuat." : "Error: Chart image could not be loaded."))] , style: "ErrorTextStyle"}));
+        }
+    } else {
+         console.warn("[ReportGenerator/Word] No chart image data URL provided for Word report.");
+         childrenForSection.push(
+            new Paragraph({
+                children: [new TextRun(String(currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview"))],
+                style: "SectionHeaderStyle",
+                heading: HeadingLevel.HEADING_1,
+                spacing: { after: 100, before: 200 }
+            }),
+            new Paragraph({ 
+                children: [new TextRun(String(currentLanguage === 'id' ? "(Grafik tidak tersedia)" : "(Chart not available)"))],
+                alignment: AlignmentType.CENTER,
+                style: "ErrorTextStyle",
+                spacing: { after: 200 }
+            })
+        );
+    }
+
+
+    if (allProjectsForWord.length > 0) {
+        childrenForSection.push(
+            new Paragraph({
+                children: [new TextRun(String(currentLanguage === 'id' ? "Daftar Detail Proyek" : "Detailed Project List"))],
+                style: "SectionHeaderStyle",
+                heading: HeadingLevel.HEADING_1,
+                spacing: { after: 100, before: 200 }
+            })
+        );
+
+        const headerRow = new TableRow({
+            children: [
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(String(reportDict?.tableHeaderTitle || "Project Title"))], style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(String(reportDict?.tableHeaderStatus || "Status"))], style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(String(reportDict?.tableHeaderLastActivityDate || "Last Activity"))], style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(String(reportDict?.tableHeaderContributors || "Contributors"))], style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(String(currentLanguage === 'id' ? 'Progres (%)' : 'Progress (%)'))], style: "TableHeaderStyle", alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(String(currentLanguage === 'id' ? 'Dibuat Oleh' : 'Created By'))], style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun(String(currentLanguage === 'id' ? 'Dibuat Pada' : 'Created At'))], style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
+            ],
+            tableHeader: true,
+        });
+
+        const dataRows = allProjectsForWord.map((project, index) => {
+            let displayStatus = project.status;
+            if (inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
+                displayStatus = 'In Progress';
+            }
+            const statusKey = displayStatus?.toLowerCase().replace(/ /g, '') as keyof typeof dashboardStatusDict;
+            const translatedDisplayStatus = dashboardStatusDict[statusKey] || displayStatus;
+           
+            const cellShading = index % 2 === 0 ? undefined : { type: ShadingType.SOLID, fill: accentColorLight };
+
+            const projectTitleText = new TextRun(String(project.title || "-"));
+            const translatedStatusText = new TextRun(String(translatedDisplayStatus || "-"));
+            const lastActivityDateText = new TextRun(String(getLastActivityDate(project, currentLanguage) || "-"));
+            const contributorsText = new TextRun(String(getContributors(project, reportDict, currentLanguage) || "-"));
+            const progressText = new TextRun(String(project.progress || 0)); 
+            const createdByText = new TextRun(String(project.createdBy || "-"));
+            const createdAtText = new TextRun(String(formatDateOnly(project.createdAt, currentLanguage) || "-"));
+
+
+            return new TableRow({
+                children: [
+                    new TableCell({ children: [new Paragraph({ children: [projectTitleText], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ children: [translatedStatusText], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ children: [lastActivityDateText], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ children: [contributorsText], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ children: [progressText], alignment: AlignmentType.CENTER, style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ children: [createdByText], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                    new TableCell({ children: [new Paragraph({ children: [createdAtText], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
+                ],
+            });
+        });
+
+        const table = new Table({
+            rows: [headerRow, ...dataRows],
+            width: { size: 9020, type: WidthType.DXA },
+            columnWidths: [2400, 1100, 1400, 1700, 700, 900, 820],
+            borders: {
+                top: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
+                bottom: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
+                left: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
+                right: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
+                insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "D9D9D9" },
+                insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "D9D9D9" },
+            },
+        });
+        childrenForSection.push(table);
+        console.log("[ReportGenerator/Word] Project table added to document.");
+
+    } else {
+        childrenForSection.push(
+            new Paragraph({ children: [new TextRun(String(reportDict?.noDataForMonth || (currentLanguage === 'id' ? 'Tidak ada data proyek untuk bulan ini.' : 'No project data for this month.')))], alignment: AlignmentType.CENTER, style: "NormalTextStyle" })
+        );
+    }
+
+    childrenForSection.push(
+        new Paragraph({ children: [new TextRun(" ")], spacing: {after: 400} })
+    );
+     childrenForSection.push(
+        new Paragraph({
+            children: [
+                new TextRun({ text: String(currentLanguage === 'id' ? 'Dihasilkan oleh Msarch App' : 'Generated by Msarch App'), style: "SmallMutedTextStyle"}),
+            ],
+            alignment: AlignmentType.RIGHT,
+        })
+    );
+
     const sections = [
         {
             properties: {
@@ -214,206 +413,9 @@ export async function generateWordReport(
                     alignment: AlignmentType.CENTER,
                 }),
             },
-            children: [
-                new Paragraph({
-                    text: String((reportDict?.title || "Monthly Project Report") + ` - ${monthName || "N/A"} ${year || "N/A"}`),
-                    style: "TitleStyle",
-                    heading: HeadingLevel.TITLE, // Remains the same
-                    alignment: AlignmentType.CENTER,
-                    spacing: { before: 600, after: 100 },
-                }),
-                new Paragraph({
-                    text: String(`${currentLanguage === 'id' ? 'Dibuat pada' : 'Generated on'}: ${format(new Date(), 'PPPPpppp', { locale })}`),
-                    style: "SubheaderStyle",
-                    alignment: AlignmentType.CENTER,
-                    spacing: { after: 300 },
-                }),
-                new Paragraph({
-                    text: String(currentLanguage === 'id' ? 'Ringkasan Proyek' : 'Project Summary'),
-                    style: "SectionHeaderStyle",
-                    heading: HeadingLevel.HEADING_1, // Remains
-                    spacing: { after: 100, before: 200 }
-                }),
-                new Paragraph({ text: String(`• ${reportDict?.totalProjects || "Total Projects Reviewed"}: ${(completed?.length || 0) + (canceled?.length || 0) + (inProgress?.length || 0)}`), style: "SummaryTextStyle" }),
-                new Paragraph({ text: String(`  - ${reportDict?.inProgressProjectsShort || "In Progress"}: ${inProgress?.length || 0}`), style: "SummaryTextStyle", indent: {left: 360} }),
-                new Paragraph({ text: String(`  - ${reportDict?.completedProjectsShort || "Completed"}: ${completed?.length || 0}`), style: "SummaryTextStyle", indent: {left: 360} }),
-                new Paragraph({ text: String(`  - ${reportDict?.canceledProjectsShort || "Canceled"}: ${canceled?.length || 0}`), style: "SummaryTextStyle", indent: {left: 360} }),
-                new Paragraph({ children: [new TextRun(" ")], spacing: {after: 200} }),
-            ],
+            children: childrenForSection,
         },
     ];
-
-    if (chartImageDataUrl) {
-        try {
-            console.log("[ReportGenerator/Word] Processing chart image for Word report...");
-            const base64Data = chartImageDataUrl.split(',')[1];
-            if (base64Data && base64Data.trim() !== '') {
-                const imageBuffer = Buffer.from(base64Data, 'base64');
-                 if (imageBuffer.length > 0) {
-                    sections[0].children.push(
-                        new Paragraph({
-                            text: String(currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview"),
-                            style: "SectionHeaderStyle",
-                            heading: HeadingLevel.HEADING_1, // Remains
-                            spacing: { after: 100, before: 200 }
-                        }),
-                        new Paragraph({
-                            children: [
-                                new ImageRun({
-                                    data: imageBuffer,
-                                    transformation: { width: 500, height: 250 },
-                                }),
-                            ],
-                            alignment: AlignmentType.CENTER,
-                            spacing: { after: 200 }
-                        })
-                    );
-                    console.log("[ReportGenerator/Word] Chart image added to document.");
-                 } else {
-                    console.warn("[ReportGenerator/Word] Chart image data URL provided, but resulted in an empty buffer. Skipping image.");
-                    sections[0].children.push(
-                        new Paragraph({
-                            text: String(currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview"),
-                            style: "SectionHeaderStyle",
-                            heading: HeadingLevel.HEADING_1,
-                            spacing: { after: 100, before: 200 }
-                        }),
-                        new Paragraph({ // Use text shorthand for simplicity
-                            text: String(currentLanguage === 'id' ? "(Grafik tidak dapat dibuat - data gambar kosong)" : "(Chart could not be created - empty image data)"),
-                            alignment: AlignmentType.CENTER,
-                            style: "ErrorTextStyle",
-                            spacing: { after: 200 }
-                        })
-                    );
-                }
-            } else {
-                console.warn("[ReportGenerator/Word] Chart image data URL provided, but base64 data is empty. Skipping image.");
-                sections[0].children.push(
-                    new Paragraph({
-                        text: String(currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview"),
-                        style: "SectionHeaderStyle",
-                        heading: HeadingLevel.HEADING_1,
-                        spacing: { after: 100, before: 200 }
-                    }),
-                    new Paragraph({ // Use text shorthand
-                        text: String(currentLanguage === 'id' ? "(Grafik tidak tersedia - data kosong)" : "(Chart not available - empty data)"),
-                        alignment: AlignmentType.CENTER,
-                        style: "ErrorTextStyle",
-                        spacing: { after: 200 }
-                    })
-                );
-            }
-        } catch (error) {
-            console.error("[ReportGenerator/Word] Error processing chart image for Word report:", error);
-            sections[0].children.push(new Paragraph({ text: String(currentLanguage === 'id' ? "Kesalahan: Gambar grafik tidak dapat dimuat." : "Error: Chart image could not be loaded."), style: "ErrorTextStyle"}));
-        }
-    } else {
-         console.warn("[ReportGenerator/Word] No chart image data URL provided for Word report.");
-         sections[0].children.push(
-            new Paragraph({
-                text: String(currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview"),
-                style: "SectionHeaderStyle",
-                heading: HeadingLevel.HEADING_1, // Remains
-                spacing: { after: 100, before: 200 }
-            }),
-            new Paragraph({ // Use text shorthand
-                text: String(currentLanguage === 'id' ? "(Grafik tidak tersedia)" : "(Chart not available)"),
-                alignment: AlignmentType.CENTER,
-                style: "ErrorTextStyle",
-                spacing: { after: 200 }
-            })
-        );
-    }
-
-
-    if (allProjectsForWord.length > 0) {
-        sections[0].children.push(
-            new Paragraph({
-                text: String(currentLanguage === 'id' ? "Daftar Detail Proyek" : "Detailed Project List"),
-                style: "SectionHeaderStyle",
-                heading: HeadingLevel.HEADING_1, // Remains
-                spacing: { after: 100, before: 200 }
-            })
-        );
-
-        const headerRow = new TableRow({
-            children: [
-                new TableCell({ children: [new Paragraph({ text: String(reportDict?.tableHeaderTitle || "Project Title"), style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ text: String(reportDict?.tableHeaderStatus || "Status"), style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ text: String(reportDict?.tableHeaderLastActivityDate || "Last Activity"), style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ text: String(reportDict?.tableHeaderContributors || "Contributors"), style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ text: String(currentLanguage === 'id' ? 'Progres (%)' : 'Progress (%)'), style: "TableHeaderStyle", alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ text: String(currentLanguage === 'id' ? 'Dibuat Oleh' : 'Created By'), style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-                new TableCell({ children: [new Paragraph({ text: String(currentLanguage === 'id' ? 'Dibuat Pada' : 'Created At'), style: "TableHeaderStyle" })], verticalAlign: VerticalAlign.CENTER, shading: { type: ShadingType.SOLID, fill: primaryColor } }),
-            ],
-            tableHeader: true,
-        });
-
-        const dataRows = allProjectsForWord.map((project, index) => {
-            let displayStatus = project.status;
-            if (inProgress.some(p => p.id === project.id) && (project.status === 'Completed' || project.status === 'Canceled')) {
-                displayStatus = 'In Progress';
-            }
-            const statusKey = displayStatus?.toLowerCase().replace(/ /g, '') as keyof typeof dashboardStatusDict;
-            const translatedDisplayStatus = dashboardStatusDict[statusKey] || displayStatus;
-           
-            const cellShading = index % 2 === 0 ? undefined : { type: ShadingType.SOLID, fill: accentColorLight };
-
-            const projectTitleText = new TextRun(String(project.title || "-"));
-            const translatedStatusText = new TextRun(String(translatedDisplayStatus || "-"));
-            const lastActivityDateText = new TextRun(String(getLastActivityDate(project, currentLanguage) || "-"));
-            const contributorsText = new TextRun(String(getContributors(project, reportDict, currentLanguage) || "-"));
-            const progressText = new TextRun(String(project.progress || 0)); // String() handles toString
-            const createdByText = new TextRun(String(project.createdBy || "-"));
-            const createdAtText = new TextRun(String(formatDateOnly(project.createdAt, currentLanguage) || "-"));
-
-
-            return new TableRow({
-                children: [
-                    new TableCell({ children: [new Paragraph({ children: [projectTitleText], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [translatedStatusText], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [lastActivityDateText], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [contributorsText], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [progressText], alignment: AlignmentType.CENTER, style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [createdByText], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                    new TableCell({ children: [new Paragraph({ children: [createdAtText], style: "TableCellStyle"})], shading: cellShading, verticalAlign: VerticalAlign.CENTER }),
-                ],
-            });
-        });
-
-        const table = new Table({
-            rows: [headerRow, ...dataRows],
-            width: { size: 9020, type: WidthType.DXA },
-            columnWidths: [2400, 1100, 1400, 1700, 700, 900, 820],
-            borders: {
-                top: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
-                bottom: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
-                left: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
-                right: { style: BorderStyle.SINGLE, size: 1, color: "BFBFBF" },
-                insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "D9D9D9" },
-                insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "D9D9D9" },
-            },
-        });
-        sections[0].children.push(table);
-        console.log("[ReportGenerator/Word] Project table added to document.");
-
-    } else {
-        sections[0].children.push(
-            new Paragraph({ text: String(reportDict?.noDataForMonth || (currentLanguage === 'id' ? 'Tidak ada data proyek untuk bulan ini.' : 'No project data for this month.')), alignment: AlignmentType.CENTER, style: "NormalTextStyle" })
-        );
-    }
-
-    sections[0].children.push(
-        new Paragraph({ children: [new TextRun(" ")], spacing: {after: 400} })
-    );
-     sections[0].children.push(
-        new Paragraph({
-            children: [
-                new TextRun({ text: String(currentLanguage === 'id' ? 'Dihasilkan oleh Msarch App' : 'Generated by Msarch App'), style: "SmallMutedTextStyle"}),
-            ],
-            alignment: AlignmentType.RIGHT,
-        })
-    );
 
 
     const doc = new Document({
