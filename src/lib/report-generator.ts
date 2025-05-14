@@ -12,7 +12,6 @@ import {
   WidthType,
   BorderStyle,
   AlignmentType,
-  HeadingLevel,
   ImageRun,
   ShadingType,
   PageNumber,
@@ -21,6 +20,7 @@ import {
   TabStopType,
   TabStopPosition,
   VerticalAlign,
+  SectionType,
 } from 'docx';
 import type { Project } from '@/services/project-service';
 import type { Language } from '@/context/LanguageContext';
@@ -29,6 +29,7 @@ import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 
 // Helper function to ensure text is not empty and provides a non-breaking space if it is.
+// Using non-breaking space (\u00A0) for "empty" TextRun to ensure structure.
 const ensureNonEmpty = (text: string | null | undefined, defaultText = '\u00A0'): string => {
   if (text === null || text === undefined) {
     return defaultText;
@@ -67,6 +68,17 @@ const getContributorsForWord = (project: Project, lang: Language): string => {
   return ensureNonEmpty(contributors.join(', '));
 };
 
+// Define Style IDs
+const TitleStyleId = "TitleStyle";
+const SubtitleStyleId = "SubtitleStyle";
+const SectionHeaderStyleId = "SectionHeaderStyle";
+const BodyTextStyleId = "BodyTextStyle";
+const FooterTextStyleId = "FooterTextStyle";
+// Paragraph styles for table content
+const WordTableHeaderParaStyleId = "WordTableHeaderParaStyle";
+const WordTableCellParaStyleId = "WordTableCellParaStyle";
+
+
 export async function generateWordReport({
   reportData,
   monthName,
@@ -84,14 +96,6 @@ export async function generateWordReport({
   const translations = getDictionary(language);
   const currentLocale = language === 'id' ? IndonesianLocale : EnglishLocale;
 
-  const TitleStyleId = "TitleStyle";
-  const SubtitleStyleId = "SubtitleStyle";
-  const SectionHeaderStyleId = "SectionHeaderStyle";
-  const BodyTextStyleId = "BodyTextStyle";
-  const TableHeaderStyleId = "TableHeaderStyle"; // Style for the paragraph within the header cell
-  const TableCellStyleId = "TableCellStyle";   // Style for the paragraph within the data cell
-  const FooterTextStyleId = "FooterTextStyle";
-
   const doc = new Document({
     creator: "Msarch App",
     title: ensureNonEmpty(`${translations.monthlyReportPage.reportFor} ${monthName} ${year}`),
@@ -102,8 +106,8 @@ export async function generateWordReport({
         { id: SubtitleStyleId, name: "Subtitle Style", basedOn: "Normal", next: "Normal", run: { size: 24, color: "7F8C8D" }, paragraph: { alignment: AlignmentType.CENTER, spacing: { after: 200, before: 50 } } },
         { id: SectionHeaderStyleId, name: "Section Header Style", basedOn: "Normal", next: "Normal", run: { size: 28, bold: true, color: "34495E" }, paragraph: { spacing: { before: 400, after: 150 }, border: { bottom: { color: "BDC3C7", space: 1, style: BorderStyle.SINGLE, size: 6 } } } },
         { id: BodyTextStyleId, name: "Body Text Style", basedOn: "Normal", next: "Normal", run: { size: 22 }, paragraph: { spacing: { after: 100, line: 360 } } },
-        { id: TableHeaderStyleId, name: "Table Header Paragraph Style", basedOn: "Normal", next: "Normal", paragraph: { alignment: AlignmentType.CENTER, spacing: { before: 120, after: 120 } } },
-        { id: TableCellStyleId, name: "Table Cell Paragraph Style", basedOn: "Normal", next: "Normal", paragraph: { alignment: AlignmentType.LEFT, spacing: { before: 80, after: 80 } } },
+        { id: WordTableHeaderParaStyleId, name: "Table Header Paragraph Style", basedOn: "Normal", paragraph: { alignment: AlignmentType.CENTER, spacing: { before: 120, after: 120 } } },
+        { id: WordTableCellParaStyleId, name: "Table Cell Paragraph Style", basedOn: "Normal", paragraph: { alignment: AlignmentType.LEFT, spacing: { before: 80, after: 80 } } },
         { id: FooterTextStyleId, name: "Footer Text Style", basedOn: "Normal", run: { size: 18, color: "95A5A6" }, paragraph: { alignment: AlignmentType.CENTER } },
       ],
     },
@@ -111,13 +115,9 @@ export async function generateWordReport({
       {
         properties: {
           page: {
-            margin: {
-              top: 720, // 0.5 inch
-              right: 720,
-              bottom: 720,
-              left: 720,
-            },
+            margin: { top: 720, right: 720, bottom: 720, left: 720 },
           },
+          type: SectionType.NEXT_PAGE, // Ensures headers/footers apply correctly
         },
         headers: {
           default: new Header({
@@ -152,26 +152,10 @@ export async function generateWordReport({
           new Paragraph({ style: SubtitleStyleId, children: [new TextRun(ensureNonEmpty(translations.monthlyReportPage.generatedOn + ": " + format(new Date(), 'PPpp', { locale: currentLocale })))] }),
           
           new Paragraph({ style: SectionHeaderStyleId, children: [new TextRun(ensureNonEmpty(translations.monthlyReportPage.summaryTitle))] }),
-          new Paragraph({
-            style: BodyTextStyleId,
-            bullet: { level: 0 },
-            children: [new TextRun(ensureNonEmpty(`${translations.monthlyReportPage.inProgressProjectsShort}: ${reportData.inProgress.length}`))]
-          }),
-          new Paragraph({
-            style: BodyTextStyleId,
-            bullet: { level: 0 },
-            children: [new TextRun(ensureNonEmpty(`${translations.monthlyReportPage.completedProjectsShort}: ${reportData.completed.length}`))]
-          }),
-          new Paragraph({
-            style: BodyTextStyleId,
-            bullet: { level: 0 },
-            children: [new TextRun(ensureNonEmpty(`${translations.monthlyReportPage.canceledProjectsShort}: ${reportData.canceled.length}`))]
-          }),
-          new Paragraph({
-            style: BodyTextStyleId,
-            bullet: { level: 0 },
-            children: [new TextRun(ensureNonEmpty(`${translations.monthlyReportPage.totalProjects}: ${reportData.inProgress.length + reportData.completed.length + reportData.canceled.length}`))]
-          }),
+          new Paragraph({ style: BodyTextStyleId, bullet: { level: 0 }, children: [new TextRun(ensureNonEmpty(`${translations.monthlyReportPage.inProgressProjectsShort}: ${reportData.inProgress.length}`))] }),
+          new Paragraph({ style: BodyTextStyleId, bullet: { level: 0 }, children: [new TextRun(ensureNonEmpty(`${translations.monthlyReportPage.completedProjectsShort}: ${reportData.completed.length}`))] }),
+          new Paragraph({ style: BodyTextStyleId, bullet: { level: 0 }, children: [new TextRun(ensureNonEmpty(`${translations.monthlyReportPage.canceledProjectsShort}: ${reportData.canceled.length}`))] }),
+          new Paragraph({ style: BodyTextStyleId, bullet: { level: 0 }, children: [new TextRun(ensureNonEmpty(`${translations.monthlyReportPage.totalProjects}: ${reportData.inProgress.length + reportData.completed.length + reportData.canceled.length}`))] }),
 
           ...(chartImageDataUrl
             ? [
@@ -180,7 +164,7 @@ export async function generateWordReport({
                   children: [
                     new ImageRun({
                       data: Buffer.from(chartImageDataUrl.split(',')[1], 'base64'),
-                      transformation: { width: 550, height: 330 },
+                      transformation: { width: 550, height: 330 }, // Adjusted size
                     }),
                   ],
                   alignment: AlignmentType.CENTER,
@@ -188,8 +172,10 @@ export async function generateWordReport({
                 }),
               ]
             : [
-                new Paragraph({ style: SectionHeaderStyleId, children: [new TextRun(ensureNonEmpty(translations.monthlyReportPage.chartTitleWord))] }),
-                new Paragraph({ style: BodyTextStyleId, children: [new TextRun(ensureNonEmpty(`(${translations.monthlyReportPage.chartNotAvailableWord})`))], alignment: AlignmentType.CENTER, spacing: { after: 300 } }),
+                // If chart is not available, this section can be omitted or a placeholder text can be added.
+                // For now, omitting if no chartImageDataUrl.
+                // new Paragraph({ style: SectionHeaderStyleId, children: [new TextRun(ensureNonEmpty(translations.monthlyReportPage.chartTitleWord))] }),
+                // new Paragraph({ style: BodyTextStyleId, children: [new TextRun(ensureNonEmpty(`(${translations.monthlyReportPage.chartNotAvailableWord})`))], alignment: AlignmentType.CENTER, spacing: { after: 300 } }),
               ]),
 
           new Paragraph({ style: SectionHeaderStyleId, children: [new TextRun(ensureNonEmpty(translations.monthlyReportPage.tableCaptionWord))] }),
@@ -198,13 +184,13 @@ export async function generateWordReport({
             rows: [
               new TableRow({
                 children: [
-                  new TableCell({ shading: { type: ShadingType.SOLID, color: "E5E7EB", fill: "E5E7EB" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: TableHeaderStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.monthlyReportPage.tableHeaderTitle), bold: true, color: "000000", size: 20 })] })] }),
-                  new TableCell({ shading: { type: ShadingType.SOLID, color: "E5E7EB", fill: "E5E7EB" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: TableHeaderStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.monthlyReportPage.tableHeaderStatus), bold: true, color: "000000", size: 20 })] })] }),
-                  new TableCell({ shading: { type: ShadingType.SOLID, color: "E5E7EB", fill: "E5E7EB" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: TableHeaderStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.monthlyReportPage.tableHeaderLastActivityDate), bold: true, color: "000000", size: 20 })] })] }),
-                  new TableCell({ shading: { type: ShadingType.SOLID, color: "E5E7EB", fill: "E5E7EB" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: TableHeaderStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.monthlyReportPage.tableHeaderContributors), bold: true, color: "000000", size: 20 })] })] }),
-                  new TableCell({ shading: { type: ShadingType.SOLID, color: "E5E7EB", fill: "E5E7EB" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: TableHeaderStyleId, alignment: AlignmentType.RIGHT, children: [new TextRun({ text: ensureNonEmpty(translations.monthlyReportPage.tableHeaderProgress), bold: true, color: "000000", size: 20 })] })] }),
-                  new TableCell({ shading: { type: ShadingType.SOLID, color: "E5E7EB", fill: "E5E7EB" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: TableHeaderStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.monthlyReportPage.tableHeaderCreatedBy), bold: true, color: "000000", size: 20 })] })] }),
-                  new TableCell({ shading: { type: ShadingType.SOLID, color: "E5E7EB", fill: "E5E7EB" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: TableHeaderStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.monthlyReportPage.tableHeaderCreatedAt), bold: true, color: "000000", size: 20 })] })] }),
+                  new TableCell({ shading: { type: ShadingType.SOLID, color: "D6EAF8", fill: "D6EAF8" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: WordTableHeaderParaStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.monthlyReportPage.tableHeaderTitle), bold: true, color: "2C3E50", size: 20 })] })] }),
+                  new TableCell({ shading: { type: ShadingType.SOLID, color: "D6EAF8", fill: "D6EAF8" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: WordTableHeaderParaStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.monthlyReportPage.tableHeaderStatus), bold: true, color: "2C3E50", size: 20 })] })] }),
+                  new TableCell({ shading: { type: ShadingType.SOLID, color: "D6EAF8", fill: "D6EAF8" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: WordTableHeaderParaStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.monthlyReportPage.tableHeaderLastActivityDate), bold: true, color: "2C3E50", size: 20 })] })] }),
+                  new TableCell({ shading: { type: ShadingType.SOLID, color: "D6EAF8", fill: "D6EAF8" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: WordTableHeaderParaStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.monthlyReportPage.tableHeaderContributors), bold: true, color: "2C3E50", size: 20 })] })] }),
+                  new TableCell({ shading: { type: ShadingType.SOLID, color: "D6EAF8", fill: "D6EAF8" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: WordTableHeaderParaStyleId, alignment: AlignmentType.RIGHT, children: [new TextRun({ text: ensureNonEmpty(translations.monthlyReportPage.tableHeaderProgress), bold: true, color: "2C3E50", size: 20 })] })] }),
+                  new TableCell({ shading: { type: ShadingType.SOLID, color: "D6EAF8", fill: "D6EAF8" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: WordTableHeaderParaStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.monthlyReportPage.tableHeaderCreatedBy), bold: true, color: "2C3E50", size: 20 })] })] }),
+                  new TableCell({ shading: { type: ShadingType.SOLID, color: "D6EAF8", fill: "D6EAF8" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: WordTableHeaderParaStyleId, children: [new TextRun({ text: ensureNonEmpty(translations.monthlyReportPage.tableHeaderCreatedAt), bold: true, color: "2C3E50", size: 20 })] })] }),
                 ],
                 tableHeader: true,
               }),
@@ -224,31 +210,31 @@ export async function generateWordReport({
                     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
                 })
                 .map(
-                (project) =>
+                (project, index) => // Add index for zebra striping
                   new TableRow({
                     children: [
-                      new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: TableCellStyleId, children: [new TextRun({text: ensureNonEmpty(project.title), size: 20})] })] }),
-                      new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: TableCellStyleId, children: [new TextRun({text: ensureNonEmpty(translations.dashboardPage.status[project.status.toLowerCase().replace(/ /g, '') as keyof typeof translations.dashboardPage.status] || project.status), size: 20})] })] }),
-                      new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: TableCellStyleId, children: [new TextRun({text: ensureNonEmpty(getLastActivityDateForWord(project, language)), size: 20})] })] }),
-                      new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: TableCellStyleId, children: [new TextRun({text: ensureNonEmpty(getContributorsForWord(project, language)), size: 20})] })] }),
-                      new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: TableCellStyleId, alignment: AlignmentType.RIGHT, children: [new TextRun({text: ensureNonEmpty(project.progress.toString() + "%"), size: 20})] })] }),
-                      new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: TableCellStyleId, children: [new TextRun({text: ensureNonEmpty(project.createdBy), size: 20})] })] }),
-                      new TableCell({ verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: TableCellStyleId, children: [new TextRun({text: ensureNonEmpty(formatDateOnlyForWord(project.createdAt, language)), size: 20})] })] }),
+                      new TableCell({ shading: index % 2 === 0 ? undefined : { type: ShadingType.SOLID, color: "F4F6F7", fill: "F4F6F7" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: WordTableCellParaStyleId, children: [new TextRun({text: ensureNonEmpty(project.title), size: 20})] })] }),
+                      new TableCell({ shading: index % 2 === 0 ? undefined : { type: ShadingType.SOLID, color: "F4F6F7", fill: "F4F6F7" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: WordTableCellParaStyleId, children: [new TextRun({text: ensureNonEmpty(translations.dashboardPage.status[project.status.toLowerCase().replace(/ /g, '') as keyof typeof translations.dashboardPage.status] || project.status), size: 20})] })] }),
+                      new TableCell({ shading: index % 2 === 0 ? undefined : { type: ShadingType.SOLID, color: "F4F6F7", fill: "F4F6F7" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: WordTableCellParaStyleId, children: [new TextRun({text: ensureNonEmpty(getLastActivityDateForWord(project, language)), size: 20})] })] }),
+                      new TableCell({ shading: index % 2 === 0 ? undefined : { type: ShadingType.SOLID, color: "F4F6F7", fill: "F4F6F7" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: WordTableCellParaStyleId, children: [new TextRun({text: ensureNonEmpty(getContributorsForWord(project, language)), size: 20})] })] }),
+                      new TableCell({ shading: index % 2 === 0 ? undefined : { type: ShadingType.SOLID, color: "F4F6F7", fill: "F4F6F7" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: WordTableCellParaStyleId, alignment: AlignmentType.RIGHT, children: [new TextRun({text: ensureNonEmpty(project.progress.toString() + "%"), size: 20})] })] }),
+                      new TableCell({ shading: index % 2 === 0 ? undefined : { type: ShadingType.SOLID, color: "F4F6F7", fill: "F4F6F7" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: WordTableCellParaStyleId, children: [new TextRun({text: ensureNonEmpty(project.createdBy), size: 20})] })] }),
+                      new TableCell({ shading: index % 2 === 0 ? undefined : { type: ShadingType.SOLID, color: "F4F6F7", fill: "F4F6F7" }, verticalAlign: VerticalAlign.CENTER, children: [new Paragraph({ style: WordTableCellParaStyleId, children: [new TextRun({text: ensureNonEmpty(formatDateOnlyForWord(project.createdAt, language)), size: 20})] })] }),
                     ],
                   })
               ),
             ],
-            columnWidths: [3500, 1500, 1800, 2000, 1000, 1500, 1500], // Adjusted column widths
+            columnWidths: [3500, 1500, 1800, 2000, 1000, 1500, 1500], 
             borders: {
-                top: { style: BorderStyle.SINGLE, size: 6, color: "D1D5DB" },
-                bottom: { style: BorderStyle.SINGLE, size: 6, color: "D1D5DB" },
-                left: { style: BorderStyle.SINGLE, size: 6, color: "D1D5DB" },
-                right: { style: BorderStyle.SINGLE, size: 6, color: "D1D5DB" },
-                insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: "E5E7EB" },
-                insideVertical: { style: BorderStyle.SINGLE, size: 4, color: "E5E7EB" },
+                top: { style: BorderStyle.SINGLE, size: 6, color: "BFBFBF" }, // Slightly darker border
+                bottom: { style: BorderStyle.SINGLE, size: 6, color: "BFBFBF" },
+                left: { style: BorderStyle.SINGLE, size: 6, color: "BFBFBF" },
+                right: { style: BorderStyle.SINGLE, size: 6, color: "BFBFBF" },
+                insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: "D9D9D9" }, // Lighter inside border
+                insideVertical: { style: BorderStyle.SINGLE, size: 4, color: "D9D9D9" },
             },
           }),
-          new Paragraph({ style: BodyTextStyleId, spacing: {before: 400}, children: [new TextRun({text:ensureNonEmpty(""), break:1})] }), // Add some space at the end
+          new Paragraph({ style: BodyTextStyleId, spacing: {before: 400}, children: [new TextRun(ensureNonEmpty("\u00A0"))] }), 
         ],
       },
     ],
