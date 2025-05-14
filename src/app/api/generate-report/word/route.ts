@@ -33,12 +33,13 @@ export async function POST(request: Request) {
     const forcedLanguage: Language = 'en';
     console.log(`[API/WordReport] Received request. Forcing language to: ${forcedLanguage} for report generation for:`, monthName, year);
 
+    // Untuk pengujian dengan versi report-generator.ts yang sangat sederhana, kita bisa abaikan beberapa parameter:
     const buffer = await generateWordReport({
         reportData: reportData as { completed: Project[]; inProgress: Project[]; canceled: Project[]; },
         monthName,
         year,
         language: forcedLanguage, // Gunakan bahasa yang dipaksa
-        chartImageDataUrl
+        chartImageDataUrl // Tetap teruskan, meskipun versi sederhana mungkin tidak menggunakannya
     });
 
     console.log("[API/WordReport] Word report buffer generated, size:", buffer.length);
@@ -63,6 +64,7 @@ export async function POST(request: Request) {
 
 
     let userFriendlyError = "The Word document could not be generated due to an internal error.";
+    // Lebih spesifik dalam mendeteksi pesan kesalahan "children"
     if (detailMessage && detailMessage.toLowerCase().includes("cannot read properties of undefined (reading 'children')")) {
         userFriendlyError = "The Word document could not be generated due to an internal structure error, possibly related to empty content sections. Please contact support or try again later.";
     } else if (detailMessage.includes("Failed to generate simplified Word document")) {
