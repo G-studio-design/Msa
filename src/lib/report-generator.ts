@@ -10,10 +10,10 @@ import { getDictionary } from '@/lib/translations';
 
 // --- Helper Functions ---
 
-// Ensures that the text is a non-empty string, defaulting to a single space if null, undefined, or empty after trim.
+// Ensures that the text is a non-empty string, defaulting to an empty string if null, undefined, or empty after trim.
 const ensureSingleSpaceIfEmpty = (text: any): string => {
     const str = String(text == null ? "" : text); // Handles null/undefined to ""
-    return str.trim() === "" ? " " : str; // If "" after trim, make it " ", else original.
+    return str.trim() === "" ? "" : str; // If "" after trim, make it "", else original.
 };
 
 
@@ -206,54 +206,15 @@ export async function generateWordReport(
         new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(`  - ${reportDict?.inProgressProjectsShort || "In Progress"}: ${inProgress?.length || 0}`)))], style: "SummaryTextStyle", indent: {left: 360} }),
         new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(`  - ${reportDict?.completedProjectsShort || "Completed"}: ${completed?.length || 0}`)))], style: "SummaryTextStyle", indent: {left: 360} }),
         new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(String(`  - ${reportDict?.canceledProjectsShort || "Canceled"}: ${canceled?.length || 0}`)))], style: "SummaryTextStyle", indent: {left: 360} }),
-        new Paragraph({ children: [new TextRun(" ")], spacing: {after: 200}, style: "NormalTextStyle" }), 
+        new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(" "))], spacing: {after: 200}, style: "NormalTextStyle" }), 
     ];
     
-    // Chart Image Section
-    if (chartImageDataUrl && chartImageDataUrl.startsWith('data:image')) {
-        console.log("[ReportGenerator/Word] Chart image data provided. Attempting to add to document.");
-        try {
-            const imageBuffer = Buffer.from(chartImageDataUrl.replace(/^data:image\/\w+;base64,/, ""), 'base64');
-            childrenForSection.push(
-                new Paragraph({
-                    children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? "Tinjauan Status Proyek" : "Project Status Overview")))],
-                    style: "SectionHeaderStyle",
-                    heading: HeadingLevel.HEADING_1,
-                    spacing: { after: 100, before: 200 }
-                }),
-                new Paragraph({
-                    children: [
-                        new ImageRun({
-                            data: imageBuffer,
-                            transformation: { width: 500, height: 300 }, // Adjust as needed
-                        }),
-                    ],
-                    alignment: AlignmentType.CENTER,
-                    spacing: { after: 200 }
-                })
-            );
-            console.log("[ReportGenerator/Word] Chart image added to document sections.");
-        } catch (imgError: any) {
-            console.error("[ReportGenerator/Word] Error processing or adding chart image:", imgError);
-            childrenForSection.push(
-                new Paragraph({
-                    children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? "Tinjauan Status Proyek (Gagal Memuat Gambar)" : "Project Status Overview (Failed to Load Image)")))],
-                    style: "SectionHeaderStyle",
-                    heading: HeadingLevel.HEADING_1,
-                    spacing: { after: 100, before: 200 }
-                }),
-                new Paragraph({
-                    children: [new TextRun(ensureSingleSpaceIfEmpty(String(imgError.message || "Error details unavailable")))],
-                    style: "ErrorTextStyle",
-                    alignment: AlignmentType.CENTER,
-                    spacing: { after: 200 }
-                })
-            );
-        }
-    } else {
-        // If chartImageDataUrl is null or invalid, skip adding the chart section entirely.
-        console.log("[ReportGenerator/Word] Chart image data not provided or invalid. Skipping chart section.");
-    }
+    // Chart Image Section - Completely removed for debugging the persistent "children" error
+    // if (chartImageDataUrl && chartImageDataUrl.startsWith('data:image')) {
+    //     // ... image adding logic was here ...
+    // } else {
+    //     console.log("[ReportGenerator/Word] Chart image data not provided or invalid. Skipping chart section.");
+    // }
 
 
     if (allProjectsForWord.length > 0) {
@@ -325,7 +286,7 @@ export async function generateWordReport(
     }
 
     childrenForSection.push(
-        new Paragraph({ children: [new TextRun(" ")], spacing: {after: 400}, style: "NormalTextStyle" }) 
+        new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(" "))], spacing: {after: 400}, style: "NormalTextStyle" }) 
     );
      childrenForSection.push(
         new Paragraph({
@@ -346,23 +307,23 @@ export async function generateWordReport(
                 },
             },
             headers: {
-                default: new Paragraph({
-                    children: [
-                        new TextRun({ text: ensureSingleSpaceIfEmpty("Msarch App"), style: "FooterTextStyle" })
-                    ],
-                    alignment: AlignmentType.RIGHT,
-                    spacing: { after: 100 }
+                default: new Paragraph({ 
+                    children: [new TextRun(ensureSingleSpaceIfEmpty("Msarch App"))], 
+                    alignment: AlignmentType.RIGHT, 
+                    spacing: { after: 100 }, 
+                    style: "FooterTextStyle" 
                 }),
             },
             footers: {
                 default: new Paragraph({
                     children: [
-                        new TextRun({ text: ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Halaman ' : 'Page ')), style: "FooterTextStyle" }),
+                        new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Halaman ' : 'Page '))),
                         PageNumber.CURRENT,
-                        new TextRun({ text: ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? ' dari ' : ' of ')), style: "FooterTextStyle" }),
+                        new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? ' dari ' : ' of '))),
                         PageNumber.TOTAL_PAGES,
                     ],
                     alignment: AlignmentType.CENTER,
+                    style: "FooterTextStyle"
                 }),
             },
             children: childrenForSection,
@@ -384,7 +345,7 @@ export async function generateWordReport(
                 { id: "TableCellStyle", name: "Table Cell Style", basedOn: "BaseNormal", run: { size: 18 }, paragraph: { spacing: { before: 80, after: 80 } } },
                 { id: "SummaryTextStyle", name: "Summary Text Style", basedOn: "BaseNormal", run: { size: 22 }, paragraph: { spacing: { before: 60, after: 60 }, indent: { left: 180 }}},
                 { id: "SectionHeaderStyle", name: "Section Header Style", basedOn: "BaseNormal", run: { size: 28, bold: true, color: primaryColor, font: "Calibri Light" }, paragraph: { spacing: { after: 150, before: 250 }, border: { bottom: {color: primaryColor, style: BorderStyle.SINGLE, size: 6 }} } },
-                { id: "ErrorTextStyle", name: "Error Text Style", basedOn: "BaseNormal", run: { size: 20, color: "C0392B", italics: true }},
+                { id: "ErrorTextStyle", name: "Error Text Style", basedOn: "BaseNormal", run: { size: 20, color: "C0392B", italics: true }}, // Kept for potential future use
                 { id: "NormalTextStyle", name: "Normal Text Style", basedOn: "BaseNormal", run: { size: 22}},
                 { id: "FooterTextStyle", name: "Footer Text Style", basedOn: "BaseNormal", run: { size: 16, color: "A9A9A9" } },
                 { id: "SmallMutedTextStyle", name: "Small Muted Text Style", basedOn: "BaseNormal", run: { size: 16, color: "7F8C8D", italics: true } },
