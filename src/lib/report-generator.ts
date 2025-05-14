@@ -10,10 +10,11 @@ import { getDictionary } from '@/lib/translations';
 
 // --- Helper Functions ---
 
-// Ensures that the text is a non-empty string, defaulting to an empty string if null, undefined, or empty after trim.
+// Mengembalikan satu spasi jika teks kosong setelah trim, jika tidak, kembalikan teks asli.
+// Ini membantu memastikan TextRun memiliki konten yang valid untuk pustaka docx.
 const ensureSingleSpaceIfEmpty = (text: any): string => {
-    const str = String(text == null ? "" : text); // Handles null/undefined to ""
-    return str.trim() === "" ? "" : str; // If "" after trim, make it "", else original.
+    const str = String(text == null ? "" : text); // Menangani null/undefined menjadi ""
+    return str.trim() === "" ? " " : str; // Jika "" setelah trim, jadikan " ", jika tidak, teks asli.
 };
 
 
@@ -177,10 +178,10 @@ export async function generateWordReport(
         }
     });
     
-    const primaryColor = "1A237E"; // Dark Blue
-    const accentColorLight = "EEEEEE"; // Light Gray for table row shading
-    const textColor = "212121"; // Default text color (Dark Gray)
-    const headerTextColor = "FFFFFF"; // White text for dark headers
+    const primaryColor = "1A237E"; 
+    const accentColorLight = "EEEEEE"; 
+    const textColor = "212121"; 
+    const headerTextColor = "FFFFFF";
 
     const childrenForSection: (Paragraph | Table)[] = [
         new Paragraph({
@@ -209,12 +210,47 @@ export async function generateWordReport(
         new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(" "))], spacing: {after: 200}, style: "NormalTextStyle" }), 
     ];
     
-    // Chart Image Section - Completely removed for debugging the persistent "children" error
-    // if (chartImageDataUrl && chartImageDataUrl.startsWith('data:image')) {
-    //     // ... image adding logic was here ...
-    // } else {
-    //     console.log("[ReportGenerator/Word] Chart image data not provided or invalid. Skipping chart section.");
-    // }
+    if (chartImageDataUrl && chartImageDataUrl.startsWith('data:image')) {
+        try {
+            console.log("[ReportGenerator/Word] Chart image data provided. Attempting to add chart image.");
+            const imageBuffer = Buffer.from(chartImageDataUrl.split(',')[1], 'base64');
+             childrenForSection.push(
+                new Paragraph({
+                    children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Tinjauan Status Proyek (Grafik)' : 'Project Status Overview (Chart)')))],
+                    style: "SectionHeaderStyle",
+                    heading: HeadingLevel.HEADING_1,
+                    spacing: { after: 100, before: 200 }
+                }),
+                new Paragraph({
+                    children: [new ImageRun({
+                        data: imageBuffer,
+                        transformation: { width: 500, height: 250 }, // Adjust size as needed
+                    })],
+                    alignment: AlignmentType.CENTER,
+                }),
+                 new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(" "))], spacing: {after: 200}, style: "NormalTextStyle" }), 
+            );
+            console.log("[ReportGenerator/Word] Chart image successfully added to document sections.");
+        } catch (imgError) {
+            console.error("[ReportGenerator/Word] Error processing chart image for Word report:", imgError);
+             childrenForSection.push(
+                new Paragraph({
+                    children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Tinjauan Status Proyek (Grafik)' : 'Project Status Overview (Chart)')))],
+                    style: "SectionHeaderStyle",
+                    heading: HeadingLevel.HEADING_1,
+                    spacing: { after: 100, before: 200 }
+                }),
+                new Paragraph({
+                    children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? '(Gagal memuat gambar grafik)' : '(Failed to load chart image)')))],
+                    style: "ErrorTextStyle",
+                    alignment: AlignmentType.CENTER,
+                }),
+                 new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(" "))], spacing: {after: 200}, style: "NormalTextStyle" }), 
+            );
+        }
+    } else {
+        console.log("[ReportGenerator/Word] Chart image data not provided or invalid. Skipping chart section.");
+    }
 
 
     if (allProjectsForWord.length > 0) {
@@ -308,7 +344,7 @@ export async function generateWordReport(
             },
             headers: {
                 default: new Paragraph({ 
-                    children: [new TextRun(ensureSingleSpaceIfEmpty("Msarch App"))], 
+                    children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Laporan Bulanan Proyek - Msarch App' : 'Monthly Project Report - Msarch App')))], 
                     alignment: AlignmentType.RIGHT, 
                     spacing: { after: 100 }, 
                     style: "FooterTextStyle" 
@@ -345,7 +381,7 @@ export async function generateWordReport(
                 { id: "TableCellStyle", name: "Table Cell Style", basedOn: "BaseNormal", run: { size: 18 }, paragraph: { spacing: { before: 80, after: 80 } } },
                 { id: "SummaryTextStyle", name: "Summary Text Style", basedOn: "BaseNormal", run: { size: 22 }, paragraph: { spacing: { before: 60, after: 60 }, indent: { left: 180 }}},
                 { id: "SectionHeaderStyle", name: "Section Header Style", basedOn: "BaseNormal", run: { size: 28, bold: true, color: primaryColor, font: "Calibri Light" }, paragraph: { spacing: { after: 150, before: 250 }, border: { bottom: {color: primaryColor, style: BorderStyle.SINGLE, size: 6 }} } },
-                { id: "ErrorTextStyle", name: "Error Text Style", basedOn: "BaseNormal", run: { size: 20, color: "C0392B", italics: true }}, // Kept for potential future use
+                { id: "ErrorTextStyle", name: "Error Text Style", basedOn: "BaseNormal", run: { size: 20, color: "C0392B", italics: true }}, 
                 { id: "NormalTextStyle", name: "Normal Text Style", basedOn: "BaseNormal", run: { size: 22}},
                 { id: "FooterTextStyle", name: "Footer Text Style", basedOn: "BaseNormal", run: { size: 16, color: "A9A9A9" } },
                 { id: "SmallMutedTextStyle", name: "Small Muted Text Style", basedOn: "BaseNormal", run: { size: 16, color: "7F8C8D", italics: true } },
@@ -371,7 +407,7 @@ export async function generateWordReport(
         if (packError.stack) {
             console.error('[ReportGenerator/Word] Packer.toBuffer stack trace:', packError.stack);
         }
-        // Rethrow the error to be caught by the API route
+        
         throw packError;
     }
 }
