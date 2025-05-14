@@ -30,18 +30,16 @@ import {
   TableCaption,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, FileText, Download, BarChart3, CheckSquare, XSquare, PieChart as PieChartIcon, AlertTriangle, FileSpreadsheet } from 'lucide-react';
+import { Loader2, BarChart3, CheckSquare, XSquare, PieChart as PieChartIcon, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllProjects, type Project, type WorkflowHistoryEntry } from '@/services/project-service';
-import { generateExcelReport } from '@/lib/report-generator'; 
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { format, parseISO, getMonth, getYear } from 'date-fns';
 import { id as idLocale, enUS as enLocale } from 'date-fns/locale';
-import { toPng } from 'html-to-image';
 import {
   ChartContainer,
   ChartTooltip,
@@ -81,12 +79,7 @@ export default function MonthlyReportPage() {
   const [isLoadingProjects, setIsLoadingProjects] = React.useState(true);
   const [reportData, setReportData] = React.useState<MonthlyReportData | null>(null);
   const [isGeneratingReport, setIsGeneratingReport] = React.useState(false);
-  const [isGeneratingChartImage, setIsGeneratingChartImage] = React.useState(false);
-  const [isDownloading, setIsDownloading] = React.useState<'excel' | 'word' | null>(null);
-
-  const chartContainerRef = React.useRef<HTMLDivElement>(null);
-  const [chartImageDataUrl, setChartImageDataUrl] = React.useState<string | null>(null);
-
+  
   React.useEffect(() => { setIsClient(true); }, []);
 
   React.useEffect(() => {
@@ -160,7 +153,6 @@ export default function MonthlyReportPage() {
     }
     setIsGeneratingReport(true);
     setReportData(null);
-    setChartImageDataUrl(null);
 
     const monthInt = parseInt(selectedMonth, 10);
     const yearInt = parseInt(selectedYear, 10);
@@ -216,147 +208,10 @@ export default function MonthlyReportPage() {
     
     if (newReportData.completed.length === 0 && newReportData.inProgress.length === 0 && newReportData.canceled.length === 0) {
       toast({ title: reportDict.noDataForMonth, description: reportDict.tryDifferentMonthYear });
-      setIsGeneratingReport(false);
-      return;
     }
-
-    setIsGeneratingChartImage(true);
-    setTimeout(async () => {
-        if (chartContainerRef.current && (newReportData.completed.length > 0 || newReportData.inProgress.length > 0 || newReportData.canceled.length > 0)) {
-            try {
-                console.log("Attempting to generate chart image...");
-                const dataUrl = await toPng(chartContainerRef.current, { 
-                    quality: 0.95, 
-                    backgroundColor: '#ffffff', 
-                    pixelRatio: 2,
-                    skipFonts: true // Skip font embedding to avoid errors
-                });
-                setChartImageDataUrl(dataUrl);
-                console.log("Chart image generated for report.");
-            } catch (error) {
-                console.error("Error generating chart image:", error);
-                setChartImageDataUrl(null);
-                toast({ variant: 'destructive', title: reportDict.toast.chartImageErrorTitle, description: (error as Error).message || reportDict.toast.chartImageErrorDesc });
-            }
-        } else {
-            setChartImageDataUrl(null);
-            if (newReportData.completed.length > 0 || newReportData.inProgress.length > 0 || newReportData.canceled.length > 0) {
-                 console.warn("Chart container ref not found, cannot generate image.");
-            }
-        }
-        setIsGeneratingChartImage(false);
-        setIsGeneratingReport(false); 
-    }, 500); 
-
+    setIsGeneratingReport(false); 
   }, [selectedMonth, selectedYear, allProjects, toast, reportDict, language, getMonthName]);
 
-  const handleDownloadExcel = async () => {
-    if (!reportData) {
-      toast({ title: reportDict.toast.error, description: "Generate a report first." });
-      return;
-    }
-    setIsDownloading('excel');
-    try {
-      const csvData = await generateExcelReport(reportData.completed, reportData.canceled, reportData.inProgress, language);
-      const blob = new Blob([`\uFEFF${csvData}`], { type: 'text/csv;charset=utf-8;' }); 
-      const link = document.createElement("a");
-      const url = URL.createObjectURL(blob);
-      link.setAttribute("href", url);
-      link.setAttribute("download", `MsarchApp_Monthly_Report_${reportData.monthName}_${reportData.year}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      toast({ title: reportDict.toast.downloadedExcel });
-    } catch (error) {
-      console.error("Error generating Excel report:", error);
-      toast({ variant: 'destructive', title: reportDict.toast.errorDownloadingReport, description: (error as Error).message });
-    } finally {
-      setIsDownloading(null);
-    }
-  };
-
- const handleDownloadWord = async () => {
-     if (!reportData || !selectedMonth || !selectedYear) {
-        toast({ title: reportDict.toast.error, description: "Please generate a report first." });
-        return;
-    }
-    
-    const localHasDataForChart = reportData.completed.length > 0 || reportData.inProgress.length > 0 || reportData.canceled.length > 0;
-    if (localHasDataForChart && !chartImageDataUrl && !isGeneratingReport && !isGeneratingChartImage) { 
-        toast({ variant: 'destructive', title: reportDict.toast.generatingChartTitle, description: reportDict.toast.generatingChartDesc });
-        return;
-    }
-    if (isGeneratingReport || isGeneratingChartImage) { 
-         toast({ variant: 'default', title: reportDict.generatingReportButton, description: reportDict.toast.generatingChartDesc});
-         return;
-    }
-
-    setIsDownloading('word');
-    try {
-        const response = await fetch('/api/generate-report/word', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                completed: reportData.completed,
-                canceled: reportData.canceled,
-                inProgress: reportData.inProgress,
-                monthName: reportData.monthName,
-                year: reportData.year,
-                chartImageDataUrl: chartImageDataUrl, 
-                language: language,
-            }),
-        });
-        
-        const responseText = await response.text(); 
-
-        if (!response.ok) {
-            let errorDetails = "Failed to generate Word report from server."; 
-            try {
-                if (responseText.trim().startsWith('{') && responseText.trim().endsWith('}')) {
-                    const errorData = JSON.parse(responseText);
-                    console.error("[Client/WordDownload] Raw errorData from server:", JSON.stringify(errorData)); 
-                    if (typeof errorData === 'object' && errorData !== null && Object.keys(errorData).length === 0) {
-                        errorDetails = "The server returned an empty error response. Please check server logs for more details.";
-                    } else {
-                         const serverDetail = errorData.details || errorData.error;
-                         if (typeof serverDetail === 'string' && serverDetail.includes("Cannot read properties of undefined (reading 'children')")) {
-                             errorDetails = "The Word document could not be generated due to an internal structure error. Please contact support or try again later.";
-                         } else {
-                             errorDetails = String(serverDetail || "Failed to process server error response.");
-                         }
-                    }
-                 } else {
-                     errorDetails = responseText.length > 500 ? responseText.substring(0,500) + "..." : responseText;
-                     if (responseText.toLowerCase().includes('<html')) {
-                         errorDetails = "Server returned an HTML error page. Check server logs for details.";
-                     }
-                 }
-            } catch (parseError: any) {
-                console.error("[Client/WordDownload] Error parsing/handling error response from server for Word generation:", parseError, "Raw response:", responseText?.substring(0,500));
-                errorDetails = `Server returned status ${response.status}. Original error: ${String(responseText || '').substring(0,200)}`;
-            }
-            throw new Error(String(errorDetails || "An unknown error occurred detailing the server response."));
-        }
-        
-        const blob = new Blob([responseText], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.download = `MsarchApp_Monthly_Report_${reportData.monthName}_${reportData.year}.docx`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        toast({ title: reportDict.toast.downloadedWord });
-    } catch (error) {
-        console.error("Error downloading Word report:", error);
-        toast({ variant: 'destructive', title: reportDict.toast.errorDownloadingReport, description: (error as Error).message });
-    } finally {
-        setIsDownloading(null);
-    }
-  };
 
   const years = Array.from({ length: 10 }, (_, i) => (parseInt(currentYear) - 5 + i).toString());
   const months = Array.from({ length: 12 }, (_, i) => ({ value: (i + 1).toString(), label: getMonthName(i + 1, language) }));
@@ -404,7 +259,6 @@ export default function MonthlyReportPage() {
   }
   
   const noData = reportData && reportData.completed.length === 0 && reportData.inProgress.length === 0 && reportData.canceled.length === 0;
-  const hasDataForChartFn = () => reportData && (reportData.completed.length > 0 || reportData.inProgress.length > 0 || reportData.canceled.length > 0);
 
 
   return (
@@ -442,7 +296,7 @@ export default function MonthlyReportPage() {
         </CardContent>
       </Card>
 
-      {(isGeneratingReport || isGeneratingChartImage) && !reportData && (
+      {isGeneratingReport && !reportData && (
           <div className="flex flex-col items-center justify-center text-center py-10">
               <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
               <p className="text-lg text-muted-foreground">{reportDict.generatingReportButton}</p>
@@ -464,7 +318,7 @@ export default function MonthlyReportPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-               <div ref={chartContainerRef} className="p-4 bg-background rounded-md mb-6"> 
+               <div className="p-4 bg-background rounded-md mb-6"> 
                  {noData ? (
                     <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
                         <PieChartIcon className="h-12 w-12 mb-2 opacity-50" />
@@ -542,27 +396,7 @@ export default function MonthlyReportPage() {
                 </ScrollArea>
               )}
             </CardContent>
-            {!noData && (
-            <CardFooter className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
-              <Button onClick={handleDownloadExcel} disabled={isDownloading === 'excel' || isGeneratingReport || isGeneratingChartImage} className="w-full sm:w-auto">
-                {isDownloading === 'excel' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className="mr-2 h-4 w-4" />}
-                {reportDict.downloadExcel}
-              </Button>
-              <Button 
-                onClick={handleDownloadWord} 
-                disabled={
-                    isDownloading === 'word' || 
-                    isGeneratingReport || 
-                    isGeneratingChartImage ||
-                    (hasDataForChartFn() && !chartImageDataUrl)
-                } 
-                className="w-full sm:w-auto"
-               >
-                 {isDownloading === 'word' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
-                {reportDict.downloadWord}
-              </Button>
-            </CardFooter>
-            )}
+            {/* Download buttons are removed */}
           </Card>
         </>
       )}
@@ -578,4 +412,3 @@ export default function MonthlyReportPage() {
     </div>
   );
 }
-

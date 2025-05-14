@@ -366,9 +366,6 @@ const id = {
        canceledProjectsShort: "Dibatalkan",
        inProgressProjects: "Proyek Sedang Berjalan",
        inProgressProjectsShort: "Sedang Berjalan",
-       downloadExcel: "Unduh Excel (.csv)",
-       downloadWord: "Unduh Word (.docx)",
-       downloadingButton: "Mengunduh...",
        errorGeneratingReport: "Kesalahan Saat Membuat Laporan",
        errorDownloadingReport: "Kesalahan Saat Mengunduh Laporan",
        reportFor: "Laporan untuk",
@@ -379,20 +376,16 @@ const id = {
        tableHeaderLastActivityDate: "Aktivitas Terakhir / Tanggal Selesai",
        tableHeaderCompletionDate: "Tanggal Selesai/Batal",
        tableHeaderContributors: "Kontributor",
-       status: { // Added for chart labels in monthly report
+       status: { 
          completed: 'Selesai',
          inprogress: 'Sedang Berjalan',
          canceled: 'Dibatalkan',
        },
        toast: {
-           downloadedExcel: "Laporan Excel (CSV) Diunduh",
-           downloadedWord: "Laporan Word (.docx) Diunduh",
            error: "Kesalahan",
            couldNotLoadProjects: "Tidak dapat memuat data proyek untuk laporan.",
            chartImageErrorTitle: "Kesalahan Gambar Grafik",
            chartImageErrorDesc: "Tidak dapat menghasilkan gambar grafik status proyek.",
-           generatingChartTitle: "Grafik Sedang Dibuat",
-           generatingChartDesc: "Gambar grafik sedang dibuat. Mohon tunggu sebentar dan coba unduh lagi.",
            loadingProjects: "Memuat data proyek...",
        }
    },
@@ -414,4 +407,3 @@ const id = {
 };
 
 export default id;
-
