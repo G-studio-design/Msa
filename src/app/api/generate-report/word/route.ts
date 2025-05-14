@@ -69,10 +69,14 @@ export async function POST(req: NextRequest) {
     let errorMessage = 'Failed to generate Word report.';
     let errorDetails = 'An unexpected error occurred on the server while generating the Word document.';
     
-    const originalErrorMessage = typeof error.message === 'string' ? error.message : 'Internal error during Word generation.';
+    // Ensure originalErrorMessage is a string.
+    const originalErrorMessage = typeof error?.message === 'string' ? error.message : 
+                                 error instanceof Error ? error.toString() : 
+                                 'Internal error during Word generation.';
 
     if (originalErrorMessage.includes("Cannot read properties of undefined (reading 'children')") || originalErrorMessage.includes("Cannot read 'children' of undefined")) {
         errorMessage = 'Word Document Structure Error';
+        // Pass the original specific error message in details
         errorDetails = `The Word document could not be generated due to an internal structure error, possibly related to empty content sections. Please contact support or try again later. Details: ${originalErrorMessage}`;
     } else if (originalErrorMessage.includes('Failed to pack Word document')) {
         errorMessage = 'Word Document Creation Error';
@@ -81,9 +85,11 @@ export async function POST(req: NextRequest) {
         errorMessage = 'Chart Image Processing Error';
         errorDetails = `There was a problem including the chart image in the Word document: ${originalErrorMessage}`;
     } else {
-        // More robust generic fallback
-        if (typeof originalErrorMessage === 'string' && !originalErrorMessage.toLowerCase().includes('<html') && originalErrorMessage.trim().length > 0 && originalErrorMessage.trim() !== '{}') {
+        // More robust generic fallback, ensuring errorDetails captures original if possible
+        if (originalErrorMessage.trim().length > 0 && !originalErrorMessage.toLowerCase().includes('<html')) {
            errorDetails = originalErrorMessage.substring(0, 500); // Limit length
+       } else if (originalErrorMessage.toLowerCase().includes('<html')) {
+           errorDetails = 'Server returned an HTML error page instead of a Word document. Check server logs for details.';
        } else {
            errorDetails = 'An unspecified error occurred during Word document generation.';
        }
@@ -91,10 +97,11 @@ export async function POST(req: NextRequest) {
     
     const errorResponsePayload = { 
         error: errorMessage,
-        details: errorDetails 
+        details: errorDetails // This 'details' is what the client uses
     };
     
     console.error(`[API/WordReport] Responding with error payload:`, JSON.stringify(errorResponsePayload));
     return NextResponse.json(errorResponsePayload, { status: 500 });
   }
 }
+
