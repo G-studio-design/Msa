@@ -10,11 +10,11 @@ import { getDictionary } from '@/lib/translations';
 
 // --- Helper Functions ---
 
-// Mengembalikan satu spasi jika teks kosong setelah trim, jika tidak, kembalikan teks asli.
+// Mengembalikan satu spasi non-breaking jika teks kosong setelah trim, jika tidak, kembalikan teks asli.
 // Ini membantu memastikan TextRun memiliki konten yang valid untuk pustaka docx.
 const ensureSingleSpaceIfEmpty = (text: any): string => {
     const str = String(text == null ? "" : text); // Menangani null/undefined menjadi ""
-    return str.trim() === "" ? " " : str; // Jika "" setelah trim, jadikan " ", jika tidak, teks asli.
+    return str.trim() === "" ? "\u00A0" : str; // Jika "" setelah trim, jadikan non-breaking space, jika tidak, teks asli.
 };
 
 
@@ -210,7 +210,7 @@ export async function generateWordReport(
         new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(" "))], spacing: {after: 200}, style: "NormalTextStyle" }), 
     ];
     
-    if (chartImageDataUrl && chartImageDataUrl.startsWith('data:image')) {
+     if (chartImageDataUrl && chartImageDataUrl.startsWith('data:image')) {
         try {
             console.log("[ReportGenerator/Word] Chart image data provided. Attempting to add chart image.");
             const imageBuffer = Buffer.from(chartImageDataUrl.split(',')[1], 'base64');
@@ -224,7 +224,7 @@ export async function generateWordReport(
                 new Paragraph({
                     children: [new ImageRun({
                         data: imageBuffer,
-                        transformation: { width: 500, height: 250 }, // Adjust size as needed
+                        transformation: { width: 500, height: 250 }, 
                     })],
                     alignment: AlignmentType.CENTER,
                 }),
@@ -233,7 +233,8 @@ export async function generateWordReport(
             console.log("[ReportGenerator/Word] Chart image successfully added to document sections.");
         } catch (imgError) {
             console.error("[ReportGenerator/Word] Error processing chart image for Word report:", imgError);
-             childrenForSection.push(
+            // If image processing fails, we still add the section title but indicate failure to load image.
+            childrenForSection.push(
                 new Paragraph({
                     children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Tinjauan Status Proyek (Grafik)' : 'Project Status Overview (Chart)')))],
                     style: "SectionHeaderStyle",
@@ -242,14 +243,29 @@ export async function generateWordReport(
                 }),
                 new Paragraph({
                     children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? '(Gagal memuat gambar grafik)' : '(Failed to load chart image)')))],
-                    style: "ErrorTextStyle",
+                    style: "ErrorTextStyle", // Assuming you have an ErrorTextStyle or use NormalTextStyle
                     alignment: AlignmentType.CENTER,
                 }),
-                 new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(" "))], spacing: {after: 200}, style: "NormalTextStyle" }), 
+                new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(" "))], spacing: {after: 200}, style: "NormalTextStyle" }), 
             );
         }
     } else {
-        console.log("[ReportGenerator/Word] Chart image data not provided or invalid. Skipping chart section.");
+         console.log("[ReportGenerator/Word] Chart image data not provided or invalid. Skipping chart section.");
+         // Optionally add a note that the chart is not available if needed
+         // childrenForSection.push(
+         //     new Paragraph({
+         //         children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Tinjauan Status Proyek (Grafik)' : 'Project Status Overview (Chart)')))],
+         //         style: "SectionHeaderStyle",
+         //         heading: HeadingLevel.HEADING_1,
+         //         spacing: { after: 100, before: 200 }
+         //     }),
+         //     new Paragraph({
+         //         children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? '(Grafik tidak tersedia untuk laporan ini)' : '(Chart not available for this report)')))],
+         //         style: "NormalTextStyle", 
+         //         alignment: AlignmentType.CENTER,
+         //     }),
+         //     new Paragraph({ children: [new TextRun(ensureSingleSpaceIfEmpty(" "))], spacing: {after: 200}, style: "NormalTextStyle" }), 
+         // );
     }
 
 
@@ -343,19 +359,18 @@ export async function generateWordReport(
                 },
             },
             headers: {
-                default: new Paragraph({ 
-                    children: [new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Laporan Bulanan Proyek - Msarch App' : 'Monthly Project Report - Msarch App')))], 
-                    alignment: AlignmentType.RIGHT, 
-                    spacing: { after: 100 }, 
-                    style: "FooterTextStyle" 
+                 default: new Paragraph({
+                    children: [new TextRun({ text: ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Laporan Bulanan Proyek - Msarch App' : 'Monthly Project Report - Msarch App')), style: "FooterTextStyle"})],
+                    alignment: AlignmentType.RIGHT,
+                    spacing: { after: 100 },
                 }),
             },
             footers: {
                 default: new Paragraph({
                     children: [
-                        new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Halaman ' : 'Page '))),
+                        new TextRun({ text: ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? 'Halaman ' : 'Page ')), style: "FooterTextStyle" }),
                         PageNumber.CURRENT,
-                        new TextRun(ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? ' dari ' : ' of '))),
+                        new TextRun({ text: ensureSingleSpaceIfEmpty(String(currentLanguage === 'id' ? ' dari ' : ' of ')), style: "FooterTextStyle" }),
                         PageNumber.TOTAL_PAGES,
                     ],
                     alignment: AlignmentType.CENTER,
