@@ -68,27 +68,26 @@ export async function POST(req: NextRequest) {
     console.error("[API/WordReport] Error generating Word report:", error);
     let errorMessage = 'Failed to generate Word report.';
     let errorDetails = 'An unexpected error occurred on the server while generating the Word document.';
+    
+    const originalErrorMessage = typeof error.message === 'string' ? error.message : 'Internal error during Word generation.';
 
-    // Ensure error.message is a string, or use a fallback.
-    const detailMessage = typeof error.message === 'string' ? error.message : 'Internal error during Word generation.';
-
-    if (detailMessage.includes("Cannot read properties of undefined (reading 'children')") || detailMessage.includes("Cannot read 'children' of undefined")) {
-             errorMessage = 'Word Document Structure Error';
-             errorDetails = `The Word document could not be generated due to an internal structure error, possibly related to empty content sections. Please contact support or try again later. Details: ${detailMessage}`;
-        } else if (detailMessage.includes('Failed to pack Word document')) {
-            errorMessage = 'Word Document Creation Error';
-            errorDetails = `The server encountered an issue while assembling the Word file: ${detailMessage}`;
-        } else if (detailMessage.includes('Error processing chart image')) {
-            errorMessage = 'Chart Image Processing Error';
-            errorDetails = `There was a problem including the chart image in the Word document: ${detailMessage}`;
-        } else {
-             // More robust generic fallback
-             if (typeof detailMessage === 'string' && !detailMessage.toLowerCase().includes('<html') && detailMessage.trim().length > 0 && detailMessage.trim() !== '{}') {
-                errorDetails = detailMessage.substring(0, 500); // Limit length
-            } else {
-                errorDetails = 'An unspecified error occurred during Word document generation.';
-            }
-        }
+    if (originalErrorMessage.includes("Cannot read properties of undefined (reading 'children')") || originalErrorMessage.includes("Cannot read 'children' of undefined")) {
+        errorMessage = 'Word Document Structure Error';
+        errorDetails = `The Word document could not be generated due to an internal structure error, possibly related to empty content sections. Please contact support or try again later. Details: ${originalErrorMessage}`;
+    } else if (originalErrorMessage.includes('Failed to pack Word document')) {
+        errorMessage = 'Word Document Creation Error';
+        errorDetails = `The server encountered an issue while assembling the Word file: ${originalErrorMessage}`;
+    } else if (originalErrorMessage.includes('Error processing chart image')) {
+        errorMessage = 'Chart Image Processing Error';
+        errorDetails = `There was a problem including the chart image in the Word document: ${originalErrorMessage}`;
+    } else {
+        // More robust generic fallback
+        if (typeof originalErrorMessage === 'string' && !originalErrorMessage.toLowerCase().includes('<html') && originalErrorMessage.trim().length > 0 && originalErrorMessage.trim() !== '{}') {
+           errorDetails = originalErrorMessage.substring(0, 500); // Limit length
+       } else {
+           errorDetails = 'An unspecified error occurred during Word document generation.';
+       }
+    }
     
     const errorResponsePayload = { 
         error: errorMessage,
