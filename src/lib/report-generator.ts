@@ -169,10 +169,10 @@ export async function generateWordReport(
         }
     });
     
-    const primaryColor = "1A237E"; // Dark Blue from style guidelines
-    const accentColorLight = "EEEEEE"; // Light Gray from style guidelines
-    const textColor = "212121"; // Darker gray for better readability
-    const headerTextColor = "FFFFFF"; // White for header text on dark blue background
+    const primaryColor = "1A237E"; 
+    const accentColorLight = "EEEEEE"; 
+    const textColor = "212121"; 
+    const headerTextColor = "FFFFFF"; 
 
     const sections = [
         {
@@ -191,12 +191,12 @@ export async function generateWordReport(
                                 new TextRun({
                                     text: "Msarch App",
                                     size: 18, 
-                                    color: "A9A9A9", // Light gray for less emphasis
+                                    color: "A9A9A9", 
                                     font: "Calibri Light",
                                     underline: { type: UnderlineType.SINGLE, color: "A9A9A9" },
                                 }),
                             ],
-                            link: "https://msarch.com", // Replace with actual app link if available
+                            link: "https://msarch.com", 
                         })
                     ],
                     alignment: AlignmentType.RIGHT,
@@ -241,7 +241,7 @@ export async function generateWordReport(
                 new Paragraph({ text: String(`  - ${reportDict?.inProgressProjectsShort || "In Progress"}: ${inProgress?.length || 0}`), style: "SummaryTextStyle", indent: {left: 360} }),
                 new Paragraph({ text: String(`  - ${reportDict?.completedProjectsShort || "Completed"}: ${completed?.length || 0}`), style: "SummaryTextStyle", indent: {left: 360} }),
                 new Paragraph({ text: String(`  - ${reportDict?.canceledProjectsShort || "Canceled"}: ${canceled?.length || 0}`), style: "SummaryTextStyle", indent: {left: 360} }),
-                new Paragraph({ text: " ", spacing: {after: 200} }), // Use a space for potentially safer empty paragraph
+                new Paragraph({ children: [new TextRun(" ")], spacing: {after: 200} }), 
             ],
         },
     ];
@@ -402,7 +402,7 @@ export async function generateWordReport(
     }
 
     sections[0].children.push(
-        new Paragraph({ text: " ", spacing: {after: 400} }) // Use a space for potentially safer empty paragraph
+        new Paragraph({ children: [new TextRun(" ")], spacing: {after: 400} }) 
     );
      sections[0].children.push(
         new Paragraph({
@@ -427,7 +427,7 @@ export async function generateWordReport(
                 { id: "TableCellStyle", name: "Table Cell Style", basedOn: "Normal", run: { size: 18, color: textColor, font: "Calibri"}, paragraph: { spacing: { before: 80, after: 80 } } },
                 { id: "SummaryTextStyle", name: "Summary Text Style", basedOn: "Normal", run: { size: 22, color: textColor, font: "Calibri"}, paragraph: { spacing: { before: 60, after: 60 }, indent: { left: 180 }}},
                 { id: "SectionHeaderStyle", name: "Section Header Style", basedOn: "Normal", run: { size: 28, bold: true, color: primaryColor, font: "Calibri Light" }, paragraph: { spacing: { after: 150, before: 250 }, border: { bottom: {color: primaryColor, style: BorderStyle.SINGLE, size: 6 }} } },
-                { id: "ErrorTextStyle", name: "Error Text Style", basedOn: "Normal", run: { size: 20, color: "C0392B", italics: true, font: "Calibri"}}, // Red color for errors
+                { id: "ErrorTextStyle", name: "Error Text Style", basedOn: "Normal", run: { size: 20, color: "C0392B", italics: true, font: "Calibri"}}, 
                 { id: "NormalTextStyle", name: "Normal Text Style", basedOn: "Normal", run: { size: 22, color: textColor, font: "Calibri"}},
                 { id: "FooterTextStyle", name: "Footer Text Style", basedOn: "Normal", run: { size: 16, color: "A9A9A9", font: "Calibri" } },
                 { id: "SmallMutedTextStyle", name: "Small Muted Text Style", basedOn: "Normal", run: { size: 16, color: "7F8C8D", font: "Calibri", italics: true } },
@@ -453,7 +453,7 @@ export async function generateWordReport(
         if (packError.stack) {
             console.error('[ReportGenerator/Word] Packer.toBuffer stack trace:', packError.stack);
         }
-        // Re-throw the original error to be caught by the API route
+        
         throw packError;
     }
 }
