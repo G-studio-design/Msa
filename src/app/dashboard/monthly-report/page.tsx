@@ -30,7 +30,7 @@ import {
   TableCaption,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, BarChart3, CheckSquare, XSquare, PieChart as PieChartIcon, AlertTriangle } from 'lucide-react';
+import { Loader2, BarChart3, CheckSquare, XSquare, PieChart as PieChartIcon, AlertTriangle, FileText } from 'lucide-react'; // Re-added FileText, removed FileSpreadsheet, FileWord
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList } from "recharts";
 import type { Language } from '@/context/LanguageContext';
+import { toPng } from 'html-to-image';
 
 
 interface MonthlyReportData {
@@ -79,6 +80,9 @@ export default function MonthlyReportPage() {
   const [isLoadingProjects, setIsLoadingProjects] = React.useState(true);
   const [reportData, setReportData] = React.useState<MonthlyReportData | null>(null);
   const [isGeneratingReport, setIsGeneratingReport] = React.useState(false);
+  const [isDownloading, setIsDownloading] = React.useState<false | 'word'>(false);
+  const chartContainerRef = React.useRef<HTMLDivElement>(null);
+  const [chartImageDataUrl, setChartImageDataUrl] = React.useState<string | null>(null);
   
   React.useEffect(() => { setIsClient(true); }, []);
 
@@ -107,7 +111,7 @@ export default function MonthlyReportPage() {
       }
     };
     if (isClient) fetchProjects();
-  }, [currentUser, isClient, toast, reportDict.toast.error, reportDict.toast.couldNotLoadProjects]);
+  }, [currentUser, isClient, toast, reportDict]); // Updated dependency array
 
   const canViewPage = currentUser && ['Owner', 'General Admin'].includes(currentUser.role);
 
@@ -153,6 +157,7 @@ export default function MonthlyReportPage() {
     }
     setIsGeneratingReport(true);
     setReportData(null);
+    setChartImageDataUrl(null); // Reset chart image
 
     const monthInt = parseInt(selectedMonth, 10);
     const yearInt = parseInt(selectedYear, 10);
@@ -164,6 +169,8 @@ export default function MonthlyReportPage() {
                 if (project.workflowHistory && project.workflowHistory.length > 0) {
                     const lastEntry = project.workflowHistory[project.workflowHistory.length - 1];
                     if (lastEntry) relevantDate = parseISO(lastEntry.timestamp);
+                } else {
+                     relevantDate = parseISO(project.createdAt); // Fallback if no history for terminal status
                 }
             } else { 
                  relevantDate = parseISO(project.createdAt); 
@@ -195,7 +202,9 @@ export default function MonthlyReportPage() {
         if (!createdBeforeOrDuringSelectedMonth) return false;
 
         if (p.status === 'Completed' || p.status === 'Canceled') {
-             const endDate = parseISO(p.workflowHistory[p.workflowHistory.length-1]?.timestamp || p.createdAt);
+             const endDateISO = p.workflowHistory[p.workflowHistory.length-1]?.timestamp || p.createdAt;
+             if (!endDateISO) return true; // Should not happen, but as a fallback
+             const endDate = parseISO(endDateISO);
              return getYear(endDate) > yearInt || (getYear(endDate) === yearInt && (getMonth(endDate) + 1) > monthInt);
         }
         return true; 
@@ -213,6 +222,99 @@ export default function MonthlyReportPage() {
   }, [selectedMonth, selectedYear, allProjects, toast, reportDict, language, getMonthName]);
 
 
+  React.useEffect(() => {
+    // Generate chart image after reportData is set and chart is rendered
+    const generateChartImage = async () => {
+        if (reportData && chartContainerRef.current && (reportData.inProgress.length > 0 || reportData.completed.length > 0 || reportData.canceled.length > 0)) {
+            try {
+                const dataUrl = await toPng(chartContainerRef.current, {
+                    skipFonts: true, // Skip font embedding to avoid potential errors
+                    backgroundColor: '#FFFFFF' // Ensure background is white for better image
+                });
+                setChartImageDataUrl(dataUrl);
+            } catch (error) {
+                console.error('Failed to generate chart image:', error);
+                toast({ variant: 'destructive', title: reportDict.toast.chartImageErrorTitle, description: reportDict.toast.chartImageErrorDesc });
+                setChartImageDataUrl(null);
+            }
+        } else if (reportData) { // No data for chart
+            setChartImageDataUrl(null);
+        }
+    };
+    if (isClient && reportData) { // Only run on client and when reportData is available
+        // Delay slightly to ensure chart is rendered
+        const timer = setTimeout(generateChartImage, 500);
+        return () => clearTimeout(timer);
+    }
+  }, [reportData, isClient, toast, reportDict.toast.chartImageErrorTitle, reportDict.toast.chartImageErrorDesc]);
+
+
+  const handleDownloadWord = async () => {
+    if (!reportData) {
+        toast({ variant: 'destructive', title: reportDict.toast.error, description: reportDict.generateReportFirst });
+        return;
+    }
+    setIsDownloading('word');
+    try {
+        const payload = {
+            reportData,
+            monthName: reportData.monthName,
+            year: reportData.year,
+            language,
+            chartImageDataUrl, // Send the captured chart image
+        };
+        const response = await fetch('/api/generate-report/word', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            let errorDetails = `Server returned status ${response.status}.`;
+            let responseText = "";
+            try {
+                responseText = await response.text();
+                if (responseText.trim().startsWith('{') && responseText.trim().endsWith('}')) {
+                    const errorData = JSON.parse(responseText);
+                    console.error("[Client/WordDownload] Raw errorData from server:", JSON.stringify(errorData)); 
+                    if (typeof errorData === 'object' && errorData !== null && Object.keys(errorData).length === 0) {
+                        errorDetails = "The server returned an empty error response. Please check server logs for more details.";
+                    } else {
+                        errorDetails = errorData.details || errorData.error || errorDetails;
+                    }
+                } else {
+                     errorDetails = responseText.length > 500 ? responseText.substring(0,500) + "..." : responseText; // Truncate if too long
+                     if (responseText.toLowerCase().includes('<html')) { // Check if it's an HTML error page
+                         errorDetails = `Server returned an HTML error page (status ${response.status}). Check server logs.`;
+                     }
+                }
+            } catch (jsonError) {
+                // If parsing JSON fails, or reading text fails.
+                console.error("Error parsing JSON error response or reading text from server for Word generation:", jsonError, "Raw response text (if available):", responseText);
+                errorDetails = `Server returned status ${response.status}. Original error: ${String(responseText || '').substring(0,200)}`;
+            }
+            throw new Error(String(errorDetails || "An unknown error occurred detailing the server response."));
+        }
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `monthly_report_${reportData.year}_${reportData.monthName.replace(/ /g, '_')}.docx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        toast({ title: reportDict.toast.downloadSuccessTitle, description: reportDict.toast.downloadSuccessDescWord });
+    } catch (error: any) {
+        console.error('Error downloading Word report:', error);
+        toast({ variant: 'destructive', title: reportDict.toast.error, description: error.message || reportDict.toast.downloadErrorDesc });
+    } finally {
+        setIsDownloading(false);
+    }
+  };
+
+
   const years = Array.from({ length: 10 }, (_, i) => (parseInt(currentYear) - 5 + i).toString());
   const months = Array.from({ length: 12 }, (_, i) => ({ value: (i + 1).toString(), label: getMonthName(i + 1, language) }));
 
@@ -222,7 +324,7 @@ export default function MonthlyReportPage() {
       { name: reportDict.status.inprogress, count: reportData.inProgress.length, fill: "hsl(var(--chart-2))" },
       { name: reportDict.status.completed, count: reportData.completed.length, fill: "hsl(var(--chart-1))" },
       { name: reportDict.status.canceled, count: reportData.canceled.length, fill: "hsl(var(--destructive))" },
-    ].filter(item => item.count > 0); // Only include categories with data
+    ].filter(item => item.count > 0); 
   }, [reportData, reportDict.status]);
 
   const chartConfig = {
@@ -240,6 +342,9 @@ export default function MonthlyReportPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4"><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-full" /></div>
             <Skeleton className="h-10 w-40" />
+             <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                <Skeleton className="h-10 w-full sm:w-40" />
+            </div>
           </CardContent>
         </Card>
         <Card><CardHeader><Skeleton className="h-7 w-1/3" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
@@ -258,7 +363,8 @@ export default function MonthlyReportPage() {
     );
   }
   
-  const noData = reportData && reportData.completed.length === 0 && reportData.inProgress.length === 0 && reportData.canceled.length === 0;
+  const noDataForReport = reportData && reportData.completed.length === 0 && reportData.inProgress.length === 0 && reportData.canceled.length === 0;
+  const noDataForChart = !chartDisplayData || chartDisplayData.length === 0;
 
 
   return (
@@ -269,7 +375,7 @@ export default function MonthlyReportPage() {
           <CardDescription>{reportDict.description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 items-end">
             <div>
               <Label htmlFor="month-select">{reportDict.selectMonthLabel}</Label>
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
@@ -288,12 +394,20 @@ export default function MonthlyReportPage() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleGenerateReport} disabled={isGeneratingReport || (isLoadingProjects && !reportData)} className="w-full sm:w-auto sm:self-end accent-teal">
+            <Button onClick={handleGenerateReport} disabled={isGeneratingReport || (isLoadingProjects && !reportData)} className="w-full sm:w-auto md:self-end accent-teal">
               {isGeneratingReport || (isLoadingProjects && !reportData) ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               {isGeneratingReport || (isLoadingProjects && !reportData) ? reportDict.generatingReportButton : reportDict.generateReportButton}
             </Button>
           </div>
         </CardContent>
+         {reportData && !noDataForReport && (
+            <CardFooter className="flex flex-col sm:flex-row gap-2 pt-4 border-t">
+                <Button onClick={handleDownloadWord} disabled={isDownloading === 'word' || isGeneratingReport || (noDataForChart && !chartImageDataUrl)} className="w-full sm:w-auto">
+                   {isDownloading === 'word' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
+                  {reportDict.downloadWord}
+                </Button>
+            </CardFooter>
+         )}
       </Card>
 
       {isGeneratingReport && !reportData && (
@@ -318,9 +432,9 @@ export default function MonthlyReportPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-               <div className="p-2 sm:p-4 bg-background rounded-md mb-6"> 
-                 {noData ? (
-                    <div className="flex flex-col items-center justify-center h-full min-h-[250px] text-center text-muted-foreground p-4">
+               <div ref={chartContainerRef} className="p-2 sm:p-4 bg-background rounded-md mb-6"> 
+                 {noDataForChart ? (
+                    <div className="flex flex-col items-center justify-center h-full min-h-[250px] sm:min-h-[300px] text-center text-muted-foreground p-4">
                         <PieChartIcon className="h-12 w-12 mb-2 opacity-50" />
                         <p>{reportDict.noDataForMonth}</p>
                     </div>
@@ -330,11 +444,11 @@ export default function MonthlyReportPage() {
                             <BarChart 
                                 data={chartDisplayData} 
                                 layout="vertical" 
-                                margin={{ left: language === 'id' ? 20 : 15, right: 30, top: 5, bottom: 5 }}
+                                margin={{ left: language === 'id' ? 25 : 20, right: 35, top: 5, bottom: 5 }} // Adjusted margins
                             >
                                 <CartesianGrid horizontal={false} strokeDasharray="3 3" />
                                 <XAxis type="number" allowDecimals={false} tick={{ fontSize: 10 }} />
-                                <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} stroke="#888888" fontSize={10} width={language === 'id' ? 100 : 70} interval={0}/>
+                                <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} stroke="#888888" fontSize={10} width={language === 'id' ? 105 : 75} interval={0}/>
                                 <ChartTooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent hideLabel />} />
                                 <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                                     <LabelList dataKey="count" position="right" offset={8} className="fill-foreground" fontSize={10} />
@@ -345,7 +459,7 @@ export default function MonthlyReportPage() {
                  )}
                </div>
 
-              {!noData && (
+              {!noDataForReport && (
                 <ScrollArea className="whitespace-nowrap rounded-md border">
                   <Table>
                     <TableCaption>{reportDict.tableCaption}</TableCaption>
@@ -355,9 +469,9 @@ export default function MonthlyReportPage() {
                         <TableHead>{reportDict.tableHeaderStatus}</TableHead>
                         <TableHead>{reportDict.tableHeaderLastActivityDate}</TableHead>
                         <TableHead className="min-w-[120px] sm:min-w-[150px]">{reportDict.tableHeaderContributors}</TableHead>
-                        <TableHead className="text-right">{language === 'id' ? 'Progres (%)' : 'Progress (%)'}</TableHead>
-                        <TableHead>{language === 'id' ? 'Dibuat Oleh' : 'Created By'}</TableHead>
-                        <TableHead>{language === 'id' ? 'Dibuat Pada' : 'Created At'}</TableHead>
+                        <TableHead className="text-right">{reportDict.tableHeaderProgress}</TableHead>
+                        <TableHead>{reportDict.tableHeaderCreatedBy}</TableHead>
+                        <TableHead>{reportDict.tableHeaderCreatedAt}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -403,7 +517,7 @@ export default function MonthlyReportPage() {
           </Card>
         </>
       )}
-       {reportData && noData && !isGeneratingReport && (
+       {reportData && noDataForReport && !isGeneratingReport && (
          <Card>
             <CardContent className="py-10 text-center">
                 <AlertTriangle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
