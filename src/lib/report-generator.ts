@@ -169,10 +169,10 @@ export async function generateWordReport(
         }
     });
     
-    const primaryColor = "202A70"; // Darker Blue for primary elements
-    const accentColorLight = "F0F4F8"; // Very light blue/gray for row shading
-    const textColor = "333333"; // Dark gray for text
-    const headerTextColor = "FFFFFF"; // White for header text
+    const primaryColor = "1A237E"; // Dark Blue from style guidelines
+    const accentColorLight = "EEEEEE"; // Light Gray from style guidelines
+    const textColor = "212121"; // Darker gray for better readability
+    const headerTextColor = "FFFFFF"; // White for header text on dark blue background
 
     const sections = [
         {
@@ -191,7 +191,7 @@ export async function generateWordReport(
                                 new TextRun({
                                     text: "Msarch App",
                                     size: 18, 
-                                    color: "A9A9A9",
+                                    color: "A9A9A9", // Light gray for less emphasis
                                     font: "Calibri Light",
                                     underline: { type: UnderlineType.SINGLE, color: "A9A9A9" },
                                 }),
@@ -241,7 +241,7 @@ export async function generateWordReport(
                 new Paragraph({ text: String(`  - ${reportDict?.inProgressProjectsShort || "In Progress"}: ${inProgress?.length || 0}`), style: "SummaryTextStyle", indent: {left: 360} }),
                 new Paragraph({ text: String(`  - ${reportDict?.completedProjectsShort || "Completed"}: ${completed?.length || 0}`), style: "SummaryTextStyle", indent: {left: 360} }),
                 new Paragraph({ text: String(`  - ${reportDict?.canceledProjectsShort || "Canceled"}: ${canceled?.length || 0}`), style: "SummaryTextStyle", indent: {left: 360} }),
-                new Paragraph({ text: "", spacing: {after: 200} }), 
+                new Paragraph({ text: " ", spacing: {after: 200} }), // Use a space for potentially safer empty paragraph
             ],
         },
     ];
@@ -357,14 +357,13 @@ export async function generateWordReport(
            
             const cellShading = index % 2 === 0 ? undefined : { type: ShadingType.SOLID, fill: accentColorLight }; 
 
-            // Ensure content is always a string, even if empty
-            const projectTitleText = new TextRun(String(project.title || ""));
-            const translatedStatusText = new TextRun(String(translatedDisplayStatus || ""));
-            const lastActivityDateText = new TextRun(String(getLastActivityDate(project, currentLanguage) || ""));
-            const contributorsText = new TextRun(String(getContributors(project, reportDict, currentLanguage) || ""));
+            const projectTitleText = new TextRun(String(project.title || "-"));
+            const translatedStatusText = new TextRun(String(translatedDisplayStatus || "-"));
+            const lastActivityDateText = new TextRun(String(getLastActivityDate(project, currentLanguage) || "-"));
+            const contributorsText = new TextRun(String(getContributors(project, reportDict, currentLanguage) || "-"));
             const progressText = new TextRun(String(project.progress || 0).toString());
-            const createdByText = new TextRun(String(project.createdBy || ""));
-            const createdAtText = new TextRun(String(formatDateOnly(project.createdAt, currentLanguage) || ""));
+            const createdByText = new TextRun(String(project.createdBy || "-"));
+            const createdAtText = new TextRun(String(formatDateOnly(project.createdAt, currentLanguage) || "-"));
 
 
             return new TableRow({
@@ -403,7 +402,7 @@ export async function generateWordReport(
     }
 
     sections[0].children.push(
-        new Paragraph({ text: "", spacing: {after: 400} }) 
+        new Paragraph({ text: " ", spacing: {after: 400} }) // Use a space for potentially safer empty paragraph
     );
      sections[0].children.push(
         new Paragraph({
@@ -428,7 +427,7 @@ export async function generateWordReport(
                 { id: "TableCellStyle", name: "Table Cell Style", basedOn: "Normal", run: { size: 18, color: textColor, font: "Calibri"}, paragraph: { spacing: { before: 80, after: 80 } } },
                 { id: "SummaryTextStyle", name: "Summary Text Style", basedOn: "Normal", run: { size: 22, color: textColor, font: "Calibri"}, paragraph: { spacing: { before: 60, after: 60 }, indent: { left: 180 }}},
                 { id: "SectionHeaderStyle", name: "Section Header Style", basedOn: "Normal", run: { size: 28, bold: true, color: primaryColor, font: "Calibri Light" }, paragraph: { spacing: { after: 150, before: 250 }, border: { bottom: {color: primaryColor, style: BorderStyle.SINGLE, size: 6 }} } },
-                { id: "ErrorTextStyle", name: "Error Text Style", basedOn: "Normal", run: { size: 20, color: "C0392B", italics: true, font: "Calibri"}},
+                { id: "ErrorTextStyle", name: "Error Text Style", basedOn: "Normal", run: { size: 20, color: "C0392B", italics: true, font: "Calibri"}}, // Red color for errors
                 { id: "NormalTextStyle", name: "Normal Text Style", basedOn: "Normal", run: { size: 22, color: textColor, font: "Calibri"}},
                 { id: "FooterTextStyle", name: "Footer Text Style", basedOn: "Normal", run: { size: 16, color: "A9A9A9", font: "Calibri" } },
                 { id: "SmallMutedTextStyle", name: "Small Muted Text Style", basedOn: "Normal", run: { size: 16, color: "7F8C8D", font: "Calibri", italics: true } },
@@ -454,6 +453,8 @@ export async function generateWordReport(
         if (packError.stack) {
             console.error('[ReportGenerator/Word] Packer.toBuffer stack trace:', packError.stack);
         }
-        throw new Error(`Failed to pack Word document: ${packError.message || String(packError)}`);
+        // Re-throw the original error to be caught by the API route
+        throw packError;
     }
 }
+
