@@ -10,21 +10,20 @@ export interface WorkflowStepTransition {
   targetNextActionDescription: string | null;
   targetProgress: number;
   notification?: {
-    division: string | null; // Target division for notification, null if no specific division
-    message: string; // Message template, e.g., "Project '{projectName}' is now at {newStatus}."
+    division: string | null; 
+    message: string; 
   };
 }
 
 export interface WorkflowStep {
   stepName: string;
-  status: string; // The project status during this step
-  assignedDivision: string; // The division responsible for completing this step
-  progress: number; // The project's progress percentage upon entering this step
-  nextActionDescription: string | null; // User-facing description of the next action
+  status: string; 
+  assignedDivision: string; 
+  progress: number; 
+  nextActionDescription: string | null; 
   transitions: {
-    // Key is the action taken (e.g., "submitted", "approved", "rejected")
     [action: string]: WorkflowStepTransition;
-  } | null; // Null if this is a terminal step (e.g., Completed, Canceled)
+  } | null; 
 }
 
 export interface Workflow {
@@ -41,7 +40,6 @@ async function readWorkflows(): Promise<Workflow[]> {
     await fs.access(WORKFLOWS_DB_PATH);
   } catch (error) {
     console.warn("Workflows database file not found (workflows.json). Creating with an empty array.");
-    // If you have default workflows, you can populate them here.
     await fs.writeFile(WORKFLOWS_DB_PATH, JSON.stringify([], null, 2), 'utf8');
     return [];
   }
@@ -54,9 +52,6 @@ async function readWorkflows(): Promise<Workflow[]> {
     return JSON.parse(data) as Workflow[];
   } catch (parseError) {
       console.error("Error parsing workflows.json. Returning empty array.", parseError);
-      // Optionally, backup the corrupted file and create a new empty one.
-      // await fs.rename(WORKFLOWS_DB_PATH, `${WORKFLOWS_DB_PATH}.corrupted.${Date.now()}`);
-      // await fs.writeFile(WORKFLOWS_DB_PATH, JSON.stringify([], null, 2), 'utf8');
       return [];
   }
 }
@@ -86,14 +81,14 @@ export async function getFirstStep(workflowId: string): Promise<WorkflowStep | n
 export async function getCurrentStepDetails(
   workflowId: string,
   currentStatus: string,
-  currentProgress: number // Added progress to differentiate steps with same status
+  currentProgress: number 
 ): Promise<WorkflowStep | null> {
   const workflow = await getWorkflowById(workflowId);
   if (!workflow) {
     console.warn(`Workflow with ID ${workflowId} not found when trying to get current step details.`);
     return null;
   }
-  // Find step matching both status and progress for more accuracy
+  
   const step = workflow.steps.find(s => s.status === currentStatus && s.progress === currentProgress);
   if (!step) {
       console.warn(`Step with status "${currentStatus}" and progress ${currentProgress} not found in workflow "${workflowId}".`);
@@ -106,7 +101,7 @@ export async function getTransitionInfo(
   workflowId: string,
   currentStatus: string,
   currentProgress: number,
-  actionTaken: string = 'submitted' // 'submitted' for standard progression, 'approved', 'rejected', 'revise' for decisions
+  actionTaken: string = 'submitted' 
 ): Promise<WorkflowStepTransition | null> {
   const workflow = await getWorkflowById(workflowId);
   if (!workflow) {
@@ -114,7 +109,6 @@ export async function getTransitionInfo(
     return null;
   }
 
-  // Find the current step based on status AND progress to differentiate same status names at different points
   const currentStep = workflow.steps.find(step => step.status === currentStatus && step.progress === currentProgress);
 
   if (!currentStep) {
@@ -124,13 +118,12 @@ export async function getTransitionInfo(
 
   if (!currentStep.transitions) {
     console.log(`Step "${currentStep.stepName}" in workflow "${workflowId}" is a terminal step.`);
-    return null; // Terminal step
+    return null; 
   }
 
   const transition = currentStep.transitions[actionTaken];
   if (!transition) {
     console.warn(`No transition found for action "${actionTaken}" from step "${currentStep.stepName}" (status: ${currentStatus}) in workflow "${workflowId}". Trying 'default'.`);
-    // Fallback to 'default' or 'submitted' if a specific action transition isn't found
     const fallbackAction = currentStep.transitions['default'] ? 'default' : (currentStep.transitions['submitted'] ? 'submitted' : null);
     if (fallbackAction) {
       return currentStep.transitions[fallbackAction];
@@ -159,7 +152,6 @@ export async function updateWorkflow(workflowId: string, updatedWorkflowData: Pa
     console.error(`Workflow with ID ${workflowId} not found for update.`);
     return null;
   }
-  // Ensure ID is not changed
   const { id, ...dataToUpdate } = updatedWorkflowData as Partial<Workflow>;
   workflows[index] = { ...workflows[index], ...dataToUpdate };
   await writeWorkflows(workflows);
@@ -177,7 +169,6 @@ export async function deleteWorkflow(workflowId: string): Promise<void> {
   await writeWorkflows(workflows);
 }
 
-// Function to get all unique statuses from all workflows (for manual status change dropdown)
 export async function getAllUniqueStatuses(): Promise<string[]> {
     const workflows = await readWorkflows();
     const allStatuses = new Set<string>();
@@ -188,4 +179,3 @@ export async function getAllUniqueStatuses(): Promise<string[]> {
     });
     return Array.from(allStatuses);
 }
-

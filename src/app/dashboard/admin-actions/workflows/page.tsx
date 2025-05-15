@@ -29,23 +29,47 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Edit, Trash2, Loader2, GitFork } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAllWorkflows, deleteWorkflow, type Workflow } from '@/services/workflow-service';
-// useRouter tidak digunakan saat ini karena fungsionalitas edit/tambah belum diimplementasikan penuh
-// import { useRouter } from 'next/navigation';
+import { getAllWorkflows, deleteWorkflow, addWorkflow, type Workflow, type WorkflowStep } from '@/services/workflow-service';
 
 const defaultDict = getDictionary('en');
+
+const getAddWorkflowSchema = (dictValidation: ReturnType<typeof getDictionary>['manageWorkflowsPage']['validation']) => z.object({
+  name: z.string().min(3, dictValidation.nameMin),
+  description: z.string().optional(),
+});
 
 export default function ManageWorkflowsPage() {
   const { toast } = useToast();
   const { language } = useLanguage();
   const { currentUser } = useAuth();
-  // const router = useRouter();
 
   const [isClient, setIsClient] = React.useState(false);
   const [dict, setDict] = React.useState(defaultDict);
@@ -54,6 +78,19 @@ export default function ManageWorkflowsPage() {
   const [workflows, setWorkflows] = React.useState<Workflow[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isProcessing, setIsProcessing] = React.useState(false);
+  const [isAddWorkflowDialogOpen, setIsAddWorkflowDialogOpen] = React.useState(false);
+
+  const addWorkflowSchema = getAddWorkflowSchema(workflowsDict.validation);
+  type AddWorkflowFormValues = z.infer<typeof addWorkflowSchema>;
+
+  const addWorkflowForm = useForm<AddWorkflowFormValues>({
+    resolver: zodResolver(addWorkflowSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+    },
+    context: { dict: workflowsDict.validation }
+  });
 
   React.useEffect(() => {
     setIsClient(true);
@@ -64,6 +101,12 @@ export default function ManageWorkflowsPage() {
     setDict(newDict);
     setWorkflowsDict(newDict.manageWorkflowsPage);
   }, [language]);
+  
+  React.useEffect(() => {
+    if (isClient && workflowsDict?.validation) {
+      addWorkflowForm.trigger(); // Re-trigger validation when dict changes
+    }
+  }, [workflowsDict, addWorkflowForm, isClient]);
 
   const canManage = currentUser && ['Owner', 'General Admin'].includes(currentUser.role);
 
@@ -79,7 +122,7 @@ export default function ManageWorkflowsPage() {
         setWorkflows(fetchedWorkflows);
       } catch (error) {
         console.error("Failed to fetch workflows:", error);
-        if (isClient && workflowsDict?.toast?.error) { // Pastikan workflowsDict sudah terinisialisasi
+        if (isClient && workflowsDict?.toast?.error) {
              toast({ variant: 'destructive', title: workflowsDict.toast.error, description: workflowsDict.toast.fetchError });
         } else {
              toast({ variant: 'destructive', title: "Error", description: "Could not fetch workflows." });
@@ -88,23 +131,104 @@ export default function ManageWorkflowsPage() {
         setIsLoading(false);
       }
     }
-    if (isClient) { // Hanya fetch jika sudah client-side dan dict sudah terupdate
+    if (isClient) {
       fetchWorkflows();
     }
-  }, [isClient, canManage, toast, language, workflowsDict]); // Tambahkan language dan workflowsDict ke dependency array
+  }, [isClient, canManage, toast, language, workflowsDict]);
 
 
-  const handleAddWorkflow = () => {
-    // TODO: Implement dialog/form for adding a new workflow
-    if (workflowsDict?.toast?.comingSoon) {
-        toast({ title: workflowsDict.toast.comingSoon, description: workflowsDict.toast.addComingSoon });
-    } else {
-        toast({ title: "Coming Soon", description: "Adding new workflows will be available soon." });
+  const handleOpenAddWorkflowDialog = () => {
+    addWorkflowForm.reset({ name: '', description: '' });
+    setIsAddWorkflowDialogOpen(true);
+  };
+
+  const onSubmitAddWorkflow = async (data: AddWorkflowFormValues) => {
+    if (!canManage) return;
+    setIsProcessing(true);
+
+    const defaultSteps: WorkflowStep[] = [
+      {
+        stepName: "Initial Input",
+        status: "Pending Initial Input",
+        assignedDivision: "Admin Proyek",
+        progress: 10,
+        nextActionDescription: "Provide initial project details",
+        transitions: {
+          "submitted": {
+            "targetStatus": "Pending Review",
+            "targetAssignedDivision": "Owner",
+            "targetNextActionDescription": "Review initial details",
+            "targetProgress": 20,
+            "notification": {
+              "division": "Owner",
+              "message": "Initial details for '{projectName}' submitted for review."
+            }
+          }
+        }
+      },
+      {
+        stepName: "Owner Review",
+        status: "Pending Review",
+        assignedDivision: "Owner",
+        progress: 20,
+        nextActionDescription: "Approve or request revision for initial details",
+        transitions: {
+          "approved": {
+            "targetStatus": "Completed",
+            "targetAssignedDivision": "",
+            "targetNextActionDescription": null,
+            "targetProgress": 100,
+            "notification": null
+          },
+           "rejected": { 
+            "targetStatus": "Canceled",
+            "targetAssignedDivision": "",
+            "targetNextActionDescription": null,
+            "targetProgress": 20, 
+             "notification": {
+              "division": "Admin Proyek",
+              "message": "Initial details for '{projectName}' were rejected by Owner."
+            }
+          }
+        }
+      },
+      {
+        stepName: "Project Completed",
+        status: "Completed",
+        assignedDivision: "",
+        progress: 100,
+        nextActionDescription: null,
+        transitions: null
+      },
+      {
+        stepName: "Project Canceled",
+        status: "Canceled",
+        assignedDivision: "",
+        progress: 0, // Or last known progress
+        nextActionDescription: null,
+        transitions: null
+      }
+    ];
+
+    try {
+      const newWorkflow = await addWorkflow({
+        name: data.name,
+        description: data.description || '',
+        steps: defaultSteps,
+      });
+      setWorkflows(prev => [...prev, newWorkflow]);
+      toast({ title: workflowsDict.toast.addSuccessTitle, description: workflowsDict.toast.addSuccessDesc.replace('{name}', newWorkflow.name) });
+      setIsAddWorkflowDialogOpen(false);
+    } catch (error: any) {
+      console.error("Failed to add workflow:", error);
+      toast({ variant: 'destructive', title: workflowsDict.toast.error, description: error.message || workflowsDict.toast.addError });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
+
   const handleEditWorkflow = (workflow: Workflow) => {
-    // TODO: Implement dialog/form for editing a workflow
      if (workflowsDict?.toast?.comingSoon) {
         toast({ title: workflowsDict.toast.comingSoon, description: workflowsDict.toast.editComingSoon.replace('{name}', workflow.name) });
     } else {
@@ -127,7 +251,7 @@ export default function ManageWorkflowsPage() {
     }
   };
 
-  if (!isClient || !currentUser || (!workflowsDict && language !== defaultDict.manageWorkflowsPage.title) ) { // Tunggu workflowsDict terisi
+  if (!isClient || !currentUser || (!workflowsDict && language !== defaultDict.manageWorkflowsPage.title) ) {
     return (
       <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
         <Card>
@@ -157,9 +281,61 @@ export default function ManageWorkflowsPage() {
             <CardTitle className="text-xl md:text-2xl">{workflowsDict.title}</CardTitle>
             <CardDescription>{workflowsDict.description}</CardDescription>
           </div>
-          <Button className="accent-teal w-full sm:w-auto" onClick={handleAddWorkflow} disabled={isLoading}>
-            <PlusCircle className="mr-2 h-4 w-4" /> {workflowsDict.addWorkflowButton}
-          </Button>
+          <Dialog open={isAddWorkflowDialogOpen} onOpenChange={setIsAddWorkflowDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="accent-teal w-full sm:w-auto" onClick={handleOpenAddWorkflowDialog} disabled={isLoading}>
+                <PlusCircle className="mr-2 h-4 w-4" /> {workflowsDict.addWorkflowButton}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[480px]">
+              <DialogHeader>
+                <DialogTitle>{workflowsDict.addDialogTitle}</DialogTitle>
+                <DialogDescription>{workflowsDict.addDialogDesc}</DialogDescription>
+              </DialogHeader>
+              <Form {...addWorkflowForm}>
+                <form onSubmit={addWorkflowForm.handleSubmit(onSubmitAddWorkflow)} className="space-y-4 py-2">
+                  <FormField
+                    control={addWorkflowForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{workflowsDict.formLabels.name}</FormLabel>
+                        <FormControl>
+                          <Input placeholder={workflowsDict.formPlaceholders.name} {...field} disabled={isProcessing} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={addWorkflowForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{workflowsDict.formLabels.description}</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder={workflowsDict.formPlaceholders.description} {...field} disabled={isProcessing} rows={3}/>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {workflowsDict.addDialogStepsInfo}
+                  </p>
+                  <DialogFooter className="pt-2">
+                    <Button type="button" variant="outline" onClick={() => setIsAddWorkflowDialogOpen(false)} disabled={isProcessing}>
+                      {workflowsDict.cancelButton}
+                    </Button>
+                    <Button type="submit" className="accent-teal" disabled={isProcessing}>
+                      {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      {workflowsDict.addDialogSubmitButton}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
