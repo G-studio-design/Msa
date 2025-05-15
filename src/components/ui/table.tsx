@@ -16,7 +16,7 @@ const Table = React.forwardRef<
         "w-full caption-bottom text-sm",
         className
       )}
-      {...props} // Children will be passed here by React if provided
+      {...props}
     />
   </div>
 ))
@@ -76,15 +76,15 @@ TableFooter.displayName = "TableFooter"
 const TableRow = React.forwardRef<
   HTMLTableRowElement,
   React.HTMLAttributes<HTMLTableRowElement>
->(({ className, children, ...restProps }, ref) => ( // Destructure children, use ...restProps
+>(({ className, children, ...restProps }, ref) => (
   <tr
     ref={ref}
     className={cn(
-      "data-[state=selected]:bg-accent",
+      // Menghapus "data-[state=selected]:bg-accent" untuk menghindari duplikasi data-state attribute
       "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
       className
     )}
-    {...restProps} // Spread only the rest of the props
+    {...restProps}
   >{children}</tr>
 ))
 TableRow.displayName = "TableRow"
@@ -92,14 +92,14 @@ TableRow.displayName = "TableRow"
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
   React.ThHTMLAttributes<HTMLTableCellElement>
->(({ className, children, ...restProps }, ref) => ( // Destructure children, use ...restProps
+>(({ className, children, ...restProps }, ref) => (
   <th
     ref={ref}
     className={cn(
       "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
       className
     )}
-    {...restProps} // Spread only the rest of the props
+    {...restProps}
   >{children}</th>
 ))
 TableHead.displayName = "TableHead"
@@ -107,11 +107,11 @@ TableHead.displayName = "TableHead"
 const TableCell = React.forwardRef<
   HTMLTableCellElement,
   React.TdHTMLAttributes<HTMLTableCellElement>
->(({ className, children, ...restProps }, ref) => ( // Destructure children, use ...restProps
+>(({ className, children, ...restProps }, ref) => (
   <td
     ref={ref}
     className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
-    {...restProps} // Spread only the rest of the props
+    {...restProps}
   >{children}</td>
 ))
 TableCell.displayName = "TableCell"
