@@ -16,7 +16,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"; // Import Popover
+} from "@/components/ui/popover";
 import {
   LayoutDashboard,
   Users,
@@ -31,8 +31,9 @@ import {
   Bell,
   MessageSquareWarning,
   FileBarChart,
-  GitFork, // Changed from WorkflowIcon or Settings2 to GitFork for workflow management
-  Wrench, // For MEP role
+  GitFork, 
+  Wrench, 
+  Replace, // Added for Admin Actions page icon consistency
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -140,7 +141,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP"] },
     { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP"] },
     { href: "/dashboard/users", icon: Users, labelKey: "manageUsers" as LayoutDictKeys, roles: ["Owner", "General Admin"] },
-    { href: "/dashboard/admin-actions", icon: UserCog, labelKey: "adminActions" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek"] },
+    { href: "/dashboard/admin-actions", icon: Replace, labelKey: "adminActions" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek"] }, // Changed icon to Replace for consistency with page
     { href: "/dashboard/admin-actions/workflows", icon: GitFork, labelKey: "manageWorkflows" as LayoutDictKeys, roles: ["Owner", "General Admin"] },
     { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport" as LayoutDictKeys, roles: ["Owner", "General Admin"] },
     { href: "/dashboard/settings", icon: Settings, labelKey: "settings" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP"] },
@@ -157,10 +158,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       switch(role) {
           case 'Owner': return User;
           case 'General Admin': return UserCog;
-          case 'Admin Proyek': return UserCog; // Consider a more specific icon if needed
-          case 'Arsitek': return User; // Consider a specific icon like 'Palette' or 'DraftingCompass'
-          case 'Struktur': return User; // Consider a specific icon like 'HardHat' or 'Building'
-          case 'MEP': return Wrench; // Specific icon for MEP
+          case 'Admin Proyek': return UserCog; 
+          case 'Arsitek': return User; 
+          case 'Struktur': return User; 
+          case 'MEP': return Wrench; 
           default: return User;
       }
   }
@@ -179,8 +180,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
 
    const getTranslatedRole = (role: string): string => {
-       if (!isClient) return '...';
-       const rolesDict = dict?.manageUsersPage?.roles;
+       if (!isClient || !dict?.manageUsersPage?.roles) return role; // Fallback if dict or roles not ready
+       const rolesDict = dict.manageUsersPage.roles;
 
        const roleKey = role.replace(/\s+/g, '').toLowerCase() as keyof NonNullable<typeof rolesDict>;
        return rolesDict?.[roleKey] || role;
