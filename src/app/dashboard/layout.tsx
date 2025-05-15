@@ -28,22 +28,24 @@ import {
   PanelRightOpen,
   User,
   Loader2,
-  Bell, 
-  MessageSquareWarning, 
-  FileBarChart, 
+  Bell,
+  MessageSquareWarning,
+  FileBarChart,
+  GitFork, // Changed from WorkflowIcon or Settings2 to GitFork for workflow management
+  Wrench, // For MEP role
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge'; 
+import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { useLanguage } from '@/context/LanguageContext'; 
-import { getDictionary } from '@/lib/translations'; 
-import { useAuth } from '@/context/AuthContext'; 
-import { Skeleton } from '@/components/ui/skeleton'; 
-import { useToast } from '@/hooks/use-toast'; 
-import { useRouter } from 'next/navigation'; 
-import { cn } from '@/lib/utils'; 
-import { getNotificationsForUser, markNotificationAsRead, type Notification } from '@/services/notification-service'; 
+import { useLanguage } from '@/context/LanguageContext';
+import { getDictionary } from '@/lib/translations';
+import { useAuth } from '@/context/AuthContext';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import { getNotificationsForUser, markNotificationAsRead, type Notification } from '@/services/notification-service';
 
 // Define the type for the layout dictionary keys
 type LayoutDictKeys = keyof ReturnType<typeof getDictionary>['dashboardLayout'];
@@ -53,61 +55,52 @@ type LayoutDictKeys = keyof ReturnType<typeof getDictionary>['dashboardLayout'];
 const defaultDict = getDictionary('en');
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const { language } = useLanguage(); 
-  const { currentUser, logout } = useAuth(); 
-  const { toast } = useToast(); 
-  const router = useRouter(); 
-  const [isClient, setIsClient] = useState(false); 
-  const [dict, setDict] = useState(() => getDictionary(language)); 
-  const [layoutDict, setLayoutDict] = useState(() => dict.dashboardLayout); 
-  const [notifications, setNotifications] = useState<Notification[]>([]); 
-  const [unreadCount, setUnreadCount] = useState(0); 
+  const { language } = useLanguage();
+  const { currentUser, logout } = useAuth();
+  const { toast } = useToast();
+  const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
+  const [dict, setDict] = useState(() => getDictionary(language));
+  const [layoutDict, setLayoutDict] = useState(() => dict.dashboardLayout);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    setIsClient(true); 
+    setIsClient(true);
 
     const fetchNotifications = async () => {
       if (currentUser) {
         try {
-          
           const fetchedNotifications = await getNotificationsForUser(currentUser.id);
           setNotifications(fetchedNotifications);
           console.log(`Fetched ${fetchedNotifications.length} notifications for user ${currentUser.id}`);
         } catch (error) {
            console.error("Failed to fetch notifications:", error);
-           
         }
       } else {
-        setNotifications([]); 
+        setNotifications([]);
         console.log("No current user, clearing notifications.");
       }
     };
 
     fetchNotifications();
-
-    
-
-  }, [currentUser]); 
+  }, [currentUser]);
 
   useEffect(() => {
-    
     setUnreadCount(notifications.filter(n => !n.isRead).length);
   }, [notifications]);
 
 
-  
   useEffect(() => {
       if (isClient && currentUser) {
-          
           if ('Notification' in window) {
-              
               if (Notification.permission === 'default') {
                   console.log('Requesting notification permission...');
                   Notification.requestPermission().then(permission => {
                       console.log('Notification permission status:', permission);
                       if (permission === 'granted') {
                           toast({
-                              title: dict.notifications.permissionGrantedTitle, 
+                              title: dict.notifications.permissionGrantedTitle,
                               description: dict.notifications.permissionGrantedDesc,
                           });
                       } else if (permission === 'denied') {
@@ -132,49 +125,49 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               }
           } else {
               console.warn('This browser does not support desktop notification');
-              
           }
       }
-  }, [isClient, currentUser, toast, dict?.notifications]); 
+  }, [isClient, currentUser, toast, dict?.notifications]);
 
 
   useEffect(() => {
       const newDict = getDictionary(language);
-      setDict(newDict); 
-      setLayoutDict(newDict.dashboardLayout); 
+      setDict(newDict);
+      setLayoutDict(newDict.dashboardLayout);
   }, [language]);
 
   const menuItems = [
-    { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur"] }, 
-    { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur"] }, 
-    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers" as LayoutDictKeys, roles: ["Owner", "General Admin"] }, 
-    { href: "/dashboard/admin-actions", icon: UserCog, labelKey: "adminActions" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek"] }, 
-    { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport" as LayoutDictKeys, roles: ["Owner", "General Admin"] }, 
-    { href: "/dashboard/settings", icon: Settings, labelKey: "settings" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur"] }, 
+    { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP"] },
+    { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP"] },
+    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers" as LayoutDictKeys, roles: ["Owner", "General Admin"] },
+    { href: "/dashboard/admin-actions", icon: UserCog, labelKey: "adminActions" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek"] },
+    { href: "/dashboard/admin-actions/workflows", icon: GitFork, labelKey: "manageWorkflows" as LayoutDictKeys, roles: ["Owner", "General Admin"] },
+    { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport" as LayoutDictKeys, roles: ["Owner", "General Admin"] },
+    { href: "/dashboard/settings", icon: Settings, labelKey: "settings" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP"] },
   ];
 
-  
+
   const visibleMenuItems = isClient && currentUser
     ? menuItems.filter(item => currentUser.role && item.roles.includes(currentUser.role))
     : [];
 
-  
+
   const getUserRoleIcon = (role: string | undefined) => {
-      if (!role) return User; 
+      if (!role) return User;
       switch(role) {
           case 'Owner': return User;
           case 'General Admin': return UserCog;
-          case 'Admin Proyek': return UserCog; 
-          case 'Arsitek': return User;
-          case 'Struktur': return User;
-          
+          case 'Admin Proyek': return UserCog; // Consider a more specific icon if needed
+          case 'Arsitek': return User; // Consider a specific icon like 'Palette' or 'DraftingCompass'
+          case 'Struktur': return User; // Consider a specific icon like 'HardHat' or 'Building'
+          case 'MEP': return Wrench; // Specific icon for MEP
           default: return User;
       }
   }
-  
+
   const RoleIcon = isClient && currentUser ? getUserRoleIcon(currentUser.role) : User;
 
-  
+
   const getUserInitials = (name: string | undefined): string => {
       if (!name) return '?';
       return name.split(' ')
@@ -184,19 +177,19 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                  .slice(0, 2);
   }
 
-  
+
    const getTranslatedRole = (role: string): string => {
-       if (!isClient) return '...'; 
+       if (!isClient) return '...';
        const rolesDict = dict?.manageUsersPage?.roles;
-       
-       const roleKey = role.replace(/\s+/g, '') as keyof NonNullable<typeof rolesDict>; 
-       return rolesDict?.[roleKey] || role; 
+
+       const roleKey = role.replace(/\s+/g, '').toLowerCase() as keyof NonNullable<typeof rolesDict>;
+       return rolesDict?.[roleKey] || role;
    }
 
-    
+
    const formatTimestamp = (timestamp: string): string => {
        if (!isClient) return '...';
-       
+
        const now = new Date();
        const past = new Date(timestamp);
        const diffSeconds = Math.round((now.getTime() - past.getTime()) / 1000);
@@ -210,10 +203,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
        return `${diffDays}d ago`;
    }
 
-   
+
    const handleNotificationClick = async (notification: Notification) => {
        console.log(`Notification clicked: ${notification.id}, Project ID: ${notification.projectId}`);
-       
+
        if (!notification.isRead) {
            try {
                await markNotificationAsRead(notification.id);
@@ -223,58 +216,52 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                console.log(`Notification ${notification.id} marked as read successfully.`);
            } catch (error) {
                 console.error("Failed to mark notification as read:", error);
-                
            }
        }
-       
+
        if (notification.projectId) {
            router.push(`/dashboard/projects?projectId=${notification.projectId}`);
        } else {
             console.warn("Notification clicked, but no project ID associated.");
-            
        }
    };
 
 
   return (
     <div className="flex min-h-screen w-full">
-      
       <div className="flex-1 flex flex-col">
-          
-           <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b bg-background px-4 sm:px-6"> 
-             <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-base sm:text-lg text-primary"> 
-                <Building className="h-5 w-5 sm:h-6 sm:w-6" /> 
-                
-                 <span className="hidden sm:inline">{isClient && layoutDict ? layoutDict.appTitle : defaultDict?.dashboardLayout?.appTitle}</span> 
-                 <span className="sm:hidden">{isClient && layoutDict ? layoutDict.appTitle : defaultDict?.dashboardLayout?.appTitle}</span> 
+           <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b bg-background px-4 sm:px-6">
+             <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-base sm:text-lg text-primary">
+                <Building className="h-5 w-5 sm:h-6 sm:w-6" />
+                 <span className="hidden sm:inline">{isClient && layoutDict ? layoutDict.appTitle : defaultDict?.dashboardLayout?.appTitle}</span>
+                 <span className="sm:hidden">{isClient && layoutDict ? layoutDict.appTitleShort : defaultDict?.dashboardLayout?.appTitleShort || defaultDict?.dashboardLayout?.appTitle}</span>
               </Link>
 
-            
-             <div className="flex items-center gap-2"> 
-              
+
+             <div className="flex items-center gap-2">
               <Popover>
                 <PopoverTrigger asChild>
-                    <Button variant="outline" size="icon" className="relative h-9 w-9 sm:h-10 sm:w-10"> 
-                        <Bell className="h-4 w-4 sm:h-5 sm:w-5" /> 
+                    <Button variant="outline" size="icon" className="relative h-9 w-9 sm:h-10 sm:w-10">
+                        <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
                        {isClient && unreadCount > 0 && (
                           <Badge
                              variant="destructive"
-                              className="absolute -top-1 -right-1 h-4 w-4 p-0 justify-center text-[10px] sm:text-xs" 
+                              className="absolute -top-1 -right-1 h-4 w-4 p-0 justify-center text-[10px] sm:text-xs"
                            >
-                             {unreadCount > 9 ? '9+' : unreadCount} 
+                             {unreadCount > 9 ? '9+' : unreadCount}
                            </Badge>
                        )}
                         <span className="sr-only">{isClient && dict?.notifications ? dict?.notifications?.tooltip : defaultDict?.notifications?.tooltip}</span>
                    </Button>
                 </PopoverTrigger>
-                 <PopoverContent className="w-80 p-0"> 
+                 <PopoverContent className="w-80 p-0">
                   <div className="p-4 border-b">
                       <h4 className="font-medium leading-none">{isClient && dict?.notifications ? dict?.notifications?.title : defaultDict?.notifications?.title}</h4>
                       <p className="text-sm text-muted-foreground">
                         {isClient && dict?.notifications ? dict?.notifications?.description : defaultDict?.notifications?.description}
                       </p>
                   </div>
-                   <div className="max-h-60 overflow-y-auto"> 
+                   <div className="max-h-60 overflow-y-auto">
                    {isClient && notifications.length > 0 ? (
                        notifications.map(notification => (
                          <div
@@ -282,10 +269,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                              onClick={() => handleNotificationClick(notification)}
                              className={cn(
                                  "p-3 flex items-start gap-3 hover:bg-accent cursor-pointer border-b last:border-b-0",
-                                 !notification.isRead && "bg-secondary/50 hover:bg-secondary/70" 
+                                 !notification.isRead && "bg-secondary/50 hover:bg-secondary/70"
                              )}
                          >
-                           
                            <div className={cn(
                              "mt-1 h-2 w-2 rounded-full flex-shrink-0",
                              notification.isRead ? "bg-muted-foreground/30" : "bg-primary"
@@ -307,24 +293,22 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               </Popover>
 
 
-              
               <Sheet>
                 <SheetTrigger asChild>
-                   <Button variant="outline" size="icon" className="h-9 w-9 sm:h-10 sm:w-10"> 
-                     <PanelRightOpen className="h-4 w-4 sm:h-5 sm:w-5" /> 
+                   <Button variant="outline" size="icon" className="h-9 w-9 sm:h-10 sm:w-10">
+                     <PanelRightOpen className="h-4 w-4 sm:h-5 sm:w-5" />
                     <span className="sr-only">{isClient && layoutDict ? layoutDict.toggleMenu : defaultDict?.dashboardLayout?.toggleMenu}</span>
                   </Button>
                 </SheetTrigger>
-                 <SheetContent side="right" className="bg-primary text-primary-foreground border-primary-foreground/20 w-[80vw] max-w-[300px] sm:max-w-[320px] flex flex-col p-4"> 
-                  
+                 <SheetContent side="right" className="bg-primary text-primary-foreground border-primary-foreground/20 w-[80vw] max-w-[300px] sm:max-w-[320px] flex flex-col p-4">
                   <SheetHeader className="mb-4 text-left">
-                     <SheetTitle className="text-primary-foreground text-lg sm:text-xl">{isClient && layoutDict ? layoutDict.menuTitle : defaultDict?.dashboardLayout?.menuTitle}</SheetTitle> 
+                     <SheetTitle className="text-primary-foreground text-lg sm:text-xl">{isClient && layoutDict ? layoutDict.menuTitle : defaultDict?.dashboardLayout?.menuTitle}</SheetTitle>
                     <SheetDescription className="text-primary-foreground/80">
                      {isClient && layoutDict ? layoutDict.menuDescription : defaultDict?.dashboardLayout?.menuDescription}
                     </SheetDescription>
                   </SheetHeader>
 
-                  
+
                    <nav className="flex-1 space-y-2 overflow-y-auto">
                      {isClient && currentUser ? (
                          visibleMenuItems.map((item) => (
@@ -334,14 +318,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                              className="flex items-center gap-3 rounded-md px-3 py-2 text-primary-foreground/90 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground"
                            >
                              <item.icon className="h-5 w-5" />
-                             
                              <span>{layoutDict?.[item.labelKey]}</span>
                            </Link>
                          ))
                      ) : (
-                         
                          <div className="space-y-2">
-                           {[...Array(5)].map((_, i) => ( 
+                           {[...Array(5)].map((_, i) => (
                                <div key={i} className="flex items-center gap-3 rounded-md px-3 py-2">
                                    <Skeleton className="h-5 w-5 rounded-full bg-primary-foreground/20" />
                                    <Skeleton className="h-4 w-32 bg-primary-foreground/20" />
@@ -353,27 +335,22 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
                    <Separator className="my-4 bg-primary-foreground/20" />
 
-                   
+
                    <div className="mt-auto space-y-4">
-                     
                      {isClient && currentUser ? (
                        <div className="flex items-center gap-3 rounded-md p-2">
                          <Avatar className="h-10 w-10 border-2 border-primary-foreground/30">
-                            
                            <AvatarImage
-                                src={currentUser.profilePictureUrl || `https://picsum.photos/seed/${currentUser.id}/100`} 
+                                src={currentUser.profilePictureUrl || `https://placehold.co/100x100.png`}
+                                data-ai-hint="user avatar placeholder"
                                 alt={currentUser.displayName || currentUser.username}
-                                data-ai-hint="user avatar placeholder" 
                             />
                            <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground">
-                               
                                {getUserInitials(currentUser.displayName || currentUser.username)}
                            </AvatarFallback>
                          </Avatar>
                          <div className="flex flex-col overflow-hidden">
-                           
                            <span className="text-sm font-medium truncate text-primary-foreground">{currentUser.displayName || currentUser.username}</span>
-                            
                            <span className="text-xs text-primary-foreground/70 truncate flex items-center gap-1">
                              <RoleIcon className="h-3 w-3 flex-shrink-0" />
                              {getTranslatedRole(currentUser.role)}
@@ -381,7 +358,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                          </div>
                        </div>
                      ) : (
-                         
                           <div className="flex items-center gap-3 rounded-md p-2">
                                 <Skeleton className="h-10 w-10 rounded-full bg-primary-foreground/20" />
                                 <div className="flex flex-col space-y-1">
@@ -391,12 +367,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                           </div>
                      )}
 
-                    
+
                     <Button
                       variant="ghost"
                       className="w-full justify-start gap-3 text-primary-foreground/90 hover:bg-primary-foreground/10 hover:text-primary-foreground"
-                      onClick={logout} 
-                      disabled={!isClient || !currentUser} 
+                      onClick={logout}
+                      disabled={!isClient || !currentUser}
                     >
                       <LogOut className="h-5 w-5" />
                       <span>{isClient && layoutDict ? layoutDict.logout : defaultDict?.dashboardLayout?.logout}</span>
@@ -407,11 +383,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
           </header>
 
-          
-           <main className="flex-1 overflow-y-auto p-4 md:p-6"> 
-            
+
+           <main className="flex-1 overflow-y-auto p-4 md:p-6">
              {isClient && currentUser ? children : (
-                   <div className="flex justify-center items-center h-[calc(100vh-56px)]"> 
+                   <div className="flex justify-center items-center h-[calc(100vh-56px)]">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
               )}
