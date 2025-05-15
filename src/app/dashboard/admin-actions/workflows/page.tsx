@@ -57,7 +57,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAllWorkflows, deleteWorkflow, addWorkflow, updateWorkflow, type Workflow, type WorkflowStep } from '@/services/workflow-service';
+import { getAllWorkflows, deleteWorkflow, addWorkflow, updateWorkflow, type Workflow, type WorkflowStep, DEFAULT_STANDARD_WORKFLOW_STRUCTURE } from '@/services/workflow-service';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -71,7 +71,6 @@ const getAddWorkflowSchema = (dictValidation: ReturnType<typeof getDictionary>['
 const getEditWorkflowSchema = (dictValidation: ReturnType<typeof getDictionary>['manageWorkflowsPage']['validation']) => z.object({
   name: z.string().min(3, dictValidation.nameMin),
   description: z.string().optional(),
-  // stepsModified: z.boolean().optional(), // Tidak diperlukan lagi, kita bandingkan array secara langsung
 });
 
 
@@ -189,18 +188,15 @@ export default function ManageWorkflowsPage() {
     }
   };
 
-
   const handleEditWorkflow = (workflow: Workflow) => {
     setEditingWorkflow(workflow);
     editWorkflowForm.reset({
       name: workflow.name,
       description: workflow.description,
     });
-    // Penting: Buat salinan array steps untuk menghindari mutasi state asli secara langsung
-    setCurrentEditableSteps([...workflow.steps]); 
+    setCurrentEditableSteps(workflow.steps ? [...workflow.steps] : []); // Ensure a new array and handle potential undefined
     setStepsOrderChanged(false);
     setIsEditWorkflowDialogOpen(true);
-    // Trigger validasi bisa dilakukan di useEffect yang mengawasi editingWorkflow
   };
   
   React.useEffect(() => {
@@ -208,7 +204,6 @@ export default function ManageWorkflowsPage() {
       editWorkflowForm.trigger();
     }
   }, [editingWorkflow, editWorkflowForm, isClient, workflowsDict]);
-
 
   const onSubmitEditWorkflow = async (data: EditWorkflowFormValues) => {
     if (!canManage || !editingWorkflow) return;
@@ -261,7 +256,7 @@ export default function ManageWorkflowsPage() {
   };
 
   const moveStepUp = (index: number) => {
-    if (index > 0) {
+    if (index > 0 && currentEditableSteps) {
       const newSteps = [...currentEditableSteps];
       const temp = newSteps[index];
       newSteps[index] = newSteps[index - 1];
@@ -272,8 +267,8 @@ export default function ManageWorkflowsPage() {
   };
 
   const moveStepDown = (index: number) => {
-    const newSteps = [...currentEditableSteps];
-    if (index < newSteps.length - 1) {
+    if (currentEditableSteps && index < currentEditableSteps.length - 1) {
+      const newSteps = [...currentEditableSteps];
       const temp = newSteps[index];
       newSteps[index] = newSteps[index + 1];
       newSteps[index + 1] = temp;
@@ -282,8 +277,8 @@ export default function ManageWorkflowsPage() {
     }
   };
 
+  // Check if form is dirty (name/desc changed) OR if steps order has changed
   const isEditFormDirty = editWorkflowForm.formState.isDirty || stepsOrderChanged;
-
 
   if (!isClient || !currentUser || (!workflowsDict && language !== defaultDict.manageWorkflowsPage.title) ) {
     return (
@@ -411,7 +406,7 @@ export default function ManageWorkflowsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground hidden sm:table-cell truncate max-w-xs">{workflow.description}</TableCell>
-                      <TableCell className="hidden md:table-cell">{workflow.steps.length}</TableCell>
+                      <TableCell className="hidden md:table-cell">{workflow.steps?.length || 0}</TableCell>
                       <TableCell className="text-right space-x-0 sm:space-x-1 whitespace-nowrap">
                         <Button variant="ghost" size="icon" onClick={() => handleEditWorkflow(workflow)} title={workflowsDict.editAction} disabled={isLoading || isProcessing}>
                           <Edit className="h-4 w-4 text-blue-500" />
@@ -451,7 +446,7 @@ export default function ManageWorkflowsPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={isEditWorkflowDialogOpen} onOpenChange={(open) => { setIsEditWorkflowDialogOpen(open); if (!open) {setEditingWorkflow(null); setStepsOrderChanged(false); }}}>
+      <Dialog open={isEditWorkflowDialogOpen} onOpenChange={(open) => { setIsEditWorkflowDialogOpen(open); if (!open) {setEditingWorkflow(null); setStepsOrderChanged(false); setCurrentEditableSteps([]); }}}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>{editingWorkflow ? workflowsDict.editDialogTitle.replace('{name}', editingWorkflow.name) : ''}</DialogTitle>
@@ -487,33 +482,38 @@ export default function ManageWorkflowsPage() {
                   )}
                 />
                 <div className="space-y-2 pt-2 flex-grow flex flex-col min-h-0">
-                    <h3 className="text-md font-semibold">{workflowsDict.stepsLabel} ({currentEditableSteps.length})</h3>
+                    <h3 className="text-md font-semibold">{workflowsDict.stepsLabel} ({currentEditableSteps?.length || 0})</h3>
                      <p className="text-xs text-muted-foreground pb-2">
                         {workflowsDict.editStepsInfo}
                      </p>
                     <ScrollArea className="flex-grow border rounded-md">
-                      <Accordion type="single" collapsible className="w-full">
-                        {currentEditableSteps.map((step, index) => (
-                          <AccordionItem value={`step-${index}`} key={`step-${index}-${step.status}-${step.progress}`}>
-                            <AccordionTrigger className="px-4 text-sm hover:bg-accent/50 flex justify-between items-center">
-                                <div className="flex-grow text-left">
-                                    {index + 1}. {step.stepName} 
-                                    <span className="text-xs text-muted-foreground ml-2">(Status: {step.status}, Progress: {step.progress}%)</span>
-                                </div>
+                      <Accordion 
+                        type="single" 
+                        collapsible 
+                        className="w-full"
+                        key={editingWorkflow?.id || 'accordion-placeholder'} // Add key here
+                      >
+                        {currentEditableSteps && currentEditableSteps.map((step, index) => (
+                          <AccordionItem value={`step-${index}`} key={`step-item-${index}-${step.status}`}> {/* Ensure key is stable if step objects are stable, or use index if steps can be fully replaced */}
+                            <AccordionTrigger className="px-4 text-sm hover:bg-accent/50 flex justify-between items-center w-full text-left">
+                              <span>
+                                {index + 1}. {step.stepName} 
+                                <span className="text-xs text-muted-foreground ml-2">(Status: {step.status}, Progress: {step.progress}%)</span>
+                              </span>
                             </AccordionTrigger>
                             <AccordionContent className="px-4 pt-2 pb-4 text-xs bg-muted/30">
                               <div className="flex justify-end space-x-1 mb-2">
                                 <Button type="button" variant="ghost" size="icon" onClick={() => moveStepUp(index)} disabled={index === 0 || isProcessing} title={workflowsDict.moveStepUp}>
                                   <ChevronUpCircle className="h-4 w-4" />
                                 </Button>
-                                <Button type="button" variant="ghost" size="icon" onClick={() => moveStepDown(index)} disabled={index === currentEditableSteps.length - 1 || isProcessing} title={workflowsDict.moveStepDown}>
+                                <Button type="button" variant="ghost" size="icon" onClick={() => moveStepDown(index)} disabled={!currentEditableSteps || index === currentEditableSteps.length - 1 || isProcessing} title={workflowsDict.moveStepDown}>
                                   <ChevronDownCircle className="h-4 w-4" />
                                 </Button>
                               </div>
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
                                   <p><strong>{workflowsDict.stepAssignedDivisionLabel}:</strong> {getTranslatedRoleForStep(step.assignedDivision) || workflowsDict.noneLabel}</p>
                                   <p><strong>{workflowsDict.stepNextActionLabel}:</strong> {step.nextActionDescription || workflowsDict.noneLabel}</p>
-                                  {step.transitions && Object.keys(step.transitions).length > 0 ? (
+                                  {step.transitions && typeof step.transitions === 'object' && Object.keys(step.transitions).length > 0 ? (
                                       Object.entries(step.transitions).map(([action, transition]) => (
                                           <details key={action} className="col-span-full mt-1 border-t pt-1">
                                               <summary className="cursor-pointer text-primary hover:underline text-xs">
@@ -541,7 +541,7 @@ export default function ManageWorkflowsPage() {
                     </ScrollArea>
                 </div>
                 <DialogFooter className="pt-4 sticky bottom-0 bg-background pb-0 mt-auto">
-                  <Button type="button" variant="outline" onClick={() => {setIsEditWorkflowDialogOpen(false); setEditingWorkflow(null); setStepsOrderChanged(false);}} disabled={isProcessing}>
+                  <Button type="button" variant="outline" onClick={() => {setIsEditWorkflowDialogOpen(false); setEditingWorkflow(null); setStepsOrderChanged(false); setCurrentEditableSteps([]);}} disabled={isProcessing}>
                     {workflowsDict.cancelButton}
                   </Button>
                   <Button 
