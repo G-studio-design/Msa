@@ -27,7 +27,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger, // Added AlertDialogTrigger
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
   Dialog,
@@ -52,13 +52,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Edit, Trash2, Loader2, GitFork, Settings2 } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Loader2, GitFork, Settings2, ChevronUpCircle, ChevronDownCircle } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllWorkflows, deleteWorkflow, addWorkflow, updateWorkflow, type Workflow, type WorkflowStep } from '@/services/workflow-service';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { ScrollArea } from '@/components/ui/scroll-area'; // Import ScrollArea
 
 const defaultDict = getDictionary('en');
 
@@ -67,7 +68,6 @@ const getAddWorkflowSchema = (dictValidation: ReturnType<typeof getDictionary>['
   description: z.string().optional(),
 });
 
-// Schema untuk edit workflow (hanya nama dan deskripsi untuk saat ini)
 const getEditWorkflowSchema = (dictValidation: ReturnType<typeof getDictionary>['manageWorkflowsPage']['validation']) => z.object({
   name: z.string().min(3, dictValidation.nameMin),
   description: z.string().optional(),
@@ -82,7 +82,7 @@ export default function ManageWorkflowsPage() {
   const [isClient, setIsClient] = React.useState(false);
   const [dict, setDict] = React.useState(defaultDict);
   const [workflowsDict, setWorkflowsDict] = React.useState(defaultDict.manageWorkflowsPage);
-  const [dashboardDict, setDashboardDict] = React.useState(defaultDict.dashboardPage);
+  const [dashboardDict, setDashboardDict] = React.useState(defaultDict.dashboardPage); // Untuk terjemahan peran
 
 
   const [workflows, setWorkflows] = React.useState<Workflow[]>([]);
@@ -91,6 +91,11 @@ export default function ManageWorkflowsPage() {
   const [isAddWorkflowDialogOpen, setIsAddWorkflowDialogOpen] = React.useState(false);
   const [isEditWorkflowDialogOpen, setIsEditWorkflowDialogOpen] = React.useState(false);
   const [editingWorkflow, setEditingWorkflow] = React.useState<Workflow | null>(null);
+  
+  // State untuk langkah-langkah yang sedang diedit di dialog
+  const [currentEditableSteps, setCurrentEditableSteps] = React.useState<WorkflowStep[]>([]);
+  const [stepsOrderChanged, setStepsOrderChanged] = React.useState(false);
+
 
   const addWorkflowSchema = getAddWorkflowSchema(workflowsDict.validation);
   type AddWorkflowFormValues = z.infer<typeof addWorkflowSchema>;
@@ -130,9 +135,9 @@ export default function ManageWorkflowsPage() {
   React.useEffect(() => {
     if (isClient && workflowsDict?.validation) {
       addWorkflowForm.trigger();
-      editWorkflowForm.trigger();
+      // editWorkflowForm.trigger(); // Dijalankan saat dialog edit dibuka
     }
-  }, [workflowsDict, addWorkflowForm, editWorkflowForm, isClient]);
+  }, [workflowsDict, addWorkflowForm, isClient]);
 
   const canManage = currentUser && ['Owner', 'General Admin'].includes(currentUser.role);
 
@@ -174,8 +179,8 @@ export default function ManageWorkflowsPage() {
     try {
       // addWorkflow dari service sekarang akan menggunakan default steps structure
       const newWorkflow = await addWorkflow(data.name, data.description || '');
-      setWorkflows(prev => [...prev, newWorkflow]); // Optimistic update
-      // fetchWorkflowsData(); // Atau re-fetch data untuk konsistensi
+      // setWorkflows(prev => [...prev, newWorkflow]); // Optimistic update
+      fetchWorkflowsData(); // Re-fetch data untuk konsistensi
       toast({ title: workflowsDict.toast.addSuccessTitle, description: workflowsDict.toast.addSuccessDesc.replace('{name}', newWorkflow.name) });
       setIsAddWorkflowDialogOpen(false);
     } catch (error: any) {
@@ -193,24 +198,31 @@ export default function ManageWorkflowsPage() {
       name: workflow.name,
       description: workflow.description,
     });
+    setCurrentEditableSteps([...workflow.steps]); // Salin langkah-langkah ke state lokal
+    setStepsOrderChanged(false); // Reset status perubahan urutan
     setIsEditWorkflowDialogOpen(true);
+    // Trigger validasi untuk form edit setelah di-reset
+    // setTimeout(() => editWorkflowForm.trigger(), 0);
   };
 
   const onSubmitEditWorkflow = async (data: EditWorkflowFormValues) => {
     if (!canManage || !editingWorkflow) return;
     setIsProcessing(true);
     try {
+      // Selalu gunakan currentEditableSteps sebagai sumber kebenaran untuk langkah-langkah
       const updatedData: Partial<Workflow> = {
         name: data.name,
         description: data.description || '',
+        steps: currentEditableSteps, // Selalu kirim langkah-langkah yang mungkin telah diurutkan ulang
       };
+
       const updated = await updateWorkflow(editingWorkflow.id, updatedData);
       if (updated) {
-        setWorkflows(prev => prev.map(wf => wf.id === updated.id ? updated : wf));
-        // fetchWorkflowsData(); // Atau re-fetch
+        fetchWorkflowsData(); // Re-fetch data untuk konsistensi
         toast({ title: workflowsDict.toast.editSuccessTitle, description: workflowsDict.toast.editSuccessDesc.replace('{name}', updated.name) });
         setIsEditWorkflowDialogOpen(false);
         setEditingWorkflow(null);
+        setStepsOrderChanged(false); // Reset status perubahan urutan
       } else {
         throw new Error(workflowsDict.toast.editError);
       }
@@ -228,8 +240,8 @@ export default function ManageWorkflowsPage() {
     setIsProcessing(true);
     try {
       await deleteWorkflow(workflowId);
-      setWorkflows(prev => prev.filter(wf => wf.id !== workflowId));
-      // fetchWorkflowsData(); // Atau re-fetch
+      // setWorkflows(prev => prev.filter(wf => wf.id !== workflowId));
+      fetchWorkflowsData(); // Re-fetch data untuk konsistensi
       toast({ title: workflowsDict.toast.deleteSuccessTitle, description: workflowsDict.toast.deleteSuccessDesc.replace('{name}', workflowName) });
     } catch (error: any) {
       console.error("Failed to delete workflow:", error);
@@ -241,9 +253,34 @@ export default function ManageWorkflowsPage() {
   
   const getTranslatedRoleForStep = (roleName: string): string => {
       if (!isClient || !dashboardDict?.status || !roleName) return roleName;
+      // Mencoba mencocokkan nama peran dengan kunci di dashboardDict.status
+      // Kunci di dashboardDict.status adalah lowercase tanpa spasi
       const key = roleName.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
-      return dashboardDict.status[key] || roleName;
+      return dashboardDict.status[key] || roleName; // Fallback ke nama asli jika tidak ditemukan
   };
+
+  const moveStepUp = (index: number) => {
+    if (index > 0) {
+      const newSteps = [...currentEditableSteps];
+      const temp = newSteps[index];
+      newSteps[index] = newSteps[index - 1];
+      newSteps[index - 1] = temp;
+      setCurrentEditableSteps(newSteps);
+      setStepsOrderChanged(true);
+    }
+  };
+
+  const moveStepDown = (index: number) => {
+    const newSteps = [...currentEditableSteps];
+    if (index < newSteps.length - 1) {
+      const temp = newSteps[index];
+      newSteps[index] = newSteps[index + 1];
+      newSteps[index + 1] = temp;
+      setCurrentEditableSteps(newSteps);
+      setStepsOrderChanged(true);
+    }
+  };
+
 
   if (!isClient || !currentUser || (!workflowsDict && language !== defaultDict.manageWorkflowsPage.title) ) {
     return (
@@ -412,7 +449,7 @@ export default function ManageWorkflowsPage() {
       </Card>
 
       {/* Edit Workflow Dialog */}
-      <Dialog open={isEditWorkflowDialogOpen} onOpenChange={(open) => { setIsEditWorkflowDialogOpen(open); if (!open) setEditingWorkflow(null);}}>
+      <Dialog open={isEditWorkflowDialogOpen} onOpenChange={(open) => { setIsEditWorkflowDialogOpen(open); if (!open) {setEditingWorkflow(null); setStepsOrderChanged(false); }}}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>{editingWorkflow ? workflowsDict.editDialogTitle.replace('{name}', editingWorkflow.name) : ''}</DialogTitle>
@@ -420,7 +457,7 @@ export default function ManageWorkflowsPage() {
           </DialogHeader>
           {editingWorkflow && (
             <Form {...editWorkflowForm}>
-              <form onSubmit={editWorkflowForm.handleSubmit(onSubmitEditWorkflow)} className="space-y-4 py-2 overflow-y-auto flex-grow">
+              <form onSubmit={editWorkflowForm.handleSubmit(onSubmitEditWorkflow)} className="space-y-4 py-2 flex flex-col flex-grow min-h-0">
                 <FormField
                   control={editWorkflowForm.control}
                   name="name"
@@ -447,48 +484,69 @@ export default function ManageWorkflowsPage() {
                     </FormItem>
                   )}
                 />
-                <div className="space-y-2 pt-2">
-                    <h3 className="text-md font-semibold">{workflowsDict.stepsLabel} ({editingWorkflow.steps.length})</h3>
+                <div className="space-y-2 pt-2 flex-grow flex flex-col min-h-0">
+                    <h3 className="text-md font-semibold">{workflowsDict.stepsLabel} ({currentEditableSteps.length})</h3>
                      <p className="text-xs text-muted-foreground pb-2">
                         {workflowsDict.editStepsInfo}
                      </p>
-                    <Accordion type="single" collapsible className="w-full max-h-64 overflow-y-auto border rounded-md">
-                      {editingWorkflow.steps.map((step, index) => (
-                        <AccordionItem value={`step-${index}`} key={`step-${index}`}>
-                          <AccordionTrigger className="px-4 text-sm hover:bg-accent/50">
-                            {index + 1}. {step.stepName} <span className="text-xs text-muted-foreground ml-2">(Status: {step.status}, Progress: {step.progress}%)</span>
-                          </AccordionTrigger>
-                          <AccordionContent className="px-4 pt-2 pb-4 text-xs bg-muted/30">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
-                                <p><strong>{workflowsDict.stepAssignedDivisionLabel}:</strong> {getTranslatedRoleForStep(step.assignedDivision) || workflowsDict.noneLabel}</p>
-                                <p><strong>{workflowsDict.stepNextActionLabel}:</strong> {step.nextActionDescription || workflowsDict.noneLabel}</p>
-                                {step.transitions && Object.entries(step.transitions).map(([action, transition]) => (
-                                    <details key={action} className="col-span-full mt-1 border-t pt-1">
-                                        <summary className="cursor-pointer text-primary hover:underline text-xs">
-                                            {workflowsDict.transitionActionLabel}: {action}
-                                        </summary>
-                                        <div className="pl-4 mt-1 space-y-0.5 text-muted-foreground">
-                                            <p>Target Status: {transition.targetStatus}</p>
-                                            <p>Target Division: {getTranslatedRoleForStep(transition.targetAssignedDivision) || workflowsDict.noneLabel}</p>
-                                            <p>Target Progress: {transition.targetProgress}%</p>
-                                            <p>Target Next Action: {transition.targetNextActionDescription || workflowsDict.noneLabel}</p>
-                                            {transition.notification && (
-                                                <p>Notification to {getTranslatedRoleForStep(transition.notification.division || "") || "N/A"}: "{transition.notification.message.substring(0,50)}..."</p>
-                                            )}
-                                        </div>
-                                    </details>
-                                ))}
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
+                    <ScrollArea className="flex-grow border rounded-md">
+                      <Accordion type="single" collapsible className="w-full">
+                        {currentEditableSteps.map((step, index) => (
+                          <AccordionItem value={`step-${index}`} key={`step-${index}-${step.status}-${step.progress}`}>
+                            <AccordionTrigger className="px-4 text-sm hover:bg-accent/50 flex justify-between items-center">
+                                <div className="flex-grow text-left">
+                                    {index + 1}. {step.stepName} 
+                                    <span className="text-xs text-muted-foreground ml-2">(Status: {step.status}, Progress: {step.progress}%)</span>
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="px-4 pt-2 pb-4 text-xs bg-muted/30">
+                              <div className="flex justify-end space-x-1 mb-2">
+                                <Button type="button" variant="ghost" size="icon" onClick={() => moveStepUp(index)} disabled={index === 0 || isProcessing} title={workflowsDict.moveStepUp}>
+                                  <ChevronUpCircle className="h-4 w-4" />
+                                </Button>
+                                <Button type="button" variant="ghost" size="icon" onClick={() => moveStepDown(index)} disabled={index === currentEditableSteps.length - 1 || isProcessing} title={workflowsDict.moveStepDown}>
+                                  <ChevronDownCircle className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                                  <p><strong>{workflowsDict.stepAssignedDivisionLabel}:</strong> {getTranslatedRoleForStep(step.assignedDivision) || workflowsDict.noneLabel}</p>
+                                  <p><strong>{workflowsDict.stepNextActionLabel}:</strong> {step.nextActionDescription || workflowsDict.noneLabel}</p>
+                                  {step.transitions && Object.keys(step.transitions).length > 0 ? (
+                                      Object.entries(step.transitions).map(([action, transition]) => (
+                                          <details key={action} className="col-span-full mt-1 border-t pt-1">
+                                              <summary className="cursor-pointer text-primary hover:underline text-xs">
+                                                  {workflowsDict.transitionActionLabel}: {action}
+                                              </summary>
+                                              <div className="pl-4 mt-1 space-y-0.5 text-muted-foreground">
+                                                  <p>Target Status: {transition.targetStatus}</p>
+                                                  <p>Target Division: {getTranslatedRoleForStep(transition.targetAssignedDivision) || workflowsDict.noneLabel}</p>
+                                                  <p>Target Progress: {transition.targetProgress}%</p>
+                                                  <p>Target Next Action: {transition.targetNextActionDescription || workflowsDict.noneLabel}</p>
+                                                  {transition.notification && (
+                                                      <p>Notification to {getTranslatedRoleForStep(transition.notification.division || "") || workflowsDict.notApplicable}: "{transition.notification.message.substring(0,50)}..."</p>
+                                                  )}
+                                              </div>
+                                          </details>
+                                      ))
+                                  ) : (
+                                      <p className="col-span-full text-muted-foreground italic">{workflowsDict.noTransitionsDefined}</p>
+                                  )}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
+                    </ScrollArea>
                 </div>
-                <DialogFooter className="pt-4 sticky bottom-0 bg-background pb-0">
-                  <Button type="button" variant="outline" onClick={() => setIsEditWorkflowDialogOpen(false)} disabled={isProcessing}>
+                <DialogFooter className="pt-4 sticky bottom-0 bg-background pb-0 mt-auto"> {/* Tambahkan mt-auto */}
+                  <Button type="button" variant="outline" onClick={() => {setIsEditWorkflowDialogOpen(false); setEditingWorkflow(null); setStepsOrderChanged(false);}} disabled={isProcessing}>
                     {workflowsDict.cancelButton}
                   </Button>
-                  <Button type="submit" className="accent-teal" disabled={isProcessing || !editWorkflowForm.formState.isDirty}>
+                  <Button 
+                    type="submit" 
+                    className="accent-teal" 
+                    disabled={isProcessing || (!editWorkflowForm.formState.isDirty && !stepsOrderChanged)}
+                  >
                     {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {workflowsDict.editDialogSubmitButton}
                   </Button>
