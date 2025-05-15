@@ -2,7 +2,8 @@
 import { NextResponse } from 'next/server';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { sanitizeForPath, PROJECT_FILES_BASE_DIR, ensureProjectFilesBaseDirExists } from '@/services/project-service'; // Import helpers
+import { PROJECT_FILES_BASE_DIR, ensureProjectFilesBaseDirExists } from '@/services/project-service'; 
+import { sanitizeForPath } from '@/lib/path-utils'; // Updated import
 
 export async function POST(request: Request) {
   try {
@@ -32,12 +33,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Failed to create project directory on server.' }, { status: 500 });
     }
 
-    // Sanitize the original filename before saving (optional, but good practice)
+    // Sanitize the original filename before saving for path compatibility
     const originalFilename = file.name;
-    // const safeFilename = sanitizeForPath(originalFilename) || `file_${Date.now()}`; // Ensure there's always a name
-    const safeFilename = originalFilename; // Using original name for now as per user story
+    const safeFilenameForPath = sanitizeForPath(originalFilename) || `file_${Date.now()}`; // Ensure there's always a name
 
-    const relativeFilePath = `${projectSpecificDirRelative}/${safeFilename}`;
+    const relativeFilePath = `${projectSpecificDirRelative}/${safeFilenameForPath}`;
     const absoluteFilePath = path.join(PROJECT_FILES_BASE_DIR, relativeFilePath);
 
     // Convert ArrayBuffer to Buffer and write file
@@ -48,8 +48,8 @@ export async function POST(request: Request) {
     console.log(`File uploaded successfully: ${absoluteFilePath}`);
     return NextResponse.json({ 
       message: 'File uploaded successfully.', 
-      relativePath: relativeFilePath, // Send back the relative path for storage in projects.json
-      originalName: originalFilename, // And the original name
+      relativePath: relativeFilePath, 
+      originalName: originalFilename, // Send back the original name for display/metadata
     }, { status: 200 });
 
   } catch (error) {
