@@ -27,7 +27,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
   Dialog,
@@ -52,12 +51,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Edit, Trash2, Loader2, GitFork } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, Loader2, GitFork, Settings2 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAllWorkflows, deleteWorkflow, addWorkflow, type Workflow, type WorkflowStep } from '@/services/workflow-service';
+import { getAllWorkflows, deleteWorkflow, addWorkflow, updateWorkflow, type Workflow, type WorkflowStep } from '@/services/workflow-service';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const defaultDict = getDictionary('en');
 
@@ -65,6 +65,13 @@ const getAddWorkflowSchema = (dictValidation: ReturnType<typeof getDictionary>['
   name: z.string().min(3, dictValidation.nameMin),
   description: z.string().optional(),
 });
+
+// Schema untuk edit workflow (hanya nama dan deskripsi untuk saat ini)
+const getEditWorkflowSchema = (dictValidation: ReturnType<typeof getDictionary>['manageWorkflowsPage']['validation']) => z.object({
+  name: z.string().min(3, dictValidation.nameMin),
+  description: z.string().optional(),
+});
+
 
 export default function ManageWorkflowsPage() {
   const { toast } = useToast();
@@ -74,17 +81,33 @@ export default function ManageWorkflowsPage() {
   const [isClient, setIsClient] = React.useState(false);
   const [dict, setDict] = React.useState(defaultDict);
   const [workflowsDict, setWorkflowsDict] = React.useState(defaultDict.manageWorkflowsPage);
+  const [dashboardDict, setDashboardDict] = React.useState(defaultDict.dashboardPage);
+
 
   const [workflows, setWorkflows] = React.useState<Workflow[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isProcessing, setIsProcessing] = React.useState(false);
   const [isAddWorkflowDialogOpen, setIsAddWorkflowDialogOpen] = React.useState(false);
+  const [isEditWorkflowDialogOpen, setIsEditWorkflowDialogOpen] = React.useState(false);
+  const [editingWorkflow, setEditingWorkflow] = React.useState<Workflow | null>(null);
 
   const addWorkflowSchema = getAddWorkflowSchema(workflowsDict.validation);
   type AddWorkflowFormValues = z.infer<typeof addWorkflowSchema>;
 
+  const editWorkflowSchema = getEditWorkflowSchema(workflowsDict.validation);
+  type EditWorkflowFormValues = z.infer<typeof editWorkflowSchema>;
+
   const addWorkflowForm = useForm<AddWorkflowFormValues>({
     resolver: zodResolver(addWorkflowSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+    },
+    context: { dict: workflowsDict.validation }
+  });
+
+  const editWorkflowForm = useForm<EditWorkflowFormValues>({
+    resolver: zodResolver(editWorkflowSchema),
     defaultValues: {
       name: '',
       description: '',
@@ -100,41 +123,42 @@ export default function ManageWorkflowsPage() {
     const newDict = getDictionary(language);
     setDict(newDict);
     setWorkflowsDict(newDict.manageWorkflowsPage);
+    setDashboardDict(newDict.dashboardPage);
   }, [language]);
   
   React.useEffect(() => {
     if (isClient && workflowsDict?.validation) {
-      addWorkflowForm.trigger(); // Re-trigger validation when dict changes
+      addWorkflowForm.trigger();
+      editWorkflowForm.trigger();
     }
-  }, [workflowsDict, addWorkflowForm, isClient]);
+  }, [workflowsDict, addWorkflowForm, editWorkflowForm, isClient]);
 
   const canManage = currentUser && ['Owner', 'General Admin'].includes(currentUser.role);
 
+  const fetchWorkflowsData = React.useCallback(async () => {
+    if (!canManage || !isClient) {
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const fetchedWorkflows = await getAllWorkflows();
+      setWorkflows(fetchedWorkflows);
+    } catch (error) {
+      console.error("Failed to fetch workflows:", error);
+      if (isClient && workflowsDict?.toast?.error) {
+           toast({ variant: 'destructive', title: workflowsDict.toast.error, description: workflowsDict.toast.fetchError });
+      } else {
+           toast({ variant: 'destructive', title: "Error", description: "Could not fetch workflows." });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isClient, canManage, toast, workflowsDict]);
+
   React.useEffect(() => {
-    async function fetchWorkflows() {
-      if (!canManage) {
-        setIsLoading(false);
-        return;
-      }
-      setIsLoading(true);
-      try {
-        const fetchedWorkflows = await getAllWorkflows();
-        setWorkflows(fetchedWorkflows);
-      } catch (error) {
-        console.error("Failed to fetch workflows:", error);
-        if (isClient && workflowsDict?.toast?.error) {
-             toast({ variant: 'destructive', title: workflowsDict.toast.error, description: workflowsDict.toast.fetchError });
-        } else {
-             toast({ variant: 'destructive', title: "Error", description: "Could not fetch workflows." });
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    if (isClient) {
-      fetchWorkflows();
-    }
-  }, [isClient, canManage, toast, language, workflowsDict]);
+    fetchWorkflowsData();
+  }, [fetchWorkflowsData]);
 
 
   const handleOpenAddWorkflowDialog = () => {
@@ -146,77 +170,11 @@ export default function ManageWorkflowsPage() {
     if (!canManage) return;
     setIsProcessing(true);
 
-    const defaultSteps: WorkflowStep[] = [
-      {
-        stepName: "Initial Input",
-        status: "Pending Initial Input",
-        assignedDivision: "Admin Proyek",
-        progress: 10,
-        nextActionDescription: "Provide initial project details",
-        transitions: {
-          "submitted": {
-            "targetStatus": "Pending Review",
-            "targetAssignedDivision": "Owner",
-            "targetNextActionDescription": "Review initial details",
-            "targetProgress": 20,
-            "notification": {
-              "division": "Owner",
-              "message": "Initial details for '{projectName}' submitted for review."
-            }
-          }
-        }
-      },
-      {
-        stepName: "Owner Review",
-        status: "Pending Review",
-        assignedDivision: "Owner",
-        progress: 20,
-        nextActionDescription: "Approve or request revision for initial details",
-        transitions: {
-          "approved": {
-            "targetStatus": "Completed",
-            "targetAssignedDivision": "",
-            "targetNextActionDescription": null,
-            "targetProgress": 100,
-            "notification": null
-          },
-           "rejected": { 
-            "targetStatus": "Canceled",
-            "targetAssignedDivision": "",
-            "targetNextActionDescription": null,
-            "targetProgress": 20, 
-             "notification": {
-              "division": "Admin Proyek",
-              "message": "Initial details for '{projectName}' were rejected by Owner."
-            }
-          }
-        }
-      },
-      {
-        stepName: "Project Completed",
-        status: "Completed",
-        assignedDivision: "",
-        progress: 100,
-        nextActionDescription: null,
-        transitions: null
-      },
-      {
-        stepName: "Project Canceled",
-        status: "Canceled",
-        assignedDivision: "",
-        progress: 0, // Or last known progress
-        nextActionDescription: null,
-        transitions: null
-      }
-    ];
-
     try {
-      const newWorkflow = await addWorkflow({
-        name: data.name,
-        description: data.description || '',
-        steps: defaultSteps,
-      });
-      setWorkflows(prev => [...prev, newWorkflow]);
+      // addWorkflow dari service sekarang akan menggunakan default steps structure
+      const newWorkflow = await addWorkflow(data.name, data.description || '');
+      setWorkflows(prev => [...prev, newWorkflow]); // Optimistic update
+      // fetchWorkflowsData(); // Atau re-fetch data untuk konsistensi
       toast({ title: workflowsDict.toast.addSuccessTitle, description: workflowsDict.toast.addSuccessDesc.replace('{name}', newWorkflow.name) });
       setIsAddWorkflowDialogOpen(false);
     } catch (error: any) {
@@ -229,12 +187,40 @@ export default function ManageWorkflowsPage() {
 
 
   const handleEditWorkflow = (workflow: Workflow) => {
-     if (workflowsDict?.toast?.comingSoon) {
-        toast({ title: workflowsDict.toast.comingSoon, description: workflowsDict.toast.editComingSoon.replace('{name}', workflow.name) });
-    } else {
-        toast({ title: "Coming Soon", description: `Editing workflow "${workflow.name}" will be available soon.` });
+    setEditingWorkflow(workflow);
+    editWorkflowForm.reset({
+      name: workflow.name,
+      description: workflow.description,
+    });
+    setIsEditWorkflowDialogOpen(true);
+  };
+
+  const onSubmitEditWorkflow = async (data: EditWorkflowFormValues) => {
+    if (!canManage || !editingWorkflow) return;
+    setIsProcessing(true);
+    try {
+      const updatedData: Partial<Workflow> = {
+        name: data.name,
+        description: data.description || '',
+      };
+      const updated = await updateWorkflow(editingWorkflow.id, updatedData);
+      if (updated) {
+        setWorkflows(prev => prev.map(wf => wf.id === updated.id ? updated : wf));
+        // fetchWorkflowsData(); // Atau re-fetch
+        toast({ title: workflowsDict.toast.editSuccessTitle, description: workflowsDict.toast.editSuccessDesc.replace('{name}', updated.name) });
+        setIsEditWorkflowDialogOpen(false);
+        setEditingWorkflow(null);
+      } else {
+        throw new Error(workflowsDict.toast.editError);
+      }
+    } catch (error: any) {
+      console.error("Failed to edit workflow:", error);
+      toast({ variant: 'destructive', title: workflowsDict.toast.error, description: error.message || workflowsDict.toast.editError });
+    } finally {
+      setIsProcessing(false);
     }
   };
+
 
   const handleDeleteWorkflow = async (workflowId: string, workflowName: string) => {
     if (!canManage) return;
@@ -242,6 +228,7 @@ export default function ManageWorkflowsPage() {
     try {
       await deleteWorkflow(workflowId);
       setWorkflows(prev => prev.filter(wf => wf.id !== workflowId));
+      // fetchWorkflowsData(); // Atau re-fetch
       toast({ title: workflowsDict.toast.deleteSuccessTitle, description: workflowsDict.toast.deleteSuccessDesc.replace('{name}', workflowName) });
     } catch (error: any) {
       console.error("Failed to delete workflow:", error);
@@ -249,6 +236,12 @@ export default function ManageWorkflowsPage() {
     } finally {
       setIsProcessing(false);
     }
+  };
+  
+  const getTranslatedRoleForStep = (roleName: string): string => {
+      if (!isClient || !dashboardDict?.status || !roleName) return roleName;
+      const key = roleName.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
+      return dashboardDict.status[key] || roleName;
   };
 
   if (!isClient || !currentUser || (!workflowsDict && language !== defaultDict.manageWorkflowsPage.title) ) {
@@ -372,20 +365,20 @@ export default function ManageWorkflowsPage() {
                     <TableRow key={workflow.id}>
                       <TableCell className="font-medium break-words">
                         <div className="flex items-center gap-2">
-                          <GitFork className="h-4 w-4 text-primary flex-shrink-0" />
+                          {workflow.id === 'default_standard_workflow' ? <Settings2 className="h-4 w-4 text-primary flex-shrink-0" /> : <GitFork className="h-4 w-4 text-primary flex-shrink-0" />}
                           <span className="truncate">{workflow.name}</span>
                         </div>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground hidden sm:table-cell truncate max-w-xs">{workflow.description}</TableCell>
                       <TableCell className="hidden md:table-cell">{workflow.steps.length}</TableCell>
                       <TableCell className="text-right space-x-0 sm:space-x-1 whitespace-nowrap">
-                        <Button variant="ghost" size="icon" onClick={() => handleEditWorkflow(workflow)} title={workflowsDict.editAction} disabled={isLoading}>
+                        <Button variant="ghost" size="icon" onClick={() => handleEditWorkflow(workflow)} title={workflowsDict.editAction} disabled={isLoading || isProcessing}>
                           <Edit className="h-4 w-4 text-blue-500" />
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" disabled={isProcessing || isLoading} title={workflowsDict.deleteAction}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
+                             <Button variant="ghost" size="icon" disabled={isProcessing || isLoading || workflow.id === 'default_standard_workflow'} title={workflow.id === 'default_standard_workflow' ? workflowsDict.cannotDeleteDefaultTooltip : workflowsDict.deleteAction}>
+                              <Trash2 className={`h-4 w-4 ${workflow.id === 'default_standard_workflow' ? 'text-muted-foreground' : 'text-destructive'}`} />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -416,6 +409,96 @@ export default function ManageWorkflowsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Workflow Dialog */}
+      <Dialog open={isEditWorkflowDialogOpen} onOpenChange={(open) => { setIsEditWorkflowDialogOpen(open); if (!open) setEditingWorkflow(null);}}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>{editingWorkflow ? workflowsDict.editDialogTitle.replace('{name}', editingWorkflow.name) : ''}</DialogTitle>
+            <DialogDescription>{workflowsDict.editDialogDesc}</DialogDescription>
+          </DialogHeader>
+          {editingWorkflow && (
+            <Form {...editWorkflowForm}>
+              <form onSubmit={editWorkflowForm.handleSubmit(onSubmitEditWorkflow)} className="space-y-4 py-2 overflow-y-auto flex-grow">
+                <FormField
+                  control={editWorkflowForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{workflowsDict.formLabels.name}</FormLabel>
+                      <FormControl>
+                        <Input placeholder={workflowsDict.formPlaceholders.name} {...field} disabled={isProcessing} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editWorkflowForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{workflowsDict.formLabels.description}</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder={workflowsDict.formPlaceholders.description} {...field} disabled={isProcessing} rows={3}/>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="space-y-2 pt-2">
+                    <h3 className="text-md font-semibold">{workflowsDict.stepsLabel} ({editingWorkflow.steps.length})</h3>
+                     <p className="text-xs text-muted-foreground pb-2">
+                        {workflowsDict.editStepsInfo}
+                     </p>
+                    <Accordion type="single" collapsible className="w-full max-h-64 overflow-y-auto border rounded-md">
+                      {editingWorkflow.steps.map((step, index) => (
+                        <AccordionItem value={`step-${index}`} key={`step-${index}`}>
+                          <AccordionTrigger className="px-4 text-sm hover:bg-accent/50">
+                            {index + 1}. {step.stepName} <span className="text-xs text-muted-foreground ml-2">(Status: {step.status}, Progress: {step.progress}%)</span>
+                          </AccordionTrigger>
+                          <AccordionContent className="px-4 pt-2 pb-4 text-xs bg-muted/30">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                                <p><strong>{workflowsDict.stepAssignedDivisionLabel}:</strong> {getTranslatedRoleForStep(step.assignedDivision) || workflowsDict.noneLabel}</p>
+                                <p><strong>{workflowsDict.stepNextActionLabel}:</strong> {step.nextActionDescription || workflowsDict.noneLabel}</p>
+                                {step.transitions && Object.entries(step.transitions).map(([action, transition]) => (
+                                    <details key={action} className="col-span-full mt-1 border-t pt-1">
+                                        <summary className="cursor-pointer text-primary hover:underline text-xs">
+                                            {workflowsDict.transitionActionLabel}: {action}
+                                        </summary>
+                                        <div className="pl-4 mt-1 space-y-0.5 text-muted-foreground">
+                                            <p>Target Status: {transition.targetStatus}</p>
+                                            <p>Target Division: {getTranslatedRoleForStep(transition.targetAssignedDivision) || workflowsDict.noneLabel}</p>
+                                            <p>Target Progress: {transition.targetProgress}%</p>
+                                            <p>Target Next Action: {transition.targetNextActionDescription || workflowsDict.noneLabel}</p>
+                                            {transition.notification && (
+                                                <p>Notification to {getTranslatedRoleForStep(transition.notification.division || "") || "N/A"}: "{transition.notification.message.substring(0,50)}..."</p>
+                                            )}
+                                        </div>
+                                    </details>
+                                ))}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                </div>
+                <DialogFooter className="pt-4 sticky bottom-0 bg-background pb-0">
+                  <Button type="button" variant="outline" onClick={() => setIsEditWorkflowDialogOpen(false)} disabled={isProcessing}>
+                    {workflowsDict.cancelButton}
+                  </Button>
+                  <Button type="submit" className="accent-teal" disabled={isProcessing || !editWorkflowForm.formState.isDirty}>
+                    {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {workflowsDict.editDialogSubmitButton}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
+
