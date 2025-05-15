@@ -10,19 +10,21 @@ export interface User {
     id: string;
     username: string;
     role: string;
-    // SECURITY RISK: Storing plain text password instead of hash
-    password?: string; // Store plain text password - NOT RECOMMENDED
+    password?: string;
     email?: string;
-    whatsappNumber?: string; // Added WhatsApp number
-    profilePictureUrl?: string; // Added profile picture URL
+    whatsappNumber?: string;
+    profilePictureUrl?: string;
     displayName?: string;
-    createdAt?: string; // Use ISO string for dates
+    createdAt?: string;
+    googleRefreshToken?: string; // Added for Google Calendar
+    googleAccessToken?: string; // Added for Google Calendar
+    googleAccessTokenExpiresAt?: number; // Timestamp (ms) when access token expires
 }
 
 // Define the structure for updating a user's password
 export interface UpdatePasswordData {
     userId: string;
-    currentPassword?: string; // Less critical without hashing, but might still be used for verification
+    currentPassword?: string;
     newPassword: string;
 }
 
@@ -30,17 +32,17 @@ export interface UpdatePasswordData {
 export interface UpdateProfileData {
     userId: string;
     username: string;
-    role: string; // Keep role here for admin updates, but settings page won't change it
-    email?: string; // Make email optional for update data
-    whatsappNumber?: string; // Make WhatsApp optional
-    profilePictureUrl?: string | null; // Allow setting to null/undefined explicitly
-    displayName?: string; // Allow explicit displayName update
+    role: string;
+    email?: string;
+    whatsappNumber?: string;
+    profilePictureUrl?: string | null;
+    displayName?: string;
 }
 
 // Define the structure for adding a user directly (by admin)
 export interface AddUserData {
     username: string;
-    password: string; // Plain password received from form
+    password: string;
     role: string;
 }
 
@@ -49,15 +51,10 @@ const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
 
 // --- Helper Functions ---
 
-/**
- * Reads the user data from the JSON file.
- * @returns A promise that resolves to an array of User objects.
- */
 async function readUsers(): Promise<User[]> {
     try {
-        await fs.access(DB_PATH); // Check if file exists
+        await fs.access(DB_PATH);
     } catch (error) {
-        // If the file doesn't exist, create it with an empty array
         console.log("User database file not found, creating a new one.");
         await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
         return [];
@@ -76,52 +73,44 @@ async function readUsers(): Promise<User[]> {
             await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
             return [];
         }
-        // Add default empty strings for new fields if they don't exist
-        // Remove 'Admin Developer' role if found
         return (parsedData as any[])
-            .filter(user => user.role !== 'Admin Developer') // Filter out Admin Developer role
+            .filter(user => user.role !== 'Admin Developer')
             .map(user => ({
                 ...user,
                 email: user.email || '',
                 whatsappNumber: user.whatsappNumber || '',
-                profilePictureUrl: user.profilePictureUrl || undefined, // Keep undefined if not present
-                displayName: user.displayName || user.username, // Set displayName default to username
-                role: user.role, // Keep the existing role (after filtering)
-                googleUid: undefined, // Ensure googleUid is removed
+                profilePictureUrl: user.profilePictureUrl || undefined,
+                displayName: user.displayName || user.username,
+                googleRefreshToken: user.googleRefreshToken || undefined,
+                googleAccessToken: user.googleAccessToken || undefined,
+                googleAccessTokenExpiresAt: user.googleAccessTokenExpiresAt || undefined,
             })) as User[];
     } catch (error: any) {
         console.error("Error reading or parsing user database:", error);
-        if (error instanceof SyntaxError) {
+         if (error instanceof SyntaxError) {
             console.warn(`SyntaxError in user database: ${error.message}. Attempting to reset.`);
         }
-        try {
-            console.log("Attempting to reset user database due to read/parse error.");
-            await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
-            return [];
-        } catch (writeError) {
-            console.error("Failed to reset user database:", writeError);
-            throw new Error('Failed to read or reset user data.');
-        }
+         try {
+             console.log("Attempting to reset user database due to read/parse error.");
+             await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
+             return [];
+         } catch (writeError) {
+             console.error("Failed to reset user database:", writeError);
+             throw new Error('Failed to read or reset user data.');
+         }
     }
 }
 
-/**
- * Writes the user data to the JSON file.
- * @param users An array of User objects to write.
- * @returns A promise that resolves when the write operation is complete.
- */
 async function writeUsers(users: User[]): Promise<void> {
     try {
-        // Ensure no passwordHash fields are written and googleUid is removed
-        // Ensure no Admin Developer roles are written back (redundant if readUsers filters, but safe)
         const usersToWrite = users
             .filter(u => u.role !== 'Admin Developer')
             .map(u => {
-                const { passwordHash, googleUid, ...userWithoutSensitive } = u as any;
+                const { passwordHash, googleUid, ...userWithoutSensitive } = u as any; // Ensure googleUid is removed if it was ever there
                 return userWithoutSensitive;
             });
         await fs.writeFile(DB_PATH, JSON.stringify(usersToWrite, null, 2), 'utf8');
-        console.log("User data written to DB_PATH successfully."); // Log success
+        console.log("User data written to DB_PATH successfully.");
     } catch (error) {
         console.error("Error writing user database:", error);
         throw new Error('Failed to save user data.');
@@ -130,37 +119,26 @@ async function writeUsers(users: User[]): Promise<void> {
 
 // --- Main Service Functions ---
 
-/**
- * Finds a user by their username. Case-insensitive search.
- * @param username The username to search for.
- * @returns A promise that resolves to the User object or null if not found.
- */
 export async function findUserByUsername(username: string): Promise<User | null> {
     const users = await readUsers();
     const lowerCaseUsername = username.toLowerCase();
-    // Ensure we don't return 'Pending' users or 'Admin Developer'
     return users.find(u => u.username.toLowerCase() === lowerCaseUsername && u.role !== 'Admin Developer') || null;
 }
 
-/**
- * Finds a user by their ID.
- * @param userId The ID of the user to search for.
- * @returns A promise that resolves to the User object or null if not found.
- */
+export async function findUserByEmail(email: string): Promise<User | null> {
+    if (!email) return null;
+    const users = await readUsers();
+    const lowerCaseEmail = email.toLowerCase();
+    return users.find(u => u.email?.toLowerCase() === lowerCaseEmail && u.role !== 'Admin Developer') || null;
+}
+
+
 export async function findUserById(userId: string): Promise<User | null> {
     const users = await readUsers();
-    // Ensure we don't return 'Pending' users or 'Admin Developer'
     return users.find(u => u.id === userId && u.role !== 'Admin Developer') || null;
 }
 
-/**
- * Verifies a user's password by comparing plain text.
- * SECURITY RISK: This is insecure. Use password hashing in production.
- * @param username The username.
- * @param password The plain text password to verify.
- * @returns A promise that resolves to the User object (without password) if credentials are valid, otherwise null.
- */
-export async function verifyUserCredentials(username: string, password: string): Promise<Omit<User, 'password'> | null> {
+export async function verifyUserCredentials(username: string, passwordInput: string): Promise<Omit<User, 'password'> | null> {
     console.log(`Verifying credentials for username: "${username}"`);
     const user = await findUserByUsername(username);
 
@@ -175,26 +153,16 @@ export async function verifyUserCredentials(username: string, password: string):
          return null;
     }
 
-    if (password === user.password) {
+    if (passwordInput === user.password) {
         console.log(`Password match successful for user "${username}".`);
-        // Omit password before returning user object
         const { password: _p, ...userWithoutPassword } = user;
         return userWithoutPassword;
     } else {
-        console.log(`Password mismatch for user "${username}". Stored: "${user.password}", Provided: "${password}"`);
+        console.log(`Password mismatch for user "${username}".`);
         return null;
     }
 }
 
-/**
- * Adds a new user directly (typically by an admin). Stores password in plain text.
- * SECURITY RISK: Storing plain text passwords is highly insecure.
- * Cannot add user with 'Admin Developer' role.
- *
- * @param userData Data for the new user (username, password, role).
- * @returns A promise that resolves to the newly created User object (without password).
- * @throws An error if the username already exists, role is 'Admin Developer', or another issue occurs.
- */
 export async function addUser(userData: AddUserData): Promise<Omit<User, 'password'>> {
     console.log('Attempting to add user:', userData.username, userData.role);
     const users = await readUsers();
@@ -215,27 +183,21 @@ export async function addUser(userData: AddUserData): Promise<Omit<User, 'passwo
         username: userData.username,
         password: userData.password,
         role: userData.role,
-        email: `${userData.username}@placeholder.example.com`,
-        whatsappNumber: '', // Initialize new fields
+        email: `${userData.username.toLowerCase()}@example.com`, // Default email
+        whatsappNumber: '',
         profilePictureUrl: undefined,
-        displayName: userData.username, // Default display name to username
+        displayName: userData.username,
         createdAt: new Date().toISOString(),
     };
 
     users.push(newUser);
     await writeUsers(users);
 
-    console.log(`User "${newUser.username}" added successfully with role "${newUser.role}" (Password stored in plain text - INSECURE).`);
+    console.log(`User "${newUser.username}" added successfully with role "${newUser.role}".`);
     const { password: _p, ...newUserWithoutPassword } = newUser;
     return newUserWithoutPassword;
 }
 
-/**
- * Deletes a user account. Cannot delete 'Admin Developer'.
- * @param userId The ID of the user to delete.
- * @returns A promise that resolves when the operation is complete.
- * @throws An error if the user is not found or is an Admin Developer.
- */
 export async function deleteUser(userId: string): Promise<void> {
     console.log(`Attempting to delete user with ID: ${userId}`);
     let users = await readUsers();
@@ -248,32 +210,16 @@ export async function deleteUser(userId: string): Promise<void> {
 
     if (userToDelete.role === 'Admin Developer') {
         console.error(`Cannot delete user with role "Admin Developer". ID: ${userId}`);
-        throw new Error('CANNOT_DELETE_ADMIN_DEVELOPER'); // Specific error
+        throw new Error('CANNOT_DELETE_ADMIN_DEVELOPER');
     }
 
-    const initialLength = users.length;
     users = users.filter(u => u.id !== userId);
-
-    if (users.length === initialLength) {
-        // This case should technically not be reached due to the find check, but kept as safeguard
-        console.error(`User with ID "${userId}" not found during filter (unexpected).`);
-        throw new Error('USER_NOT_FOUND');
-    }
-
     await writeUsers(users);
     console.log(`User ${userId} deleted successfully.`);
 }
 
-/**
- * Updates a user's profile information (username, role, email, whatsapp, picture). Password is not updated here.
- * Cannot update role to 'Admin Developer'.
- * @param updateData Data containing userId and fields to update.
- * @returns A promise that resolves when the operation is complete.
- * @throws An error if the user is not found, the new username is taken, or attempting to set role to 'Admin Developer'.
- */
 export async function updateUserProfile(updateData: UpdateProfileData): Promise<void> {
     console.log(`Attempting to update profile for user ID: ${updateData.userId}`);
-    console.log("Update data received:", updateData); // Log received update data
     let users = await readUsers();
     const userIndex = users.findIndex(u => u.id === updateData.userId);
 
@@ -287,8 +233,6 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
          throw new Error('INVALID_ROLE');
      }
 
-
-    // Check if the new username is already taken by another user (if username is being changed)
     if (updateData.username && updateData.username.toLowerCase() !== users[userIndex].username.toLowerCase()) {
         const newUsernameLower = updateData.username.toLowerCase();
         const usernameConflict = users.some(u => u.id !== updateData.userId && u.username.toLowerCase() === newUsernameLower);
@@ -298,50 +242,33 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
         }
     }
 
-    // Update user data selectively
     const updatedUser = { ...users[userIndex] };
     if (updateData.username) updatedUser.username = updateData.username;
-    if (updateData.role) updatedUser.role = updateData.role; // Allow role update (e.g., from admin page)
-    if (updateData.email !== undefined) updatedUser.email = updateData.email; // Allow setting email to empty string
+    if (updateData.role) updatedUser.role = updateData.role;
+    if (updateData.email !== undefined) updatedUser.email = updateData.email;
     if (updateData.whatsappNumber !== undefined) updatedUser.whatsappNumber = updateData.whatsappNumber;
     if (updateData.profilePictureUrl !== undefined) {
-        // Handle null or undefined to potentially remove the picture
         updatedUser.profilePictureUrl = updateData.profilePictureUrl || undefined;
-         console.log(`Updating profilePictureUrl for ${updateData.userId} to: ${updatedUser.profilePictureUrl}`);
     }
 
-    // Update displayName if username changes and displayName wasn't explicitly updated
     if (updateData.username && updateData.username !== users[userIndex].username && !updateData.displayName) {
         updatedUser.displayName = updateData.username;
-    } else if (updateData.displayName) { // Allow explicit displayName update if provided
+    } else if (updateData.displayName) {
         updatedUser.displayName = updateData.displayName;
     }
 
-
     users[userIndex] = updatedUser;
-     console.log(`User object for ${updateData.userId} prepared for writing:`, users[userIndex]);
-
     await writeUsers(users);
     console.log(`User profile for ${updateData.userId} updated successfully in database file.`);
 
-    // Notify admins of profile change
     const adminRolesToNotify = ['Owner', 'General Admin'];
-    const currentUser = users[userIndex]; // Get the updated user object
+    const currentUser = users[userIndex];
     adminRolesToNotify.forEach(async (role) => {
         await notifyUsersByRole(role, `User profile for "${currentUser.username}" (Role: ${currentUser.role}) has been updated.`);
     });
 }
 
-
-/**
- * Updates a user's password (stores plain text).
- * SECURITY RISK: Storing plain text passwords is highly insecure.
- * @param updateData Data containing userId, optional currentPassword, and newPassword.
- * @returns A promise that resolves when the password is updated.
- * @throws An error if the user is not found or current password mismatch (if provided).
- */
 export async function updatePassword(updateData: UpdatePasswordData): Promise<void> {
-    console.warn("Updating password using plain text storage - INSECURE.");
     console.log(`Attempting to update password for user ID: ${updateData.userId}`);
     let users = await readUsers();
     const userIndex = users.findIndex(u => u.id === updateData.userId);
@@ -352,9 +279,6 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
     }
 
     const user = users[userIndex];
-
-    // Only perform current password check if it's provided (e.g., from user settings page)
-    // Skip check if currentPassword is not provided (e.g., admin reset)
     if (updateData.currentPassword) {
          if (!user.password) {
              console.error(`Password update failed for ${updateData.userId}: User has no password set.`);
@@ -370,11 +294,9 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
     }
 
     users[userIndex] = { ...user, password: updateData.newPassword };
-
     await writeUsers(users);
-    console.log(`Password for user ${updateData.userId} updated successfully (Plain text - INSECURE).`);
+    console.log(`Password for user ${updateData.userId} updated successfully.`);
 
-     // Notify admins of password change
      const adminRolesToNotify = ['Owner', 'General Admin'];
      const currentUser = users[userIndex];
      adminRolesToNotify.forEach(async (role) => {
@@ -382,15 +304,32 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
      });
 }
 
-/**
- * Gets all users from the database, including passwords. Excludes 'Admin Developer' role.
- * SECURITY RISK: Returning passwords should only be done for privileged roles (Owner, General Admin).
- * The consuming component (ManageUsersPage) should handle role-based access control.
- * @returns A promise that resolves to an array of all active User objects (excluding Admin Developer, including passwords).
- */
 export async function getAllUsers(): Promise<User[]> {
-    const users = await readUsers(); // readUsers already filters out Admin Developers
-    // Return the full user object, including password
-    // The frontend will handle displaying/hiding based on the logged-in user's role
+    const users = await readUsers();
     return users;
+}
+
+export async function updateUserGoogleTokens(
+    userId: string,
+    tokens: { refreshToken?: string; accessToken: string; accessTokenExpiresAt: number }
+): Promise<void> {
+    console.log(`Updating Google tokens for user ID: ${userId}`);
+    let users = await readUsers();
+    const userIndex = users.findIndex(u => u.id === userId);
+
+    if (userIndex === -1) {
+        console.error(`User with ID "${userId}" not found for Google token update.`);
+        throw new Error('USER_NOT_FOUND');
+    }
+
+    users[userIndex] = {
+        ...users[userIndex],
+        googleAccessToken: tokens.accessToken,
+        googleAccessTokenExpiresAt: tokens.accessTokenExpiresAt,
+        // Only update refresh token if it's provided (it's often only sent once)
+        ...(tokens.refreshToken && { googleRefreshToken: tokens.refreshToken }),
+    };
+
+    await writeUsers(users);
+    console.log(`Google tokens for user ${userId} updated successfully.`);
 }
