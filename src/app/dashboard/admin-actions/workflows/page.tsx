@@ -59,7 +59,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllWorkflows, deleteWorkflow, addWorkflow, updateWorkflow, type Workflow, type WorkflowStep } from '@/services/workflow-service';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { ScrollArea } from '@/components/ui/scroll-area'; // Import ScrollArea
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const defaultDict = getDictionary('en');
 
@@ -71,6 +71,7 @@ const getAddWorkflowSchema = (dictValidation: ReturnType<typeof getDictionary>['
 const getEditWorkflowSchema = (dictValidation: ReturnType<typeof getDictionary>['manageWorkflowsPage']['validation']) => z.object({
   name: z.string().min(3, dictValidation.nameMin),
   description: z.string().optional(),
+  // stepsModified: z.boolean().optional(), // Tidak diperlukan lagi, kita bandingkan array secara langsung
 });
 
 
@@ -82,7 +83,7 @@ export default function ManageWorkflowsPage() {
   const [isClient, setIsClient] = React.useState(false);
   const [dict, setDict] = React.useState(defaultDict);
   const [workflowsDict, setWorkflowsDict] = React.useState(defaultDict.manageWorkflowsPage);
-  const [dashboardDict, setDashboardDict] = React.useState(defaultDict.dashboardPage); // Untuk terjemahan peran
+  const [dashboardDict, setDashboardDict] = React.useState(defaultDict.dashboardPage);
 
 
   const [workflows, setWorkflows] = React.useState<Workflow[]>([]);
@@ -92,7 +93,6 @@ export default function ManageWorkflowsPage() {
   const [isEditWorkflowDialogOpen, setIsEditWorkflowDialogOpen] = React.useState(false);
   const [editingWorkflow, setEditingWorkflow] = React.useState<Workflow | null>(null);
   
-  // State untuk langkah-langkah yang sedang diedit di dialog
   const [currentEditableSteps, setCurrentEditableSteps] = React.useState<WorkflowStep[]>([]);
   const [stepsOrderChanged, setStepsOrderChanged] = React.useState(false);
 
@@ -135,7 +135,6 @@ export default function ManageWorkflowsPage() {
   React.useEffect(() => {
     if (isClient && workflowsDict?.validation) {
       addWorkflowForm.trigger();
-      // editWorkflowForm.trigger(); // Dijalankan saat dialog edit dibuka
     }
   }, [workflowsDict, addWorkflowForm, isClient]);
 
@@ -179,8 +178,7 @@ export default function ManageWorkflowsPage() {
     try {
       // addWorkflow dari service sekarang akan menggunakan default steps structure
       const newWorkflow = await addWorkflow(data.name, data.description || '');
-      // setWorkflows(prev => [...prev, newWorkflow]); // Optimistic update
-      fetchWorkflowsData(); // Re-fetch data untuk konsistensi
+      fetchWorkflowsData(); 
       toast({ title: workflowsDict.toast.addSuccessTitle, description: workflowsDict.toast.addSuccessDesc.replace('{name}', newWorkflow.name) });
       setIsAddWorkflowDialogOpen(false);
     } catch (error: any) {
@@ -198,18 +196,24 @@ export default function ManageWorkflowsPage() {
       name: workflow.name,
       description: workflow.description,
     });
-    setCurrentEditableSteps([...workflow.steps]); // Salin langkah-langkah ke state lokal
-    setStepsOrderChanged(false); // Reset status perubahan urutan
+    // Penting: Buat salinan array steps untuk menghindari mutasi state asli secara langsung
+    setCurrentEditableSteps([...workflow.steps]); 
+    setStepsOrderChanged(false);
     setIsEditWorkflowDialogOpen(true);
-    // Trigger validasi untuk form edit setelah di-reset
-    // setTimeout(() => editWorkflowForm.trigger(), 0);
+    // Trigger validasi bisa dilakukan di useEffect yang mengawasi editingWorkflow
   };
+  
+  React.useEffect(() => {
+    if (editingWorkflow && isClient && workflowsDict?.validation) {
+      editWorkflowForm.trigger();
+    }
+  }, [editingWorkflow, editWorkflowForm, isClient, workflowsDict]);
+
 
   const onSubmitEditWorkflow = async (data: EditWorkflowFormValues) => {
     if (!canManage || !editingWorkflow) return;
     setIsProcessing(true);
     try {
-      // Selalu gunakan currentEditableSteps sebagai sumber kebenaran untuk langkah-langkah
       const updatedData: Partial<Workflow> = {
         name: data.name,
         description: data.description || '',
@@ -218,11 +222,11 @@ export default function ManageWorkflowsPage() {
 
       const updated = await updateWorkflow(editingWorkflow.id, updatedData);
       if (updated) {
-        fetchWorkflowsData(); // Re-fetch data untuk konsistensi
+        fetchWorkflowsData(); 
         toast({ title: workflowsDict.toast.editSuccessTitle, description: workflowsDict.toast.editSuccessDesc.replace('{name}', updated.name) });
         setIsEditWorkflowDialogOpen(false);
         setEditingWorkflow(null);
-        setStepsOrderChanged(false); // Reset status perubahan urutan
+        setStepsOrderChanged(false);
       } else {
         throw new Error(workflowsDict.toast.editError);
       }
@@ -240,8 +244,7 @@ export default function ManageWorkflowsPage() {
     setIsProcessing(true);
     try {
       await deleteWorkflow(workflowId);
-      // setWorkflows(prev => prev.filter(wf => wf.id !== workflowId));
-      fetchWorkflowsData(); // Re-fetch data untuk konsistensi
+      fetchWorkflowsData(); 
       toast({ title: workflowsDict.toast.deleteSuccessTitle, description: workflowsDict.toast.deleteSuccessDesc.replace('{name}', workflowName) });
     } catch (error: any) {
       console.error("Failed to delete workflow:", error);
@@ -253,10 +256,8 @@ export default function ManageWorkflowsPage() {
   
   const getTranslatedRoleForStep = (roleName: string): string => {
       if (!isClient || !dashboardDict?.status || !roleName) return roleName;
-      // Mencoba mencocokkan nama peran dengan kunci di dashboardDict.status
-      // Kunci di dashboardDict.status adalah lowercase tanpa spasi
       const key = roleName.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
-      return dashboardDict.status[key] || roleName; // Fallback ke nama asli jika tidak ditemukan
+      return dashboardDict.status[key] || roleName;
   };
 
   const moveStepUp = (index: number) => {
@@ -280,6 +281,8 @@ export default function ManageWorkflowsPage() {
       setStepsOrderChanged(true);
     }
   };
+
+  const isEditFormDirty = editWorkflowForm.formState.isDirty || stepsOrderChanged;
 
 
   if (!isClient || !currentUser || (!workflowsDict && language !== defaultDict.manageWorkflowsPage.title) ) {
@@ -448,7 +451,6 @@ export default function ManageWorkflowsPage() {
         </CardContent>
       </Card>
 
-      {/* Edit Workflow Dialog */}
       <Dialog open={isEditWorkflowDialogOpen} onOpenChange={(open) => { setIsEditWorkflowDialogOpen(open); if (!open) {setEditingWorkflow(null); setStepsOrderChanged(false); }}}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
           <DialogHeader>
@@ -538,14 +540,14 @@ export default function ManageWorkflowsPage() {
                       </Accordion>
                     </ScrollArea>
                 </div>
-                <DialogFooter className="pt-4 sticky bottom-0 bg-background pb-0 mt-auto"> {/* Tambahkan mt-auto */}
+                <DialogFooter className="pt-4 sticky bottom-0 bg-background pb-0 mt-auto">
                   <Button type="button" variant="outline" onClick={() => {setIsEditWorkflowDialogOpen(false); setEditingWorkflow(null); setStepsOrderChanged(false);}} disabled={isProcessing}>
                     {workflowsDict.cancelButton}
                   </Button>
                   <Button 
                     type="submit" 
                     className="accent-teal" 
-                    disabled={isProcessing || (!editWorkflowForm.formState.isDirty && !stepsOrderChanged)}
+                    disabled={isProcessing || !isEditFormDirty}
                   >
                     {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {workflowsDict.editDialogSubmitButton}
@@ -560,4 +562,3 @@ export default function ManageWorkflowsPage() {
     </div>
   );
 }
-
