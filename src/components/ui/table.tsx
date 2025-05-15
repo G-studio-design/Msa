@@ -16,7 +16,7 @@ const Table = React.forwardRef<
         "w-full caption-bottom text-sm",
         className
       )}
-      {...props}
+      {...props} // Children will be passed here by React if provided
     />
   </div>
 ))
@@ -25,16 +25,16 @@ Table.displayName = "Table"
 const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
->(({ className, children, ...props }, ref) => ( // Added children
+>(({ className, children, ...props }, ref) => (
   <thead
     ref={ref}
     className={cn(
-      " [&_tr]:border-b font-semibold", 
+      " [&_tr]:border-b font-semibold",
       className
     )}
     {...props}
   >
-    {children} {/* Render children */}
+    {children}
   </thead>
 ))
 TableHeader.displayName = "TableHeader"
@@ -42,7 +42,7 @@ TableHeader.displayName = "TableHeader"
 const TableBody = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
->(({ className, children, ...props }, ref) => ( // Added children
+>(({ className, children, ...props }, ref) => (
   <tbody
     ref={ref}
     className={cn(
@@ -51,7 +51,7 @@ const TableBody = React.forwardRef<
     )}
     {...props}
   >
-    {children} {/* Render children */}
+    {children}
   </tbody>
 ))
 TableBody.displayName = "TableBody"
@@ -59,7 +59,7 @@ TableBody.displayName = "TableBody"
 const TableFooter = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
->(({ className, children, ...props }, ref) => ( // Added children
+>(({ className, children, ...props }, ref) => (
   <tfoot
     ref={ref}
     className={cn(
@@ -68,7 +68,7 @@ const TableFooter = React.forwardRef<
     )}
     {...props}
   >
-    {children} {/* Render children */}
+    {children}
   </tfoot>
 ))
 TableFooter.displayName = "TableFooter"
@@ -76,62 +76,56 @@ TableFooter.displayName = "TableFooter"
 const TableRow = React.forwardRef<
   HTMLTableRowElement,
   React.HTMLAttributes<HTMLTableRowElement>
->(({ className, children, ...props }, ref) => ( // Ensured children is destructured
+>(({ className, children, ...restProps }, ref) => ( // Destructure children, use ...restProps
   <tr
     ref={ref}
     className={cn(
-      "data-[state=selected]:bg-accent", 
+      "data-[state=selected]:bg-accent",
       "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
       className
     )}
-    {...props}
-  >
-    {children} {/* Render children */}
-  </tr>
+    {...restProps} // Spread only the rest of the props
+  >{children}</tr>
 ))
 TableRow.displayName = "TableRow"
 
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
   React.ThHTMLAttributes<HTMLTableCellElement>
->(({ className, children, ...props }, ref) => ( // Added children
+>(({ className, children, ...restProps }, ref) => ( // Destructure children, use ...restProps
   <th
     ref={ref}
     className={cn(
       "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
       className
     )}
-    {...props}
-  >
-    {children} {/* Render children */}
-  </th>
+    {...restProps} // Spread only the rest of the props
+  >{children}</th>
 ))
 TableHead.displayName = "TableHead"
 
 const TableCell = React.forwardRef<
   HTMLTableCellElement,
   React.TdHTMLAttributes<HTMLTableCellElement>
->(({ className, children, ...props }, ref) => ( // Added children
+>(({ className, children, ...restProps }, ref) => ( // Destructure children, use ...restProps
   <td
     ref={ref}
     className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
-    {...props}
-  >
-    {children} {/* Render children */}
-  </td>
+    {...restProps} // Spread only the rest of the props
+  >{children}</td>
 ))
 TableCell.displayName = "TableCell"
 
 const TableCaption = React.forwardRef<
   HTMLTableCaptionElement,
   React.HTMLAttributes<HTMLTableCaptionElement>
->(({ className, children, ...props }, ref) => ( // Added children
+>(({ className, children, ...props }, ref) => (
   <caption
     ref={ref}
     className={cn("mt-4 text-sm text-muted-foreground", className)}
     {...props}
   >
-    {children} {/* Render children */}
+    {children}
   </caption>
 ))
 TableCaption.displayName = "TableCaption"
