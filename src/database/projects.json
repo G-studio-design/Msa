@@ -439,10 +439,10 @@
   {
     "id": "project_1747111912588_ym2av",
     "title": "proyek klinik kesambi",
-    "status": "Pending Offer",
-    "progress": 10,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Upload Offer Document",
+    "status": "Pending Approval",
+    "progress": 20,
+    "assignedDivision": "Owner",
+    "nextAction": "Setujui Dokumen Penawaran",
     "workflowHistory": [
       {
         "division": "sudina",
@@ -453,9 +453,34 @@
         "division": "System",
         "action": "Assigned to Admin Proyek for Upload Offer Document",
         "timestamp": "2025-05-13T04:51:52.588Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "Mengunggah Dokumen Penawaran",
+        "timestamp": "2025-05-14T17:45:43.690Z",
+        "note": "dokumen penawaran"
       }
     ],
-    "files": [],
+    "files": [
+      {
+        "name": "1. I KADEK DIKI MAHAYANA (CANDI PERABANAN) Revisi.docx",
+        "uploadedBy": "komangmerta",
+        "timestamp": "2025-05-14T17:45:43.690Z",
+        "path": "project_1747111912588_ym2av-proyek_klinik_kesambi/1. I KADEK DIKI MAHAYANA (CANDI PERABANAN) Revisi.docx"
+      },
+      {
+        "name": "alkohol 1.doc",
+        "uploadedBy": "komangmerta",
+        "timestamp": "2025-05-14T17:45:43.690Z",
+        "path": "project_1747111912588_ym2av-proyek_klinik_kesambi/alkohol 1.doc"
+      },
+      {
+        "name": "Basic presentationyyyyyyy.pptx",
+        "uploadedBy": "komangmerta",
+        "timestamp": "2025-05-14T17:45:43.690Z",
+        "path": "project_1747111912588_ym2av-proyek_klinik_kesambi/Basic presentationyyyyyyy.pptx"
+      }
+    ],
     "createdAt": "2025-05-13T04:51:52.588Z",
     "createdBy": "sudina"
   }

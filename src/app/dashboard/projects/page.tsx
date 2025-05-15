@@ -53,7 +53,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAllProjects, updateProject, reviseProject, getProjectById as fetchProjectById, type Project, type WorkflowHistoryEntry, type FileEntry } from '@/services/project-service'; // Renamed getProjectById to avoid conflict
+import { getAllProjects, updateProject, reviseProject, getProjectById as fetchProjectById, type Project, type WorkflowHistoryEntry, type FileEntry } from '@/services/project-service';
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -74,7 +74,7 @@ const projectStatuses = [
     'Completed', 'Canceled'
 ];
 
-const MAX_FILES_UPLOAD = 10; // Konstanta untuk batas maksimal file
+const MAX_FILES_UPLOAD = 10;
 
 export default function ProjectsPage() {
   const { toast } = useToast();
@@ -92,7 +92,7 @@ export default function ProjectsPage() {
   const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
 
   const [description, setDescription] = React.useState('');
-  const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);
+  const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]); // State for File objects from input
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [scheduleDate, setScheduleDate] = React.useState('');
   const [scheduleTime, setScheduleTime] = React.useState('');
@@ -260,16 +260,53 @@ export default function ProjectsPage() {
      }
 
     setIsSubmitting(true);
+    
+    const uploadedFileEntries: Omit<FileEntry, 'timestamp'>[] = [];
+    if (uploadedFiles.length > 0) {
+        for (const file of uploadedFiles) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('projectId', selectedProject.id);
+            formData.append('projectTitle', selectedProject.title); // Send title for folder creation
+
+            try {
+                const response = await fetch('/api/upload-file', {
+                    method: 'POST',
+                    body: formData,
+                });
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'File upload failed with status ' + response.status }));
+                    throw new Error(errorData.message || `File upload failed for ${file.name}`);
+                }
+                const result = await response.json();
+                uploadedFileEntries.push({
+                    name: result.originalName,
+                    uploadedBy: currentUser.username,
+                    path: result.relativePath, // Server returns relative path
+                });
+            } catch (error: any) {
+                console.error("Error uploading file:", file.name, error);
+                toast({ variant: 'destructive', title: projectsDict.toast.uploadError, description: error.message || `Failed to upload ${file.name}.` });
+                setIsSubmitting(false);
+                return;
+            }
+        }
+    }
+
+
     let nextStatus = selectedProject.status;
     let nextDivision = selectedProject.assignedDivision;
     let newProgress = selectedProject.progress;
     let nextActionDescription = selectedProject.nextAction;
     const historyEntry: WorkflowHistoryEntry = { division: currentUser.role, action: `Submitted Progress`, timestamp: new Date().toISOString(), note: description || undefined };
-    const newFiles: Omit<FileEntry, 'path'>[] = uploadedFiles.map(file => ({
-        name: file.name,
-        uploadedBy: currentUser.username,
-        timestamp: new Date().toISOString(),
+    
+    // Construct new file entries with timestamps
+    const now = new Date().toISOString();
+    const newFilesWithTimestamp: FileEntry[] = uploadedFileEntries.map(fileMeta => ({
+        ...fileMeta,
+        timestamp: now,
     }));
+
 
     switch (currentUser.role) {
         case 'Admin Proyek':
@@ -296,12 +333,12 @@ export default function ProjectsPage() {
         progress: newProgress,
         nextAction: nextActionDescription,
         workflowHistory: [...selectedProject.workflowHistory, historyEntry],
-        files: [...selectedProject.files, ...(newFiles as any)], 
+        files: [...selectedProject.files, ...newFilesWithTimestamp], 
       };
 
      try {
         await updateProject(updatedProjectData);
-        const newlyUpdatedProject = await fetchProjectById(updatedProjectData.id); // Use renamed import
+        const newlyUpdatedProject = await fetchProjectById(updatedProjectData.id); 
 
         if (newlyUpdatedProject) {
             setAllProjects(prev => prev.map(p => p.id === newlyUpdatedProject.id ? newlyUpdatedProject : p));
@@ -457,25 +494,33 @@ export default function ProjectsPage() {
    const showSchedulingSection = React.useMemo(() => selectedProject && selectedProject.status === 'Pending Scheduling' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role), [selectedProject, currentUser]);
    const showCalendarButton = React.useMemo(() => selectedProject && selectedProject.status === 'Scheduled' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role), [selectedProject, currentUser]);
    const showSidangOutcomeSection = React.useMemo(() => selectedProject && selectedProject.status === 'Scheduled' && currentUser?.role === 'Owner', [selectedProject, currentUser]);
-    const canDownloadFiles = React.useMemo(() => currentUser && ['Owner', 'General Admin'].includes(currentUser.role), [currentUser]);
+    const canDownloadFiles = React.useMemo(() => currentUser && ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur'].includes(currentUser.role), [currentUser]);
 
-   const handleDownloadFile = (file: FileEntry) => {
+   const handleDownloadFile = async (file: FileEntry) => {
         if (!isClient) return;
-        console.log(`Simulating download for file: ${file.name} from relative path: ${file.path}`);
         setIsDownloading(true);
-        
-        const fileContent = `Simulated content for ${file.name}.\nOriginal relative path in project folder: ${file.path}.\nUploaded by ${file.uploadedBy} on ${formatDateOnly(file.timestamp)}.`;
-        const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = file.name;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        toast({ title: projectsDict.toast.downloadStarted, description: projectsDict.toast.simulatedDownload.replace('{filename}', a.download) });
-        setIsDownloading(false);
+        try {
+            const response = await fetch(`/api/download-file?filePath=${encodeURIComponent(file.path)}`);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: 'Download failed' }));
+                throw new Error(errorData.message || `Failed to download ${file.name}`);
+            }
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = file.name; // Use original file name for download
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+            toast({ title: projectsDict.toast.downloadStarted, description: `${file.name} ${projectsDict.toast.downloadSuccessDesc}` });
+        } catch (error: any) {
+            console.error("Error downloading file:", error);
+            toast({ variant: 'destructive', title: projectsDict.toast.error, description: error.message || projectsDict.toast.downloadErrorDesc });
+        } finally {
+            setIsDownloading(false);
+        }
     };
 
    const handleReviseSubmit = async () => {
@@ -752,4 +797,3 @@ export default function ProjectsPage() {
     </div>
   );
 }
-

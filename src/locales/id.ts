@@ -214,7 +214,8 @@ const id = {
       errorFindingSchedule: 'Kesalahan Menemukan Jadwal',
       couldNotFindSchedule: 'Tidak dapat menemukan informasi penjadwalan dalam riwayat.',
       downloadStarted: 'Unduhan Dimulai',
-      simulatedDownload: 'Simulasi unduhan {filename}',
+      downloadSuccessDesc: 'Unduhan untuk {filename} telah dimulai.',
+      downloadErrorDesc: 'Gagal mengunduh file.',
       revisionPermissionDenied: 'Anda tidak memiliki izin untuk meminta revisi untuk proyek ini pada tahap saat ini.',
       revisionSuccess: 'Permintaan Revisi Berhasil',
       revisionSuccessDesc: 'Proyek dikirim kembali ke {division} untuk direvisi.',
@@ -230,6 +231,7 @@ const id = {
       failedToSaveSchedule: 'Gagal menyimpan jadwal.',
       failedToRevise: 'Gagal merevisi proyek.',
       maxFilesExceeded: 'Tidak dapat mengunggah lebih dari {max} file sekaligus.',
+      uploadError: 'Kesalahan Unggah',
     }
   },
    // Add Project Page
@@ -474,4 +476,3 @@ const id = {
 };
 
 export default id;
-

@@ -214,7 +214,8 @@ const en = {
       errorFindingSchedule: 'Error Finding Schedule',
       couldNotFindSchedule: 'Could not find scheduling information in history.',
       downloadStarted: 'Download Started',
-      simulatedDownload: 'Simulated download of {filename}',
+      downloadSuccessDesc: 'Download for {filename} has started.',
+      downloadErrorDesc: 'Failed to download file.',
       revisionPermissionDenied: 'You do not have permission to request a revision for this project at its current stage.',
       revisionSuccess: 'Revision Requested',
       revisionSuccessDesc: 'Project sent back to {division} for revision.',
@@ -230,6 +231,7 @@ const en = {
       failedToSaveSchedule: 'Failed to save schedule.',
       failedToRevise: 'Failed to revise project.',
       maxFilesExceeded: 'Cannot upload more than {max} files at once.',
+      uploadError: 'Upload Error',
     }
   },
   // Add Project Page
@@ -474,4 +476,3 @@ const en = {
 };
 
 export default en;
-
