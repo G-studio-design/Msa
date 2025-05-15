@@ -35,73 +35,8 @@ export interface Workflow {
 
 const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
 
-// Struktur Alur Kerja Default SEMENTARA disederhanakan untuk pengujian
-const SIMPLIFIED_DEFAULT_WORKFLOW_STRUCTURE: WorkflowStep[] = [
-  {
-    stepName: "Initial Input",
-    status: "Pending Initial Input",
-    assignedDivision: "Admin Proyek",
-    progress: 10,
-    nextActionDescription: "Provide initial project details",
-    transitions: {
-      "submitted": {
-        targetStatus: "Pending Review",
-        targetAssignedDivision: "Owner",
-        targetNextActionDescription: "Review initial details",
-        targetProgress: 50,
-        notification: {
-          division: "Owner",
-          message: "Initial details for '{projectName}' submitted for review."
-        }
-      }
-    }
-  },
-  {
-    stepName: "Owner Review",
-    status: "Pending Review",
-    assignedDivision: "Owner", // Corrected
-    progress: 50,
-    nextActionDescription: "Approve or request revision",
-    transitions: {
-      "approved": {
-        targetStatus: "Completed",
-        targetAssignedDivision: "",
-        targetNextActionDescription: null,
-        targetProgress: 100,
-        notification: null
-      },
-      "rejected": {
-        targetStatus: "Canceled",
-        targetAssignedDivision: "",
-        targetNextActionDescription: null,
-        targetProgress: 50,
-        notification: {
-          division: "Admin Proyek",
-          message: "Project '{projectName}' was rejected by Owner."
-        }
-      }
-    }
-  },
-  {
-    stepName: "Project Completed",
-    status: "Completed",
-    assignedDivision: "",
-    progress: 100,
-    nextActionDescription: null,
-    transitions: null
-  },
-  {
-    stepName: "Project Canceled",
-    status: "Canceled",
-    assignedDivision: "",
-    progress: 0,
-    nextActionDescription: null,
-    transitions: null
-  }
-];
-
-// Struktur Alur Kerja Default yang LENGKAP
-const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
+// Struktur Alur Kerja Default yang LENGKAP (sebelumnya FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE)
+const DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
     {
         stepName: "Offer Submission",
         status: "Pending Offer",
@@ -158,7 +93,7 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
         nextActionDescription: "Unggah Faktur DP",
         transitions: {
           "submitted": {
-            targetStatus: "Pending Approval",
+            targetStatus: "Pending Approval", // Kembali ke Owner untuk persetujuan DP
             targetAssignedDivision: "Owner",
             targetNextActionDescription: "Setujui Faktur DP",
             targetProgress: 30,
@@ -171,9 +106,9 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
       },
       {
         stepName: "DP Invoice Approval",
-        status: "Pending Approval",
+        status: "Pending Approval", // Status ini digunakan lagi, tapi progres beda
         assignedDivision: "Owner",
-        progress: 30,
+        progress: 30, // Progres ini menandakan ini persetujuan DP
         nextActionDescription: "Tinjau dan setujui/tolak Faktur DP",
         transitions: {
           "approved": {
@@ -186,11 +121,11 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
               message: "Faktur DP untuk proyek '{projectName}' telah disetujui. Mohon unggah berkas administrasi."
             }
           },
-          "rejected": {
+          "rejected": { // Jika DP ditolak, mungkin kembali ke General Admin untuk revisi
             targetStatus: "Pending DP Invoice",
             targetAssignedDivision: "General Admin",
             targetNextActionDescription: "Revisi dan Unggah Ulang Faktur DP",
-            targetProgress: 25,
+            targetProgress: 25, // Kembali ke progres DP invoice
             notification: {
               division: "General Admin",
               message: "Faktur DP untuk proyek '{projectName}' ditolak oleh Owner. Mohon direvisi."
@@ -246,9 +181,9 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           "submitted": {
             targetStatus: "Pending MEP Files",
             targetAssignedDivision: "MEP",
-            targetNextActionDescription: "Unggah Berkas MEP", // Corrected
-            targetProgress: 80, // Corrected
-            notification: { // Corrected
+            targetNextActionDescription: "Unggah Berkas MEP",
+            targetProgress: 80,
+            notification: {
               division: "MEP",
               message: "Berkas struktur untuk '{projectName}' lengkap. Mohon unggah berkas MEP."
             }
@@ -265,9 +200,9 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           "submitted": {
             targetStatus: "Pending Scheduling",
             targetAssignedDivision: "General Admin",
-            targetNextActionDescription: "Jadwalkan Sidang", // Corrected
-            targetProgress: 90, // Corrected
-            notification: { // Corrected
+            targetNextActionDescription: "Jadwalkan Sidang",
+            targetProgress: 90,
+            notification: {
               division: "General Admin",
               message: "Semua berkas teknis untuk '{projectName}' lengkap. Mohon jadwalkan sidang."
             }
@@ -281,14 +216,14 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
         progress: 90,
         nextActionDescription: "Jadwalkan Sidang",
         transitions: {
-          "scheduled": {
-            "targetStatus": "Scheduled",
-            "targetAssignedDivision": "Owner",
-            "targetNextActionDescription": "Nyatakan Hasil Sidang",
-            "targetProgress": 95,
-            "notification": {
-              "division": "Owner",
-              "message": "Sidang untuk proyek '{projectName}' telah dijadwalkan. Mohon nyatakan hasilnya setelah selesai."
+          "scheduled": { // Ini tindakan khusus, bukan "submitted" standar
+            targetStatus: "Scheduled",
+            targetAssignedDivision: "Owner",
+            targetNextActionDescription: "Nyatakan Hasil Sidang",
+            targetProgress: 95,
+            notification: {
+              division: "Owner",
+              message: "Sidang untuk proyek '{projectName}' telah dijadwalkan. Mohon nyatakan hasilnya setelah selesai."
             }
           }
         }
@@ -302,16 +237,16 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
         transitions: {
           "completed": {
             targetStatus: "Completed",
-            targetAssignedDivision: "", // Corrected
-            targetNextActionDescription: null, // Corrected
-            targetProgress: 100, // Corrected
-            notification: null // Corrected
+            targetAssignedDivision: "",
+            targetNextActionDescription: null,
+            targetProgress: 100,
+            notification: null
           },
-          "revise_after_sidang": {
-            targetStatus: "Pending Final Check",
+          "revise_after_sidang": { // Contoh jika perlu revisi setelah sidang
+            targetStatus: "Pending Final Check", // Atau status revisi lain
             targetAssignedDivision: "Admin Proyek",
             targetNextActionDescription: "Lakukan Revisi Pasca Sidang",
-            targetProgress: 85,
+            targetProgress: 85, // Kembali ke progres sebelum sidang
             notification: {
               division: "Admin Proyek",
               message: "Proyek '{projectName}' memerlukan revisi setelah sidang."
@@ -319,28 +254,28 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           },
           "canceled_after_sidang": {
             targetStatus: "Canceled",
-            targetAssignedDivision: "", // Corrected
-            targetNextActionDescription: null, // Corrected
-            targetProgress: 95, // Corrected
-            notification: null // Corrected
+            targetAssignedDivision: "",
+            targetNextActionDescription: null,
+            targetProgress: 95,
+            notification: null
           }
         }
       },
       {
         stepName: "Project Completed",
         status: "Completed",
-        assignedDivision: "", // Corrected
+        assignedDivision: "",
         progress: 100,
-        nextActionDescription: null, // Corrected
-        transitions: null // Corrected
+        nextActionDescription: null,
+        transitions: null // Terminal
       },
       {
         stepName: "Project Canceled",
         status: "Canceled",
-        assignedDivision: "", // Corrected
-        progress: 0,
-        nextActionDescription: null, // Corrected
-        transitions: null // Corrected
+        assignedDivision: "",
+        progress: 0, // Atau progres terakhir saat dibatalkan
+        nextActionDescription: null,
+        transitions: null // Terminal
       }
 ];
 
@@ -364,15 +299,15 @@ async function _readWorkflowsFromFile(): Promise<Workflow[]> {
         return workflows;
     } catch (parseError) {
         console.error("Error parsing workflows.json, returning empty array. File might be corrupted.", parseError);
-        return []; // Return empty if parsing fails to allow potential re-initialization
+        return []; 
     }
   } catch (error: any) {
     if (error.code === 'ENOENT') {
       console.log("Workflows.json not found. Returning empty array for initialization.");
-      return []; // File doesn't exist, return empty for initialization
+      return []; 
     }
     console.error("Error reading workflows.json. Returning empty array.", error);
-    return []; // Other read errors, return empty
+    return []; 
   }
 }
 
@@ -393,33 +328,46 @@ export async function getAllWorkflows(): Promise<Workflow[]> {
   const defaultWorkflowExists = workflows.some(wf => wf.id === DEFAULT_WORKFLOW_ID);
 
   if (!defaultWorkflowExists) {
-    console.log(`Default workflow (ID: ${DEFAULT_WORKFLOW_ID}) not found. Adding it.`);
+    console.log(`Default workflow (ID: ${DEFAULT_WORKFLOW_ID}) not found. Adding it with FULL structure.`);
     const defaultWorkflow: Workflow = {
       id: DEFAULT_WORKFLOW_ID,
       name: DEFAULT_WORKFLOW_NAME,
       description: DEFAULT_WORKFLOW_DESCRIPTION,
-      // Saat membuat default, kita gunakan struktur yang lebih sederhana agar tidak terlalu berat
-      // Struktur lengkap akan digunakan saat user membuat workflow baru melalui UI dan memilih template.
-      steps: SIMPLIFIED_DEFAULT_WORKFLOW_STRUCTURE,
+      steps: DEFAULT_STANDARD_WORKFLOW_STRUCTURE, // Menggunakan struktur lengkap
     };
-    workflows.unshift(defaultWorkflow); // Add to the beginning
+    workflows.unshift(defaultWorkflow); 
     saveNeeded = true;
+  } else {
+    // Optional: Ensure the default workflow in the file uses the latest FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE
+    // This can be useful if you update the default structure in code later.
+    const defaultWorkflowIndex = workflows.findIndex(wf => wf.id === DEFAULT_WORKFLOW_ID);
+    if (defaultWorkflowIndex !== -1) {
+        // For simplicity, we can just overwrite its steps. More complex merging could be done.
+        // This ensures if a user manually edits the default workflow's steps in JSON, 
+        // it will be 'corrected' to the code's definition of default on next load if you want that behavior.
+        // Or, you might decide to let manual JSON edits persist. For now, let's assume code definition is master for the default.
+        if (JSON.stringify(workflows[defaultWorkflowIndex].steps) !== JSON.stringify(DEFAULT_STANDARD_WORKFLOW_STRUCTURE)) {
+            console.log(`Updating steps for existing default workflow (ID: ${DEFAULT_WORKFLOW_ID}) to match current code definition.`);
+            workflows[defaultWorkflowIndex].steps = DEFAULT_STANDARD_WORKFLOW_STRUCTURE;
+            saveNeeded = true;
+        }
+    }
   }
+
 
   if (saveNeeded) {
     try {
       await writeWorkflows(workflows);
-      console.log("Default workflow ensured and workflows.json persisted.");
+      console.log("Workflows.json persisted after ensuring/updating default workflow.");
     } catch (writeError) {
-      console.error("Failed to persist workflows.json after ensuring default workflow:", writeError);
-      // Continue with workflows in memory even if write fails
+      console.error("Failed to persist workflows.json after ensuring/updating default workflow:", writeError);
     }
   }
   return workflows;
 }
 
 export async function getWorkflowById(id: string): Promise<Workflow | null> {
-  const workflows = await getAllWorkflows();
+  const workflows = await getAllWorkflows(); // Ensures default is loaded if needed
   return workflows.find(wf => wf.id === id) || null;
 }
 
@@ -434,14 +382,14 @@ export async function getFirstStep(workflowId: string): Promise<WorkflowStep | n
 export async function getCurrentStepDetails(
   workflowId: string,
   currentStatus: string,
-  currentProgress: number // Added currentProgress to uniquely identify a step
+  currentProgress: number 
 ): Promise<WorkflowStep | null> {
   const workflow = await getWorkflowById(workflowId);
   if (!workflow) {
     console.warn(`Workflow with ID ${workflowId} not found when trying to get current step details.`);
     return null;
   }
-  // Find step by status AND progress to differentiate steps that might share a status name
+  
   const step = workflow.steps.find(s => s.status === currentStatus && s.progress === currentProgress);
   if (!step) {
       console.warn(`Step with status "${currentStatus}" and progress ${currentProgress} not found in workflow "${workflowId}".`);
@@ -454,7 +402,7 @@ export async function getTransitionInfo(
   workflowId: string,
   currentStatus: string,
   currentProgress: number,
-  actionTaken: string = 'submitted'
+  actionTaken: string = 'submitted' 
 ): Promise<WorkflowStepTransition | null> {
   const workflow = await getWorkflowById(workflowId);
   if (!workflow) {
@@ -471,12 +419,12 @@ export async function getTransitionInfo(
 
   if (!currentStep.transitions) {
     console.log(`Step "${currentStep.stepName}" in workflow "${workflowId}" is a terminal step.`);
-    return null;
+    return null; 
   }
 
   const transition = currentStep.transitions[actionTaken];
   if (!transition) {
-    console.warn(`No transition found for action "${actionTaken}" from step "${currentStep.stepName}" (status: ${currentStatus}) in workflow "${workflowId}". Trying 'default'.`);
+    console.warn(`No transition found for action "${actionTaken}" from step "${currentStep.stepName}" (status: ${currentStatus}) in workflow "${workflowId}". Trying 'default' or 'submitted'.`);
     const fallbackAction = currentStep.transitions['default'] ? 'default' : (currentStep.transitions['submitted'] ? 'submitted' : null);
     if (fallbackAction) {
       return currentStep.transitions[fallbackAction];
@@ -488,15 +436,14 @@ export async function getTransitionInfo(
 }
 
 export async function addWorkflow(name: string, description: string): Promise<Workflow> {
-  let workflows = await _readWorkflowsFromFile();
+  let workflows = await _readWorkflowsFromFile(); // Read without ensuring default first
 
   const newWorkflowId = `wf_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const newWorkflow: Workflow = {
     id: newWorkflowId,
     name,
     description: description || '',
-    // Saat user membuat workflow baru dari UI, kita gunakan struktur LENGKAP sebagai template
-    steps: FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE,
+    steps: DEFAULT_STANDARD_WORKFLOW_STRUCTURE, // New workflows get the full default structure as a template
   };
 
   workflows.push(newWorkflow);
@@ -513,10 +460,24 @@ export async function updateWorkflow(workflowId: string, updatedWorkflowData: Pa
     return null;
   }
 
+  // Prevent changing ID of the default workflow to something else
+  if (workflowId === DEFAULT_WORKFLOW_ID && updatedWorkflowData.id && updatedWorkflowData.id !== DEFAULT_WORKFLOW_ID) {
+      console.warn(`Attempted to change ID of the default workflow. This is not allowed. ID will remain ${DEFAULT_WORKFLOW_ID}.`);
+      delete updatedWorkflowData.id; 
+  }
+  
+  // Prevent changing name of the default workflow if you want it fixed
+  // For now, let's allow name and description changes for default as well.
+  // if (workflowId === DEFAULT_WORKFLOW_ID && updatedWorkflowData.name && updatedWorkflowData.name !== DEFAULT_WORKFLOW_NAME) {
+  //   console.warn(`Attempted to change name of the default workflow. Name will remain "${DEFAULT_WORKFLOW_NAME}".`);
+  //   updatedWorkflowData.name = DEFAULT_WORKFLOW_NAME;
+  // }
+
+
   workflows[index] = {
     ...workflows[index],
     name: updatedWorkflowData.name || workflows[index].name,
-    description: updatedWorkflowData.description || workflows[index].description,
+    description: typeof updatedWorkflowData.description === 'string' ? updatedWorkflowData.description : workflows[index].description, // Ensure description is handled if undefined
     steps: updatedWorkflowData.steps || workflows[index].steps
   };
 
@@ -528,19 +489,24 @@ export async function updateWorkflow(workflowId: string, updatedWorkflowData: Pa
 export async function deleteWorkflow(workflowId: string): Promise<void> {
   let workflows = await _readWorkflowsFromFile();
   const initialLength = workflows.length;
+
+  if (workflowId === DEFAULT_WORKFLOW_ID && workflows.length <= 1) {
+      console.warn(`Cannot delete the default workflow (ID: ${DEFAULT_WORKFLOW_ID}) as it's the only workflow remaining.`);
+      throw new Error('CANNOT_DELETE_LAST_WORKFLOW');
+  }
+
   workflows = workflows.filter(wf => wf.id !== workflowId);
 
   if (workflows.length === initialLength) {
-      if (workflowId !== DEFAULT_WORKFLOW_ID) { // Jangan error jika mencoba hapus default yg mungkin blm ada di file
-          console.warn(`Workflow with ID ${workflowId} not found for deletion, or attempting to delete non-existent default.`);
-          // throw new Error('WORKFLOW_NOT_FOUND'); // Maybe not throw an error here
-      } else {
-          console.log(`Attempted to delete default workflow (ID: ${DEFAULT_WORKFLOW_ID}). It will be re-added if no other workflows exist or on next load.`);
-      }
+      console.warn(`Workflow with ID ${workflowId} not found for deletion.`);
+      // Don't throw an error if it's not found, just log it.
+  } else {
+    console.log(`Workflow with ID ${workflowId} deleted. Remaining workflows: ${workflows.length}`);
   }
-
+  
+  // Ensure default workflow is re-added if no workflows are left (should not happen if deletion of last default is prevented)
+  // or if the deleted one was the default and others exist. This logic is now part of getAllWorkflows.
   await writeWorkflows(workflows);
-  console.log(`Workflow with ID ${workflowId} processed for deletion. Remaining workflows: ${workflows.length}`);
 }
 
 export async function getAllUniqueStatuses(): Promise<string[]> {

@@ -1,1 +1,70 @@
-[]
+[
+  {
+    "id": "default_standard_workflow",
+    "name": "Standard Project Workflow",
+    "description": "The standard, multi-stage project workflow.",
+    "steps": [
+      {
+        "stepName": "Initial Input",
+        "status": "Pending Initial Input",
+        "assignedDivision": "Admin Proyek",
+        "progress": 10,
+        "nextActionDescription": "Provide initial project details",
+        "transitions": {
+          "submitted": {
+            "targetStatus": "Pending Review",
+            "targetAssignedDivision": "Owner",
+            "targetNextActionDescription": "Review initial details",
+            "targetProgress": 50,
+            "notification": {
+              "division": "Owner",
+              "message": "Initial details for '{projectName}' submitted for review."
+            }
+          }
+        }
+      },
+      {
+        "stepName": "Owner Review",
+        "status": "Pending Review",
+        "assignedDivision": "Owner",
+        "progress": 50,
+        "nextActionDescription": "Approve or request revision",
+        "transitions": {
+          "approved": {
+            "targetStatus": "Completed",
+            "targetAssignedDivision": "",
+            "targetNextActionDescription": null,
+            "targetProgress": 100,
+            "notification": null
+          },
+          "rejected": {
+            "targetStatus": "Canceled",
+            "targetAssignedDivision": "",
+            "targetNextActionDescription": null,
+            "targetProgress": 50,
+            "notification": {
+              "division": "Admin Proyek",
+              "message": "Project '{projectName}' was rejected by Owner."
+            }
+          }
+        }
+      },
+      {
+        "stepName": "Project Completed",
+        "status": "Completed",
+        "assignedDivision": "",
+        "progress": 100,
+        "nextActionDescription": null,
+        "transitions": null
+      },
+      {
+        "stepName": "Project Canceled",
+        "status": "Canceled",
+        "assignedDivision": "",
+        "progress": 0,
+        "nextActionDescription": null,
+        "transitions": null
+      }
+    ]
+  }
+]
