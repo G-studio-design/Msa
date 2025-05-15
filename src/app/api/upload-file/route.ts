@@ -2,8 +2,9 @@
 import { NextResponse } from 'next/server';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { PROJECT_FILES_BASE_DIR, ensureProjectFilesBaseDirExists } from '@/services/project-service'; 
-import { sanitizeForPath } from '@/lib/path-utils'; // Updated import
+import { ensureProjectFilesBaseDirExists } from '@/services/project-service'; 
+import { sanitizeForPath } from '@/lib/path-utils'; 
+import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants'; // Import from new location
 
 export async function POST(request: Request) {
   try {

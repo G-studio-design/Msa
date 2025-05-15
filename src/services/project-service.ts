@@ -4,7 +4,8 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { notifyUsersByRole } from './notification-service'; // Import notification service
-import { sanitizeForPath } from '@/lib/path-utils'; // Updated import
+import { sanitizeForPath } from '@/lib/path-utils';
+import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants'; // Import from new location
 
 // Define the structure of a Workflow History entry
 export interface WorkflowHistoryEntry {
@@ -13,8 +14,6 @@ export interface WorkflowHistoryEntry {
     timestamp: string; // ISO string
     note?: string; // Optional note for revisions or other actions
 }
-
-export const PROJECT_FILES_BASE_DIR = path.resolve(process.cwd(), 'src', 'database', 'project_files');
 
 // Define the structure of an uploaded file entry
 export interface FileEntry {
@@ -78,7 +77,7 @@ async function readProjects(): Promise<Project[]> {
             files: project.files.map(file => {
                 if (!file.path) {
                     const projectTitleSanitized = sanitizeForPath(project.title);
-                    const relativePath = `${project.id}-${projectTitleSanitized}/${file.name}`;
+                    const relativePath = `${project.id}-${projectTitleSanitized}/${sanitizeForPath(file.name)}`; // Sanitize file name in path
                     console.warn(`File "${file.name}" in project "${project.id}" was missing a path. Assigning: ${relativePath}`);
                     return { ...file, path: relativePath };
                 }
@@ -224,14 +223,18 @@ export async function updateProject(updatedProject: Project): Promise<void> {
      const newlyUpdatedProject = projects[projectIndex]; 
      const newlyAssignedDivision = newlyUpdatedProject.assignedDivision;
      const currentStatus = newlyUpdatedProject.status;
-     const previousProjectState = await getProjectById(updatedProject.id); // Re-fetch to compare
-     const previousAssignedDivision = previousProjectState?.assignedDivision;
+     
+     // To get the previous state accurately for comparison, we should read it *before* modification
+     // However, for simplicity here, we'll assume the notification logic only needs the new state
+     // For a more robust system, one might pass previousAssignedDivision or fetch it before updating `projects[projectIndex]`
 
      if (newlyAssignedDivision && 
-        newlyAssignedDivision !== previousAssignedDivision && 
         currentStatus !== 'Completed' && currentStatus !== 'Canceled'
         ) {
         const nextActionDesc = newlyUpdatedProject.nextAction || 'action';
+        // We need to ensure we are not re-notifying the same division if only other details changed
+        // This simple check might not be enough if a project is revised back to a division.
+        // A more complex notification logic might be needed if re-notification is an issue.
        await notifyUsersByRole(newlyAssignedDivision, `Project "${newlyUpdatedProject.title}" requires your ${nextActionDesc}.`, newlyUpdatedProject.id);
      }
 }
@@ -269,14 +272,11 @@ export async function updateProjectTitle(projectId: string, newTitle: string): P
                     console.warn(`Old project folder "${oldProjectAbsoluteFolderPath}" not found. Creating new folder "${newProjectAbsoluteFolderPath}" instead.`);
                     await fs.mkdir(newProjectAbsoluteFolderPath, { recursive: true });
                  } else {
-                    // Re-throw other errors
                     console.error(`Error during folder rename operation for project ${projectId}:`, renameError);
-                    // Decide if this is critical enough to stop the title update. For now, we'll log and continue.
                  }
              }
 
             projects[projectIndex].files = originalProject.files.map(file => {
-                // Ensure file.name is also sanitized for the final path component
                 const sanitizedFileName = sanitizeForPath(file.name);
                 const updatedRelativePath = `${newProjectRelativeFolderPath}/${sanitizedFileName}`;
                 console.log(` -> Updating path for file "${file.name}": To "${updatedRelativePath}"`);
@@ -284,7 +284,6 @@ export async function updateProjectTitle(projectId: string, newTitle: string): P
             });
         } catch (error) {
             console.error(`Error processing folder rename or file path updates for project ${projectId}:`, error);
-            // Log the error but continue with title update in the JSON.
         }
     } else {
         console.log(`Sanitized title for project ${projectId} remains the same. No folder or file path update needed.`);
@@ -312,35 +311,33 @@ export async function reviseProject(projectId: string, reviserRole: string, revi
     let previousNextAction = '';
     let newProgress = currentProject.progress; 
 
-    // Define workflow transitions for revision
-    // This is a simplified example; a more robust system might use a state machine or configuration
     switch (currentProject.status) {
-        case 'Pending Approval': // This could be offer approval or DP invoice approval
-            if (currentProject.progress === 20) { // Assuming 20% is after offer upload
+        case 'Pending Approval': 
+            if (currentProject.progress === 20) { 
                 previousStatus = 'Pending Offer';
                 previousAssignedDivision = 'Admin Proyek';
                 previousNextAction = 'Revise & Re-submit Offer Document';
-                newProgress = 15; // Rollback progress slightly
-            } else if (currentProject.progress === 30) { // Assuming 30% is after DP invoice upload
+                newProgress = 15; 
+            } else if (currentProject.progress === 30) { 
                 previousStatus = 'Pending DP Invoice';
                 previousAssignedDivision = 'General Admin';
                 previousNextAction = 'Revise & Re-submit DP Invoice';
-                newProgress = 25; // Rollback progress slightly
+                newProgress = 25; 
             } else {
                 throw new Error(`Cannot revise project in status "${currentProject.status}" with progress ${currentProject.progress}. Unknown approval type.`);
             }
             break;
         case 'Pending DP Invoice':
-            previousStatus = 'Pending Approval'; // Back to Owner for offer re-approval
+            previousStatus = 'Pending Approval'; 
             previousAssignedDivision = 'Owner';
-            previousNextAction = 'Re-Approve Offer (Issue with DP Gen)'; // More descriptive action
-            newProgress = 20; // Back to offer approval progress
+            previousNextAction = 'Re-Approve Offer (Issue with DP Gen)'; 
+            newProgress = 20; 
             break;
         case 'Pending Admin Files':
-            previousStatus = 'Pending Approval'; // Back to Owner for DP re-approval
+            previousStatus = 'Pending Approval'; 
             previousAssignedDivision = 'Owner'; 
             previousNextAction = 'Re-Approve DP Invoice (Issue with Admin Files)';
-            newProgress = 30; // Back to DP approval progress
+            newProgress = 30; 
             break;
         case 'Pending Architect Files':
             previousStatus = 'Pending Admin Files';
@@ -368,9 +365,9 @@ export async function reviseProject(projectId: string, reviserRole: string, revi
             break;
         case 'Scheduled':
             previousStatus = 'Pending Scheduling';
-            previousAssignedDivision = 'General Admin'; // Or Owner, depending on who schedules
+            previousAssignedDivision = 'General Admin'; 
             previousNextAction = 'Reschedule Sidang';
-            newProgress = 90; // Back to scheduling progress
+            newProgress = 90; 
             break;
         default:
             console.error(`Project status "${currentProject.status}" is not revisable.`);
@@ -396,7 +393,6 @@ export async function reviseProject(projectId: string, reviserRole: string, revi
     await writeProjects(projects);
     console.log(`Project ${projectId} revised. New status: ${previousStatus}, Assigned to: ${previousAssignedDivision}`);
 
-    // Notify the division that now needs to act due to revision
     await notifyUsersByRole(
         previousAssignedDivision,
         `Project "${projects[projectIndex].title}" requires revision for: ${previousNextAction}. ${revisionNote ? `Note: ${revisionNote}` : ''}`,

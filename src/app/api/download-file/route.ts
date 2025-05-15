@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import * as fs from 'fs/promises';
 import * as fsSync from 'fs'; // For existsSync
 import * as path from 'path';
-import { PROJECT_FILES_BASE_DIR } from '@/services/project-service'; // Import base dir
+import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants'; // Import from new location
 import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
