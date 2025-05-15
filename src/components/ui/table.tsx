@@ -25,22 +25,24 @@ Table.displayName = "Table"
 const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
->(({ className, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => ( // Added children
   <thead
     ref={ref}
     className={cn(
-      " [&_tr]:border-b font-semibold", // Make header more prominent
+      " [&_tr]:border-b font-semibold", 
       className
     )}
     {...props}
-  />
+  >
+    {children} {/* Render children */}
+  </thead>
 ))
 TableHeader.displayName = "TableHeader"
 
 const TableBody = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
->(({ className, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => ( // Added children
   <tbody
     ref={ref}
     className={cn(
@@ -48,14 +50,16 @@ const TableBody = React.forwardRef<
       className
     )}
     {...props}
-  />
+  >
+    {children} {/* Render children */}
+  </tbody>
 ))
 TableBody.displayName = "TableBody"
 
 const TableFooter = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
->(({ className, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => ( // Added children
   <tfoot
     ref={ref}
     className={cn(
@@ -63,30 +67,34 @@ const TableFooter = React.forwardRef<
       className
     )}
     {...props}
-  />
+  >
+    {children} {/* Render children */}
+  </tfoot>
 ))
 TableFooter.displayName = "TableFooter"
 
 const TableRow = React.forwardRef<
   HTMLTableRowElement,
   React.HTMLAttributes<HTMLTableRowElement>
->(({ className, children, ...props }, ref) => ( // Explicitly include children
+>(({ className, children, ...props }, ref) => ( // Ensured children is destructured
   <tr
     ref={ref}
     className={cn(
-      "data-[state=selected]:bg-accent", // keep same
-      "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted", // Add zebra striping with subtle color
+      "data-[state=selected]:bg-accent", 
+      "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
       className
     )}
     {...props}
-  >{children}</tr> // Render children directly inside without extra whitespace
+  >
+    {children} {/* Render children */}
+  </tr>
 ))
 TableRow.displayName = "TableRow"
 
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
   React.ThHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => ( // Added children
   <th
     ref={ref}
     className={cn(
@@ -94,31 +102,37 @@ const TableHead = React.forwardRef<
       className
     )}
     {...props}
-  />
+  >
+    {children} {/* Render children */}
+  </th>
 ))
 TableHead.displayName = "TableHead"
 
 const TableCell = React.forwardRef<
   HTMLTableCellElement,
   React.TdHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => ( // Added children
   <td
     ref={ref}
     className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
     {...props}
-  />
+  >
+    {children} {/* Render children */}
+  </td>
 ))
 TableCell.displayName = "TableCell"
 
 const TableCaption = React.forwardRef<
   HTMLTableCaptionElement,
   React.HTMLAttributes<HTMLTableCaptionElement>
->(({ className, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => ( // Added children
   <caption
     ref={ref}
     className={cn("mt-4 text-sm text-muted-foreground", className)}
     {...props}
-  />
+  >
+    {children} {/* Render children */}
+  </caption>
 ))
 TableCaption.displayName = "TableCaption"
 
