@@ -7,7 +7,8 @@ import { notifyUsersByRole } from './notification-service';
 import { sanitizeForPath } from '@/lib/path-utils';
 import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants';
 import type { Workflow, WorkflowStep, WorkflowStepTransition } from './workflow-service';
-import { getWorkflowById, getFirstStep, getTransitionInfo, DEFAULT_WORKFLOW_ID } from './workflow-service'; // Import DEFAULT_WORKFLOW_ID
+import { getWorkflowById, getFirstStep, getTransitionInfo } from './workflow-service';
+import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
 
 
 // Define the structure of a Workflow History entry
@@ -103,7 +104,7 @@ async function readProjects(): Promise<Project[]> {
                 }
                 return file;
             }) || [],
-            workflowId: project.workflowId || '', // Ensure workflowId exists, even if empty for now
+            workflowId: project.workflowId || DEFAULT_WORKFLOW_ID, 
         }));
     } catch (error: any) {
         console.error("Error reading or parsing project database:", error);
@@ -201,10 +202,10 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
     await writeProjects(projects);
     console.log(`Project "${newProject.title}" (ID: ${newProject.id}) added successfully. Assigned to ${firstStep.assignedDivision} for ${firstStep.nextActionDescription}.`);
 
-    if (firstStep.assignedDivision && firstStep.notification) {
-        const message = firstStep.notification.message.replace('{projectName}', newProject.title);
+    if (firstStep.assignedDivision && firstStep.transitions?.submitted?.notification && firstStep.transitions.submitted.notification.division) {
+        const message = firstStep.transitions.submitted.notification.message.replace('{projectName}', newProject.title);
         await notifyUsersByRole(
-            firstStep.assignedDivision,
+            firstStep.assignedDivision, // Notify the division assigned to the first step
             message,
             newProject.id
         );
@@ -217,7 +218,6 @@ export async function getAllProjects(): Promise<Project[]> {
     let projects = await readProjects();
     let projectsModified = false;
 
-    // Defensively ensure all projects have a workflowId
     projects = projects.map(project => {
         if (!project.workflowId) {
             console.warn(`Project ID ${project.id} ("${project.title}") is missing a workflowId. Assigning default workflow: ${DEFAULT_WORKFLOW_ID}`);
@@ -238,11 +238,10 @@ export async function getAllProjects(): Promise<Project[]> {
 
 export async function getProjectById(projectId: string): Promise<Project | null> {
     console.log(`Fetching project with ID: ${projectId}`);
-    const projects = await readProjects(); // readProjects now ensures workflowId is at least an empty string
+    const projects = await readProjects();
     const project = projects.find(p => p.id === projectId) || null;
     if (project && !project.workflowId) {
-        console.warn(`Project with ID "${projectId}" was found but is missing a workflowId. Attempting to use default.`);
-        // This case should be less likely if getAllProjects already ran and fixed it.
+        console.warn(`Project with ID "${projectId}" was found but is missing a workflowId. Assigning default: ${DEFAULT_WORKFLOW_ID}`);
         return { ...project, workflowId: DEFAULT_WORKFLOW_ID };
     }
     if (!project) {
@@ -273,7 +272,7 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
     }
 
     const currentProject = projects[projectIndex];
-    const projectWorkflowId = currentProject.workflowId || DEFAULT_WORKFLOW_ID; // Use default if somehow still missing
+    const projectWorkflowId = currentProject.workflowId || DEFAULT_WORKFLOW_ID;
 
     const now = new Date().toISOString();
 
@@ -313,7 +312,7 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
 
     let updatedProject: Project = {
         ...currentProject,
-        workflowId: projectWorkflowId, // Ensure it's set
+        workflowId: projectWorkflowId,
         files: [...currentProject.files, ...uploadedFileEntries],
         workflowHistory: [...currentProject.workflowHistory, newWorkflowHistoryEntry],
     };
@@ -419,7 +418,7 @@ export async function reviseProject(
     }
 
     const currentProject = projects[projectIndex];
-    const projectWorkflowId = currentProject.workflowId || DEFAULT_WORKFLOW_ID; // Ensure workflowId
+    const projectWorkflowId = currentProject.workflowId || DEFAULT_WORKFLOW_ID;
 
     const workflow = await getWorkflowById(projectWorkflowId);
 
@@ -461,9 +460,6 @@ export async function reviseProject(
 
     } else {
         console.warn(`No explicit 'revise' transition found for project ${projectId} status ${currentProject.status}. Fallback revision logic might be needed or this action is not allowed.`);
-        // For now, if no 'revise' transition is defined, we throw an error.
-        // A more sophisticated fallback could try to find the actual previous step in history,
-        // but that's complex and error-prone without a clear "undo" definition in the workflow.
         throw new Error('REVISION_NOT_SUPPORTED_FOR_CURRENT_STEP');
     }
 }
@@ -506,7 +502,7 @@ export async function manuallyUpdateProjectStatusAndAssignment({
 
     const updatedProjectData: Project = {
         ...currentProject,
-        workflowId: projectWorkflowId, // Ensure it's set
+        workflowId: projectWorkflowId,
         status: newStatus,
         assignedDivision: newAssignedDivision,
         nextAction: newNextAction,
