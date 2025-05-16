@@ -6,5 +6,26 @@
     "message": "New project \"proyek klinik kesambi\" created. Please upload the offer document.",
     "timestamp": "2025-05-13T04:51:52.596Z",
     "isRead": true
+  },
+  {
+    "id": "notif_1747366561158_v6yft",
+    "userId": "usr_ga_ran",
+    "message": "User profile for \"angga\" (Role: Struktur) has been updated.",
+    "timestamp": "2025-05-16T03:36:01.158Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747366561158_ou11t",
+    "userId": "usr_7",
+    "message": "User profile for \"angga\" (Role: Struktur) has been updated.",
+    "timestamp": "2025-05-16T03:36:01.158Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747366561158_pzzy5",
+    "userId": "usr_wayan",
+    "message": "User profile for \"angga\" (Role: Struktur) has been updated.",
+    "timestamp": "2025-05-16T03:36:01.158Z",
+    "isRead": false
   }
 ]

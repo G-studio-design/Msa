@@ -88,5 +88,75 @@
     "whatsappNumber": "",
     "displayName": "sudina",
     "createdAt": "2025-05-01T21:03:03.687Z"
+  },
+  {
+    "id": "usr_1747364740656_yiiv2",
+    "username": "yudiyanti",
+    "password": "admin123",
+    "role": "Struktur",
+    "email": "yudiyanti@example.com",
+    "whatsappNumber": "",
+    "displayName": "yudiyanti",
+    "createdAt": "2025-05-16T03:05:40.656Z"
+  },
+  {
+    "id": "usr_1747364940553_hdz9d",
+    "username": "angga",
+    "password": "admin123",
+    "role": "Struktur",
+    "email": "anggaf3006@gamil.com",
+    "whatsappNumber": "087888000369",
+    "displayName": "angga",
+    "createdAt": "2025-05-16T03:09:00.553Z"
+  },
+  {
+    "id": "usr_1747365165980_5e01r",
+    "username": "dewi",
+    "password": "admin123",
+    "role": "Struktur",
+    "email": "dewi@example.com",
+    "whatsappNumber": "",
+    "displayName": "dewi",
+    "createdAt": "2025-05-16T03:12:45.980Z"
+  },
+  {
+    "id": "usr_1747366410997_8jyhk",
+    "username": "krisna",
+    "password": "admin123",
+    "role": "Arsitek",
+    "email": "krisna@example.com",
+    "whatsappNumber": "",
+    "displayName": "krisna",
+    "createdAt": "2025-05-16T03:33:30.997Z"
+  },
+  {
+    "id": "usr_1747366461785_pgc37",
+    "username": "rahayu",
+    "password": "admin123",
+    "role": "Arsitek",
+    "email": "rahayu@example.com",
+    "whatsappNumber": "",
+    "displayName": "rahayu",
+    "createdAt": "2025-05-16T03:34:21.785Z"
+  },
+  {
+    "id": "usr_1747366521658_kh8ys",
+    "username": "sanjaya",
+    "password": "admin123",
+    "role": "Arsitek",
+    "email": "sanjaya@example.com",
+    "whatsappNumber": "",
+    "displayName": "sanjaya",
+    "createdAt": "2025-05-16T03:35:21.658Z"
+  },
+  {
+    "id": "usr_1747366606910_zmuem",
+    "username": "dewik",
+    "password": "admin123",
+    "role": "Struktur",
+    "email": "dewik@example.com",
+    "whatsappNumber": "",
+    "displayName": "dewik",
+    "createdAt": "2025-05-16T03:36:46.910Z"
   }
 ]
