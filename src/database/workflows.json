@@ -147,11 +147,11 @@
         "transitions": {
           "submitted": {
             "targetStatus": "Pending MEP Files",
-            "targetAssignedDivision": "MEP",
+            "targetAssignedDivision": "Admin Proyek",
             "targetNextActionDescription": "Unggah Berkas MEP",
             "targetProgress": 80,
             "notification": {
-              "division": "MEP",
+              "division": "Admin Proyek",
               "message": "Berkas struktur untuk '{projectName}' lengkap. Mohon unggah berkas MEP."
             }
           }
@@ -160,17 +160,17 @@
       {
         "stepName": "MEP Files Submission",
         "status": "Pending MEP Files",
-        "assignedDivision": "MEP",
+        "assignedDivision": "Admin Proyek",
         "progress": 80,
         "nextActionDescription": "Unggah Berkas MEP",
         "transitions": {
           "submitted": {
             "targetStatus": "Pending Scheduling",
-            "targetAssignedDivision": "General Admin",
+            "targetAssignedDivision": "Admin Proyek",
             "targetNextActionDescription": "Jadwalkan Sidang",
             "targetProgress": 90,
             "notification": {
-              "division": "General Admin",
+              "division": "Admin Proyek",
               "message": "Semua berkas teknis untuk '{projectName}' lengkap. Mohon jadwalkan sidang."
             }
           }
@@ -179,7 +179,7 @@
       {
         "stepName": "Sidang Scheduling",
         "status": "Pending Scheduling",
-        "assignedDivision": "General Admin",
+        "assignedDivision": "Admin Proyek",
         "progress": 90,
         "nextActionDescription": "Jadwalkan Sidang",
         "transitions": {
