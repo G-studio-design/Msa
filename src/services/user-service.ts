@@ -16,9 +16,9 @@ export interface User {
     profilePictureUrl?: string;
     displayName?: string;
     createdAt?: string;
-    googleRefreshToken?: string; // Added for Google Calendar
-    googleAccessToken?: string; // Added for Google Calendar
-    googleAccessTokenExpiresAt?: number; // Timestamp (ms) when access token expires
+    googleRefreshToken?: string;
+    googleAccessToken?: string;
+    googleAccessTokenExpiresAt?: number;
 }
 
 // Define the structure for updating a user's password
@@ -73,18 +73,17 @@ async function readUsers(): Promise<User[]> {
             await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
             return [];
         }
-        return (parsedData as any[])
-            .filter(user => user.role !== 'Admin Developer')
-            .map(user => ({
-                ...user,
-                email: user.email || '',
-                whatsappNumber: user.whatsappNumber || '',
-                profilePictureUrl: user.profilePictureUrl || undefined,
-                displayName: user.displayName || user.username,
-                googleRefreshToken: user.googleRefreshToken || undefined,
-                googleAccessToken: user.googleAccessToken || undefined,
-                googleAccessTokenExpiresAt: user.googleAccessTokenExpiresAt || undefined,
-            })) as User[];
+        // readUsers now returns ALL users, including Admin Developer
+        return (parsedData as any[]).map(user => ({
+            ...user,
+            email: user.email || '',
+            whatsappNumber: user.whatsappNumber || '',
+            profilePictureUrl: user.profilePictureUrl || undefined,
+            displayName: user.displayName || user.username,
+            googleRefreshToken: user.googleRefreshToken || undefined,
+            googleAccessToken: user.googleAccessToken || undefined,
+            googleAccessTokenExpiresAt: user.googleAccessTokenExpiresAt || undefined,
+        })) as User[];
     } catch (error: any) {
         console.error("Error reading or parsing user database:", error);
          if (error instanceof SyntaxError) {
@@ -103,12 +102,12 @@ async function readUsers(): Promise<User[]> {
 
 async function writeUsers(users: User[]): Promise<void> {
     try {
-        const usersToWrite = users
-            .filter(u => u.role !== 'Admin Developer')
-            .map(u => {
-                const { passwordHash, googleUid, ...userWithoutSensitive } = u as any; // Ensure googleUid is removed if it was ever there
-                return userWithoutSensitive;
-            });
+        // No need to filter Admin Developer here, as readUsers doesn't filter it anymore.
+        // The filtering for display purposes will happen in getAllUsers.
+        const usersToWrite = users.map(u => {
+            const { passwordHash, googleUid, ...userWithoutSensitive } = u as any;
+            return userWithoutSensitive;
+        });
         await fs.writeFile(DB_PATH, JSON.stringify(usersToWrite, null, 2), 'utf8');
         console.log("User data written to DB_PATH successfully.");
     } catch (error) {
@@ -120,30 +119,30 @@ async function writeUsers(users: User[]): Promise<void> {
 // --- Main Service Functions ---
 
 export async function findUserByUsername(username: string): Promise<User | null> {
-    const users = await readUsers();
+    const users = await readUsers(); // Gets all users including Admin Developer
     const lowerCaseUsername = username.toLowerCase();
-    return users.find(u => u.username.toLowerCase() === lowerCaseUsername && u.role !== 'Admin Developer') || null;
+    return users.find(u => u.username.toLowerCase() === lowerCaseUsername) || null;
 }
 
 export async function findUserByEmail(email: string): Promise<User | null> {
     if (!email) return null;
-    const users = await readUsers();
+    const users = await readUsers(); // Gets all users
     const lowerCaseEmail = email.toLowerCase();
-    return users.find(u => u.email?.toLowerCase() === lowerCaseEmail && u.role !== 'Admin Developer') || null;
+    return users.find(u => u.email?.toLowerCase() === lowerCaseEmail) || null;
 }
 
 
 export async function findUserById(userId: string): Promise<User | null> {
-    const users = await readUsers();
-    return users.find(u => u.id === userId && u.role !== 'Admin Developer') || null;
+    const users = await readUsers(); // Gets all users
+    return users.find(u => u.id === userId) || null;
 }
 
 export async function verifyUserCredentials(username: string, passwordInput: string): Promise<Omit<User, 'password'> | null> {
     console.log(`Verifying credentials for username: "${username}"`);
-    const user = await findUserByUsername(username);
+    const user = await findUserByUsername(username); // This will now find 'Admin Developer' if username matches
 
     if (!user) {
-        console.log(`User "${username}" not found or is Admin Developer.`);
+        console.log(`User "${username}" not found.`);
         return null;
     }
     console.log(`User "${username}" found. ID: ${user.id}, Role: ${user.role}`);
@@ -168,8 +167,8 @@ export async function addUser(userData: AddUserData): Promise<Omit<User, 'passwo
     const users = await readUsers();
 
     if (userData.role === 'Admin Developer') {
-        console.error('Cannot add user with role "Admin Developer".');
-        throw new Error('INVALID_ROLE');
+        console.error('Cannot add user with role "Admin Developer" through this function.');
+        throw new Error('INVALID_ROLE_CREATION_ATTEMPT');
     }
 
     const usernameExists = users.some(u => u.username.toLowerCase() === userData.username.toLowerCase());
@@ -183,7 +182,7 @@ export async function addUser(userData: AddUserData): Promise<Omit<User, 'passwo
         username: userData.username,
         password: userData.password,
         role: userData.role,
-        email: `${userData.username.toLowerCase()}@example.com`, // Default email
+        email: `${userData.username.toLowerCase()}@example.com`,
         whatsappNumber: '',
         profilePictureUrl: undefined,
         displayName: userData.username,
@@ -228,10 +227,17 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
         throw new Error('USER_NOT_FOUND');
     }
 
-    if (updateData.role === 'Admin Developer') {
-         console.error('Cannot update user role to "Admin Developer".');
-         throw new Error('INVALID_ROLE');
+    // Prevent changing role TO Admin Developer via this function
+    if (updateData.role === 'Admin Developer' && users[userIndex].role !== 'Admin Developer') {
+         console.error('Cannot update user role to "Admin Developer" via this function.');
+         throw new Error('INVALID_ROLE_UPDATE_ATTEMPT');
      }
+    // Prevent changing role FROM Admin Developer via this function if it's the current role
+    if (users[userIndex].role === 'Admin Developer' && updateData.role !== 'Admin Developer') {
+        console.error('Role of "Admin Developer" cannot be changed via this function.');
+        throw new Error('CANNOT_CHANGE_ADMIN_DEVELOPER_ROLE');
+    }
+
 
     if (updateData.username && updateData.username.toLowerCase() !== users[userIndex].username.toLowerCase()) {
         const newUsernameLower = updateData.username.toLowerCase();
@@ -261,11 +267,14 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
     await writeUsers(users);
     console.log(`User profile for ${updateData.userId} updated successfully in database file.`);
 
-    const adminRolesToNotify = ['Owner', 'General Admin'];
-    const currentUser = users[userIndex];
-    adminRolesToNotify.forEach(async (role) => {
-        await notifyUsersByRole(role, `User profile for "${currentUser.username}" (Role: ${currentUser.role}) has been updated.`);
-    });
+    // Notify admins only if the user being updated is NOT an Admin Developer
+    if (users[userIndex].role !== 'Admin Developer') {
+        const adminRolesToNotify = ['Owner', 'General Admin'];
+        const currentUserBeingUpdated = users[userIndex];
+        adminRolesToNotify.forEach(async (role) => {
+            await notifyUsersByRole(role, `User profile for "${currentUserBeingUpdated.username}" (Role: ${currentUserBeingUpdated.role}) has been updated.`);
+        });
+    }
 }
 
 export async function updatePassword(updateData: UpdatePasswordData): Promise<void> {
@@ -290,6 +299,7 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
         }
          console.log(`Current password verified for user ${updateData.userId}.`);
     } else {
+        // This case implies a password reset (e.g., by an admin) where current password isn't needed
         console.log(`Password reset/update initiated for user ID: ${updateData.userId} (current password check skipped).`);
     }
 
@@ -297,16 +307,21 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
     await writeUsers(users);
     console.log(`Password for user ${updateData.userId} updated successfully.`);
 
-     const adminRolesToNotify = ['Owner', 'General Admin'];
-     const currentUser = users[userIndex];
-     adminRolesToNotify.forEach(async (role) => {
-         await notifyUsersByRole(role, `Password for user "${currentUser.username}" (Role: ${currentUser.role}) has been changed.`);
-     });
+    // Notify admins only if the user whose password is being changed is NOT an Admin Developer
+    if (users[userIndex].role !== 'Admin Developer') {
+         const adminRolesToNotify = ['Owner', 'General Admin'];
+         const currentUserPasswordChanged = users[userIndex];
+         adminRolesToNotify.forEach(async (role) => {
+             await notifyUsersByRole(role, `Password for user "${currentUserPasswordChanged.username}" (Role: ${currentUserPasswordChanged.role}) has been changed.`);
+         });
+    }
 }
 
-export async function getAllUsers(): Promise<User[]> {
+// This function is used for displaying users in UI, e.g., ManageUsersPage
+export async function getAllUsersForDisplay(): Promise<User[]> {
     const users = await readUsers();
-    return users;
+    // Filter out Admin Developer for display purposes
+    return users.filter(user => user.role !== 'Admin Developer');
 }
 
 export async function updateUserGoogleTokens(
@@ -326,7 +341,6 @@ export async function updateUserGoogleTokens(
         ...users[userIndex],
         googleAccessToken: tokens.accessToken,
         googleAccessTokenExpiresAt: tokens.accessTokenExpiresAt,
-        // Only update refresh token if it's provided (it's often only sent once)
         ...(tokens.refreshToken && { googleRefreshToken: tokens.refreshToken }),
     };
 

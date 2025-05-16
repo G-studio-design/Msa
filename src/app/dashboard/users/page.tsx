@@ -37,7 +37,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, User, UserCog, Edit, Loader2, Eye, EyeOff, CheckCircle, ShieldAlert, Code } from 'lucide-react';
+import { PlusCircle, Trash2, User, UserCog, Edit, Loader2, Eye, EyeOff, CheckCircle, ShieldAlert, Code, Wrench } from 'lucide-react'; // Added Wrench
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -63,17 +63,17 @@ import {
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import {
-    getAllUsers,
+    getAllUsersForDisplay, // Changed from getAllUsers
     addUser,
     updateUserProfile,
     deleteUser,
     type User as UserType
 } from '@/services/user-service';
-import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
+import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Define available roles for selection (excluding Pending and Admin Developer)
-const divisions = ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur'];
+// Define available roles for selection (excluding Admin Developer)
+const divisions = ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP'];
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
@@ -93,7 +93,7 @@ const getEditUserSchema = (dictValidation: ReturnType<typeof getDictionary>['man
 export default function ManageUsersPage() {
   const { toast } = useToast();
   const { language } = useLanguage();
-  const { currentUser } = useAuth(); // Get current user from AuthContext
+  const { currentUser } = useAuth();
   const [dict, setDict] = React.useState(defaultDict);
   const [isClient, setIsClient] = React.useState(false);
   const usersDict = dict.manageUsersPage;
@@ -106,42 +106,37 @@ export default function ManageUsersPage() {
   const [editingUser, setEditingUser] = React.useState<UserType | null>(null);
   const [visiblePasswords, setVisiblePasswords] = React.useState<Record<string, boolean>>({});
 
-  // Fetch users on component mount
   React.useEffect(() => {
       async function fetchUsers() {
           setIsLoading(true);
           try {
-              // TODO: Secure this endpoint - ideally only callable by authorized roles
-              const fetchedUsers = await getAllUsers(); // getAllUsers now filters out Admin Dev
+              const fetchedUsers = await getAllUsersForDisplay(); // Use new function
               setUsers(fetchedUsers);
           } catch (error) {
               console.error("Failed to fetch users:", error);
-              toast({ variant: 'destructive', title: 'Error', description: 'Could not load user data.' });
+              toast({ variant: 'destructive', title: usersDict.toast.error || 'Error', description: usersDict.toast.fetchError || 'Could not load user data.' });
           } finally {
               setIsLoading(false);
           }
       }
-      // Only fetch if the current user has permission (Owner or General Admin)
-      if (currentUser && ['Owner', 'General Admin'].includes(currentUser.role)) {
+      if (currentUser && ['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role)) { // Admin Developer can also view
           fetchUsers();
       } else {
-          setIsLoading(false); // Don't show loading if no permission
+          setIsLoading(false);
       }
-  }, [toast, currentUser]); // Re-fetch if currentUser changes (e.g., on login/logout)
+  }, [toast, currentUser, usersDict]);
 
     React.useEffect(() => {
         setIsClient(true);
         setDict(getDictionary(language));
     }, [language]);
 
-  // Initialize schemas based on current language
   const addUserSchema = getAddUserSchema(usersDict.validation);
   const editUserSchema = getEditUserSchema(usersDict.validation);
 
   type AddUserFormValues = z.infer<typeof addUserSchema>;
   type EditUserFormValues = z.infer<typeof editUserSchema>;
 
-  // Check if current user has permission (Owner or General Admin)
   const canManageUsers = currentUser && ['Owner', 'General Admin'].includes(currentUser.role);
 
   const addUserForm = useForm<AddUserFormValues>({
@@ -179,9 +174,11 @@ export default function ManageUsersPage() {
      React.useEffect(() => {
          if(isClient) {
              addUserForm.trigger();
-             editUserForm.trigger();
+             if (isEditUserDialogOpen) { // Only trigger edit form validation if dialog is open
+                editUserForm.trigger();
+             }
          }
-     }, [dict, addUserForm, editUserForm, isClient]);
+     }, [dict, addUserForm, editUserForm, isClient, isEditUserDialogOpen]);
 
 
   const handleAddUser = async (data: AddUserFormValues) => {
@@ -190,10 +187,9 @@ export default function ManageUsersPage() {
     addUserForm.clearErrors();
     console.log('Adding user:', data.username);
     try {
-        // TODO: Secure this function call - ensure only authorized roles can execute it server-side
-        // addUser service function already prevents adding 'Admin Developer' role
         const newUser = await addUser(data);
-        setUsers([...users, newUser as UserType]);
+        // Since getAllUsersForDisplay filters Admin Developer, newUser should appear if not Admin Developer
+        setUsers(prevUsers => [...prevUsers, newUser as UserType]);
         toast({ title: usersDict.toast.userAdded, description: usersDict.toast.userAddedDesc.replace('{username}', data.username) });
         addUserForm.reset();
         setIsAddUserDialogOpen(false);
@@ -203,7 +199,10 @@ export default function ManageUsersPage() {
         if (error.message === 'USERNAME_EXISTS') {
             desc = usersDict.toast.usernameExists;
             addUserForm.setError('username', { type: 'manual', message: desc });
-        } else {
+        } else if (error.message === 'INVALID_ROLE_CREATION_ATTEMPT') {
+            desc = usersDict.toast.cannotCreateAdminDev;
+        }
+         else {
             desc = error.message || 'Failed to add user.';
         }
         toast({ variant: 'destructive', title: usersDict.toast.error, description: desc });
@@ -218,7 +217,12 @@ export default function ManageUsersPage() {
         editUserForm.clearErrors();
         console.log(`Editing user ${editingUser.id}:`, data.username, data.role);
 
-        // Prevent changing role of last GA if the current user is GA
+        if (editingUser.role === 'Admin Developer') {
+            toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotEditAdminDev });
+            setIsProcessing(false);
+            return;
+        }
+
         if (currentUser.role === 'General Admin' && editingUser.role === 'General Admin' && data.role !== 'General Admin') {
             const gaCount = users.filter(u => u.role === 'General Admin').length;
             if (gaCount <= 1) {
@@ -228,19 +232,17 @@ export default function ManageUsersPage() {
             }
         }
 
-         // Removed Admin Developer checks
-
         try {
-            const updatePayload: { userId: string; username: string; role: string; displayName?: string } = {
+            const updatePayload: UpdateProfileData = {
                  userId: editingUser.id,
                  username: data.username,
-                 role: data.role, // updateUserProfile already prevents setting role to 'Admin Developer'
+                 role: data.role,
+                 email: editingUser.email, // Preserve existing email
+                 whatsappNumber: editingUser.whatsappNumber, // Preserve existing whatsapp
+                 profilePictureUrl: editingUser.profilePictureUrl, // Preserve existing picture
+                 displayName: data.username, // Update displayName to new username
             };
-             if (data.username !== editingUser.username) {
-                 updatePayload.displayName = data.username;
-             }
 
-             // TODO: Secure this function call - ensure only authorized roles can execute it server-side
             await updateUserProfile(updatePayload);
             setUsers(users.map(u => u.id === editingUser.id ? { ...u, username: data.username, role: data.role, displayName: data.username } : u));
             toast({ title: usersDict.toast.userUpdated, description: usersDict.toast.userUpdatedDesc.replace('{username}', data.username) });
@@ -254,7 +256,12 @@ export default function ManageUsersPage() {
                  editUserForm.setError('username', { type: 'manual', message: desc });
              } else if (error.message === 'USER_NOT_FOUND') {
                  desc = usersDict.toast.userNotFound;
-             } else {
+             } else if (error.message === 'INVALID_ROLE_UPDATE_ATTEMPT') {
+                 desc = usersDict.toast.cannotSetAdminDevRole;
+             } else if (error.message === 'CANNOT_CHANGE_ADMIN_DEVELOPER_ROLE') {
+                 desc = usersDict.toast.cannotChangeAdminDevRole;
+             }
+              else {
                  desc = error.message || 'Failed to update user.';
              }
              toast({ variant: 'destructive', title: usersDict.toast.error, description: desc });
@@ -268,28 +275,30 @@ export default function ManageUsersPage() {
     const userToDelete = users.find(user => user.id === userId);
     if (!userToDelete) return;
 
-     // Prevent GA from deleting self
-     if (currentUser.role === 'General Admin' && currentUser.id === userId) {
+    if (userToDelete.role === 'Admin Developer') {
+        toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotDeleteAdminDev });
+        return;
+    }
+
+     if (currentUser.id === userId) { // Prevent deleting self
        toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotDeleteSelf });
        return;
      }
 
-     // Prevent deleting last GA if current user is GA
-     if (currentUser.role === 'General Admin' && userToDelete.role === 'General Admin') {
+     if (userToDelete.role === 'General Admin') {
          const gaCount = users.filter(u => u.role === 'General Admin').length;
-         if (gaCount <= 1) {
+         if (gaCount <= 1 && currentUser.role === 'Owner') { // Owner deleting the last GA
+             // Allow, but maybe add an extra warning if needed, or just proceed
+         } else if (gaCount <=1) { // GA trying to delete the last GA (which is self, handled above, or another GA if this check is first)
              toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotDeleteLastAdmin });
              return;
          }
      }
 
-      // Removed Admin Developer checks
 
     setIsProcessing(true);
     console.log('Attempting to delete user:', userId, username);
     try {
-         // TODO: Secure this function call - ensure only authorized roles can execute it server-side
-         // deleteUser service function already prevents deleting 'Admin Developer'
         await deleteUser(userId);
         setUsers(users.filter((user) => user.id !== userId));
         setVisiblePasswords(prev => {
@@ -319,14 +328,20 @@ export default function ManageUsersPage() {
    };
 
    const openEditDialog = (user: UserType) => {
-        if (!currentUser) return; // Ensure currentUser is available
+        if (!currentUser) return;
+
+        if (user.role === 'Admin Developer') {
+            toast({ variant: 'destructive', title: usersDict.toast.permissionDenied, description: usersDict.toast.cannotEditAdminDev });
+            return;
+        }
 
          let canEditTargetUser = false;
          if (currentUser.role === 'Owner') {
-             canEditTargetUser = true; // Owner can edit anyone
+             canEditTargetUser = true;
          } else if (currentUser.role === 'General Admin') {
-             canEditTargetUser = user.role !== 'Owner'; // GA cannot edit Owner
+             canEditTargetUser = user.role !== 'Owner';
          }
+
 
          if (!canEditTargetUser) {
             toast({ variant: 'destructive', title: usersDict.toast.permissionDenied, description: usersDict.toast.editPermissionDenied });
@@ -349,20 +364,20 @@ export default function ManageUsersPage() {
       switch(role) {
           case 'Owner': return <User className="h-4 w-4 text-blue-600" />;
           case 'General Admin': return <UserCog className="h-4 w-4 text-purple-600" />;
-          case 'Admin Proyek': return <UserCog className="h-4 w-4 text-orange-600" />;
+          case 'Admin Proyek': return <UserCog className="h-4 w-4 text-orange-600" />; // Kept as UserCog for consistency with previous setup
           case 'Arsitek': return <User className="h-4 w-4 text-green-600" />;
           case 'Struktur': return <User className="h-4 w-4 text-yellow-600" />;
-          // Removed Admin Developer case
+          case 'MEP': return <Wrench className="h-4 w-4 text-pink-600" />; // Assuming MEP Coordinator
+          case 'Admin Developer': return <Code className="h-4 w-4 text-gray-700" />;
           default: return <User className="h-4 w-4 text-muted-foreground" />;
       }
   }
 
-  // Render Access Denied if not Owner or General Admin
-  if (!isClient || !canManageUsers) {
-      // Show loading skeleton or access denied message
-       if (!isClient || isLoading) { // Still loading or hasn't determined user role yet
+  // Render Access Denied if not Owner or General Admin (Admin Developer has access but is filtered out for management)
+  if (!isClient || !(currentUser && ['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role)) ) {
+       if (!isClient || isLoading) {
            return (
-                <div className="container mx-auto py-4 px-4 md:px-6 space-y-6"> {/* Added responsive padding */}
+                <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
                    <Card>
                        <CardHeader>
                            <Skeleton className="h-7 w-1/3 mb-2" />
@@ -374,9 +389,9 @@ export default function ManageUsersPage() {
                    </Card>
                </div>
            );
-       } else { // User loaded, but doesn't have permission
+       } else {
             return (
-               <div className="container mx-auto py-4 px-4 md:px-6"> {/* Added responsive padding */}
+               <div className="container mx-auto py-4 px-4 md:px-6">
                   <Card className="border-destructive">
                        <CardHeader>
                            <CardTitle className="text-destructive">{isClient ? usersDict.accessDeniedTitle : defaultDict.manageUsersPage.accessDeniedTitle}</CardTitle>
@@ -390,19 +405,17 @@ export default function ManageUsersPage() {
        }
   }
 
-  // Render the main content if user has permission
   return (
-     <div className="container mx-auto py-4 px-4 md:px-6 space-y-6"> {/* Added responsive padding */}
+     <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
       <Card>
-        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"> {/* Flex column on mobile */}
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-             <CardTitle className="text-xl md:text-2xl">{isClient ? usersDict.title : defaultDict.manageUsersPage.title}</CardTitle> {/* Adjusted font size */}
+             <CardTitle className="text-xl md:text-2xl">{isClient ? usersDict.title : defaultDict.manageUsersPage.title}</CardTitle>
             <CardDescription>{isClient ? usersDict.description : defaultDict.manageUsersPage.description}</CardDescription>
           </div>
-          {/* Add User Dialog Trigger */}
             <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
               <DialogTrigger asChild>
-                 <Button className="accent-teal w-full sm:w-auto" disabled={isProcessing || isLoading}> {/* Full width on mobile */}
+                 <Button className="accent-teal w-full sm:w-auto" disabled={isProcessing || isLoading || !canManageUsers}>
                   <PlusCircle className="mr-2 h-4 w-4" /> {isClient ? usersDict.addUserButton : defaultDict.manageUsersPage.addUserButton}
                 </Button>
               </DialogTrigger>
@@ -415,7 +428,6 @@ export default function ManageUsersPage() {
                 </DialogHeader>
                 <Form {...addUserForm}>
                     <form onSubmit={addUserForm.handleSubmit(onAddSubmit)} className="space-y-4 py-4">
-                      {/* Username Field */}
                       <FormField
                         control={addUserForm.control}
                         name="username"
@@ -429,7 +441,6 @@ export default function ManageUsersPage() {
                           </FormItem>
                         )}
                       />
-                      {/* Password Field */}
                       <FormField
                           control={addUserForm.control}
                           name="password"
@@ -443,7 +454,6 @@ export default function ManageUsersPage() {
                             </FormItem>
                           )}
                         />
-                      {/* Role Field */}
                       <FormField
                           control={addUserForm.control}
                           name="role"
@@ -458,15 +468,15 @@ export default function ManageUsersPage() {
                                   </FormControl>
                                   <SelectContent>
                                     {divisions
-                                        // Filter roles that the current user (must exist here) can create
                                         .filter(division => {
-                                            if (currentUser?.role === 'Owner') return true;
-                                            if (currentUser?.role === 'General Admin') return division !== 'Owner'; // GA cannot create Owner
+                                            if (!currentUser) return false;
+                                            if (currentUser.role === 'Owner') return true;
+                                            if (currentUser.role === 'General Admin') return division !== 'Owner';
                                             return false;
                                         })
                                         .map((division) => (
                                             <SelectItem key={division} value={division}>
-                                                {(usersDict.roles as any)[division] || division}
+                                                {(usersDict.roles as any)[division.toLowerCase().replace(/\s+/g, '')] || division}
                                             </SelectItem>
                                     ))}
                                   </SelectContent>
@@ -488,12 +498,12 @@ export default function ManageUsersPage() {
             </Dialog>
         </CardHeader>
         <CardContent>
-           <div className="overflow-x-auto"> {/* Make table scrollable horizontally */}
+           <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>{isClient ? usersDict.tableHeaderUsername : defaultDict.manageUsersPage.tableHeaderUsername}</TableHead>
-                     <TableHead className="hidden sm:table-cell">{isClient ? usersDict.tableHeaderPassword : defaultDict.manageUsersPage.tableHeaderPassword}</TableHead> {/* Hide password column on small screens */}
+                     <TableHead className="hidden sm:table-cell">{isClient ? usersDict.tableHeaderPassword : defaultDict.manageUsersPage.tableHeaderPassword}</TableHead>
                     <TableHead>{isClient ? usersDict.tableHeaderRole : defaultDict.manageUsersPage.tableHeaderRole}</TableHead>
                     <TableHead className="text-right">{isClient ? usersDict.tableHeaderActions : defaultDict.manageUsersPage.tableHeaderActions}</TableHead>
                   </TableRow>
@@ -501,9 +511,9 @@ export default function ManageUsersPage() {
                 <TableBody>
                   {isLoading ? (
                       [...Array(5)].map((_, i) => (
-                        <TableRow key={`skeleton-${i}`}>
+                        <TableRow key={`skeleton-usr-${i}`}>
                             <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                             <TableCell className="hidden sm:table-cell"><Skeleton className="h-4 w-32" /></TableCell> {/* Hide skeleton cell */}
+                             <TableCell className="hidden sm:table-cell"><Skeleton className="h-4 w-32" /></TableCell>
                             <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                             <TableCell className="text-right space-x-1">
                                 <Skeleton className="h-8 w-8 inline-block" />
@@ -513,36 +523,34 @@ export default function ManageUsersPage() {
                       ))
                   ) : users.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8"> {/* Added more padding */}
+                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                         {isClient ? usersDict.noUsers : defaultDict.manageUsersPage.noUsers}
                       </TableCell>
                     </TableRow>
                   ) : (
                     users.map((user) => {
-                       const isSelf = user.id === currentUser?.id; // Check against context user ID
+                       const isSelf = user.id === currentUser?.id;
+                        const isTargetAdminDeveloper = user.role === 'Admin Developer'; // Should not happen due to getAllUsersForDisplay
                         const isLastGeneralAdmin = user.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1;
-                        // Removed isLastAdminDeveloper check
 
-                         const disableDelete = !canManageUsers ||
-                                                (isSelf && currentUser?.role === 'General Admin') || // GA cannot delete self
-                                                (isLastGeneralAdmin && currentUser?.role === 'General Admin'); // GA cannot delete last GA
-                                                // Removed Admin Developer delete checks
+                        const disableEdit = !canManageUsers ||
+                                            isTargetAdminDeveloper || // Should not be needed due to filtering
+                                            (currentUser?.role === 'General Admin' && user.role === 'Owner');
 
-                          let disableEdit = !canManageUsers ||
-                                            (currentUser?.role === 'General Admin' && user.role === 'Owner'); // GA cannot edit Owner
-
+                        const disableDelete = !canManageUsers ||
+                                                isTargetAdminDeveloper || // Should not be needed
+                                                isSelf || // Cannot delete self
+                                                (user.role === 'Owner' && currentUser?.role !== 'Owner') || // Only Owner can delete Owner
+                                                (isLastGeneralAdmin && user.role === 'General Admin' && currentUser?.role !== 'Owner'); // Only Owner can delete the last GA
 
                         const isPasswordVisible = visiblePasswords[user.id] || false;
-                        const canViewPassword = canManageUsers && (
-                            currentUser?.role === 'Owner' ||
-                            currentUser?.role === 'General Admin'
-                        ); // Only Owner and GA can view passwords
+                        const canViewPassword = currentUser && ['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role) && !isTargetAdminDeveloper;
 
 
                         return (
                           <TableRow key={user.id}>
-                            <TableCell className="font-medium break-words">{user.username}</TableCell> {/* Allow username to wrap */}
-                             <TableCell className="hidden sm:table-cell"> {/* Hide password cell on small screens */}
+                            <TableCell className="font-medium break-words">{user.username}</TableCell>
+                             <TableCell className="hidden sm:table-cell">
                                 {canViewPassword ? (
                                    <div className="flex items-center gap-1">
                                      <span className="font-mono text-xs break-all text-foreground">
@@ -572,11 +580,10 @@ export default function ManageUsersPage() {
                             <TableCell>
                                 <div className="flex items-center gap-2">
                                     {getRoleIcon(user.role)}
-                                    <span className="whitespace-nowrap">{(usersDict.roles as any)[user.role] || user.role}</span> {/* Prevent role wrap */}
+                                    <span className="whitespace-nowrap">{(usersDict.roles as any)[user.role.toLowerCase().replace(/\s+/g, '')] || user.role}</span>
                                 </div>
                             </TableCell>
-                            <TableCell className="text-right space-x-0 sm:space-x-1 whitespace-nowrap"> {/* Adjust spacing and prevent wrap */}
-                               {/* Edit User Button */}
+                            <TableCell className="text-right space-x-0 sm:space-x-1 whitespace-nowrap">
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -588,7 +595,6 @@ export default function ManageUsersPage() {
                                        <Edit className={`h-4 w-4 ${disableEdit ? 'text-muted-foreground' : 'text-blue-500'}`} />
                                    </Button>
 
-                               {/* Delete User Button */}
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                       <Button variant="ghost" size="icon" disabled={isProcessing || disableDelete} aria-label={isClient ? usersDict.deleteUserButtonLabel : 'Delete User'} title={isClient ? usersDict.deleteUserButtonLabel : 'Delete User'}>
@@ -625,7 +631,6 @@ export default function ManageUsersPage() {
         </CardContent>
       </Card>
 
-      {/* Edit User Dialog */}
       <Dialog open={isEditUserDialogOpen} onOpenChange={(open) => { setIsEditUserDialogOpen(open); if (!open) setEditingUser(null); }}>
           <DialogContent className="sm:max-w-[425px]">
                <DialogHeader>
@@ -655,10 +660,9 @@ export default function ManageUsersPage() {
                                 <FormLabel>{isClient ? usersDict.roleLabel : defaultDict.manageUsersPage.roleLabel}</FormLabel>
                                 <Select
                                    onValueChange={field.onChange}
-                                   value={field.value}
+                                   value={field.value} // Use value for controlled component
                                    disabled={
                                        isProcessing ||
-                                       // Prevent GA from changing role of last GA
                                        (currentUser?.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1)
                                     }
                                 >
@@ -670,13 +674,14 @@ export default function ManageUsersPage() {
                                     <SelectContent>
                                         {divisions
                                             .filter(division => {
-                                                if (currentUser?.role === 'Owner') return true;
-                                                if (currentUser?.role === 'General Admin') return division !== 'Owner'; // GA cannot assign Owner role
+                                                if (!currentUser) return false;
+                                                if (currentUser.role === 'Owner') return true;
+                                                if (currentUser.role === 'General Admin') return division !== 'Owner';
                                                 return false;
                                             })
                                             .map((division) => (
                                                 <SelectItem key={division} value={division}>
-                                                    {(usersDict.roles as any)[division] || division}
+                                                    {(usersDict.roles as any)[division.toLowerCase().replace(/\s+/g, '')] || division}
                                                 </SelectItem>
                                             ))}
                                     </SelectContent>
@@ -685,7 +690,6 @@ export default function ManageUsersPage() {
                                 {(currentUser?.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1) && (
                                     <p className="text-xs text-muted-foreground">{isClient ? usersDict.cannotChangeLastAdminRoleHint : defaultDict.manageUsersPage.cannotChangeLastAdminRoleHint}</p>
                                 )}
-                                 {/* Removed Admin Developer Hint */}
                               </FormItem>
                             )}
                         />

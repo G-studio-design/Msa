@@ -3,7 +3,7 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { getAllUsers, type User } from './user-service';
+import { getAllUsersForDisplay, type User } from './user-service'; // Changed getAllUsers to getAllUsersForDisplay
 import type { Project } from './project-service'; // Import Project type
 
 // Define the structure of a Notification
@@ -87,8 +87,8 @@ async function writeNotifications(notifications: Notification[]): Promise<void> 
  * @returns A promise resolving to an array of User objects with the specified role.
  */
 async function findUsersByRole(role: string): Promise<User[]> {
-    const allUsers = await getAllUsers(); // Assuming getAllUsers doesn't include passwords by default
-    return allUsers.filter(user => user.role === role);
+    const allUsersForDisplay = await getAllUsersForDisplay(); // Use getAllUsersForDisplay
+    return allUsersForDisplay.filter(user => user.role === role);
 }
 
 // --- Notification Service Functions ---

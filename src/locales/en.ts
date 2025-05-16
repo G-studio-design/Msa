@@ -34,6 +34,15 @@ const en = {
     appTitle: 'Msarch App',
     appTitleShort: 'Msarch',
     toggleMenu: 'Toggle Menu Panel',
+    roles: { // For displaying roles in user profile in layout
+        owner: 'Owner',
+        generaladmin: 'General Admin',
+        adminproyek: 'MEP - Project Admin',
+        arsitek: 'MEP - Architect',
+        struktur: 'MEP - Structure',
+        mep: 'MEP - Coordinator',
+        admindev: 'Developer', // Added for Admin Developer
+    },
   },
   // Dashboard Page
   dashboardPage: {
@@ -78,6 +87,7 @@ const en = {
       arsitek: 'MEP - Architect',
       struktur: 'MEP - Structure',
       mep: 'MEP - Coordinator',
+      admindev: 'Developer', // Added for Admin Developer
     },
     progress: '{progress}% Complete',
     averageProgressTitle: 'Average Progress',
@@ -248,13 +258,13 @@ const en = {
   // Add Project Page
   addProjectPage: {
       title: 'Create New Project',
-      description: 'Enter the project title, select a workflow, and upload initial files (Owner/General Admin only).',
+      description: 'Enter the project title, select a workflow, and upload initial files.',
       titleLabel: 'Project Title',
       titlePlaceholder: 'Enter the full project title',
       workflowLabel: 'Select Workflow',
       workflowPlaceholder: 'Choose a workflow type',
       filesLabel: 'Initial Files (Optional)',
-      filesHint: 'Upload any initial documents or briefs related to the project.',
+      filesHint: 'Upload any initial documents or briefs related to the project. Max {max} files.',
       createButton: 'Create Project',
       creatingButton: 'Creating...',
       accessDenied: 'You do not have permission to add new projects.',
@@ -272,7 +282,7 @@ const en = {
   // Manage Users Page
   manageUsersPage: {
     title: 'Manage Users',
-    description: 'Add, edit, or remove user accounts (Owner, General Admin only).',
+    description: 'Add, edit, or remove user accounts.',
     addUserButton: 'Add User',
     addUserDialogTitle: 'Add New User',
     addUserDialogDesc: 'Enter the details for the new user account.',
@@ -306,12 +316,13 @@ const en = {
     deleteDialogConfirm: 'Delete User',
     cannotChangeLastAdminRoleHint: 'Cannot change the role of the last General Admin.',
     roles: {
-      Owner: 'Owner',
-      'General Admin': 'General Admin',
-      'Admin Proyek': 'MEP - Project Admin',
-      Arsitek: 'MEP - Architect',
-      Struktur: 'MEP - Structure',
-      MEP: 'MEP - Coordinator', // Updated label for "MEP" role
+      owner: 'Owner',
+      generaladmin: 'General Admin',
+      adminproyek: 'MEP - Project Admin',
+      arsitek: 'MEP - Architect',
+      struktur: 'MEP - Structure',
+      mep: 'MEP - Coordinator',
+      admindev: 'Developer', // Added for Admin Developer
     },
     toast: {
       userAdded: 'User Added',
@@ -326,7 +337,13 @@ const en = {
       cannotDeleteLastAdmin: 'Cannot delete the last General Admin.',
       permissionDenied: 'Permission Denied',
       editPermissionDenied: 'You do not have permission to edit this user.',
+      cannotEditAdminDev: "The 'Admin Developer' account cannot be edited through this interface.",
+      cannotDeleteAdminDev: "The 'Admin Developer' account cannot be deleted.",
+      cannotCreateAdminDev: "Cannot create user with 'Admin Developer' role.",
+      cannotSetAdminDevRole: "The 'Admin Developer' role cannot be assigned.",
+      cannotChangeAdminDevRole: "The role of 'Admin Developer' cannot be changed.",
       userNotFound: 'User not found.',
+      fetchError: 'Could not load user data.',
     },
     validation: {
       usernameMin: 'Username must be at least 3 characters',
@@ -340,7 +357,7 @@ const en = {
   // Admin Actions Page
   adminActionsPage: {
       title: 'Admin Actions',
-      description: 'Modify project titles or manually change project status (for Owner, General Admin, Project Admin).',
+      description: 'Modify project titles or manually change project status.',
       tableHeaderId: 'Project ID',
       tableHeaderTitle: 'Current Title',
       tableHeaderStatus: 'Status',
@@ -349,6 +366,10 @@ const en = {
       changeStatusButton: 'Change Status',
       changeStatusDialogTitle: 'Change Project Status: {title}',
       changeStatusDialogDesc: 'Manually update the status and assignment for this project. Use with caution.',
+      currentStatusLabel: 'Current Status',
+      currentAssignedDivisionLabel: 'Current Assigned Division',
+      currentNextActionLabel: 'Current Next Action',
+      currentProgressLabel: 'Current Progress',
       newStatusLabel: 'New Status',
       newStatusPlaceholder: 'Select new status',
       newAssignedDivisionLabel: 'New Assigned Division',
@@ -370,6 +391,7 @@ const en = {
           statusChangeSuccess: 'Status Updated Manually',
           statusChangeSuccessDesc: 'Project "{title}" status changed to "{status}". {division} notified.',
           failedToUpdateStatus: 'Failed to update project status manually.',
+          fetchError: 'Could not load project data.',
       },
        accessDeniedTitle: 'Access Denied',
        accessDeniedDesc: 'You do not have permission to access this page.',
@@ -377,7 +399,7 @@ const en = {
    // Manage Workflows Page
   manageWorkflowsPage: {
     title: 'Manage Workflows',
-    description: 'Define and manage project workflows (Owner, General Admin only).',
+    description: 'Define and manage project workflows.',
     addWorkflowButton: 'Add New Workflow',
     tableHeaderName: 'Workflow Name',
     tableHeaderDescription: 'Description',
@@ -393,19 +415,22 @@ const en = {
     accessDeniedTitle: 'Access Denied',
     accessDeniedDesc: 'You do not have the required permissions to manage workflows.',
     addDialogTitle: 'Add New Workflow',
-    addDialogDesc: 'Enter the name and description for the new workflow.',
-    addDialogStepsInfo: 'Workflow steps will be initialized based on the standard project workflow. You can customize them in detail after creation using the "Edit" feature.',
+    addDialogDesc: 'Enter the name and description for the new workflow. Steps will be based on the default standard workflow.',
     addDialogSubmitButton: 'Create Workflow',
     editDialogTitle: 'Edit Workflow: {name}',
-    editDialogDesc: 'Modify the workflow name, description, and steps.',
+    editDialogDesc: 'Modify the workflow name, description, and reorder steps.',
     editDialogSubmitButton: 'Save Changes',
-    editStepsInfo: 'Editing individual steps and transitions will be available in a future update. For now, you can adjust the name and description.',
+    editStepsInfo: 'Drag and drop (or use buttons) to reorder steps. Editing individual step details and transitions will be available later.',
     stepsLabel: 'Workflow Steps',
+    moveStepUp: 'Move Step Up',
+    moveStepDown: 'Move Step Down',
     stepAssignedDivisionLabel: 'Assigned Division',
     stepNextActionLabel: 'Next Action',
     transitionActionLabel: 'Transition on action',
+    noTransitionsDefined: 'No transitions defined for this step.',
     noneLabel: 'None',
-    cannotDeleteDefaultTooltip: 'The default workflow cannot be deleted.',
+    notApplicable: 'N/A',
+    cannotDeleteDefaultTooltip: 'The default standard workflow cannot be deleted if it is the last one remaining.',
     formLabels: {
       name: 'Workflow Name',
       description: 'Description (Optional)',
@@ -429,8 +454,6 @@ const en = {
       deleteSuccessTitle: 'Workflow Deleted',
       deleteSuccessDesc: 'Workflow "{name}" has been deleted.',
       deleteError: 'Failed to delete workflow.',
-      comingSoon: 'Coming Soon',
-      editComingSoon: 'Editing workflow "{name}" will be available in a future update.',
     }
   },
   // Settings Page
@@ -481,6 +504,12 @@ const en = {
     googleCalendarErrorUnlinking: 'Failed to unlink Google Calendar.',
     googleCalendarLinkSuccess: 'Google Calendar linked successfully!',
     googleCalendarUnlinkSuccess: 'Google Calendar unlinked.',
+    googleCalendarOAuthFailed: 'Google OAuth failed. Please try again.',
+    googleCalendarNoCode: 'No authorization code received from Google.',
+    googleCalendarNoAccessToken: 'No access token received from Google.',
+    googleCalendarNoEmail: 'Could not retrieve email from Google profile.',
+    googleCalendarUserNotFound: 'User with email {email} not found. Please register or link manually.',
+    googleCalendarTokenExchangeFailed: 'Failed to exchange Google token.',
     toast: {
         error: 'Error',
         success: 'Success',
@@ -543,7 +572,6 @@ const en = {
       summaryTitle: "Summary",
       chartTitleWord: "Project Status Overview",
       tableCaptionWord: "Detailed Project List",
-      totalProjectsDescWord: "Total Projects Reviewed: {total}",
       status: { 
         completed: 'Completed',
         inprogress: 'In Progress',

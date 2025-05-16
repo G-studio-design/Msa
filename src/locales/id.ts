@@ -34,6 +34,15 @@ const id = {
     appTitle: 'Msarch App',
     appTitleShort: 'Msarch',
     toggleMenu: 'Buka/Tutup Panel Menu',
+    roles: { // Untuk menampilkan peran pengguna di profil di layout
+        owner: 'Pemilik',
+        generaladmin: 'Admin Umum',
+        adminproyek: 'MEP - Admin Proyek',
+        arsitek: 'MEP - Arsitek',
+        struktur: 'MEP - Struktur',
+        mep: 'MEP - Koordinator',
+        admindev: 'Developer', // Ditambahkan untuk Admin Developer
+    },
   },
   // Dashboard Page
   dashboardPage: {
@@ -78,6 +87,7 @@ const id = {
       arsitek: 'MEP - Arsitek',
       struktur: 'MEP - Struktur',
       mep: 'MEP - Koordinator',
+      admindev: 'Developer', // Ditambahkan untuk Admin Developer
     },
      progress: '{progress}% Selesai',
      averageProgressTitle: 'Rata-rata Progres',
@@ -248,13 +258,13 @@ const id = {
    // Add Project Page
    addProjectPage: {
        title: 'Buat Proyek Baru',
-       description: 'Masukkan judul proyek, pilih alur kerja, dan unggah file awal (Hanya Pemilik/Admin Umum).',
+       description: 'Masukkan judul proyek, pilih alur kerja, dan unggah file awal.',
        titleLabel: 'Judul Proyek',
        titlePlaceholder: 'Masukkan judul proyek lengkap',
        workflowLabel: 'Pilih Alur Kerja',
        workflowPlaceholder: 'Pilih jenis alur kerja',
        filesLabel: 'File Awal (Opsional)',
-       filesHint: 'Unggah dokumen awal atau brief terkait proyek.',
+       filesHint: 'Unggah dokumen awal atau brief terkait proyek. Maks {max} file.',
        createButton: 'Buat Proyek',
        creatingButton: 'Membuat...',
        accessDenied: 'Anda tidak memiliki izin untuk menambahkan proyek baru.',
@@ -272,7 +282,7 @@ const id = {
   // Manage Users Page
   manageUsersPage: {
     title: 'Kelola Pengguna',
-    description: 'Tambah, ubah, atau hapus akun pengguna (Hanya Pemilik, Admin Umum).',
+    description: 'Tambah, ubah, atau hapus akun pengguna.',
     addUserButton: 'Tambah Pengguna',
     addUserDialogTitle: 'Tambah Pengguna Baru',
     addUserDialogDesc: 'Masukkan detail untuk akun pengguna baru.',
@@ -306,12 +316,13 @@ const id = {
     deleteDialogConfirm: 'Hapus Pengguna',
     cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin Umum terakhir.',
     roles: {
-       Owner: 'Pemilik',
-       'General Admin': 'Admin Umum',
-       'Admin Proyek': 'MEP - Admin Proyek',
-       Arsitek: 'MEP - Arsitek',
-       Struktur: 'MEP - Struktur',
-       MEP: 'MEP - Koordinator', // Label baru untuk peran "MEP"
+       owner: 'Pemilik',
+       generaladmin: 'Admin Umum',
+       adminproyek: 'MEP - Admin Proyek',
+       arsitek: 'MEP - Arsitek',
+       struktur: 'MEP - Struktur',
+       mep: 'MEP - Koordinator',
+       admindev: 'Developer', // Ditambahkan untuk Admin Developer
      },
     toast: {
         userAdded: 'Pengguna Ditambahkan',
@@ -326,7 +337,13 @@ const id = {
         cannotDeleteLastAdmin: 'Tidak dapat menghapus Admin Umum terakhir.',
         permissionDenied: 'Izin Ditolak',
         editPermissionDenied: 'Anda tidak memiliki izin untuk mengubah pengguna ini.',
+        cannotEditAdminDev: "Akun 'Admin Developer' tidak dapat diubah melalui antarmuka ini.",
+        cannotDeleteAdminDev: "Akun 'Admin Developer' tidak dapat dihapus.",
+        cannotCreateAdminDev: "Tidak dapat membuat pengguna dengan peran 'Admin Developer'.",
+        cannotSetAdminDevRole: "Peran 'Admin Developer' tidak dapat ditetapkan.",
+        cannotChangeAdminDevRole: "Peran 'Admin Developer' tidak dapat diubah.",
         userNotFound: 'Pengguna tidak ditemukan.',
+        fetchError: 'Tidak dapat memuat data pengguna.',
     },
     validation: {
        usernameMin: 'Nama pengguna minimal 3 karakter',
@@ -340,7 +357,7 @@ const id = {
    // Admin Actions Page
    adminActionsPage: {
        title: 'Tindakan Admin',
-       description: 'Ubah judul proyek atau ubah status proyek secara manual (untuk Pemilik, Admin Umum, Admin Proyek).',
+       description: 'Ubah judul proyek atau ubah status proyek secara manual.',
        tableHeaderId: 'ID Proyek',
        tableHeaderTitle: 'Judul Saat Ini',
        tableHeaderStatus: 'Status',
@@ -349,6 +366,10 @@ const id = {
        changeStatusButton: 'Ubah Status',
        changeStatusDialogTitle: 'Ubah Status Proyek: {title}',
        changeStatusDialogDesc: 'Perbarui status dan penugasan untuk proyek ini secara manual. Gunakan dengan hati-hati.',
+       currentStatusLabel: 'Status Saat Ini',
+       currentAssignedDivisionLabel: 'Divisi Ditugaskan Saat Ini',
+       currentNextActionLabel: 'Tindakan Berikutnya Saat Ini',
+       currentProgressLabel: 'Progres Saat Ini',
        newStatusLabel: 'Status Baru',
        newStatusPlaceholder: 'Pilih status baru',
        newAssignedDivisionLabel: 'Divisi Baru yang Ditugaskan',
@@ -370,6 +391,7 @@ const id = {
            statusChangeSuccess: 'Status Diperbarui Secara Manual',
            statusChangeSuccessDesc: 'Status proyek "{title}" diubah menjadi "{status}". {division} diberitahu.',
            failedToUpdateStatus: 'Gagal memperbarui status proyek secara manual.',
+           fetchError: 'Tidak dapat memuat data proyek.',
        },
        accessDeniedTitle: 'Akses Ditolak',
        accessDeniedDesc: 'Anda tidak memiliki izin untuk mengakses halaman ini.',
@@ -377,7 +399,7 @@ const id = {
   // Manage Workflows Page
   manageWorkflowsPage: {
     title: 'Kelola Alur Kerja',
-    description: 'Definisikan dan kelola alur kerja proyek (Hanya Pemilik, Admin Umum).',
+    description: 'Definisikan dan kelola alur kerja proyek.',
     addWorkflowButton: 'Tambah Alur Kerja Baru',
     tableHeaderName: 'Nama Alur Kerja',
     tableHeaderDescription: 'Deskripsi',
@@ -393,19 +415,22 @@ const id = {
     accessDeniedTitle: 'Akses Ditolak',
     accessDeniedDesc: 'Anda tidak memiliki izin yang diperlukan untuk mengelola alur kerja.',
     addDialogTitle: 'Tambah Alur Kerja Baru',
-    addDialogDesc: 'Masukkan nama dan deskripsi untuk alur kerja baru.',
-    addDialogStepsInfo: 'Langkah-langkah alur kerja akan diinisialisasi berdasarkan alur kerja proyek standar. Anda dapat menyesuaikannya secara detail setelah pembuatan menggunakan fitur "Ubah".',
+    addDialogDesc: 'Masukkan nama dan deskripsi untuk alur kerja baru. Langkah-langkah akan didasarkan pada alur kerja standar default.',
     addDialogSubmitButton: 'Buat Alur Kerja',
     editDialogTitle: 'Ubah Alur Kerja: {name}',
-    editDialogDesc: 'Modifikasi nama, deskripsi, dan langkah-langkah alur kerja.',
+    editDialogDesc: 'Modifikasi nama, deskripsi, dan urutan langkah alur kerja.',
     editDialogSubmitButton: 'Simpan Perubahan',
-    editStepsInfo: 'Mengedit langkah dan transisi individual akan tersedia di pembaruan mendatang. Untuk saat ini, Anda dapat menyesuaikan nama dan deskripsi.',
+    editStepsInfo: 'Seret dan lepas (atau gunakan tombol) untuk mengatur ulang langkah. Pengeditan detail langkah dan transisi individual akan tersedia nanti.',
     stepsLabel: 'Langkah Alur Kerja',
+    moveStepUp: 'Pindah Langkah ke Atas',
+    moveStepDown: 'Pindah Langkah ke Bawah',
     stepAssignedDivisionLabel: 'Divisi Ditugaskan',
     stepNextActionLabel: 'Tindakan Berikutnya',
     transitionActionLabel: 'Transisi pada tindakan',
-    noneLabel: 'Tidak ada',
-    cannotDeleteDefaultTooltip: 'Alur kerja default tidak dapat dihapus.',
+    noTransitionsDefined: 'Tidak ada transisi yang didefinisikan untuk langkah ini.',
+    noneLabel: 'Tidak Ada',
+    notApplicable: 'T/A',
+    cannotDeleteDefaultTooltip: 'Alur kerja standar default tidak dapat dihapus jika ini adalah satu-satunya yang tersisa.',
     formLabels: {
       name: 'Nama Alur Kerja',
       description: 'Deskripsi (Opsional)',
@@ -429,8 +454,6 @@ const id = {
       deleteSuccessTitle: 'Alur Kerja Dihapus',
       deleteSuccessDesc: 'Alur kerja "{name}" telah dihapus.',
       deleteError: 'Gagal menghapus alur kerja.',
-      comingSoon: 'Segera Hadir',
-      editComingSoon: 'Pengeditan alur kerja "{name}" akan tersedia di pembaruan mendatang.',
     }
   },
   // Settings Page
@@ -481,6 +504,12 @@ const id = {
     googleCalendarErrorUnlinking: 'Gagal memutuskan Google Kalender.',
     googleCalendarLinkSuccess: 'Google Kalender berhasil dihubungkan!',
     googleCalendarUnlinkSuccess: 'Google Kalender diputuskan.',
+    googleCalendarOAuthFailed: 'Otentikasi Google gagal. Silakan coba lagi.',
+    googleCalendarNoCode: 'Tidak ada kode otorisasi yang diterima dari Google.',
+    googleCalendarNoAccessToken: 'Tidak ada token akses yang diterima dari Google.',
+    googleCalendarNoEmail: 'Tidak dapat mengambil email dari profil Google.',
+    googleCalendarUserNotFound: 'Pengguna dengan email {email} tidak ditemukan. Harap daftar atau tautkan secara manual.',
+    googleCalendarTokenExchangeFailed: 'Gagal menukar token Google.',
     toast: {
         error: 'Kesalahan',
         success: 'Berhasil',
@@ -543,7 +572,6 @@ const id = {
        summaryTitle: "Ringkasan",
        chartTitleWord: "Tinjauan Status Proyek",
        tableCaptionWord: "Daftar Detail Proyek",
-       totalProjectsDescWord: "Total Proyek Ditinjau: {total}",
        status: { 
          completed: 'Selesai',
          inprogress: 'Sedang Berjalan',
