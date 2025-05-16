@@ -1,3 +1,4 @@
+
 // src/app/dashboard/projects/page.tsx
 'use client';
 
@@ -48,7 +49,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { scheduleEvent } from '@/services/google-calendar';
+// import { scheduleEvent } from '@/services/google-calendar'; // Import has been removed as per previous request.
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
@@ -67,11 +68,11 @@ import { useSearchParams, useRouter } from 'next/navigation';
 
 const defaultDict = getDictionary('en');
 
-const projectStatuses = [
-    'Pending Input', 'Pending Offer', 'Pending Approval', 'Pending DP Invoice',
+const projectStatuses = [ // This list might need to be dynamically generated from workflows in the future
+    'Pending Offer', 'Pending Approval', 'Pending DP Invoice',
     'Pending Admin Files', 'Pending Architect Files', 'Pending Structure Files',
-    'Pending Final Check', 'Pending Scheduling', 'Scheduled', 'In Progress',
-    'Completed', 'Canceled'
+    'Pending MEP Files', 'Pending Final Check', 'Pending Scheduling', 'Scheduled', 
+    'In Progress', 'Completed', 'Canceled', 'Pending Consultation Docs', 'Pending Review'
 ];
 
 const MAX_FILES_UPLOAD = 10;
@@ -92,7 +93,7 @@ export default function ProjectsPage() {
   const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
 
   const [description, setDescription] = React.useState('');
-  const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]); // State for File objects from input
+  const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [scheduleDate, setScheduleDate] = React.useState('');
   const [scheduleTime, setScheduleTime] = React.useState('');
@@ -201,17 +202,7 @@ export default function ProjectsPage() {
 
   const canPerformSelectedProjectAction = React.useMemo(() => {
     if (!currentUser || !selectedProject) return false;
-     if (['Owner', 'General Admin'].includes(currentUser.role)) {
-       if (currentUser.role === selectedProject.assignedDivision) return true;
-       if (selectedProject.status === 'Pending Scheduling' || selectedProject.status === 'Pending Approval') return true;
-       if (selectedProject.status === 'Scheduled' && selectedProject.assignedDivision === 'Owner') return true;
-       if (!['Arsitek', 'Struktur'].includes(selectedProject.assignedDivision)) {
-            return true;
-        }
-     }
-    if (currentUser.role === selectedProject.assignedDivision) return true;
-    if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer') return true;
-    return false;
+    return currentUser.role === selectedProject.assignedDivision;
   }, [currentUser, selectedProject]);
 
   const getTranslatedStatus = React.useCallback((statusKey: string): string => {
@@ -237,7 +228,7 @@ export default function ProjectsPage() {
         case 'delayed': case 'tertunda': variant = 'destructive'; className = 'bg-orange-500 text-white hover:bg-orange-600 border-orange-500'; Icon = Clock; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginput': case 'menunggu input': case 'pendingoffer': case 'menunggu penawaran': variant = 'outline'; className = 'border-blue-500 text-blue-600'; Icon = Clock; break;
-        case 'pendingdpinvoice': case 'menunggu faktur dp': case 'pendingadminfiles': case 'menunggu file admin': case 'pendingarchitectfiles': case 'menunggu file arsitek': case 'pendingstructurefiles': case 'menunggu file struktur': case 'pendingfinalcheck': case 'menunggu pemeriksaan akhir': case 'pendingscheduling': case 'menunggu penjadwalan': variant = 'secondary'; Icon = Clock; break;
+        case 'pendingdpinvoice': case 'menunggu faktur dp': case 'pendingadminfiles': case 'menunggu file admin': case 'pendingarchitectfiles': case 'menunggu file arsitek': case 'pendingstructurefiles': case 'menunggu file struktur': case 'pendingmepfiles': case 'menunggu file mep': case 'pendingfinalcheck': case 'menunggu pemeriksaan akhir': case 'pendingscheduling': case 'menunggu penjadwalan': case 'pendingconsultationdocs': case 'menunggu dok. konsultasi': case 'pendingreview': case 'menunggu tinjauan': variant = 'secondary'; Icon = Clock; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = 'bg-purple-500 text-white hover:bg-purple-600'; Icon = Clock; break;
         default: variant = 'secondary'; Icon = Clock;
     }
@@ -245,16 +236,25 @@ export default function ProjectsPage() {
   }, [isClient, dashboardDict]);
 
 
-  const handleProgressSubmit = async () => {
-    if (!currentUser || !selectedProject || !canPerformSelectedProjectAction) {
+  const handleProgressSubmit = async (actionTaken: string = 'submitted') => {
+    if (!currentUser || !selectedProject) {
       toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.notYourTurn });
       return;
     }
+
+    // Specific check for Admin Proyek during Pending Offer
     if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer' && uploadedFiles.length === 0) {
         toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: projectsDict.toast.provideOfferFile });
         return;
     }
-    if (!description && uploadedFiles.length === 0 && selectedProject.status !== 'Pending Scheduling' && !['Owner', 'General Admin'].includes(currentUser.role) && !(currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer')) {
+    
+    // General check for description or files if not a special status/role
+    const isSpecialCaseForSubmission = 
+        selectedProject.status === 'Pending Scheduling' || // Scheduling has its own form
+        selectedProject.status === 'Pending Approval' || // Approval is a decision, not file/desc upload
+        ['Completed', 'Canceled'].includes(selectedProject.status);
+
+    if (!isSpecialCaseForSubmission && !description && uploadedFiles.length === 0 && actionTaken === 'submitted') {
        toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: projectsDict.toast.provideDescOrFile });
        return;
      }
@@ -267,13 +267,10 @@ export default function ProjectsPage() {
             const formData = new FormData();
             formData.append('file', file);
             formData.append('projectId', selectedProject.id);
-            formData.append('projectTitle', selectedProject.title); // Send title for folder creation
+            formData.append('projectTitle', selectedProject.title);
 
             try {
-                const response = await fetch('/api/upload-file', {
-                    method: 'POST',
-                    body: formData,
-                });
+                const response = await fetch('/api/upload-file', { method: 'POST', body: formData });
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({ message: 'File upload failed with status ' + response.status }));
                     throw new Error(errorData.message || `File upload failed for ${file.name}`);
@@ -282,7 +279,7 @@ export default function ProjectsPage() {
                 uploadedFileEntries.push({
                     name: result.originalName,
                     uploadedBy: currentUser.username,
-                    path: result.relativePath, // Server returns relative path
+                    path: result.relativePath,
                 });
             } catch (error: any) {
                 console.error("Error uploading file:", file.name, error);
@@ -293,156 +290,144 @@ export default function ProjectsPage() {
         }
     }
 
+    try {
+        // updateProject now takes actionTaken as a parameter
+        await updateProject({
+            projectId: selectedProject.id,
+            updaterRole: currentUser.role,
+            updaterUsername: currentUser.username,
+            actionTaken: actionTaken, // e.g., 'submitted', 'approved', 'rejected'
+            files: uploadedFileEntries,
+            note: description,
+            // For scheduling, these would be relevant. For other actions, they might be undefined/null.
+            scheduleDetails: selectedProject.status === 'Pending Scheduling' && actionTaken === 'scheduled' ? {
+                date: scheduleDate,
+                time: scheduleTime,
+                location: scheduleLocation
+            } : undefined
+        });
 
-    let nextStatus = selectedProject.status;
-    let nextDivision = selectedProject.assignedDivision;
-    let newProgress = selectedProject.progress;
-    let nextActionDescription = selectedProject.nextAction;
-    const historyEntry: WorkflowHistoryEntry = { division: currentUser.role, action: `Submitted Progress`, timestamp: new Date().toISOString(), note: description || undefined };
-    
-    // Construct new file entries with timestamps
-    const now = new Date().toISOString();
-    const newFilesWithTimestamp: FileEntry[] = uploadedFileEntries.map(fileMeta => ({
-        ...fileMeta,
-        timestamp: now,
-    }));
-
-
-    switch (currentUser.role) {
-        case 'Admin Proyek':
-             if (selectedProject.status === 'Pending Offer') { nextStatus = 'Pending Approval'; nextDivision = 'Owner'; newProgress = 20; nextActionDescription = projectsDict.workflowActions.approveOffer; historyEntry.action = projectsDict.workflowActions.uploadedOffer; }
-              else if (selectedProject.status === 'Pending Admin Files') { nextStatus = 'Pending Architect Files'; nextDivision = 'Arsitek'; newProgress = 50; nextActionDescription = projectsDict.workflowActions.uploadArchitectFiles; historyEntry.action = projectsDict.workflowActions.uploadedAdminFiles; }
-              else if (selectedProject.status === 'Pending Final Check') { nextStatus = 'Pending Scheduling'; nextDivision = 'General Admin'; newProgress = 90; nextActionDescription = projectsDict.workflowActions.scheduleSidang; historyEntry.action = projectsDict.workflowActions.completedFinalCheck; }
-            break;
-        case 'General Admin':
-            if (selectedProject.status === 'Pending DP Invoice') { nextStatus = 'Pending Approval'; nextDivision = 'Owner'; newProgress = 30; nextActionDescription = projectsDict.workflowActions.approveDPInvoice; historyEntry.action = projectsDict.workflowActions.uploadedDPInvoice;}
-            break;
-        case 'Arsitek':
-            if (selectedProject.status === 'Pending Architect Files') { nextStatus = 'Pending Structure Files'; nextDivision = 'Struktur'; newProgress = 70; nextActionDescription = projectsDict.workflowActions.uploadStructureFiles; historyEntry.action = projectsDict.workflowActions.uploadedArchitectFiles;}
-            break;
-        case 'Struktur':
-             if (selectedProject.status === 'Pending Structure Files') { nextStatus = 'Pending Final Check'; nextDivision = 'Admin Proyek'; newProgress = 80; nextActionDescription = projectsDict.workflowActions.performFinalCheck; historyEntry.action = projectsDict.workflowActions.uploadedStructureFiles;}
-             break;
-        default: historyEntry.action = `${projectsDict.workflowActions.submittedProgressFor} ${getTranslatedStatus(selectedProject.status)}`;
-    }
-
-    const updatedProjectData: Project = {
-        ...selectedProject,
-        status: nextStatus,
-        assignedDivision: nextDivision,
-        progress: newProgress,
-        nextAction: nextActionDescription,
-        workflowHistory: [...selectedProject.workflowHistory, historyEntry],
-        files: [...selectedProject.files, ...newFilesWithTimestamp], 
-      };
-
-     try {
-        await updateProject(updatedProjectData);
-        const newlyUpdatedProject = await fetchProjectById(updatedProjectData.id); 
+        const newlyUpdatedProject = await fetchProjectById(selectedProject.id); 
 
         if (newlyUpdatedProject) {
             setAllProjects(prev => prev.map(p => p.id === newlyUpdatedProject.id ? newlyUpdatedProject : p));
-             if (selectedProject?.id === newlyUpdatedProject.id) setSelectedProject(newlyUpdatedProject);
-        } else {
-            setAllProjects(prev => prev.map(p => p.id === updatedProjectData.id ? updatedProjectData : p));
-             if (selectedProject?.id === updatedProjectData.id) setSelectedProject(updatedProjectData);
+            if (selectedProject?.id === newlyUpdatedProject.id) setSelectedProject(newlyUpdatedProject);
         }
+        
         setDescription('');
         setUploadedFiles([]);
-        if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer' && nextStatus === 'Pending Approval') {
-            toast({ title: projectsDict.toast.offerSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', getTranslatedStatus(nextDivision)) });
-        } else {
-            toast({ title: projectsDict.toast.progressSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', getTranslatedStatus(nextDivision)) });
-        }
-      } catch (error) {
+        setScheduleDate('');
+        setScheduleTime('');
+        setScheduleLocation('');
+
+        toast({ title: projectsDict.toast.progressSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', getTranslatedStatus(newlyUpdatedProject?.assignedDivision || '')) });
+        
+      } catch (error: any) {
          console.error("Error updating project:", error);
-         toast({ variant: 'destructive', title: projectsDict.toast.updateError, description: projectsDict.toast.failedToSubmitProgress });
+         toast({ variant: 'destructive', title: projectsDict.toast.updateError, description: error.message || projectsDict.toast.failedToSubmitProgress });
       } finally {
          setIsSubmitting(false);
       }
   };
 
-  const handleDecision = (decision: 'continue' | 'cancel') => {
-     if (currentUser?.role !== 'Owner' || !selectedProject) {
-       toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.onlyOwnerDecision });
-       return;
-     }
-     setIsSubmitting(true);
-     new Promise(resolve => setTimeout(resolve, 1000)).then(async () => {
-       let nextStatus = selectedProject.status;
-       let nextDivision = selectedProject.assignedDivision;
-       let newProgress = selectedProject.progress;
-       let nextActionDescription = selectedProject.nextAction;
-        const historyEntry: WorkflowHistoryEntry = { division: currentUser!.role, action: '', timestamp: new Date().toISOString() };
 
-       if (decision === 'cancel') {
-         nextStatus = 'Canceled'; nextDivision = ''; newProgress = selectedProject.progress; nextActionDescription = ''; historyEntry.action = projectsDict.workflowActions.canceledProject;
-         toast({ variant: 'destructive', title: projectsDict.toast.projectCanceled });
-       } else {
-         if (selectedProject.status === 'Pending Approval') {
-            if (selectedProject.progress === 20) { nextStatus = 'Pending DP Invoice'; nextDivision = 'General Admin'; newProgress = 25; nextActionDescription = projectsDict.workflowActions.generateDPInvoice; historyEntry.action = projectsDict.workflowActions.approvedOffer; toast({ title: projectsDict.toast.offerApproved, description: projectsDict.toast.offerApprovedDesc.replace('{division}', getTranslatedStatus(nextDivision)) });}
-            else if (selectedProject.progress === 30) { nextStatus = 'Pending Admin Files'; nextDivision = 'Admin Proyek'; newProgress = 40; nextActionDescription = projectsDict.workflowActions.uploadAdminFiles; historyEntry.action = projectsDict.workflowActions.approvedDPInvoice; toast({ title: projectsDict.toast.dpApproved, description: projectsDict.toast.dpApprovedDesc.replace('{division}', getTranslatedStatus(nextDivision)) });}
-         } else if (selectedProject.status === 'Scheduled') { nextStatus = 'Completed'; nextDivision = ''; newProgress = 100; nextActionDescription = ''; historyEntry.action = projectsDict.workflowActions.markedAsCompleted; toast({ title: projectsDict.toast.progressCompleted });}
-       }
-       const updatedProjectData: Project = { ...selectedProject, status: nextStatus, assignedDivision: nextDivision, progress: newProgress, nextAction: nextActionDescription, workflowHistory: [...selectedProject.workflowHistory, historyEntry]};
-        try {
-            await updateProject(updatedProjectData);
-             setAllProjects(prev => prev.map(p => p.id === updatedProjectData.id ? updatedProjectData : p));
-             if (selectedProject?.id === updatedProjectData.id) setSelectedProject(updatedProjectData);
-        } catch (error) {
-            console.error("Error updating project after decision:", error);
-            toast({ variant: 'destructive', title: projectsDict.toast.updateError, description: projectsDict.toast.failedToProcessDecision });
-        } finally {
-             setIsSubmitting(false);
-        }
-     });
+  const handleDecision = (decision: 'approved' | 'rejected' | 'canceled' | 'completed' | 'revise_after_sidang' | 'canceled_after_sidang') => {
+    // 'rejected' can also be used for revision requests before final sidang outcome
+    if (!currentUser || !selectedProject || currentUser.role !== 'Owner') { // Simplified: only Owner makes these decisions for now
+      toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.onlyOwnerDecision });
+      return;
+    }
+    
+    // For revision, ensure revisionNote is provided
+    let noteForHistory = description; // General description can be used as note
+    if (decision === 'rejected' && selectedProject.status === 'Pending Approval' && !revisionNote.trim()) {
+      // If it's a "reject/revise" action during an approval phase, a note might be good.
+      // For now, we will use the general 'description' if 'revisionNote' is specific to a different UI element.
+      // If 'revisionNote' is the dedicated field for this, check it:
+      // if (!revisionNote.trim()) {
+      //   toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: projectsDict.toast.revisionNoteRequired });
+      //   return;
+      // }
+      // noteForHistory = revisionNote;
+    }
+
+
+    handleProgressSubmit(decision); // Pass the decision as actionTaken
+    setRevisionNote(''); // Clear revision note after submission attempt
   };
 
   const handleScheduleSubmit = () => {
-     if (!currentUser || !['Owner', 'General Admin'].includes(currentUser.role) || !selectedProject) {
-       toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.schedulingPermissionDenied });
-       return;
+     if (!currentUser || !selectedProject ) {
+        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.schedulingPermissionDenied });
+        return;
      }
+     // Check if current user is the assigned one for "Pending Scheduling" OR is an Owner
+     const canSchedule = (currentUser.role === selectedProject.assignedDivision && selectedProject.status === 'Pending Scheduling') || 
+                         (currentUser.role === 'Owner' && selectedProject.status === 'Pending Scheduling');
+
+     if (!canSchedule) {
+        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.schedulingPermissionDenied });
+        return;
+     }
+
      if (!scheduleDate || !scheduleTime || !scheduleLocation) {
          toast({ variant: 'destructive', title: projectsDict.toast.missingScheduleInfo, description: projectsDict.toast.provideDateTimeLoc });
          return;
      }
-     setIsSubmitting(true);
-     const sidangDateTime = new Date(`${scheduleDate}T${scheduleTime}`);
-     new Promise(resolve => setTimeout(resolve, 1000)).then(async () => {
-        const historyEntry: WorkflowHistoryEntry = { division: currentUser!.role, action: `${projectsDict.workflowActions.scheduledSidangFor} ${sidangDateTime.toISOString()}`, timestamp: new Date().toISOString() };
-        const updatedProjectData: Project = { ...selectedProject, status: 'Scheduled', assignedDivision: 'Owner', nextAction: projectsDict.workflowActions.declareSidangOutcome, workflowHistory: [...selectedProject.workflowHistory, historyEntry]};
-        try {
-            await updateProject(updatedProjectData);
-            setAllProjects(prev => prev.map(p => p.id === updatedProjectData.id ? updatedProjectData : p));
-            if (selectedProject?.id === updatedProjectData.id) setSelectedProject(updatedProjectData);
-            setScheduleDate(''); setScheduleTime(''); setScheduleLocation('');
-            toast({ title: projectsDict.toast.sidangScheduled, description: projectsDict.toast.sidangScheduledDesc });
-            handleAddToCalendar(sidangDateTime, scheduleLocation);
-        } catch (error) {
-            console.error("Error updating project after scheduling:", error);
-            toast({ variant: 'destructive', title: projectsDict.toast.updateError, description: projectsDict.toast.failedToSaveSchedule });
-        } finally {
-            setIsSubmitting(false);
-        }
-     });
+     // The actual submission of schedule details is now part of handleProgressSubmit
+     handleProgressSubmit('scheduled');
   };
 
-    const handleAddToCalendar = async (scheduledDateTime: Date, location: string) => {
-      if (!selectedProject || selectedProject.status !== 'Scheduled' || !scheduledDateTime) {
+    const handleAddToCalendar = async () => {
+      if (!selectedProject || selectedProject.status !== 'Scheduled' || !currentUser) {
         toast({ variant: 'destructive', title: projectsDict.toast.cannotAddCalendarYet, description: projectsDict.toast.mustScheduleFirst });
         return;
       }
-        const eventLocation = location || projectsDict.defaultMeetingLocation;
-        const endTime = new Date(scheduledDateTime.getTime() + 60 * 60 * 1000);
-      const eventDetails = { title: `${projectsDict.sidangEventTitlePrefix}: ${selectedProject.title}`, location: eventLocation, startTime: scheduledDateTime.toISOString(), endTime: endTime.toISOString(), description: `${projectsDict.sidangEventDescPrefix}: ${selectedProject.title}`};
+
+      const schedulingEntry = selectedProject.workflowHistory.find(
+        entry => entry.action.startsWith(projectsDict.workflowActions.scheduledSidangFor.substring(0,10)) // More robust check
+      );
+
+      if (!schedulingEntry || !schedulingEntry.note) {
+        toast({ variant: 'destructive', title: projectsDict.toast.errorFindingSchedule, description: projectsDict.toast.couldNotFindSchedule });
+        return;
+      }
+      
+      // Assuming note for scheduling is "YYYY-MM-DDTHH:MM|Location"
+      const [dateTimeString, location] = schedulingEntry.note.split('|');
+      if (!dateTimeString || !location) {
+        toast({ variant: 'destructive', title: projectsDict.toast.errorFindingSchedule, description: "Invalid schedule format in history." });
+        return;
+      }
+      const scheduledDateTime = new Date(dateTimeString);
+      const endTime = new Date(scheduledDateTime.getTime() + 60 * 60 * 1000); // Assume 1 hour duration
+
+      const eventDetails = { 
+        title: `${projectsDict.sidangEventTitlePrefix}: ${selectedProject.title}`, 
+        location: location, 
+        startTime: scheduledDateTime.toISOString(), 
+        endTime: endTime.toISOString(), 
+        description: `${projectsDict.sidangEventDescPrefix}: ${selectedProject.title}`
+      };
+
       try {
         setIsAddingToCalendar(true);
-        const eventId = await scheduleEvent(eventDetails);
-        toast({ title: projectsDict.toast.addedToCalendar, description: projectsDict.toast.eventId.replace('{id}', eventId) });
-      } catch (error) {
+        // The actual API call to Google Calendar via your backend
+        const response = await fetch('/api/calendar/create-event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: currentUser.id, eventDetails }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.details || errorData.error || 'Failed to create calendar event.');
+        }
+        const result = await response.json();
+        toast({ title: projectsDict.toast.addedToCalendar, description: projectsDict.toast.eventId.replace('{id}', result.eventId || 'N/A') });
+      } catch (error: any) {
         console.error("Error scheduling event:", error);
-        toast({ variant: 'destructive', title: projectsDict.toast.calendarError, description: projectsDict.toast.couldNotAddEvent });
+        toast({ variant: 'destructive', title: projectsDict.toast.calendarError, description: error.message || projectsDict.toast.couldNotAddEvent });
       } finally {
         setIsAddingToCalendar(false);
       }
@@ -450,17 +435,19 @@ export default function ProjectsPage() {
 
     const roleFilteredProjects = React.useMemo(() => {
         if (!currentUser || !isClient || isLoadingProjects) return [];
-        let projectsToFilter = allProjects;
-         if (currentUser.role === 'Admin Proyek') {
-            projectsToFilter = allProjects; 
-         }
-         else if (!['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role)) {
-            projectsToFilter = allProjects.filter(project =>
-                 project.assignedDivision === currentUser.role ||
-                 (project.nextAction && project.nextAction.toLowerCase().includes(currentUser.role.toLowerCase()))
-             );
-         }
-         return projectsToFilter;
+        // Admin Developer sees all projects
+        if (currentUser.role === 'Admin Developer') {
+            return allProjects;
+        }
+        // Owner, General Admin, Admin Proyek see all projects
+        if (['Owner', 'General Admin', 'Admin Proyek'].includes(currentUser.role)) {
+            return allProjects;
+        }
+        // Other roles see projects assigned to them or where they are part of next action
+        return allProjects.filter(project =>
+            project.assignedDivision === currentUser.role ||
+            (project.nextAction && project.nextAction.toLowerCase().includes(currentUser.role.toLowerCase()))
+        );
     }, [currentUser, allProjects, isClient, isLoadingProjects]);
 
     React.useEffect(() => {
@@ -482,19 +469,46 @@ export default function ProjectsPage() {
     };
 
    const showUploadSection = React.useMemo(() => {
-        if (!selectedProject || !currentUser) return false;
-        if (!canPerformSelectedProjectAction) return false;
-        return ( (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer') ||
-            ( selectedProject.assignedDivision === currentUser.role && !['Pending Approval', 'Pending Scheduling', 'Scheduled', 'Completed', 'Canceled'].includes(selectedProject.status)) ||
-             (['Owner', 'General Admin'].includes(currentUser.role) && selectedProject.assignedDivision === currentUser.role && !['Pending Architect Files', 'Pending Structure Files'].includes(selectedProject.status))
-        );
+        if (!selectedProject || !currentUser || !canPerformSelectedProjectAction) return false;
+        // Only show if it's the assigned division's turn and the status expects a file submission
+        // (not for approval, scheduling, or terminal statuses)
+        const statusesExpectingUpload = [
+            'Pending Offer', 'Pending DP Invoice', 'Pending Admin Files',
+            'Pending Architect Files', 'Pending Structure Files', 'Pending MEP Files',
+            'Pending Consultation Docs' // Example for a different workflow
+        ];
+        return statusesExpectingUpload.includes(selectedProject.status);
    }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
-   const showOwnerDecisionSection = React.useMemo(() => selectedProject && selectedProject.status === 'Pending Approval' && currentUser?.role === 'Owner', [selectedProject, currentUser]);
-   const showSchedulingSection = React.useMemo(() => selectedProject && selectedProject.status === 'Pending Scheduling' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role), [selectedProject, currentUser]);
-   const showCalendarButton = React.useMemo(() => selectedProject && selectedProject.status === 'Scheduled' && currentUser && ['Owner', 'General Admin'].includes(currentUser.role), [selectedProject, currentUser]);
-   const showSidangOutcomeSection = React.useMemo(() => selectedProject && selectedProject.status === 'Scheduled' && currentUser?.role === 'Owner', [selectedProject, currentUser]);
-    const canDownloadFiles = React.useMemo(() => currentUser && ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur'].includes(currentUser.role), [currentUser]);
+   const showOwnerDecisionSection = React.useMemo(() => 
+        selectedProject && 
+        selectedProject.status === 'Pending Approval' && 
+        currentUser?.role === 'Owner' &&
+        canPerformSelectedProjectAction, // Ensure Owner is the assigned one for this approval step
+    [selectedProject, currentUser, canPerformSelectedProjectAction]);
+
+   const showSchedulingSection = React.useMemo(() => 
+        selectedProject && 
+        selectedProject.status === 'Pending Scheduling' &&
+        currentUser &&
+        ( (currentUser.role === 'Admin Proyek' && canPerformSelectedProjectAction) || currentUser.role === 'Owner' ),
+    [selectedProject, currentUser, canPerformSelectedProjectAction]);
+    
+   const showCalendarButton = React.useMemo(() => 
+        selectedProject && 
+        selectedProject.status === 'Scheduled' && 
+        currentUser && 
+        (currentUser.role === 'Owner' || currentUser.role === 'Admin Proyek'), // Admin Proyek might also want to add
+    [selectedProject, currentUser]);
+
+   const showSidangOutcomeSection = React.useMemo(() => 
+        selectedProject && 
+        selectedProject.status === 'Scheduled' && 
+        currentUser?.role === 'Owner' &&
+        canPerformSelectedProjectAction, // Ensure Owner is assigned for outcome
+    [selectedProject, currentUser, canPerformSelectedProjectAction]);
+
+   const canDownloadFiles = React.useMemo(() => currentUser && ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP', 'Admin Developer'].includes(currentUser.role), [currentUser]);
 
    const handleDownloadFile = async (file: FileEntry) => {
         if (!isClient) return;
@@ -509,7 +523,7 @@ export default function ProjectsPage() {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = file.name; // Use original file name for download
+            a.download = file.name; 
             document.body.appendChild(a);
             a.click();
             a.remove();
@@ -524,7 +538,7 @@ export default function ProjectsPage() {
     };
 
    const handleReviseSubmit = async () => {
-       if (!currentUser || !selectedProject || !['Owner', 'General Admin'].includes(currentUser.role)) {
+       if (!currentUser || !selectedProject || !['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role)) {
            toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.revisionPermissionDenied });
            return;
        }
@@ -534,7 +548,7 @@ export default function ProjectsPage() {
        }
        setIsRevising(true);
        try {
-           const revised = await reviseProject(selectedProject.id, currentUser.role, revisionNote);
+           const revised = await reviseProject(selectedProject.id, currentUser.username, currentUser.role, revisionNote); // Pass username and role
            setAllProjects(prev => prev.map(p => (p.id === revised.id ? revised : p)));
            setSelectedProject(revised);
            setRevisionNote('');
@@ -549,17 +563,20 @@ export default function ProjectsPage() {
 
    const canReviseSelectedProject = React.useMemo(() => {
        if (!currentUser || !selectedProject) return false;
-       if (!['Owner', 'General Admin'].includes(currentUser.role)) return false;
-       const revisableStatuses = [
-           'Pending Approval', 'Pending DP Invoice', 'Pending Admin Files',
-           'Pending Architect Files', 'Pending Structure Files', 'Pending Final Check',
-           'Pending Scheduling', 'Scheduled'
-       ];
-       return revisableStatuses.includes(selectedProject.status);
+       if (!['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role)) return false;
+       
+       // Cannot revise if project is already completed or canceled
+       if (['Completed', 'Canceled'].includes(selectedProject.status)) return false;
+       
+       // Add more specific logic here if certain statuses are not revisable by certain roles
+       // For example, maybe only Owner can revise during "Pending Approval" stages
+       // if (selectedProject.status === 'Pending Approval' && currentUser.role !== 'Owner') return false;
+
+       return true; // Default to true if user has general revision permission and project is active
    }, [currentUser, selectedProject]);
 
 
-    if (!isClient || !currentUser || isLoadingProjects) {
+    if (!isClient || !currentUser || (isLoadingProjects && !selectedProject)) { // Adjusted loading condition
         return (
             <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
                  <Card>
@@ -654,20 +671,26 @@ export default function ProjectsPage() {
                            <div className="grid w-full items-center gap-1.5">
                              <Label htmlFor="project-files">{projectsDict.attachFilesLabel}</Label>
                              <div className="flex flex-col sm:flex-row items-center gap-2">
-                               <Input id="project-files" type="file" multiple onChange={handleFileChange} disabled={isSubmitting} className="flex-grow"/>
+                               <Input id="project-files" type="file" multiple onChange={handleFileChange} disabled={isSubmitting || uploadedFiles.length >= MAX_FILES_UPLOAD} className="flex-grow"/>
                                <Upload className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                              </div>
                              <p className="text-xs text-muted-foreground">{projectsDict.filesHint.replace('{max}', MAX_FILES_UPLOAD.toString())}</p>
                            </div>
                            {uploadedFiles.length > 0 && (
                              <div className="space-y-2 rounded-md border p-3">
-                               <Label>{projectsDict.selectedFilesLabel}</Label>
+                               <Label>{projectsDict.selectedFilesLabel} ({uploadedFiles.length}/{MAX_FILES_UPLOAD})</Label>
                                <ul className="list-disc list-inside text-sm space-y-1 max-h-32 overflow-y-auto">
                                  {uploadedFiles.map((file, index) => ( <li key={index} className="flex items-center justify-between group"><span className="truncate max-w-[calc(100%-4rem)] sm:max-w-xs text-muted-foreground group-hover:text-foreground">{file.name} <span className="text-xs">({(file.size / 1024).toFixed(1)} KB)</span></span><Button variant="ghost" size="sm" type="button" onClick={() => removeFile(index)} disabled={isSubmitting} className="opacity-50 group-hover:opacity-100 flex-shrink-0"><Trash2 className="h-4 w-4 text-destructive" /></Button></li>))}
                                </ul>
                              </div>
                            )}
-                            <Button onClick={handleProgressSubmit} disabled={isSubmitting || (currentUser?.role === 'Admin Proyek' && project.status === 'Pending Offer' && uploadedFiles.length === 0) || (!['Pending Scheduling', 'Completed', 'Canceled'].includes(project.status) && !['Owner', 'General Admin'].includes(currentUser!.role) && !(currentUser?.role === 'Admin Proyek' && project.status === 'Pending Offer') && !description && uploadedFiles.length === 0)} className="w-full sm:w-auto">
+                            <Button onClick={()=> handleProgressSubmit('submitted')} 
+                                disabled={
+                                    isSubmitting ||
+                                    (currentUser?.role === 'Admin Proyek' && project.status === 'Pending Offer' && uploadedFiles.length === 0) ||
+                                    (!description && uploadedFiles.length === 0 && !['Pending Scheduling', 'Pending Approval', 'Completed', 'Canceled'].includes(project.status) && !(currentUser?.role === 'Admin Proyek' && project.status === 'Pending Offer') )
+                                } 
+                                className="w-full sm:w-auto accent-teal">
                                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                                 {isSubmitting ? projectsDict.submittingButton : projectsDict.submitButton}
                             </Button>
@@ -677,10 +700,10 @@ export default function ProjectsPage() {
                         <div className="space-y-4 border-t pt-4 mt-4">
                           <h3 className="text-lg font-semibold">{projectsDict.ownerActionTitle}</h3><p className="text-sm text-muted-foreground">{projectsDict.ownerActionDesc}</p>
                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                              <AlertDialog><AlertDialogTrigger asChild><Button variant="outline" disabled={isSubmitting} className="w-full sm:w-auto"><XCircle className="mr-2 h-4 w-4" /> {projectsDict.cancelProgressButton}</Button></AlertDialogTrigger>
-                                <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{projectsDict.cancelDialogTitle}</AlertDialogTitle><AlertDialogDescription>{projectsDict.cancelDialogDesc}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={isSubmitting}>{projectsDict.cancelDialogCancel}</AlertDialogCancel><AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleDecision('cancel')} disabled={isSubmitting}>{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}{projectsDict.cancelDialogConfirm}</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+                              <AlertDialog><AlertDialogTrigger asChild><Button variant="destructive" disabled={isSubmitting} className="w-full sm:w-auto"><XCircle className="mr-2 h-4 w-4" /> {projectsDict.rejectButton}</Button></AlertDialogTrigger>
+                                <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{projectsDict.cancelDialogTitle}</AlertDialogTitle><AlertDialogDescription>{projectsDict.cancelDialogDesc.replace('{projectName}', project.title)}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={isSubmitting}>{projectsDict.cancelDialogCancel}</AlertDialogCancel><AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleDecision('rejected')} disabled={isSubmitting}>{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}{projectsDict.confirmRejectButton || "Confirm Rejection"}</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
                               </AlertDialog>
-                              <Button onClick={() => handleDecision('continue')} disabled={isSubmitting} className="accent-teal w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}{projectsDict.continueProgressButton}</Button>
+                              <Button onClick={() => handleDecision('approved')} disabled={isSubmitting} className="accent-teal w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}{projectsDict.approveButton}</Button>
                             </div>
                         </div>
                       )}
@@ -692,12 +715,12 @@ export default function ProjectsPage() {
                                   <div className="space-y-1.5"><Label htmlFor="scheduleTime">{projectsDict.timeLabel}</Label><Input id="scheduleTime" type="time" value={scheduleTime} onChange={e => setScheduleTime(e.target.value)} disabled={isSubmitting} /></div>
                                   <div className="space-y-1.5"><Label htmlFor="scheduleLocation">{projectsDict.locationLabel}</Label><Input id="scheduleLocation" placeholder={projectsDict.locationPlaceholder} value={scheduleLocation} onChange={e => setScheduleLocation(e.target.value)} disabled={isSubmitting} /></div>
                                </div>
-                               <Button onClick={handleScheduleSubmit} disabled={isSubmitting || !scheduleDate || !scheduleTime || !scheduleLocation} className="w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarClock className="mr-2 h-4 w-4" />}{isSubmitting ? projectsDict.schedulingButton : projectsDict.confirmScheduleButton}</Button>
+                               <Button onClick={handleScheduleSubmit} disabled={isSubmitting || !scheduleDate || !scheduleTime || !scheduleLocation} className="w-full sm:w-auto accent-teal">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarClock className="mr-2 h-4 w-4" />}{isSubmitting ? projectsDict.schedulingButton : projectsDict.confirmScheduleButton}</Button>
                             </div>
                           )}
                         {showCalendarButton && (
                            <div className="border-t pt-4 mt-4">
-                               <Button onClick={() => { const schedulingEntry = project.workflowHistory.find(entry => entry.action.startsWith(projectsDict.workflowActions.scheduledSidangFor)); if (schedulingEntry) { const isoString = schedulingEntry.action.replace(projectsDict.workflowActions.scheduledSidangFor + ' ', ''); const scheduledDateTime = new Date(isoString); const location = projectsDict.defaultMeetingLocation; handleAddToCalendar(scheduledDateTime, location); } else { toast({ variant: 'destructive', title: projectsDict.toast.errorFindingSchedule, description: projectsDict.toast.couldNotFindSchedule });}}} disabled={isAddingToCalendar} variant="outline" className="w-full sm:w-auto">
+                               <Button onClick={handleAddToCalendar} disabled={isAddingToCalendar} variant="outline" className="w-full sm:w-auto">
                                    {isAddingToCalendar ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <svg xmlns="http://www.w3.org/2000/svg" className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm4.5-11.5L11 14.01l-2.5-2.51L7 13l4 4 6.5-6.5L16.5 8.5z"></path></svg>}
                                   {isAddingToCalendar ? projectsDict.addingCalendarButton : projectsDict.addCalendarButton}
                                </Button>
@@ -707,8 +730,9 @@ export default function ProjectsPage() {
                            <div className="space-y-4 border-t pt-4 mt-4">
                              <h3 className="text-lg font-semibold">{projectsDict.sidangOutcomeTitle}</h3><p className="text-sm text-muted-foreground">{projectsDict.sidangOutcomeDesc}</p>
                                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                                 <Button onClick={() => handleDecision('continue')} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}{projectsDict.markSuccessButton}</Button>
-                                   <Button variant="destructive" onClick={() => { toast({title: projectsDict.toast.failNotImplemented, description: projectsDict.toast.failNotImplementedDesc })}} disabled={isSubmitting} className="w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}{projectsDict.markFailButton}</Button>
+                                 <Button onClick={() => handleDecision('completed')} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}{projectsDict.markSuccessButton}</Button>
+                                 <Button variant="outline" onClick={() => handleDecision('revise_after_sidang')} disabled={isSubmitting} className="w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}{projectsDict.markRevisionNeededButton || "Request Post-Sidang Revision"}</Button>
+                                 <Button variant="destructive" onClick={() => handleDecision('canceled_after_sidang')} disabled={isSubmitting} className="w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}{projectsDict.markFailButton}</Button>
                               </div>
                            </div>
                         )}
@@ -753,7 +777,7 @@ export default function ProjectsPage() {
                          {project.files.length === 0 ? (<p className="text-sm text-muted-foreground">{projectsDict.noFiles}</p>) : (
                            <ul className="space-y-2">
                               {project.files.map((file, index) => (
-                               <li key={index} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 border rounded-md hover:bg-secondary/50 gap-2 sm:gap-4">
+                               <li key={`${file.path}-${index}`} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 border rounded-md hover:bg-secondary/50 gap-2 sm:gap-4">
                                   <div className="flex items-center gap-2 flex-grow min-w-0"><FileText className="h-5 w-5 text-primary flex-shrink-0" />
                                       <div className="flex-1 min-w-0">
                                         <span className="text-sm font-medium break-all">{file.name}</span>
@@ -775,7 +799,7 @@ export default function ProjectsPage() {
                     <CardContent className="p-4 sm:p-6 pt-0">
                         <ul className="space-y-3">
                         {project.workflowHistory.map((entry, index) => (
-                            <li key={index} className="flex items-start gap-3">
+                            <li key={`${entry.timestamp}-${index}`} className="flex items-start gap-3">
                                 <div className={`mt-1 h-3 w-3 rounded-full flex-shrink-0 ${index === project.workflowHistory.length - 1 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
                                 <div>
                                     <p className="text-sm font-medium">{projectsDict.historyActionBy.replace('{action}', entry.action).replace('{division}', getTranslatedStatus(entry.division))}</p>
@@ -797,3 +821,4 @@ export default function ProjectsPage() {
     </div>
   );
 }
+

@@ -1,1 +1,146 @@
-[]
+[
+  {
+    "id": "project_1747366972158_e3enr",
+    "title": "PROYEK A",
+    "status": "Scheduled",
+    "progress": 90,
+    "assignedDivision": "Owner",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project",
+        "timestamp": "2025-05-16T03:42:52.158Z"
+      },
+      {
+        "division": "sudina",
+        "action": "Registered initial file: LOT 02.dwg",
+        "timestamp": "2025-05-16T03:42:52.158Z"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Upload Offer Document",
+        "timestamp": "2025-05-16T03:42:52.158Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "Mengunggah Dokumen Penawaran",
+        "timestamp": "2025-05-16T03:45:47.265Z",
+        "note": "PENAWARAN"
+      },
+      {
+        "division": "Owner",
+        "action": "Requested Revision. Sent back to Admin Proyek for Revise & Re-submit Offer Document.",
+        "timestamp": "2025-05-16T03:47:05.585Z",
+        "note": "UP 10%"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "Mengunggah Dokumen Penawaran",
+        "timestamp": "2025-05-16T03:49:10.900Z",
+        "note": "SUDAH UP"
+      },
+      {
+        "division": "Owner",
+        "action": "Approved Offer",
+        "timestamp": "2025-05-16T03:48:15.569Z"
+      },
+      {
+        "division": "General Admin",
+        "action": "Mengunggah Faktur DP",
+        "timestamp": "2025-05-16T03:51:24.327Z",
+        "note": "invoice "
+      },
+      {
+        "division": "Owner",
+        "action": "Approved DP Invoice",
+        "timestamp": "2025-05-16T03:52:24.348Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "Mengunggah Berkas Administrasi",
+        "timestamp": "2025-05-16T03:56:28.013Z"
+      },
+      {
+        "division": "Arsitek",
+        "action": "Uploaded Architect Files",
+        "timestamp": "2025-05-16T04:00:50.195Z"
+      },
+      {
+        "division": "Struktur",
+        "action": "Uploaded Structure Files",
+        "timestamp": "2025-05-16T04:02:34.281Z",
+        "note": "struktur happy store"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "Menyelesaikan Pemeriksaan Akhir",
+        "timestamp": "2025-05-16T04:05:58.214Z",
+        "note": "BUKTI"
+      },
+      {
+        "division": "General Admin",
+        "action": "Menjadwalkan Sidang untuk 2025-05-17T06:41:00.000Z",
+        "timestamp": "2025-05-16T05:40:59.784Z"
+      }
+    ],
+    "files": [
+      {
+        "name": "LOT 02.dwg",
+        "uploadedBy": "sudina",
+        "timestamp": "2025-05-16T03:42:52.158Z",
+        "path": "project_1747366972158_e3enr-proyek_a/lot_02dwg"
+      },
+      {
+        "name": "PENAWARAN VILA DANY (BANGUNAN 2).pdf",
+        "uploadedBy": "komangmerta",
+        "path": "project_1747366972158_e3enr-proyek_a/penawaran_vila_dany_bangunan_2pdf",
+        "timestamp": "2025-05-16T03:45:47.265Z"
+      },
+      {
+        "name": "PENAWARAN VILA DANY (BANGUNAN 2).pdf",
+        "uploadedBy": "komangmerta",
+        "path": "project_1747366972158_e3enr-proyek_a/penawaran_vila_dany_bangunan_2pdf",
+        "timestamp": "2025-05-16T03:49:10.900Z"
+      },
+      {
+        "name": "BankStatementJurnal BCA 2025.csv",
+        "uploadedBy": "oksi",
+        "path": "project_1747366972158_e3enr-proyek_a/bankstatementjurnal_bca_2025csv",
+        "timestamp": "2025-05-16T03:51:24.328Z"
+      },
+      {
+        "name": "010 - CONCRETE BEAM PLAN.pdf",
+        "uploadedBy": "komangmerta",
+        "path": "project_1747366972158_e3enr-proyek_a/010_-_concrete_beam_planpdf",
+        "timestamp": "2025-05-16T03:56:28.013Z"
+      },
+      {
+        "name": "009 - COLUMN PLAN FIRST FLOOR.pdf",
+        "uploadedBy": "komangmerta",
+        "path": "project_1747366972158_e3enr-proyek_a/009_-_column_plan_first_floorpdf",
+        "timestamp": "2025-05-16T03:56:28.013Z"
+      },
+      {
+        "name": "008 - COLUMN PLAN GROUND FLOOR.pdf",
+        "uploadedBy": "komangmerta",
+        "path": "project_1747366972158_e3enr-proyek_a/008_-_column_plan_ground_floorpdf",
+        "timestamp": "2025-05-16T03:56:28.013Z"
+      },
+      {
+        "name": "ARS RIANA R2 100524.pdf",
+        "uploadedBy": "krisna",
+        "path": "project_1747366972158_e3enr-proyek_a/ars_riana_r2_100524pdf",
+        "timestamp": "2025-05-16T04:00:50.195Z"
+      },
+      {
+        "name": "PENAWARAN VILA DANY (BANGUNAN 2).pdf",
+        "uploadedBy": "komangmerta",
+        "path": "project_1747366972158_e3enr-proyek_a/penawaran_vila_dany_bangunan_2pdf",
+        "timestamp": "2025-05-16T04:05:58.214Z"
+      }
+    ],
+    "createdAt": "2025-05-16T03:42:52.158Z",
+    "createdBy": "sudina",
+    "nextAction": "Nyatakan Hasil Sidang (Berhasil/Gagal)"
+  }
+]

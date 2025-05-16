@@ -12,7 +12,7 @@
     "userId": "usr_ga_ran",
     "message": "User profile for \"angga\" (Role: Struktur) has been updated.",
     "timestamp": "2025-05-16T03:36:01.158Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1747366561158_ou11t",
@@ -27,5 +27,253 @@
     "message": "User profile for \"angga\" (Role: Struktur) has been updated.",
     "timestamp": "2025-05-16T03:36:01.158Z",
     "isRead": false
+  },
+  {
+    "id": "notif_1747366972186_qmrco",
+    "userId": "usr_ap_ran",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "New project \"PROYEK A\" created. Please upload the offer document.",
+    "timestamp": "2025-05-16T03:42:52.186Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747367066303_ahu3r",
+    "userId": "usr_owner_ran",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Setujui Dokumen Penawaran.",
+    "timestamp": "2025-05-16T03:44:26.303Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747367066303_xilcv",
+    "userId": "usr_wayangovina",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Setujui Dokumen Penawaran.",
+    "timestamp": "2025-05-16T03:44:26.303Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747367066303_yjw8i",
+    "userId": "usr_1746133383687_vijmn",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Setujui Dokumen Penawaran.",
+    "timestamp": "2025-05-16T03:44:26.303Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747367225603_qb1m5",
+    "userId": "usr_ap_ran",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires revision for: Revise & Re-submit Offer Document. Note: UP 10%",
+    "timestamp": "2025-05-16T03:47:05.603Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747367269969_fugfo",
+    "userId": "usr_owner_ran",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Setujui Dokumen Penawaran.",
+    "timestamp": "2025-05-16T03:47:49.969Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747367269969_7u1ey",
+    "userId": "usr_wayangovina",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Setujui Dokumen Penawaran.",
+    "timestamp": "2025-05-16T03:47:49.969Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747367269969_zbfff",
+    "userId": "usr_1746133383687_vijmn",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Setujui Dokumen Penawaran.",
+    "timestamp": "2025-05-16T03:47:49.969Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747367324586_hi752",
+    "userId": "usr_ga_ran",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Generate DP Invoice.",
+    "timestamp": "2025-05-16T03:48:44.586Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747367324586_xylpe",
+    "userId": "usr_7",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Generate DP Invoice.",
+    "timestamp": "2025-05-16T03:48:44.586Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747367324586_0hyrk",
+    "userId": "usr_wayan",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Generate DP Invoice.",
+    "timestamp": "2025-05-16T03:48:44.586Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747367484748_68i1d",
+    "userId": "usr_owner_ran",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Setujui Faktur DP.",
+    "timestamp": "2025-05-16T03:51:24.748Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747367484749_mx9cj",
+    "userId": "usr_wayangovina",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Setujui Faktur DP.",
+    "timestamp": "2025-05-16T03:51:24.748Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747367484750_jlke5",
+    "userId": "usr_1746133383687_vijmn",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Setujui Faktur DP.",
+    "timestamp": "2025-05-16T03:51:24.748Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747367573051_ch0bw",
+    "userId": "usr_ap_ran",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your action.",
+    "timestamp": "2025-05-16T03:52:53.051Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747367707245_74thm",
+    "userId": "usr_arch_ran",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Unggah Berkas Arsitektur.",
+    "timestamp": "2025-05-16T03:55:07.245Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747367707245_a09sl",
+    "userId": "usr_1747366410997_8jyhk",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Unggah Berkas Arsitektur.",
+    "timestamp": "2025-05-16T03:55:07.245Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747367707245_cdryn",
+    "userId": "usr_1747366461785_pgc37",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Unggah Berkas Arsitektur.",
+    "timestamp": "2025-05-16T03:55:07.245Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747367707245_qyc4w",
+    "userId": "usr_1747366521658_kh8ys",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Unggah Berkas Arsitektur.",
+    "timestamp": "2025-05-16T03:55:07.245Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747368107881_9yuf7",
+    "userId": "usr_struct_ran",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Upload Structure Files.",
+    "timestamp": "2025-05-16T04:01:47.881Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747368107881_jf0a7",
+    "userId": "usr_1747364740656_yiiv2",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Upload Structure Files.",
+    "timestamp": "2025-05-16T04:01:47.881Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747368107881_e0h6c",
+    "userId": "usr_1747364940553_hdz9d",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Upload Structure Files.",
+    "timestamp": "2025-05-16T04:01:47.881Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747368107881_l6nna",
+    "userId": "usr_1747365165980_5e01r",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Upload Structure Files.",
+    "timestamp": "2025-05-16T04:01:47.881Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747368107881_sycag",
+    "userId": "usr_1747366606910_zmuem",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Upload Structure Files.",
+    "timestamp": "2025-05-16T04:01:47.881Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747368154415_wimmd",
+    "userId": "usr_ap_ran",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Perform Final Check.",
+    "timestamp": "2025-05-16T04:02:34.415Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747368277262_kihil",
+    "userId": "usr_ga_ran",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Jadwalkan Sidang.",
+    "timestamp": "2025-05-16T04:04:37.262Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747368277262_quoii",
+    "userId": "usr_7",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Jadwalkan Sidang.",
+    "timestamp": "2025-05-16T04:04:37.262Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747368277262_aacam",
+    "userId": "usr_wayan",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Jadwalkan Sidang.",
+    "timestamp": "2025-05-16T04:04:37.262Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747374060760_tjzz6",
+    "userId": "usr_owner_ran",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Nyatakan Hasil Sidang (Berhasil/Gagal).",
+    "timestamp": "2025-05-16T05:41:00.760Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747374060760_3cs86",
+    "userId": "usr_wayangovina",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Nyatakan Hasil Sidang (Berhasil/Gagal).",
+    "timestamp": "2025-05-16T05:41:00.760Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747374060760_uw98f",
+    "userId": "usr_1746133383687_vijmn",
+    "projectId": "project_1747366972158_e3enr",
+    "message": "Project \"PROYEK A\" requires your Nyatakan Hasil Sidang (Berhasil/Gagal).",
+    "timestamp": "2025-05-16T05:41:00.760Z",
+    "isRead": true
   }
 ]
