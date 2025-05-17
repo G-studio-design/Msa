@@ -32,6 +32,7 @@ import { addLeaveRequest, type AddLeaveRequestData } from '@/services/leave-requ
 import { Loader2, CalendarIcon, Send } from 'lucide-react';
 import { format, differenceInDays, addDays } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
+import { Skeleton } from '@/components/ui/skeleton'; // Added Skeleton import
 
 const defaultDict = getDictionary('en');
 
