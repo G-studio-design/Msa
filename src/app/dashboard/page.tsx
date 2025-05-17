@@ -375,7 +375,7 @@ export default function DashboardPage() {
             ) : (
               filteredProjects.map((project) => (
                 <Link key={project.id} href={`/dashboard/projects?projectId=${project.id}`} passHref legacyBehavior>
-                   <a className="block hover:shadow-md transition-shadow cursor-pointer rounded-lg border bg-card text-card-foreground overflow-hidden">
+                   <a className="block hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 cursor-pointer rounded-lg border bg-card text-card-foreground overflow-hidden">
                        <Card>
                            <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6">
                                <div className="flex-1 min-w-0">

@@ -291,23 +291,22 @@ export default function ProjectsPage() {
     }
 
     try {
-        // updateProject now takes actionTaken as a parameter
-        await updateProject({
+        const updatedProjectData: UpdateProjectParams = {
             projectId: selectedProject.id,
             updaterRole: currentUser.role,
             updaterUsername: currentUser.username,
-            actionTaken: actionTaken, // e.g., 'submitted', 'approved', 'rejected'
-            files: uploadedFileEntries,
+            actionTaken: actionTaken,
+            files: uploadedFileEntries.length > 0 ? uploadedFileEntries : undefined,
             note: description,
-            // For scheduling, these would be relevant. For other actions, they might be undefined/null.
             scheduleDetails: selectedProject.status === 'Pending Scheduling' && actionTaken === 'scheduled' ? {
                 date: scheduleDate,
                 time: scheduleTime,
                 location: scheduleLocation
             } : undefined
-        });
+        };
 
-        const newlyUpdatedProject = await fetchProjectById(selectedProject.id); 
+        await updateProject(updatedProjectData);
+        const newlyUpdatedProject = await fetchProjectById(updatedProjectData.id); 
 
         if (newlyUpdatedProject) {
             setAllProjects(prev => prev.map(p => p.id === newlyUpdatedProject.id ? newlyUpdatedProject : p));
@@ -332,28 +331,20 @@ export default function ProjectsPage() {
 
 
   const handleDecision = (decision: 'approved' | 'rejected' | 'canceled' | 'completed' | 'revise_after_sidang' | 'canceled_after_sidang') => {
-    // 'rejected' can also be used for revision requests before final sidang outcome
-    if (!currentUser || !selectedProject || currentUser.role !== 'Owner') { // Simplified: only Owner makes these decisions for now
+    if (!currentUser || !selectedProject || currentUser.role !== 'Owner') { 
       toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.onlyOwnerDecision });
       return;
     }
     
-    // For revision, ensure revisionNote is provided
-    let noteForHistory = description; // General description can be used as note
+    let noteForHistory = description; 
     if (decision === 'rejected' && selectedProject.status === 'Pending Approval' && !revisionNote.trim()) {
-      // If it's a "reject/revise" action during an approval phase, a note might be good.
-      // For now, we will use the general 'description' if 'revisionNote' is specific to a different UI element.
-      // If 'revisionNote' is the dedicated field for this, check it:
-      // if (!revisionNote.trim()) {
-      //   toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: projectsDict.toast.revisionNoteRequired });
-      //   return;
-      // }
-      // noteForHistory = revisionNote;
+      // Use description if revisionNote is empty for a generic rejection
+    } else if ( (decision === 'rejected' || decision === 'revise_after_sidang') && revisionNote.trim()){
+      noteForHistory = revisionNote; // Prioritize specific revision note
     }
 
-
-    handleProgressSubmit(decision); // Pass the decision as actionTaken
-    setRevisionNote(''); // Clear revision note after submission attempt
+    handleProgressSubmit(decision); 
+    setRevisionNote(''); 
   };
 
   const handleScheduleSubmit = () => {
@@ -362,8 +353,8 @@ export default function ProjectsPage() {
         return;
      }
      // Check if current user is the assigned one for "Pending Scheduling" OR is an Owner
-     const canSchedule = (currentUser.role === selectedProject.assignedDivision && selectedProject.status === 'Pending Scheduling') || 
-                         (currentUser.role === 'Owner' && selectedProject.status === 'Pending Scheduling');
+     const canSchedule = ( (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Scheduling' && canPerformSelectedProjectAction) || 
+                         (currentUser.role === 'Owner' && selectedProject.status === 'Pending Scheduling') );
 
      if (!canSchedule) {
         toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.schedulingPermissionDenied });
@@ -374,7 +365,6 @@ export default function ProjectsPage() {
          toast({ variant: 'destructive', title: projectsDict.toast.missingScheduleInfo, description: projectsDict.toast.provideDateTimeLoc });
          return;
      }
-     // The actual submission of schedule details is now part of handleProgressSubmit
      handleProgressSubmit('scheduled');
   };
 
@@ -385,7 +375,7 @@ export default function ProjectsPage() {
       }
 
       const schedulingEntry = selectedProject.workflowHistory.find(
-        entry => entry.action.startsWith(projectsDict.workflowActions.scheduledSidangFor.substring(0,10)) // More robust check
+        entry => entry.action.startsWith(projectsDict.workflowActions.scheduledSidangFor.substring(0,10)) 
       );
 
       if (!schedulingEntry || !schedulingEntry.note) {
@@ -412,7 +402,6 @@ export default function ProjectsPage() {
 
       try {
         setIsAddingToCalendar(true);
-        // The actual API call to Google Calendar via your backend
         const response = await fetch('/api/calendar/create-event', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -435,15 +424,12 @@ export default function ProjectsPage() {
 
     const roleFilteredProjects = React.useMemo(() => {
         if (!currentUser || !isClient || isLoadingProjects) return [];
-        // Admin Developer sees all projects
         if (currentUser.role === 'Admin Developer') {
             return allProjects;
         }
-        // Owner, General Admin, Admin Proyek see all projects
         if (['Owner', 'General Admin', 'Admin Proyek'].includes(currentUser.role)) {
             return allProjects;
         }
-        // Other roles see projects assigned to them or where they are part of next action
         return allProjects.filter(project =>
             project.assignedDivision === currentUser.role ||
             (project.nextAction && project.nextAction.toLowerCase().includes(currentUser.role.toLowerCase()))
@@ -470,12 +456,10 @@ export default function ProjectsPage() {
 
    const showUploadSection = React.useMemo(() => {
         if (!selectedProject || !currentUser || !canPerformSelectedProjectAction) return false;
-        // Only show if it's the assigned division's turn and the status expects a file submission
-        // (not for approval, scheduling, or terminal statuses)
         const statusesExpectingUpload = [
             'Pending Offer', 'Pending DP Invoice', 'Pending Admin Files',
             'Pending Architect Files', 'Pending Structure Files', 'Pending MEP Files',
-            'Pending Consultation Docs' // Example for a different workflow
+            'Pending Consultation Docs'
         ];
         return statusesExpectingUpload.includes(selectedProject.status);
    }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
@@ -484,7 +468,7 @@ export default function ProjectsPage() {
         selectedProject && 
         selectedProject.status === 'Pending Approval' && 
         currentUser?.role === 'Owner' &&
-        canPerformSelectedProjectAction, // Ensure Owner is the assigned one for this approval step
+        canPerformSelectedProjectAction,
     [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
    const showSchedulingSection = React.useMemo(() => 
@@ -498,14 +482,14 @@ export default function ProjectsPage() {
         selectedProject && 
         selectedProject.status === 'Scheduled' && 
         currentUser && 
-        (currentUser.role === 'Owner' || currentUser.role === 'Admin Proyek'), // Admin Proyek might also want to add
+        (currentUser.role === 'Owner' || currentUser.role === 'Admin Proyek'),
     [selectedProject, currentUser]);
 
    const showSidangOutcomeSection = React.useMemo(() => 
         selectedProject && 
         selectedProject.status === 'Scheduled' && 
         currentUser?.role === 'Owner' &&
-        canPerformSelectedProjectAction, // Ensure Owner is assigned for outcome
+        canPerformSelectedProjectAction, 
     [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
    const canDownloadFiles = React.useMemo(() => currentUser && ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP', 'Admin Developer'].includes(currentUser.role), [currentUser]);
@@ -548,14 +532,24 @@ export default function ProjectsPage() {
        }
        setIsRevising(true);
        try {
-           const revised = await reviseProject(selectedProject.id, currentUser.username, currentUser.role, revisionNote); // Pass username and role
-           setAllProjects(prev => prev.map(p => (p.id === revised.id ? revised : p)));
-           setSelectedProject(revised);
-           setRevisionNote('');
-           toast({ title: projectsDict.toast.revisionSuccess, description: projectsDict.toast.revisionSuccessDesc.replace('{division}', getTranslatedStatus(revised.assignedDivision)) });
+           const revised = await reviseProject(selectedProject.id, currentUser.username, currentUser.role, revisionNote); 
+           if(revised) {
+            setAllProjects(prev => prev.map(p => (p.id === revised.id ? revised : p)));
+            setSelectedProject(revised);
+            setRevisionNote('');
+            toast({ title: projectsDict.toast.revisionSuccess, description: projectsDict.toast.revisionSuccessDesc.replace('{division}', getTranslatedStatus(revised.assignedDivision)) });
+           } else {
+            toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: projectsDict.toast.revisionNotApplicable });
+           }
        } catch (error: any) {
            console.error("Error revising project:", error);
-           toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: error.message || projectsDict.toast.failedToRevise });
+           let desc = projectsDict.toast.failedToRevise;
+            if (error.message === 'REVISION_NOT_SUPPORTED_FOR_CURRENT_STEP') {
+                desc = projectsDict.toast.revisionNotApplicable || 'Revision is not applicable for the current project step.';
+            } else {
+                desc = error.message || desc;
+            }
+           toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: desc });
        } finally {
            setIsRevising(false);
        }
@@ -565,18 +559,13 @@ export default function ProjectsPage() {
        if (!currentUser || !selectedProject) return false;
        if (!['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role)) return false;
        
-       // Cannot revise if project is already completed or canceled
        if (['Completed', 'Canceled'].includes(selectedProject.status)) return false;
        
-       // Add more specific logic here if certain statuses are not revisable by certain roles
-       // For example, maybe only Owner can revise during "Pending Approval" stages
-       // if (selectedProject.status === 'Pending Approval' && currentUser.role !== 'Owner') return false;
-
-       return true; // Default to true if user has general revision permission and project is active
+       return true; 
    }, [currentUser, selectedProject]);
 
 
-    if (!isClient || !currentUser || (isLoadingProjects && !selectedProject)) { // Adjusted loading condition
+    if (!isClient || !currentUser || (isLoadingProjects && !selectedProject)) { 
         return (
             <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
                  <Card>
@@ -629,7 +618,7 @@ export default function ProjectsPage() {
           <div className="space-y-4">
             {displayedProjects.length === 0 ? (<p className="text-muted-foreground text-center py-4">{searchTerm ? projectsDict.noSearchResults : projectsDict.noProjectsFound}</p>) : (
               displayedProjects.map((projectItem) => (
-                <Card key={projectItem.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedProject(projectItem)}>
+                <Card key={projectItem.id} className="hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 cursor-pointer" onClick={() => setSelectedProject(projectItem)}>
                   <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6">
                     <div className="flex-1 min-w-0"><CardTitle className="text-base sm:text-lg">{projectItem.title}</CardTitle><CardDescription className="text-xs text-muted-foreground mt-1 truncate">{projectsDict.assignedLabel}: {getTranslatedStatus(projectItem.assignedDivision) || projectsDict.none} {projectItem.nextAction ? `| ${projectsDict.nextActionLabel}: ${projectItem.nextAction}` : ''}</CardDescription></div>
                      <div className="flex-shrink-0 mt-2 sm:mt-0">{getStatusBadge(projectItem.status)}</div>
@@ -821,4 +810,3 @@ export default function ProjectsPage() {
     </div>
   );
 }
-
