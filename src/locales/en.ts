@@ -1,3 +1,4 @@
+
 // src/locales/en.ts
 const en = {
   // Login Page
@@ -26,6 +27,7 @@ const en = {
     dashboard: 'Dashboard',
     projects: 'Projects',
     manageUsers: 'Manage Users',
+    requestLeave: 'Request Leave', // New
     adminActions: 'Admin Actions',
     manageWorkflows: 'Manage Workflows',
     monthlyReport: 'Monthly Report',
@@ -40,7 +42,7 @@ const en = {
         adminproyek: 'MEP - Project Admin',
         arsitek: 'MEP - Architect',
         struktur: 'MEP - Structure',
-        mep: 'MEP - Coordinator',
+        mep: 'MEP - Coordinator', // For the specific MEP uploader role
         admindev: 'Developer',
     },
   },
@@ -89,6 +91,12 @@ const en = {
       mep: 'MEP - Coordinator',
       admindev: 'Developer',
       notassigned: 'Not Assigned',
+      // Leave types for calendar/display
+      sakit: "Sick Leave",
+      cutitahunan: "Annual Leave",
+      keperluanpribadi: "Personal Leave",
+      cutitidakdibayar: "Unpaid Leave",
+      lainnya: "Other",
     },
     progress: '{progress}% Complete',
     averageProgressTitle: 'Average Progress',
@@ -100,15 +108,18 @@ const en = {
         label: 'Progress'
     },
     scheduleAgendaTitle: 'Schedule & Agenda',
-    scheduleAgendaDesc: 'View scheduled project sidangs and other events.',
+    scheduleAgendaDesc: 'View scheduled project sidangs and employee leaves.',
     eventsForDate: 'Events for {date}',
     noEventsOnDate: 'No events scheduled on this date.',
     selectDatePrompt: 'Select a date to view events.',
     eventTimeLabel: 'Time:',
     eventLocationLabel: 'Location:',
+    projectSidangLabel: 'Project Sidang', // New
+    employeeOnLeaveLabel: 'On Leave:', // New
+    leaveDurationLabel: 'Duration:', // New
     toast: {
         errorTitle: 'Error',
-        fetchError: 'Could not load project data.',
+        fetchError: 'Could not load page data.',
     }
   },
   // Projects Page
@@ -199,10 +210,10 @@ const en = {
         submittedProgressFor: "Submitted Progress for",
         canceledProject: "Canceled Project",
         generateDPInvoice: "Generated DP Invoice",
-        approvedOfferTransition: "Approved Offer", // for transition action
-        approvedDPInvoiceTransition: "Approved DP Invoice", // for transition action
+        approvedOfferTransition: "Approved Offer", 
+        approvedDPInvoiceTransition: "Approved DP Invoice", 
         markedAsCompleted: "Marked as Completed",
-        scheduledSidangFor: "Scheduled Sidang for", // Note in history
+        scheduledSidangFor: "Scheduled Sidang for", 
         declareSidangOutcome: "Declared Sidang Outcome (Success/Fail)",
         reEvaluateOffer: "Re-evaluated/Revised Offer",
         reApproveOffer: "Re-Approved Offer (Issue with DP Gen)",
@@ -260,6 +271,7 @@ const en = {
       failedToProcessDecision: 'Failed to process decision.',
       failedToSaveSchedule: 'Failed to save schedule.',
       failedToRevise: 'Failed to revise project.',
+      revisionNotApplicable: 'Revision is not applicable for the current project step.',
       maxFilesExceeded: 'Cannot upload more than {max} files at once.',
       uploadError: 'Upload Error',
     }
@@ -430,7 +442,7 @@ const en = {
     editDialogTitle: 'Edit Workflow: {name}',
     editDialogDesc: 'Modify the workflow name, description, and reorder steps.',
     editDialogSubmitButton: 'Save Changes',
-    editStepsInfo: 'Drag and drop (or use buttons) to reorder steps. Editing individual step details and transitions will be available later.',
+    editStepsInfo: 'Use buttons to reorder steps. Full step editing will be available later.',
     stepsLabel: 'Workflow Steps',
     moveStepUp: 'Move Step Up',
     moveStepDown: 'Move Step Down',
@@ -583,7 +595,7 @@ const en = {
       summaryTitle: "Summary",
       chartTitleWord: "Project Status Overview",
       tableCaptionWord: "Detailed Project List",
-      status: {
+      status: { // For chart legend and table status column display
         completed: 'Completed',
         inprogress: 'In Progress',
         canceled: 'Canceled',
@@ -601,6 +613,49 @@ const en = {
           wordGenerationError: "Word Document Generation Error",
           wordGenerationErrorDetails: "The Word document could not be generated. Please try again or contact support if the issue persists.",
       }
+  },
+  // Leave Request Page
+  leaveRequestPage: {
+    title: "Submit Leave Request",
+    description: "Complete the form below to request time off.",
+    formLabels: {
+      leaveType: "Leave Type",
+      startDate: "Start Date",
+      endDate: "End Date",
+      reason: "Reason for Leave",
+    },
+    formPlaceholders: {
+      leaveType: "Select leave type",
+      startDate: "Pick a start date",
+      endDate: "Pick an end date",
+      reason: "Briefly explain the reason for your leave (min. 10 characters)",
+    },
+    leaveTypes: {
+      sickLeave: "Sick Leave",
+      annualLeave: "Annual Leave",
+      personalLeave: "Personal Leave",
+      unpaidLeave: "Unpaid Leave",
+      other: "Other",
+    },
+    numberOfDays: "Total: {days} day(s)",
+    reasonHint: "Provide a clear reason for your leave request.",
+    submitButton: "Submit Request",
+    submittingButton: "Submitting...",
+    toast: {
+      successTitle: "Request Submitted",
+      requestSubmitted: "Your leave request has been successfully submitted for approval.",
+      errorTitle: "Submission Failed",
+      submissionFailed: "An error occurred while submitting your leave request.",
+      notLoggedIn: "You must be logged in to submit a leave request.",
+    },
+    validation: {
+      leaveTypeRequired: "Leave type is required.",
+      startDateRequired: "Start date is required.",
+      endDateRequired: "End date is required.",
+      reasonMinLength: "Reason must be at least 10 characters.",
+      reasonMaxLength: "Reason cannot exceed 500 characters.",
+      endDateAfterStartDate: "End date cannot be before start date.",
+    },
   },
   // Notifications (General)
   notifications: {

@@ -33,7 +33,8 @@ import {
   FileBarChart,
   GitFork, 
   Wrench, 
-  Replace, // Added for Admin Actions page icon consistency
+  Replace,
+  Plane, // Added for Leave Request
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -138,13 +139,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [language]);
 
   const menuItems = [
-    { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP"] },
-    { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP"] },
-    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers" as LayoutDictKeys, roles: ["Owner", "General Admin"] },
-    { href: "/dashboard/admin-actions", icon: Replace, labelKey: "adminActions" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek"] }, // Changed icon to Replace for consistency with page
-    { href: "/dashboard/admin-actions/workflows", icon: GitFork, labelKey: "manageWorkflows" as LayoutDictKeys, roles: ["Owner", "General Admin"] },
-    { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport" as LayoutDictKeys, roles: ["Owner", "General Admin"] },
-    { href: "/dashboard/settings", icon: Settings, labelKey: "settings" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP"] },
+    { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
+    { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
+    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Developer"] },
+    { href: "/dashboard/leave-request/new", icon: Plane, labelKey: "requestLeave" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
+    // Add "My Leave History" and "Leave Approvals (Owner)" later
+    { href: "/dashboard/admin-actions", icon: Replace, labelKey: "adminActions" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] },
+    { href: "/dashboard/admin-actions/workflows", icon: GitFork, labelKey: "manageWorkflows" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Developer"] },
+    { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Developer"] },
+    { href: "/dashboard/settings", icon: Settings, labelKey: "settings" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
   ];
 
 
@@ -162,6 +165,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           case 'Arsitek': return User; 
           case 'Struktur': return User; 
           case 'MEP': return Wrench; 
+          case 'Admin Developer': return Code;
           default: return User;
       }
   }
@@ -223,13 +227,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
        if (notification.projectId) {
            router.push(`/dashboard/projects?projectId=${notification.projectId}`);
        } else {
-            console.warn("Notification clicked, but no project ID associated.");
+            // TODO: Handle notifications that are not project-specific, e.g., leave requests
+            console.warn("Notification clicked, but no project ID associated. Target page TBD.");
+            // Example: if (notification.message.includes("izin")) router.push("/dashboard/admin-actions/leave-approvals");
        }
    };
 
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex min-h-screen w-full bg-muted/40">
       <div className="flex-1 flex flex-col">
            <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b bg-background px-4 sm:px-6">
              <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-base sm:text-lg text-primary">
@@ -324,7 +330,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                          ))
                      ) : (
                          <div className="space-y-2">
-                           {[...Array(5)].map((_, i) => (
+                           {[...Array(6)].map((_, i) => ( // Increased skeleton items
                                <div key={i} className="flex items-center gap-3 rounded-md px-3 py-2">
                                    <Skeleton className="h-5 w-5 rounded-full bg-primary-foreground/20" />
                                    <Skeleton className="h-4 w-32 bg-primary-foreground/20" />
@@ -396,4 +402,3 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
-

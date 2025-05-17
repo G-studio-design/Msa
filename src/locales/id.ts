@@ -1,3 +1,4 @@
+
 // src/locales/id.ts
 const id = {
   // Login Page
@@ -26,6 +27,7 @@ const id = {
     dashboard: 'Dasbor',
     projects: 'Proyek',
     manageUsers: 'Kelola Pengguna',
+    requestLeave: 'Ajukan Izin', // New
     adminActions: 'Tindakan Admin',
     manageWorkflows: 'Kelola Alur Kerja',
     monthlyReport: 'Laporan Bulanan',
@@ -40,7 +42,7 @@ const id = {
         adminproyek: 'MEP - Admin Proyek',
         arsitek: 'MEP - Arsitek',
         struktur: 'MEP - Struktur',
-        mep: 'MEP - Koordinator',
+        mep: 'MEP - Koordinator', // For the specific MEP uploader role
         admindev: 'Developer',
     },
   },
@@ -89,6 +91,12 @@ const id = {
       mep: 'MEP - Koordinator',
       admindev: 'Developer',
       notassigned: 'Belum Ditugaskan',
+      // Leave types for calendar/display
+      sakit: "Sakit",
+      cutitahunan: "Cuti Tahunan",
+      keperluanpribadi: "Keperluan Pribadi",
+      cutitidakdibayar: "Cuti Tidak Dibayar",
+      lainnya: "Lainnya",
     },
      progress: '{progress}% Selesai',
      averageProgressTitle: 'Rata-rata Progres',
@@ -100,15 +108,18 @@ const id = {
         label: 'Progres'
      },
     scheduleAgendaTitle: 'Jadwal & Agenda',
-    scheduleAgendaDesc: 'Lihat jadwal sidang proyek dan acara lainnya.',
+    scheduleAgendaDesc: 'Lihat jadwal sidang proyek dan izin karyawan.',
     eventsForDate: 'Acara untuk {date}',
     noEventsOnDate: 'Tidak ada acara terjadwal pada tanggal ini.',
     selectDatePrompt: 'Pilih tanggal untuk melihat acara.',
     eventTimeLabel: 'Waktu:',
     eventLocationLabel: 'Lokasi:',
+    projectSidangLabel: 'Sidang Proyek', // New
+    employeeOnLeaveLabel: 'Sedang Izin:', // New
+    leaveDurationLabel: 'Durasi:', // New
     toast: {
         errorTitle: 'Kesalahan',
-        fetchError: 'Tidak dapat memuat data proyek.',
+        fetchError: 'Tidak dapat memuat data halaman.',
     }
   },
   // Projects Page
@@ -199,10 +210,10 @@ const id = {
         submittedProgressFor: "Mengirim Progres untuk",
         canceledProject: "Membatalkan Proyek",
         generateDPInvoice: "Membuat Faktur DP",
-        approvedOfferTransition: "Menyetujui Penawaran", // untuk tindakan transisi
-        approvedDPInvoiceTransition: "Menyetujui Faktur DP", // untuk tindakan transisi
+        approvedOfferTransition: "Menyetujui Penawaran", 
+        approvedDPInvoiceTransition: "Menyetujui Faktur DP", 
         markedAsCompleted: "Menandai sebagai Selesai",
-        scheduledSidangFor: "Menjadwalkan Sidang untuk", // Catatan di riwayat
+        scheduledSidangFor: "Menjadwalkan Sidang untuk", 
         declareSidangOutcome: "Menyatakan Hasil Sidang (Berhasil/Gagal)",
         reEvaluateOffer: "Evaluasi Ulang/Revisi Penawaran",
         reApproveOffer: "Setujui Ulang Penawaran (Masalah pada Pembuatan DP)",
@@ -260,6 +271,7 @@ const id = {
       failedToProcessDecision: 'Gagal memproses keputusan.',
       failedToSaveSchedule: 'Gagal menyimpan jadwal.',
       failedToRevise: 'Gagal merevisi proyek.',
+      revisionNotApplicable: 'Revisi tidak berlaku untuk langkah proyek saat ini.',
       maxFilesExceeded: 'Tidak dapat mengunggah lebih dari {max} file sekaligus.',
       uploadError: 'Kesalahan Unggah',
     }
@@ -430,7 +442,7 @@ const id = {
     editDialogTitle: 'Ubah Alur Kerja: {name}',
     editDialogDesc: 'Modifikasi nama, deskripsi, dan urutan langkah alur kerja.',
     editDialogSubmitButton: 'Simpan Perubahan',
-    editStepsInfo: 'Seret dan lepas (atau gunakan tombol) untuk mengatur ulang langkah. Pengeditan detail langkah dan transisi individual akan tersedia nanti.',
+    editStepsInfo: 'Gunakan tombol untuk mengatur ulang langkah. Pengeditan langkah lengkap akan tersedia nanti.',
     stepsLabel: 'Langkah Alur Kerja',
     moveStepUp: 'Pindah Langkah ke Atas',
     moveStepDown: 'Pindah Langkah ke Bawah',
@@ -583,7 +595,7 @@ const id = {
        summaryTitle: "Ringkasan",
        chartTitleWord: "Tinjauan Status Proyek",
        tableCaptionWord: "Daftar Detail Proyek",
-       status: {
+       status: { // For chart legend and table status column display
          completed: 'Selesai',
          inprogress: 'Sedang Berjalan',
          canceled: 'Dibatalkan',
@@ -602,6 +614,49 @@ const id = {
            wordGenerationErrorDetails: "Dokumen Word tidak dapat dibuat. Silakan coba lagi atau hubungi dukungan jika masalah berlanjut.",
        }
    },
+  // Leave Request Page
+  leaveRequestPage: {
+    title: "Ajukan Permintaan Izin",
+    description: "Lengkapi formulir di bawah ini untuk meminta izin tidak masuk kerja.",
+    formLabels: {
+      leaveType: "Jenis Izin",
+      startDate: "Tanggal Mulai",
+      endDate: "Tanggal Selesai",
+      reason: "Alasan Izin",
+    },
+    formPlaceholders: {
+      leaveType: "Pilih jenis izin",
+      startDate: "Pilih tanggal mulai",
+      endDate: "Pilih tanggal selesai",
+      reason: "Jelaskan secara singkat alasan izin Anda (min. 10 karakter)",
+    },
+    leaveTypes: {
+      sickLeave: "Izin Sakit",
+      annualLeave: "Cuti Tahunan",
+      personalLeave: "Keperluan Pribadi",
+      unpaidLeave: "Cuti Tidak Dibayar",
+      other: "Lainnya",
+    },
+    numberOfDays: "Total: {days} hari",
+    reasonHint: "Berikan alasan yang jelas untuk permintaan izin Anda.",
+    submitButton: "Kirim Permintaan",
+    submittingButton: "Mengirim...",
+    toast: {
+      successTitle: "Permintaan Terkirim",
+      requestSubmitted: "Permintaan izin Anda telah berhasil dikirim untuk persetujuan.",
+      errorTitle: "Pengiriman Gagal",
+      submissionFailed: "Terjadi kesalahan saat mengirim permintaan izin Anda.",
+      notLoggedIn: "Anda harus login untuk mengajukan permintaan izin.",
+    },
+    validation: {
+      leaveTypeRequired: "Jenis izin wajib diisi.",
+      startDateRequired: "Tanggal mulai wajib diisi.",
+      endDateRequired: "Tanggal selesai wajib diisi.",
+      reasonMinLength: "Alasan minimal 10 karakter.",
+      reasonMaxLength: "Alasan tidak boleh melebihi 500 karakter.",
+      endDateAfterStartDate: "Tanggal selesai tidak boleh sebelum tanggal mulai.",
+    },
+  },
    // Notifications (General)
    notifications: {
        permissionGrantedTitle: "Notifikasi Diaktifkan",
