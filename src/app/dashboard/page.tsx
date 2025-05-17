@@ -45,7 +45,7 @@ export default function DashboardPage() {
 
   // State for Calendar
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
-  const [eventsForSelectedDate, setEventsForSelectedDate] = React.useState<Array<Project | {type: 'leave', user: string, leaveType: string}>>([]);
+  const [eventsForSelectedDate, setEventsForSelectedDate] = React.useState<Array<Project | {type: 'leave', user: string, leaveType: string, startDate: string, endDate: string}>>([]);
 
 
   React.useEffect(() => {
@@ -88,7 +88,7 @@ export default function DashboardPage() {
   }, [language]);
 
   const userRole = currentUser?.role || '';
-  const canAddProject = currentUser && ['Owner', 'General Admin'].includes(userRole);
+  const canAddProject = currentUser && ['Owner', 'General Admin', 'Admin Developer'].includes(userRole);
 
   const getTranslatedStatus = React.useCallback((statusKey: string): string => {
        if (!isClient || !dashboardDict?.status || !statusKey) return statusKey;
@@ -104,13 +104,13 @@ export default function DashboardPage() {
     let className = "";
     let Icon = TrendingUp; 
      switch (status.toLowerCase()) {
-        case 'completed': variant = 'default'; className = 'bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-primary-foreground'; Icon = CheckCircle; break;
+        case 'completed': case 'selesai': variant = 'default'; className = 'bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-primary-foreground'; Icon = CheckCircle; break;
         case 'inprogress': case 'sedang berjalan': variant = 'secondary'; className = 'bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700'; Icon = TrendingUp; break;
         case 'pendingapproval': case 'menunggu persetujuan': variant = 'outline'; className = 'border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-500'; Icon = AlertTriangle; break;
         case 'delayed': case 'tertunda': variant = 'destructive'; className = 'bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600'; Icon = AlertTriangle; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginput': case 'menunggu input': case 'pendingoffer': case 'menunggu penawaran': variant = 'outline'; className = 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500'; Icon = Info; break;
-        case 'pendingdpinvoice': case 'menunggu faktur dp': case 'pendingadminfiles': case 'menunggu file admin': case 'pendingarchitectfiles': case 'menunggu file arsitek': case 'pendingstructurefiles': 'menunggu file struktur': case 'pendingmepfiles': 'menunggu berkas mep': case 'pendingfinalcheck': 'menunggu pemeriksaan akhir': case 'pendingscheduling': 'menunggu penjadwalan': case 'pendingconsultationdocs': 'menunggu dok. konsultasi': case 'pendingreview': 'menunggu tinjauan': variant = 'secondary'; Icon = Info; break;
+        case 'pendingdpinvoice': case 'menunggu faktur dp': case 'pendingadminfiles': case 'menunggu file admin': case 'pendingarchitectfiles': case 'menunggu file arsitek': case 'pendingstructurefiles': case 'menunggu file struktur': case 'pendingmepfiles': case 'menunggu berkas mep': case 'pendingfinalcheck': case 'menunggu pemeriksaan akhir': case 'pendingscheduling': case 'menunggu penjadwalan': case 'pendingconsultationdocs': case 'menunggu dok. konsultasi': case 'pendingreview': case 'menunggu tinjauan': variant = 'secondary'; Icon = Info; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = 'bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700'; Icon = CalendarDays; break;
         default: variant = 'secondary'; Icon = Info;
     }
@@ -141,12 +141,13 @@ export default function DashboardPage() {
   const chartData = React.useMemo(() => {
       return activeProjects
           .map(project => ({
-              title: project.title.length > 20 ? `${project.title.substring(0, 17)}...` : project.title,
+              title: project.title.length > (language === 'id' ? 15 : 20) ? `${project.title.substring(0, (language === 'id' ? 12 : 17))}...` : project.title,
               progress: project.progress,
+              id: project.id // Include ID for navigation
           }))
-          .sort((a, b) => b.progress - a.progress)
-          .slice(0, 10); 
-  }, [activeProjects]);
+          .sort((a, b) => b.progress - a.progress) // Sort by progress descending
+          .slice(0, 10); // Take top 10 or fewer
+  }, [activeProjects, language]);
 
   const chartConfig = React.useMemo(() => ({
     progress: { label: dashboardDict.progressChart.label, color: "hsl(var(--primary))" },
@@ -191,7 +192,6 @@ export default function DashboardPage() {
             if (!eventsByDate[dateString]) {
               eventsByDate[dateString] = [];
             }
-            // Add if not already marked for another event type, or if it's a different leave for the same day
              if (!markedDates.some(d => isSameDay(d, day))) {
                  markedDates.push(day);
              }
@@ -235,8 +235,8 @@ export default function DashboardPage() {
        return (
            <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <Skeleton className="h-8 w-48" />
-                    {canAddProject && <Skeleton className="h-10 w-36" />}
+                    <Skeleton className="h-8 w-3/5 sm:w-48" />
+                    {canAddProject && <Skeleton className="h-10 w-full sm:w-36" />}
                 </div>
                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
                     {[...Array(4)].map((_, i) => (
@@ -365,9 +365,9 @@ export default function DashboardPage() {
                   scheduled: calendarEventsData.dates.filter(d => allProjects.some(p => p.status === 'Scheduled' && p.scheduleDetails?.date === format(d, 'yyyy-MM-dd'))),
                   onLeave: calendarEventsData.dates.filter(d => approvedLeaves.some(l => isWithinInterval(d, {start: parseISO(l.startDate), end: parseISO(l.endDate)})))
                 }}
-                modifiersStyles={{
-                  scheduled: { fontWeight: 'bold', color: 'hsl(var(--primary))' },
-                  onLeave: { fontWeight: 'bold', color: 'hsl(var(--destructive))' } // Example: Red for leave
+                modifiersClassNames={{
+                  scheduled: 'text-primary font-bold', 
+                  onLeave: 'text-destructive font-bold'
                 }}
                 disabled={(date) => date < new Date("1900-01-01") || date > new Date("2999-12-31")} 
               />
@@ -479,3 +479,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
