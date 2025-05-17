@@ -1,4 +1,3 @@
-
 // src/app/dashboard/page.tsx
 'use client';
 
@@ -8,14 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, AlertTriangle, PlusCircle, Loader2, TrendingUp, Percent, BarChartIcon, CalendarDays, Info, Plane } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, PlusCircle, Loader2, TrendingUp, Percent, BarChartIcon, CalendarDays, Info, Plane, Briefcase, MapPin } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllProjects, type Project } from '@/services/project-service';
-import { getApprovedLeaveRequests, type LeaveRequest } from '@/services/leave-request-service'; // Import leave request service
+import { getApprovedLeaveRequests, type LeaveRequest } from '@/services/leave-request-service';
 import {
   ChartContainer,
   ChartTooltip,
@@ -38,14 +37,14 @@ export default function DashboardPage() {
   const [dashboardDict, setDashboardDict] = React.useState(defaultDict.dashboardPage);
 
   const [allProjects, setAllProjects] = React.useState<Project[]>([]);
-  const [approvedLeaves, setApprovedLeaves] = React.useState<LeaveRequest[]>([]); // State for approved leaves
+  const [approvedLeaves, setApprovedLeaves] = React.useState<LeaveRequest[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = React.useState(true);
-  const [isLoadingLeaves, setIsLoadingLeaves] = React.useState(true); // Loading state for leaves
+  const [isLoadingLeaves, setIsLoadingLeaves] = React.useState(true);
 
 
   // State for Calendar
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
-  const [eventsForSelectedDate, setEventsForSelectedDate] = React.useState<Array<Project | {type: 'leave', user: string, leaveType: string, startDate: string, endDate: string}>>([]);
+  const [eventsForSelectedDate, setEventsForSelectedDate] = React.useState<Array<Project | {type: 'leave' | 'survey', user?: string, leaveType?: string, surveyDescription?: string, startDate?: string, endDate?: string, surveyTime?:string }>>([]);
 
 
   React.useEffect(() => {
@@ -63,7 +62,7 @@ export default function DashboardPage() {
                     setApprovedLeaves(fetchedLeaves);
                 } catch (error) {
                     console.error("Failed to fetch projects or leaves:", error);
-                    if (isClient && dashboardDict?.toast?.fetchError) { 
+                    if (isClient && dashboardDict?.toast?.fetchError) {
                          toast({ variant: 'destructive', title: dashboardDict.toast.errorTitle, description: dashboardDict.toast.fetchError });
                     } else {
                          toast({ variant: 'destructive', title: 'Error', description: 'Could not load page data.' });
@@ -79,7 +78,7 @@ export default function DashboardPage() {
        };
        fetchData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser, toast]); 
+  }, [currentUser, toast]);
 
   React.useEffect(() => {
       const newDict = getDictionary(language);
@@ -102,7 +101,7 @@ export default function DashboardPage() {
     const translatedStatus = dashboardDict.status[statusKey] || status;
     let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
     let className = "";
-    let Icon = TrendingUp; 
+    let Icon = TrendingUp;
      switch (status.toLowerCase()) {
         case 'completed': case 'selesai': variant = 'default'; className = 'bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-primary-foreground'; Icon = CheckCircle; break;
         case 'inprogress': case 'sedang berjalan': variant = 'secondary'; className = 'bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700'; Icon = TrendingUp; break;
@@ -117,16 +116,21 @@ export default function DashboardPage() {
     return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
   }, [isClient, dashboardDict]);
 
-   const filteredProjects = React.useMemo(() => {
-        if (!userRole || !isClient || isLoadingProjects) return [];
-        if (['Owner', 'General Admin', 'Admin Developer'].includes(userRole)) {
-            return allProjects;
-        }
-        return allProjects.filter(project =>
-            project.assignedDivision === userRole ||
-            (project.nextAction && project.nextAction.toLowerCase().includes(userRole.toLowerCase()))
-        );
-   }, [userRole, allProjects, isClient, isLoadingProjects]);
+  const userRoleLower = userRole.toLowerCase();
+
+  const filteredProjects = React.useMemo(() => {
+    if (!userRole || !isClient || isLoadingProjects) return [];
+    // Admin Developer, Owner, and General Admin see all projects
+    if (['owner', 'general admin', 'admin developer'].includes(userRoleLower)) {
+        return allProjects;
+    }
+    // Other roles see projects assigned to them or if their role is in the nextAction
+    return allProjects.filter(project =>
+        (project.assignedDivision && project.assignedDivision.toLowerCase() === userRoleLower) ||
+        (project.nextAction && project.nextAction.toLowerCase().includes(userRoleLower))
+    );
+  }, [userRole, userRoleLower, allProjects, isClient, isLoadingProjects]);
+
 
   const activeProjects = React.useMemo(() => filteredProjects.filter(project => project.status !== 'Completed' && project.status !== 'Canceled'), [filteredProjects]);
   const completedProjectsCount = React.useMemo(() => filteredProjects.filter(project => project.status === 'Completed').length, [filteredProjects]);
@@ -143,10 +147,10 @@ export default function DashboardPage() {
           .map(project => ({
               title: project.title.length > (language === 'id' ? 15 : 20) ? `${project.title.substring(0, (language === 'id' ? 12 : 17))}...` : project.title,
               progress: project.progress,
-              id: project.id // Include ID for navigation
+              id: project.id
           }))
-          .sort((a, b) => b.progress - a.progress) // Sort by progress descending
-          .slice(0, 10); // Take top 10 or fewer
+          .sort((a, b) => b.progress - a.progress)
+          .slice(0, 10);
   }, [activeProjects, language]);
 
   const chartConfig = React.useMemo(() => ({
@@ -160,10 +164,11 @@ export default function DashboardPage() {
       return { dates: [], eventsByDate: {} };
     }
 
-    const eventsByDate: Record<string, Array<Project | {type: 'leave', user: string, leaveType: string, startDate: string, endDate: string}>> = {};
+    const eventsByDate: Record<string, Array<Project | {type: 'leave' | 'survey', user?: string, leaveType?: string, surveyDescription?: string, startDate?: string, endDate?: string, surveyTime?:string }>> = {};
     const markedDates: Date[] = [];
 
     allProjects.forEach(project => {
+      // Sidang
       if (project.status === 'Scheduled' && project.scheduleDetails?.date) {
         try {
           const projectDate = parseISO(project.scheduleDetails.date);
@@ -171,12 +176,38 @@ export default function DashboardPage() {
             const dateString = format(projectDate, 'yyyy-MM-dd');
             if (!eventsByDate[dateString]) {
               eventsByDate[dateString] = [];
-              markedDates.push(projectDate); 
             }
-            eventsByDate[dateString].push(project);
+            if (!markedDates.some(d => isSameDay(d, projectDate))) {
+                 markedDates.push(projectDate);
+            }
+            eventsByDate[dateString].push({...project, type: 'sidang'} as any); // Add type for differentiation
           }
         } catch (e) {
           console.error("Error parsing schedule date for project:", project.id, project.scheduleDetails.date, e);
+        }
+      }
+      // Survey
+      if (project.surveyDetails?.date) {
+        try {
+          const surveyDate = parseISO(project.surveyDetails.date);
+          if (isValid(surveyDate)) {
+            const dateString = format(surveyDate, 'yyyy-MM-dd');
+            if (!eventsByDate[dateString]) {
+              eventsByDate[dateString] = [];
+            }
+            if (!markedDates.some(d => isSameDay(d, surveyDate))) {
+                 markedDates.push(surveyDate);
+            }
+            eventsByDate[dateString].push({
+              type: 'survey',
+              title: project.title, // Add project title for survey
+              surveyDescription: project.surveyDetails.description,
+              surveyTime: project.surveyDetails.time,
+              id: project.id // Add project id for linking
+            } as any);
+          }
+        } catch (e) {
+          console.error("Error parsing survey date for project:", project.id, project.surveyDetails.date, e);
         }
       }
     });
@@ -195,9 +226,9 @@ export default function DashboardPage() {
              if (!markedDates.some(d => isSameDay(d, day))) {
                  markedDates.push(day);
              }
-            eventsByDate[dateString].push({ 
-              type: 'leave', 
-              user: leave.displayName || leave.username, 
+            eventsByDate[dateString].push({
+              type: 'leave',
+              user: leave.displayName || leave.username,
               leaveType: leave.leaveType,
               startDate: leave.startDate,
               endDate: leave.endDate
@@ -222,11 +253,17 @@ export default function DashboardPage() {
   }, [calendarEventsData.eventsByDate]);
 
   React.useEffect(() => {
-    if (isClient && selectedDate && eventsForSelectedDate.length === 0 && (allProjects.length > 0 || approvedLeaves.length > 0)) {
-        handleDateSelect(selectedDate);
+    if (isClient && selectedDate && (allProjects.length > 0 || approvedLeaves.length > 0)) {
+        const dateString = format(selectedDate, 'yyyy-MM-dd');
+        const currentEvents = calendarEventsData.eventsByDate[dateString] || [];
+        // Only update if the events are different to avoid infinite loop with eventsForSelectedDate
+        if (JSON.stringify(eventsForSelectedDate) !== JSON.stringify(currentEvents)) {
+            setEventsForSelectedDate(currentEvents);
+        }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isClient, selectedDate, allProjects, approvedLeaves]); 
+  }, [isClient, selectedDate, calendarEventsData.eventsByDate]);
+
 
   const currentLocale = language === 'id' ? IndonesianLocale : EnglishLocale;
 
@@ -250,7 +287,7 @@ export default function DashboardPage() {
                     ))}
                  </div>
                  <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
-                 <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card> 
+                 <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
                  <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><div className="space-y-4">{[...Array(3)].map((_, i) => (<Card key={`project-skel-${i}`} className="opacity-50"><CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2"><div><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div><Skeleton className="h-5 w-20 rounded-full" /></CardHeader><CardContent><Skeleton className="h-2 w-full mb-1" /><Skeleton className="h-3 w-1/4" /></CardContent></Card>))}</div></CardContent></Card>
            </div>
        );
@@ -263,9 +300,9 @@ export default function DashboardPage() {
           {dashboardDict.title}
         </h1>
         {canAddProject && (
-             <Link href="/dashboard/add-project" passHref legacyBehavior>
-                <Button asChild className="w-full sm:w-auto accent-teal">
-                  <a><PlusCircle className="mr-2 h-4 w-4" />{dashboardDict.addNewProject}</a>
+             <Link href="/dashboard/add-project" passHref>
+                <Button className="w-full sm:w-auto accent-teal">
+                  <PlusCircle className="mr-2 h-4 w-4" />{dashboardDict.addNewProject}
                 </Button>
              </Link>
         )}
@@ -361,15 +398,17 @@ export default function DashboardPage() {
                 onSelect={handleDateSelect}
                 locale={currentLocale}
                 className="rounded-md border shadow-sm bg-card text-card-foreground p-3"
-                modifiers={{ 
-                  scheduled: calendarEventsData.dates.filter(d => allProjects.some(p => p.status === 'Scheduled' && p.scheduleDetails?.date === format(d, 'yyyy-MM-dd'))),
-                  onLeave: calendarEventsData.dates.filter(d => approvedLeaves.some(l => isWithinInterval(d, {start: parseISO(l.startDate), end: parseISO(l.endDate)})))
+                modifiers={{
+                  sidang: calendarEventsData.dates.filter(d => calendarEventsData.eventsByDate[format(d, 'yyyy-MM-dd')]?.some(e => (e as any).type === 'sidang')),
+                  leave: calendarEventsData.dates.filter(d => calendarEventsData.eventsByDate[format(d, 'yyyy-MM-dd')]?.some(e => (e as any).type === 'leave')),
+                  survey: calendarEventsData.dates.filter(d => calendarEventsData.eventsByDate[format(d, 'yyyy-MM-dd')]?.some(e => (e as any).type === 'survey')),
                 }}
                 modifiersClassNames={{
-                  scheduled: 'text-primary font-bold', 
-                  onLeave: 'text-destructive font-bold'
+                  sidang: 'text-primary font-bold',
+                  leave: 'text-destructive font-bold',
+                  survey: 'text-green-600 font-bold'
                 }}
-                disabled={(date) => date < new Date("1900-01-01") || date > new Date("2999-12-31")} 
+                disabled={(date) => date < new Date("1900-01-01") || date > new Date("2999-12-31")}
               />
             </div>
             <div className="space-y-3">
@@ -380,34 +419,55 @@ export default function DashboardPage() {
                 <ul className="space-y-2 text-sm max-h-60 overflow-y-auto pr-2">
                   {eventsForSelectedDate.map((event, index) => (
                     <li key={index} className="p-2 border rounded-md bg-muted/50 hover:bg-muted transition-colors">
-                      {'title' in event ? ( // It's a Project
+                      {(event as Project).type === 'sidang' ? (
                         <>
-                          <p className="font-medium text-primary truncate">
-                            <Link href={`/dashboard/projects?projectId=${event.id}`} className="hover:underline">
-                                {event.title} ({dashboardDict.projectSidangLabel})
+                           <p className="font-medium text-primary truncate flex items-center gap-1">
+                            <Briefcase className="h-4 w-4 flex-shrink-0" />
+                            <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="hover:underline">
+                                {(event as Project).title} ({dashboardDict.projectSidangLabel})
                             </Link>
                           </p>
-                          {event.scheduleDetails?.time && (
-                            <p className="text-xs text-muted-foreground">
-                              {dashboardDict.eventTimeLabel} {event.scheduleDetails.time}
+                          {(event as Project).scheduleDetails?.time && (
+                            <p className="text-xs text-muted-foreground pl-5">
+                              {dashboardDict.eventTimeLabel} {(event as Project).scheduleDetails.time}
                             </p>
                           )}
-                          {event.scheduleDetails?.location && (
-                            <p className="text-xs text-muted-foreground">
-                              {dashboardDict.eventLocationLabel} {event.scheduleDetails.location}
+                          {(event as Project).scheduleDetails?.location && (
+                            <p className="text-xs text-muted-foreground pl-5">
+                              {dashboardDict.eventLocationLabel} {(event as Project).scheduleDetails.location}
                             </p>
                           )}
                         </>
-                      ) : ( // It's a Leave event
+                      ) : (event as any).type === 'leave' ? (
                         <>
-                          <p className="font-medium text-destructive truncate">
-                            {event.user} ({getTranslatedStatus(event.leaveType) || event.leaveType})
+                          <p className="font-medium text-destructive truncate flex items-center gap-1">
+                            <Plane className="h-4 w-4 flex-shrink-0" />
+                            {(event as any).user} ({getTranslatedStatus((event as any).leaveType) || (event as any).leaveType})
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            {dashboardDict.leaveDurationLabel} {format(parseISO(event.startDate), 'PP', {locale: currentLocale})} - {format(parseISO(event.endDate), 'PP', {locale: currentLocale})}
+                          <p className="text-xs text-muted-foreground pl-5">
+                            {dashboardDict.leaveDurationLabel} {format(parseISO((event as any).startDate), 'PP', {locale: currentLocale})} - {format(parseISO((event as any).endDate), 'PP', {locale: currentLocale})}
                           </p>
                         </>
-                      )}
+                      ) : (event as any).type === 'survey' ? (
+                         <>
+                           <p className="font-medium text-green-600 truncate flex items-center gap-1">
+                             <MapPin className="h-4 w-4 flex-shrink-0" />
+                             <Link href={`/dashboard/projects?projectId=${(event as any).id}`} className="hover:underline">
+                                 {(event as any).title} ({dashboardDict.projectSurveyLabel})
+                             </Link>
+                           </p>
+                           {(event as any).surveyTime && (
+                             <p className="text-xs text-muted-foreground pl-5">
+                               {dashboardDict.eventTimeLabel} {(event as any).surveyTime}
+                             </p>
+                           )}
+                           {(event as any).surveyDescription && (
+                             <p className="text-xs text-muted-foreground pl-5">
+                               {dashboardDict.surveyDescriptionLabel} {(event as any).surveyDescription}
+                             </p>
+                           )}
+                         </>
+                      ) : null}
                     </li>
                   ))}
                 </ul>
@@ -434,8 +494,8 @@ export default function DashboardPage() {
               <p className="text-muted-foreground text-center py-4">{dashboardDict.noProjects}</p>
             ) : (
               filteredProjects.map((project) => (
-                <Link key={project.id} href={`/dashboard/projects?projectId=${project.id}`} passHref legacyBehavior>
-                   <a className="block hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 cursor-pointer rounded-lg border bg-card text-card-foreground overflow-hidden">
+                <Link key={project.id} href={`/dashboard/projects?projectId=${project.id}`} passHref>
+                   <div className="block hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 cursor-pointer rounded-lg border bg-card text-card-foreground overflow-hidden">
                        <Card>
                            <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6">
                                <div className="flex-1 min-w-0">
@@ -469,7 +529,7 @@ export default function DashboardPage() {
                                )}
                            </CardContent>
                        </Card>
-                   </a>
+                   </div>
                 </Link>
               ))
             )}
@@ -479,5 +539,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    

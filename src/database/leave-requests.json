@@ -1,2 +1,14 @@
-
-[]
+[
+  {
+    "id": "leave_1747498776033_ws03t",
+    "userId": "usr_1746133383687_vijmn",
+    "username": "sudina",
+    "displayName": "sudina",
+    "requestDate": "2025-05-17T16:19:36.033Z",
+    "leaveType": "Keperluan Pribadi",
+    "startDate": "2025-05-19",
+    "endDate": "2025-05-19",
+    "reason": "ada calon arang",
+    "status": "Pending"
+  }
+]

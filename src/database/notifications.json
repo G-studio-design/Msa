@@ -275,5 +275,26 @@
     "message": "Project \"PROYEK A\" requires your Nyatakan Hasil Sidang (Berhasil/Gagal).",
     "timestamp": "2025-05-16T05:41:00.760Z",
     "isRead": true
+  },
+  {
+    "id": "notif_1747498776039_4w2qi",
+    "userId": "usr_owner_ran",
+    "message": "Permintaan izin baru dari sudina (Keperluan Pribadi) dari tanggal 2025-05-19 hingga 2025-05-19.",
+    "timestamp": "2025-05-17T16:19:36.039Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747498776040_5zj40",
+    "userId": "usr_wayangovina",
+    "message": "Permintaan izin baru dari sudina (Keperluan Pribadi) dari tanggal 2025-05-19 hingga 2025-05-19.",
+    "timestamp": "2025-05-17T16:19:36.039Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747498776040_t76ha",
+    "userId": "usr_1746133383687_vijmn",
+    "message": "Permintaan izin baru dari sudina (Keperluan Pribadi) dari tanggal 2025-05-19 hingga 2025-05-19.",
+    "timestamp": "2025-05-17T16:19:36.039Z",
+    "isRead": true
   }
 ]
