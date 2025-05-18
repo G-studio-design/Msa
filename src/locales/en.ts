@@ -79,6 +79,7 @@ const en = {
       pendingoffer: 'Pending Offer',
       pendingdpinvoice: 'Pending DP Invoice',
       pendingadminfiles: 'Pending Admin Files',
+      pendingsurveydetails: 'Pending Survey Details', // New status
       pendingarchitectfiles: 'Pending Architect Files',
       pendingstructurefiles: 'Pending Structure Files',
       pendingmepfiles: 'Pending MEP Files',
@@ -198,6 +199,22 @@ const en = {
     defaultMeetingLocation: 'Meeting Room 1',
     sidangEventTitlePrefix: 'Sidang',
     sidangEventDescPrefix: 'Sidang discussion for project',
+    nextActionDescriptions: { // For workflow step's nextActionDescription
+        uploadOfferDocument: "Upload Offer Document",
+        approveOfferDocument: "Approve Offer Document",
+        createDPInvoice: "Create DP Invoice",
+        approveDPInvoice: "Approve DP Invoice",
+        uploadAdminFiles: "Upload Admin Files",
+        inputSurveyDetails: "Input Survey Details & Upload Report", // New
+        uploadArchitectFiles: "Upload Architect Files",
+        uploadStructureFiles: "Upload Structure Files",
+        uploadMEPFiles: "Upload MEP Files",
+        scheduleSidang: "Schedule Sidang",
+        declareSidangOutcome: "Declare Sidang Outcome",
+        reviseOfferDocument: "Revise & Re-submit Offer Document",
+        reviseDPInvoice: "Revise and Re-upload DP Invoice",
+        performPostSidangRevisions: "Perform Post-Sidang Revisions on Admin Files",
+    },
     workflowActions: {
         approveOffer: "Approved Offer Document",
         uploadedOffer: "Uploaded Offer Document",
@@ -230,6 +247,7 @@ const en = {
         reviseMepFiles: "Revised MEP Files",
         reDoFinalCheck: "Re-did Final Check",
         rescheduleSidang: "Rescheduled Sidang",
+        uploadedSurveyResults: "Uploaded Survey Results", // New
     },
     toast: {
       permissionDenied: 'Permission Denied',
@@ -721,3 +739,5 @@ const en = {
 
 export default en;
 
+
+    

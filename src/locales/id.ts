@@ -79,6 +79,7 @@ const id = {
       pendingoffer: 'Menunggu Penawaran',
       pendingdpinvoice: 'Menunggu Faktur DP',
       pendingadminfiles: 'Menunggu Berkas Administrasi',
+      pendingsurveydetails: 'Menunggu Detail Survei', // New status
       pendingarchitectfiles: 'Menunggu Berkas Arsitektur',
       pendingstructurefiles: 'Menunggu Berkas Struktur',
       pendingmepfiles: 'Menunggu Berkas MEP',
@@ -198,8 +199,24 @@ const id = {
     defaultMeetingLocation: 'Ruang Rapat 1',
     sidangEventTitlePrefix: 'Sidang',
     sidangEventDescPrefix: 'Diskusi sidang untuk proyek',
+    nextActionDescriptions: { // For workflow step's nextActionDescription
+        uploadOfferDocument: "Unggah Dokumen Penawaran",
+        approveOfferDocument: "Setujui Dokumen Penawaran",
+        createDPInvoice: "Buat Faktur DP",
+        approveDPInvoice: "Setujui Faktur DP",
+        uploadAdminFiles: "Unggah Berkas Administrasi",
+        inputSurveyDetails: "Input Jadwal Survei & Unggah Hasil", // New
+        uploadArchitectFiles: "Unggah Berkas Arsitektur",
+        uploadStructureFiles: "Unggah Berkas Struktur",
+        uploadMEPFiles: "Unggah Berkas MEP",
+        scheduleSidang: "Jadwalkan Sidang",
+        declareSidangOutcome: "Nyatakan Hasil Sidang",
+        reviseOfferDocument: "Revisi & Kirim Ulang Dokumen Penawaran",
+        reviseDPInvoice: "Revisi dan Unggah Ulang Faktur DP",
+        performPostSidangRevisions: "Lakukan Revisi Pasca Sidang pada Berkas Administrasi",
+    },
     workflowActions: {
-        approveOffer: "Setujui Dokumen Penawaran",
+        approveOffer: "Menyetujui Dokumen Penawaran",
         uploadedOffer: "Mengunggah Dokumen Penawaran",
         uploadArchitectFiles: "Unggah Berkas Arsitektur",
         uploadedAdminFiles: "Mengunggah Berkas Administrasi",
@@ -207,7 +224,7 @@ const id = {
         uploadedMEPFiles: "Mengunggah Berkas MEP",
         scheduleSidang: "Menjadwalkan Sidang",
         completedFinalCheck: "Menyelesaikan Pemeriksaan Akhir",
-        approveDPInvoice: "Setujui Faktur DP",
+        approveDPInvoice: "Menyetujui Faktur DP",
         uploadedDPInvoice: "Mengunggah Faktur DP",
         uploadStructureFiles: "Unggah Berkas Struktur",
         uploadedArchitectFiles: "Mengunggah Berkas Arsitektur",
@@ -230,6 +247,7 @@ const id = {
         reviseMepFiles: "Merevisi Berkas MEP",
         reDoFinalCheck: "Melakukan Ulang Pemeriksaan Akhir",
         rescheduleSidang: "Menjadwalkan Ulang Sidang",
+        uploadedSurveyResults: "Mengunggah Hasil Survei", // New
     },
     toast: {
       permissionDenied: 'Izin Ditolak',
@@ -282,30 +300,30 @@ const id = {
       uploadError: 'Kesalahan Unggah',
     }
   },
-   // Add Project Page
-   addProjectPage: {
-       title: 'Buat Proyek Baru',
-       description: 'Masukkan judul proyek, pilih alur kerja, dan unggah file awal.',
-       titleLabel: 'Judul Proyek',
-       titlePlaceholder: 'Masukkan judul proyek lengkap',
-       workflowLabel: 'Pilih Alur Kerja',
-       workflowPlaceholder: 'Pilih jenis alur kerja',
-       filesLabel: 'File Awal (Opsional)',
-       filesHint: 'Unggah dokumen awal atau brief terkait proyek. Maks {max} file.',
-       createButton: 'Buat Proyek',
-       creatingButton: 'Membuat...',
-       accessDenied: 'Anda tidak memiliki izin untuk menambahkan proyek baru.',
-       toast: {
-           success: 'Proyek Dibuat',
-           successDesc: 'Proyek "{title}" berhasil ditambahkan menggunakan alur kerja "{workflowName}". {division} diberitahu untuk langkah pertama.',
-           error: 'Gagal Membuat Proyek',
-           fetchWorkflowsError: 'Tidak dapat memuat jenis alur kerja.',
-       },
-       validation: {
-           titleMin: 'Judul proyek minimal 5 karakter.',
-           workflowRequired: 'Pemilihan alur kerja wajib diisi.',
-       }
-   },
+  // Add Project Page
+  addProjectPage: {
+      title: 'Buat Proyek Baru',
+      description: 'Masukkan judul proyek, pilih alur kerja, dan unggah file awal.',
+      titleLabel: 'Judul Proyek',
+      titlePlaceholder: 'Masukkan judul proyek lengkap',
+      workflowLabel: 'Pilih Alur Kerja',
+      workflowPlaceholder: 'Pilih jenis alur kerja',
+      filesLabel: 'File Awal (Opsional)',
+      filesHint: 'Unggah dokumen awal atau brief terkait proyek. Maks {max} file.',
+      createButton: 'Buat Proyek',
+      creatingButton: 'Membuat...',
+      accessDenied: 'Anda tidak memiliki izin untuk menambahkan proyek baru.',
+      toast: {
+          success: 'Proyek Dibuat',
+          successDesc: 'Proyek "{title}" berhasil ditambahkan menggunakan alur kerja "{workflowName}". {division} diberitahu untuk langkah pertama.',
+          error: 'Gagal Membuat Proyek',
+          fetchWorkflowsError: 'Tidak dapat memuat jenis alur kerja.',
+      },
+      validation: {
+          titleMin: 'Judul proyek minimal 5 karakter.',
+          workflowRequired: 'Pemilihan alur kerja wajib diisi.',
+      }
+  },
   // Manage Users Page
   manageUsersPage: {
     title: 'Kelola Pengguna',
@@ -721,3 +739,5 @@ const id = {
 
 export default id;
 
+
+    
