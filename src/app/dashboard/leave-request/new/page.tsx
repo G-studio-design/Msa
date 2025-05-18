@@ -32,7 +32,7 @@ import { addLeaveRequest, type AddLeaveRequestData } from '@/services/leave-requ
 import { Loader2, CalendarIcon, Send } from 'lucide-react';
 import { format, differenceInDays, addDays } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
-import { Skeleton } from '@/components/ui/skeleton'; // Added Skeleton import
+import { Skeleton } from '@/components/ui/skeleton';
 
 const defaultDict = getDictionary('en');
 
@@ -50,7 +50,10 @@ const getLeaveRequestSchema = (dictValidation: ReturnType<typeof getDictionary>[
   startDate: z.date({ required_error: dictValidation.startDateRequired }),
   endDate: z.date({ required_error: dictValidation.endDateRequired }),
   reason: z.string().min(10, dictValidation.reasonMinLength).max(500, dictValidation.reasonMaxLength),
-}).refine(data => data.endDate >= data.startDate, {
+}).refine(data => {
+  if (!data.startDate || !data.endDate) return true; // Pass if dates are not yet selected
+  return data.endDate >= data.startDate;
+} , {
   message: dictValidation.endDateAfterStartDate,
   path: ['endDate'],
 });
@@ -90,7 +93,7 @@ export default function NewLeaveRequestPage() {
       endDate: undefined,
       reason: '',
     },
-    context: { dict: leaveRequestDict.validation }
+    // context: { dict: leaveRequestDict.validation } // Removed context
   });
   
   React.useEffect(() => {
@@ -120,7 +123,12 @@ export default function NewLeaveRequestPage() {
     try {
       await addLeaveRequest(leaveData);
       toast({ title: leaveRequestDict.toast.successTitle, description: leaveRequestDict.toast.requestSubmitted });
-      form.reset();
+      form.reset({ // Reset form to initial default values
+        leaveType: undefined,
+        startDate: undefined,
+        endDate: undefined,
+        reason: '',
+      });
       // router.push('/dashboard/leave-request/history'); // Optionally redirect to history page
     } catch (error: any) {
       console.error('Failed to submit leave request:', error);
@@ -168,7 +176,7 @@ export default function NewLeaveRequestPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{leaveRequestDict.formLabels.leaveType}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                    <Select onValueChange={field.onChange} value={field.value || ""} disabled={isLoading}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={leaveRequestDict.formPlaceholders.leaveType} />
@@ -304,3 +312,6 @@ export default function NewLeaveRequestPage() {
     </div>
   );
 }
+
+
+    
