@@ -35,8 +35,9 @@ import {
   GitFork, 
   Wrench, 
   Replace,
-  Plane, // Added for Leave Request
-  ShieldCheck, // For Leave Approvals
+  Plane, 
+  ShieldCheck, 
+  Code,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -145,9 +146,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
     { href: "/dashboard/users", icon: Users, labelKey: "manageUsers" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] },
     { href: "/dashboard/leave-request/new", icon: Plane, labelKey: "requestLeave" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
-    { href: "/dashboard/admin-actions/leave-approvals", icon: ShieldCheck, labelKey: "leaveApprovals" as LayoutDictKeys, roles: ["Owner"] }, // New Leave Approvals
+    { href: "/dashboard/admin-actions/leave-approvals", icon: ShieldCheck, labelKey: "leaveApprovals" as LayoutDictKeys, roles: ["Owner"] }, 
     { href: "/dashboard/admin-actions", icon: Replace, labelKey: "adminActions" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] },
-    { href: "/dashboard/admin-actions/workflows", icon: GitFork, labelKey: "manageWorkflows" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] },
+    { href: "/dashboard/admin-actions/workflows", icon: GitFork, labelKey: "manageWorkflows" as LayoutDictKeys, roles: ["Admin Developer"] }, // HANYA Admin Developer
     { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] },
     { href: "/dashboard/settings", icon: Settings, labelKey: "settings" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
   ];
@@ -160,14 +161,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const getUserRoleIcon = (role: string | undefined) => {
       if (!role) return User;
-      switch(role.toLowerCase()) { // Added toLowerCase for consistency
+      switch(role.toLowerCase()) { 
           case 'owner': return User;
           case 'general admin': return UserCog;
           case 'admin proyek': return UserCog; 
           case 'arsitek': return User; 
           case 'struktur': return User; 
           case 'mep': return Wrench; 
-          case 'admin developer': return UserCog; // Changed icon for Admin Developer
+          case 'admin developer': return Code; 
           default: return User;
       }
   }
@@ -186,7 +187,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
 
    const getTranslatedRole = (role: string): string => {
-       if (!isClient || !dict?.manageUsersPage?.roles) return role; // Fallback if dict or roles not ready
+       if (!isClient || !dict?.manageUsersPage?.roles) return role; 
        const rolesDict = dict.manageUsersPage.roles;
 
        const roleKey = role.replace(/\s+/g, '').toLowerCase() as keyof NonNullable<typeof rolesDict>;
@@ -232,7 +233,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
            if (currentUser?.role === 'Owner') {
                router.push("/dashboard/admin-actions/leave-approvals");
            } else {
-                // Non-owners might go to their leave history page in the future
+                
                 console.warn("Leave-related notification clicked by non-owner. Target page TBD.");
            }
        } else {
@@ -337,7 +338,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                          ))
                      ) : (
                          <div className="space-y-2">
-                           {[...Array(6)].map((_, i) => ( // Increased skeleton items
+                           {[...Array(6)].map((_, i) => ( 
                                <div key={i} className="flex items-center gap-3 rounded-md px-3 py-2">
                                    <Skeleton className="h-5 w-5 rounded-full bg-primary-foreground/20" />
                                    <Skeleton className="h-4 w-32 bg-primary-foreground/20" />

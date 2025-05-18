@@ -71,6 +71,7 @@ const getAddWorkflowSchema = (dictValidation: ReturnType<typeof getDictionary>['
 const getEditWorkflowSchema = (dictValidation: ReturnType<typeof getDictionary>['manageWorkflowsPage']['validation']) => z.object({
   name: z.string().min(3, dictValidation.nameMin),
   description: z.string().optional(),
+  // steps: z.array(z.any()).optional(), // Tidak lagi diperlukan di skema utama form
 });
 
 
@@ -94,6 +95,7 @@ export default function ManageWorkflowsPage() {
   
   const [currentEditableSteps, setCurrentEditableSteps] = React.useState<WorkflowStep[]>([]);
   const [stepsOrderChanged, setStepsOrderChanged] = React.useState(false);
+  const [activeAccordionItem, setActiveAccordionItem] = React.useState<string | undefined>(undefined);
 
 
   const addWorkflowSchema = getAddWorkflowSchema(workflowsDict.validation);
@@ -137,10 +139,11 @@ export default function ManageWorkflowsPage() {
     }
   }, [workflowsDict, addWorkflowForm, isClient]);
 
-  const canManage = currentUser && ['Owner', 'General Admin'].includes(currentUser.role);
+  // HANYA Admin Developer yang bisa mengelola workflow
+  const canManage = currentUser && currentUser.role === 'Admin Developer';
 
   const fetchWorkflowsData = React.useCallback(async () => {
-    if (!canManage || !isClient) {
+    if (!canManage || !isClient) { // Cek diperbarui
       setIsLoading(false);
       return;
     }
@@ -175,7 +178,6 @@ export default function ManageWorkflowsPage() {
     setIsProcessing(true);
 
     try {
-      // addWorkflow dari service sekarang akan menggunakan default steps structure
       const newWorkflow = await addWorkflow(data.name, data.description || '');
       fetchWorkflowsData(); 
       toast({ title: workflowsDict.toast.addSuccessTitle, description: workflowsDict.toast.addSuccessDesc.replace('{name}', newWorkflow.name) });
@@ -194,8 +196,9 @@ export default function ManageWorkflowsPage() {
       name: workflow.name,
       description: workflow.description,
     });
-    setCurrentEditableSteps(workflow.steps ? [...workflow.steps] : []); // Ensure a new array and handle potential undefined
+    setCurrentEditableSteps(workflow.steps ? [...workflow.steps] : []);
     setStepsOrderChanged(false);
+    setActiveAccordionItem(undefined); // Reset accordion
     setIsEditWorkflowDialogOpen(true);
   };
   
@@ -212,7 +215,7 @@ export default function ManageWorkflowsPage() {
       const updatedData: Partial<Workflow> = {
         name: data.name,
         description: data.description || '',
-        steps: currentEditableSteps, // Selalu kirim langkah-langkah yang mungkin telah diurutkan ulang
+        steps: currentEditableSteps,
       };
 
       const updated = await updateWorkflow(editingWorkflow.id, updatedData);
@@ -241,9 +244,14 @@ export default function ManageWorkflowsPage() {
       await deleteWorkflow(workflowId);
       fetchWorkflowsData(); 
       toast({ title: workflowsDict.toast.deleteSuccessTitle, description: workflowsDict.toast.deleteSuccessDesc.replace('{name}', workflowName) });
-    } catch (error: any) {
+    } catch (error: any)
+     {
       console.error("Failed to delete workflow:", error);
-      toast({ variant: 'destructive', title: workflowsDict.toast.error, description: error.message || workflowsDict.toast.deleteError });
+      let desc = error.message || workflowsDict.toast.deleteError;
+      if (error.message === 'CANNOT_DELETE_LAST_OR_DEFAULT_WORKFLOW') {
+          desc = workflowsDict.toast.cannotDeleteDefaultWorkflowError || "Cannot delete the last or default workflow.";
+      }
+      toast({ variant: 'destructive', title: workflowsDict.toast.error, description: desc });
     } finally {
       setIsProcessing(false);
     }
@@ -277,7 +285,6 @@ export default function ManageWorkflowsPage() {
     }
   };
 
-  // Check if form is dirty (name/desc changed) OR if steps order has changed
   const isEditFormDirty = editWorkflowForm.formState.isDirty || stepsOrderChanged;
 
   if (!isClient || !currentUser || (!workflowsDict && language !== defaultDict.manageWorkflowsPage.title) ) {
@@ -295,8 +302,8 @@ export default function ManageWorkflowsPage() {
     return (
       <div className="container mx-auto py-4 px-4 md:px-6">
         <Card className="border-destructive">
-          <CardHeader><CardTitle className="text-destructive">{workflowsDict.accessDeniedTitle}</CardTitle></CardHeader>
-          <CardContent><p>{workflowsDict.accessDeniedDesc}</p></CardContent>
+          <CardHeader><CardTitle className="text-destructive">{isClient ? (workflowsDict.accessDeniedTitle || dict.manageUsersPage.accessDeniedTitle) : defaultDict.manageUsersPage.accessDeniedTitle}</CardTitle></CardHeader>
+          <CardContent><p>{isClient ? (workflowsDict.accessDeniedDesc || dict.manageUsersPage.accessDeniedDesc) : defaultDict.manageUsersPage.accessDeniedDesc}</p></CardContent>
         </Card>
       </div>
     );
@@ -413,8 +420,8 @@ export default function ManageWorkflowsPage() {
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                             <Button variant="ghost" size="icon" disabled={isProcessing || isLoading || workflow.id === 'default_standard_workflow'} title={workflow.id === 'default_standard_workflow' ? workflowsDict.cannotDeleteDefaultTooltip : workflowsDict.deleteAction}>
-                              <Trash2 className={`h-4 w-4 ${workflow.id === 'default_standard_workflow' ? 'text-muted-foreground' : 'text-destructive'}`} />
+                             <Button variant="ghost" size="icon" disabled={isProcessing || isLoading || (workflow.id === 'default_standard_workflow' && workflows.length <= 1)} title={workflow.id === 'default_standard_workflow' && workflows.length <=1 ? workflowsDict.cannotDeleteDefaultTooltip : workflowsDict.deleteAction}>
+                              <Trash2 className={`h-4 w-4 ${(workflow.id === 'default_standard_workflow' && workflows.length <= 1) ? 'text-muted-foreground' : 'text-destructive'}`} />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -446,9 +453,9 @@ export default function ManageWorkflowsPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={isEditWorkflowDialogOpen} onOpenChange={(open) => { setIsEditWorkflowDialogOpen(open); if (!open) {setEditingWorkflow(null); setStepsOrderChanged(false); setCurrentEditableSteps([]); }}}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
-          <DialogHeader>
+      <Dialog open={isEditWorkflowDialogOpen} onOpenChange={(open) => { setIsEditWorkflowDialogOpen(open); if (!open) {setEditingWorkflow(null); setStepsOrderChanged(false); setCurrentEditableSteps([]); setActiveAccordionItem(undefined); }}}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col p-4 overflow-y-auto">
+          <DialogHeader className="p-2">
             <DialogTitle>{editingWorkflow ? workflowsDict.editDialogTitle.replace('{name}', editingWorkflow.name) : ''}</DialogTitle>
             <DialogDescription>{workflowsDict.editDialogDesc}</DialogDescription>
           </DialogHeader>
@@ -486,62 +493,66 @@ export default function ManageWorkflowsPage() {
                      <p className="text-xs text-muted-foreground pb-2">
                         {workflowsDict.editStepsInfo}
                      </p>
-                    <ScrollArea className="flex-grow border rounded-md">
-                      <Accordion 
-                        type="single" 
-                        collapsible 
-                        className="w-full"
-                        key={editingWorkflow?.id || 'accordion-placeholder'} // Add key here
-                      >
-                        {currentEditableSteps && currentEditableSteps.map((step, index) => (
-                          <AccordionItem value={`step-${index}`} key={`step-item-${index}-${step.status}`}> {/* Ensure key is stable if step objects are stable, or use index if steps can be fully replaced */}
-                            <AccordionTrigger className="px-4 text-sm hover:bg-accent/50 flex justify-between items-center w-full text-left">
-                              <span>
-                                {index + 1}. {step.stepName} 
-                                <span className="text-xs text-muted-foreground ml-2">(Status: {step.status}, Progress: {step.progress}%)</span>
-                              </span>
-                            </AccordionTrigger>
-                            <AccordionContent className="px-4 pt-2 pb-4 text-xs bg-muted/30">
-                              <div className="flex justify-end space-x-1 mb-2">
-                                <Button type="button" variant="ghost" size="icon" onClick={() => moveStepUp(index)} disabled={index === 0 || isProcessing} title={workflowsDict.moveStepUp}>
-                                  <ChevronUpCircle className="h-4 w-4" />
-                                </Button>
-                                <Button type="button" variant="ghost" size="icon" onClick={() => moveStepDown(index)} disabled={!currentEditableSteps || index === currentEditableSteps.length - 1 || isProcessing} title={workflowsDict.moveStepDown}>
-                                  <ChevronDownCircle className="h-4 w-4" />
-                                </Button>
-                              </div>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
-                                  <p><strong>{workflowsDict.stepAssignedDivisionLabel}:</strong> {getTranslatedRoleForStep(step.assignedDivision) || workflowsDict.noneLabel}</p>
-                                  <p><strong>{workflowsDict.stepNextActionLabel}:</strong> {step.nextActionDescription || workflowsDict.noneLabel}</p>
-                                  {step.transitions && typeof step.transitions === 'object' && Object.keys(step.transitions).length > 0 ? (
-                                      Object.entries(step.transitions).map(([action, transition]) => (
-                                          <details key={action} className="col-span-full mt-1 border-t pt-1">
-                                              <summary className="cursor-pointer text-primary hover:underline text-xs">
-                                                  {workflowsDict.transitionActionLabel}: {action}
-                                              </summary>
-                                              <div className="pl-4 mt-1 space-y-0.5 text-muted-foreground">
-                                                  <p>Target Status: {transition.targetStatus}</p>
-                                                  <p>Target Division: {getTranslatedRoleForStep(transition.targetAssignedDivision) || workflowsDict.noneLabel}</p>
-                                                  <p>Target Progress: {transition.targetProgress}%</p>
-                                                  <p>Target Next Action: {transition.targetNextActionDescription || workflowsDict.noneLabel}</p>
-                                                  {transition.notification && (
-                                                      <p>Notification to {getTranslatedRoleForStep(transition.notification.division || "") || workflowsDict.notApplicable}: "{transition.notification.message.substring(0,50)}..."</p>
-                                                  )}
-                                              </div>
-                                          </details>
-                                      ))
-                                  ) : (
-                                      <p className="col-span-full text-muted-foreground italic">{workflowsDict.noTransitionsDefined}</p>
-                                  )}
-                              </div>
-                            </AccordionContent>
-                          </AccordionItem>
-                        ))}
-                      </Accordion>
-                    </ScrollArea>
+                    <div className="flex-1 border rounded-md overflow-hidden"> {/* Container untuk ScrollArea */}
+                      <ScrollArea className="h-full"> {/* ScrollArea mengambil tinggi penuh dari kontainer */}
+                        <Accordion 
+                          type="single" 
+                          collapsible 
+                          className="w-full"
+                          key={`accordion-edit-${editingWorkflow.id}`}
+                          value={activeAccordionItem}
+                          onValueChange={setActiveAccordionItem}
+                        >
+                          {currentEditableSteps && currentEditableSteps.map((step, index) => (
+                            <AccordionItem value={`step-${index}`} key={`step-item-edit-${editingWorkflow.id}-${index}`}>
+                              <AccordionTrigger className="px-4 py-3 text-sm hover:bg-accent/50 flex justify-between items-center w-full text-left">
+                                <span>
+                                  {index + 1}. {step.stepName} 
+                                  <span className="text-xs text-muted-foreground ml-2">(Status: {step.status}, Progress: {step.progress}%)</span>
+                                </span>
+                              </AccordionTrigger>
+                              <AccordionContent className="px-4 pt-2 pb-4 text-xs bg-muted/30">
+                                <div className="flex justify-end space-x-1 mb-2">
+                                  <Button type="button" variant="ghost" size="icon" onClick={() => moveStepUp(index)} disabled={index === 0 || isProcessing} title={workflowsDict.moveStepUp}>
+                                    <ChevronUpCircle className="h-4 w-4" />
+                                  </Button>
+                                  <Button type="button" variant="ghost" size="icon" onClick={() => moveStepDown(index)} disabled={!currentEditableSteps || index === currentEditableSteps.length - 1 || isProcessing} title={workflowsDict.moveStepDown}>
+                                    <ChevronDownCircle className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                                    <p><strong>{workflowsDict.stepAssignedDivisionLabel}:</strong> {getTranslatedRoleForStep(step.assignedDivision) || workflowsDict.noneLabel}</p>
+                                    <p><strong>{workflowsDict.stepNextActionLabel}:</strong> {step.nextActionDescription || workflowsDict.noneLabel}</p>
+                                    {step.transitions && typeof step.transitions === 'object' && Object.keys(step.transitions).length > 0 ? (
+                                        Object.entries(step.transitions).map(([action, transition]) => (
+                                            <details key={action} className="col-span-full mt-1 border-t pt-1">
+                                                <summary className="cursor-pointer text-primary hover:underline text-xs">
+                                                    {workflowsDict.transitionActionLabel}: {action}
+                                                </summary>
+                                                <div className="pl-4 mt-1 space-y-0.5 text-muted-foreground">
+                                                    <p>Target Status: {transition.targetStatus}</p>
+                                                    <p>Target Division: {getTranslatedRoleForStep(transition.targetAssignedDivision) || workflowsDict.noneLabel}</p>
+                                                    <p>Target Progress: {transition.targetProgress}%</p>
+                                                    <p>Target Next Action: {transition.targetNextActionDescription || workflowsDict.noneLabel}</p>
+                                                    {transition.notification && (
+                                                        <p>Notification to {getTranslatedRoleForStep(transition.notification.division || "") || workflowsDict.notApplicable}: "{transition.notification.message.substring(0,50)}..."</p>
+                                                    )}
+                                                </div>
+                                            </details>
+                                        ))
+                                    ) : (
+                                        <p className="col-span-full text-muted-foreground italic">{workflowsDict.noTransitionsDefined}</p>
+                                    )}
+                                </div>
+                              </AccordionContent>
+                            </AccordionItem>
+                          ))}
+                        </Accordion>
+                      </ScrollArea>
+                    </div>
                 </div>
-                <DialogFooter className="pt-4 sticky bottom-0 bg-background pb-0 mt-auto">
-                  <Button type="button" variant="outline" onClick={() => {setIsEditWorkflowDialogOpen(false); setEditingWorkflow(null); setStepsOrderChanged(false); setCurrentEditableSteps([]);}} disabled={isProcessing}>
+                <DialogFooter className="pt-4 sticky bottom-0 bg-background pb-0 mt-auto p-2 border-t">
+                  <Button type="button" variant="outline" onClick={() => {setIsEditWorkflowDialogOpen(false); setEditingWorkflow(null); setStepsOrderChanged(false); setCurrentEditableSteps([]); setActiveAccordionItem(undefined);}} disabled={isProcessing}>
                     {workflowsDict.cancelButton}
                   </Button>
                   <Button 
@@ -562,3 +573,4 @@ export default function ManageWorkflowsPage() {
     </div>
   );
 }
+
