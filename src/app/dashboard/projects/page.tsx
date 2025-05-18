@@ -228,7 +228,6 @@ export default function ProjectsPage() {
     if (!currentUser || !selectedProject) return false;
     if (currentUser.role === 'Admin Developer') return true;
     if (currentUser.role === 'Owner') {
-        // Owner can act if assigned, or if status is Pending Approval, Scheduled, or Pending Scheduling
         return selectedProject.assignedDivision === 'Owner' ||
                selectedProject.status === 'Pending Approval' ||
                selectedProject.status === 'Scheduled' ||
@@ -239,7 +238,7 @@ export default function ProjectsPage() {
 
   const getTranslatedStatus = React.useCallback((statusKey: string): string => {
         if (!isClient || !dashboardDict?.status || !statusKey) return statusKey;
-        const key = statusKey.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
+        const key = statusKey?.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
         return dashboardDict.status[key] || statusKey;
     }, [isClient, dashboardDict]);
 
@@ -554,7 +553,7 @@ export default function ProjectsPage() {
     return selectedProject.status === 'Pending Scheduling' &&
            (
              (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === 'Admin Proyek') ||
-             currentUser.role === 'Owner' // Owner can also schedule
+             currentUser.role === 'Owner'
            );
     },[selectedProject, currentUser]);
 
@@ -580,7 +579,7 @@ export default function ProjectsPage() {
         setIsDownloading(true);
         try {
             const response = await fetch(`/api/download-file?filePath=${encodeURIComponent(file.path)}`);
-            let errorDetails = `Failed to download ${file.name}. Status: ${response.status}`; // Default error
+            let errorDetails = `Failed to download ${file.name}. Status: ${response.status}`;
 
             if (!response.ok) {
                 let responseText = "";
@@ -654,13 +653,19 @@ export default function ProjectsPage() {
        }
    }, [currentUser, selectedProject, revisionNote, projectsDict, toast, getTranslatedStatus]);
 
-    // Moved to top level of ProjectsPage
     const canReviseSelectedProject = React.useMemo(() => {
         if (!currentUser || !selectedProject) return false;
         const allowedRoles = ['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'];
         const nonRevisableStatuses = ['Completed', 'Canceled'];
         return allowedRoles.includes(currentUser.role) && !nonRevisableStatuses.includes(selectedProject.status);
     }, [currentUser, selectedProject]);
+
+    const showSidangOutcomeSection = React.useMemo(() => {
+        if (!selectedProject || !currentUser) return false;
+        return selectedProject.status === 'Scheduled' &&
+               currentUser.role === 'Owner' &&
+               canPerformSelectedProjectAction;
+    }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
 
     if (!isClient || !currentUser || (isLoadingProjects && !selectedProject && !searchParams.get('projectId'))) {
@@ -968,4 +973,5 @@ export default function ProjectsPage() {
     </div>
   );
 }
+
 
