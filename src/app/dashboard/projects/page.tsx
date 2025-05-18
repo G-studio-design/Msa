@@ -48,7 +48,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
+  AlertDialogTrigger, // Added missing import
 } from '@/components/ui/alert-dialog';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
@@ -58,12 +58,11 @@ import {
     getAllProjects,
     updateProject,
     reviseProject,
-    getProjectById as fetchProjectByIdInternal,
+    getProjectById as fetchProjectByIdInternal, // Renamed to avoid conflict
     type Project,
     type WorkflowHistoryEntry,
     type FileEntry,
     type UpdateProjectParams,
-    type SurveyDetails,
 } from '@/services/project-service';
 import {
     DropdownMenu,
@@ -229,8 +228,14 @@ export default function ProjectsPage() {
 
   const canPerformSelectedProjectAction = React.useMemo(() => {
     if (!currentUser || !selectedProject) return false;
-    if (['Admin Developer', 'Owner'].includes(currentUser.role)) return true;
-    return currentUser.role.toLowerCase() === selectedProject.assignedDivision?.toLowerCase();
+    if (currentUser.role === 'Admin Developer') return true; // Admin Developer can always act
+    if (currentUser.role === 'Owner') {
+        // Owner can act if project is assigned to them OR if it's pending approval by them OR if it's scheduled (for outcome)
+        return selectedProject.assignedDivision === 'Owner' ||
+               selectedProject.status === 'Pending Approval' || // Generic approval status
+               selectedProject.status === 'Scheduled';
+    }
+    return currentUser.role === selectedProject.assignedDivision;
 }, [currentUser, selectedProject]);
 
   const getTranslatedStatus = React.useCallback((statusKey: string): string => {
@@ -333,14 +338,15 @@ export default function ProjectsPage() {
                 description: surveyDescription
             } : undefined,
         };
-
+        
+        // Call updateProject which should return the updated project
         const newlyUpdatedProject = await updateProject(updatedProjectData);
+        // No need to call getProjectById here if updateProject returns the updated project
 
         if (newlyUpdatedProject) {
             setAllProjects(prev => prev.map(p => p.id === newlyUpdatedProject.id ? newlyUpdatedProject : p));
             if (selectedProject?.id === newlyUpdatedProject.id) setSelectedProject(newlyUpdatedProject);
 
-            // Conditional toast message based on action taken and resulting status
             if (actionTaken === 'completed') {
                  toast({ title: projectsDict.toast.sidangOutcomeSuccessTitle, description: projectsDict.toast.sidangOutcomeSuccessDesc.replace('{title}', newlyUpdatedProject.title) });
             } else if (actionTaken === 'canceled_after_sidang') {
@@ -628,15 +634,18 @@ export default function ProjectsPage() {
             setRevisionNote('');
             toast({ title: projectsDict.toast.revisionSuccess, description: projectsDict.toast.revisionSuccessDesc.replace('{division}', getTranslatedStatus(revisedProject.assignedDivision)) });
            } else {
+            // This case means revision was not applicable for the current step as per service logic
             toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: projectsDict.toast.revisionNotApplicable });
            }
        } catch (error: any) {
            console.error("Error revising project:", error);
            let desc = projectsDict.toast.failedToRevise;
-            if (error.message === 'REVISION_NOT_SUPPORTED_FOR_CURRENT_STEP') {
-                desc = projectsDict.toast.revisionNotApplicable || 'Revision is not applicable for the current project step.';
-            } else if (error.message === 'PROJECT_NOT_FOUND' || error.message === 'WORKFLOW_NOT_FOUND') {
-                desc = error.message;
+            if (error.message === 'WORKFLOW_NOT_FOUND') { // Check for specific error string from service
+                desc = "Workflow definition not found for this project. Cannot process revision.";
+            } else if (error.message === 'PROJECT_NOT_FOUND') {
+                desc = "Project not found for revision.";
+            } else if (error.message === 'REVISION_NOT_SUPPORTED_FOR_CURRENT_STEP') { // Already handled by null return
+                desc = projectsDict.toast.revisionNotApplicable;
             } else {
                 desc = error.message || desc;
             }
@@ -699,12 +708,12 @@ export default function ProjectsPage() {
             {isLoadingProjects && displayedProjects.length === 0 ? (
                 [...Array(3)].map((_, i) => (
                     <Card key={`project-list-skel-${i}`} className="opacity-50">
-                        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 p-4 sm:p-6">
-                            <div><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div>
-                            <Skeleton className="h-5 w-20 rounded-full" />
+                        <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6">
+                            <div className="flex-1 min-w-0"><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div>
+                            <div className="flex-shrink-0 mt-2 sm:mt-0"><Skeleton className="h-5 w-20 rounded-full" /></div>
                         </CardHeader>
                         <CardContent className="p-4 sm:p-6 pt-0">
-                            <Skeleton className="h-2 w-full mb-1" /><Skeleton className="h-3 w-1/4" />
+                           <div className="flex items-center gap-2"><Skeleton className="flex-1 h-2" /><Skeleton className="h-3 w-1/4" /></div>
                         </CardContent>
                     </Card>
                 ))
@@ -739,6 +748,13 @@ export default function ProjectsPage() {
                 </Card>
             </div>
        );
+       // Define canReviseSelectedProject here
+        const canReviseSelectedProject = currentUser &&
+                                     project &&
+                                     ['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'].includes(currentUser.role) &&
+                                     !['Completed', 'Canceled'].includes(project.status);
+
+
        return (
            <>
                <Button variant="outline" onClick={() => {setSelectedProject(null); router.push('/dashboard/projects', { scroll: false });}} className="mb-4 w-full sm:w-auto"><ArrowLeft className="mr-2 h-4 w-4" />{projectsDict.backToList}</Button>
