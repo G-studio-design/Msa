@@ -47,14 +47,21 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-// import { scheduleEvent } from '@/services/google-calendar'; // Import has been removed as per previous request.
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAllProjects, updateProject, reviseProject, getProjectById as fetchProjectById, type Project, type WorkflowHistoryEntry, type FileEntry } from '@/services/project-service';
+import { 
+    getAllProjects, 
+    updateProject, 
+    reviseProject, 
+    getProjectById as fetchProjectByIdInternal, // Renamed to avoid conflict 
+    type Project, 
+    type WorkflowHistoryEntry, 
+    type FileEntry,
+    type UpdateProjectParams 
+} from '@/services/project-service';
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -68,7 +75,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 
 const defaultDict = getDictionary('en');
 
-const projectStatuses = [ // This list might need to be dynamically generated from workflows in the future
+const projectStatuses = [ 
     'Pending Offer', 'Pending Approval', 'Pending DP Invoice',
     'Pending Admin Files', 'Pending Architect Files', 'Pending Structure Files',
     'Pending MEP Files', 'Pending Final Check', 'Pending Scheduling', 'Scheduled', 
@@ -107,43 +114,31 @@ export default function ProjectsPage() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [displayedProjects, setDisplayedProjects] = React.useState<Project[]>([]);
 
-  React.useEffect(() => {
-      if (isClient && allProjects.length > 0 && !isLoadingProjects) {
-          const projectIdFromUrl = searchParams.get('projectId');
-          if (projectIdFromUrl) {
-              const projectToSelect = allProjects.find(p => p.id === projectIdFromUrl);
-              if (projectToSelect) {
-                  setSelectedProject(projectToSelect);
-              } else {
-                  console.warn(`Project with ID "${projectIdFromUrl}" from URL not found.`);
-                  toast({ variant: 'destructive', title: projectsDict.toast.error, description: projectsDict.toast.projectNotFound });
-                  router.replace('/dashboard/projects', { scroll: false });
-              }
-          }
+  const fetchProjects = React.useCallback(async () => {
+    if (currentUser) {
+      setIsLoadingProjects(true);
+      try {
+        const fetchedProjects = await getAllProjects();
+        setAllProjects(fetchedProjects);
+      } catch (error) {
+        console.error("Failed to fetch projects:", error);
+        if (isClient && projectsDict?.toast?.error) {
+            toast({ variant: 'destructive', title: projectsDict.toast.error, description: projectsDict.toast.couldNotLoadProjects });
+        }
+      } finally {
+        setIsLoadingProjects(false);
       }
-  }, [searchParams, allProjects, isClient, isLoadingProjects, router, toast, projectsDict]);
+    } else {
+        setIsLoadingProjects(false);
+    }
+  }, [currentUser, projectsDict, toast, isClient]);
 
 
   React.useEffect(() => {
     setIsClient(true);
-    const fetchProjects = async () => {
-      if (currentUser) {
-        setIsLoadingProjects(true);
-        try {
-          const fetchedProjects = await getAllProjects();
-          setAllProjects(fetchedProjects);
-        } catch (error) {
-          console.error("Failed to fetch projects:", error);
-          toast({ variant: 'destructive', title: projectsDict.toast.error, description: projectsDict.toast.couldNotLoadProjects });
-        } finally {
-          setIsLoadingProjects(false);
-        }
-      } else {
-          setIsLoadingProjects(false);
-      }
-    };
     fetchProjects();
-  }, [currentUser, toast, projectsDict]);
+  }, [fetchProjects]);
+
 
   React.useEffect(() => {
       const newDict = getDictionary(language);
@@ -152,9 +147,35 @@ export default function ProjectsPage() {
       setDashboardDict(newDict.dashboardPage);
   }, [language]);
 
+  React.useEffect(() => {
+      if (isClient && allProjects.length > 0 && !isLoadingProjects) {
+          const projectIdFromUrl = searchParams.get('projectId');
+          if (projectIdFromUrl) {
+              const projectToSelect = allProjects.find(p => p.id === projectIdFromUrl);
+              if (projectToSelect) {
+                  setSelectedProject(projectToSelect);
+                  // Clear states when a new project is selected from URL
+                  setDescription('');
+                  setUploadedFiles([]);
+                  setScheduleDate('');
+                  setScheduleTime('');
+                  setScheduleLocation('');
+                  setRevisionNote('');
+              } else {
+                  console.warn(`Project with ID "${projectIdFromUrl}" from URL not found.`);
+                  toast({ variant: 'destructive', title: projectsDict.toast.error, description: projectsDict.toast.projectNotFound });
+                  router.replace('/dashboard/projects', { scroll: false });
+              }
+          } else {
+              setSelectedProject(null); // Clear selected project if no projectId in URL
+          }
+      }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, allProjects, isClient, isLoadingProjects, router, toast]); // projectsDict dependency was removed to avoid loop, it's set with dict
+
 
   const formatTimestamp = React.useCallback((timestamp: string): string => {
-    if (!isClient) return '...';
+    if (!isClient || !projectsDict?.invalidDate) return '...';
     const locale = language === 'id' ? 'id-ID' : 'en-US';
     try {
       return new Date(timestamp).toLocaleString(locale, {
@@ -168,7 +189,7 @@ export default function ProjectsPage() {
   }, [isClient, language, projectsDict]);
 
    const formatDateOnly = React.useCallback((timestamp: string | undefined | null): string => {
-      if (!isClient || !timestamp) return projectsDict.notApplicable || "N/A";
+      if (!isClient || !timestamp || !projectsDict?.notApplicable) return projectsDict?.notApplicable || "N/A";
       const locale = language === 'id' ? 'id-ID' : 'en-US';
       try {
             return new Date(timestamp).toLocaleDateString(locale, {
@@ -206,7 +227,7 @@ export default function ProjectsPage() {
   }, [currentUser, selectedProject]);
 
   const getTranslatedStatus = React.useCallback((statusKey: string): string => {
-        if (!isClient || !dashboardDict || !dashboardDict.status || !statusKey) return statusKey;
+        if (!isClient || !dashboardDict?.status || !statusKey) return statusKey;
         const key = statusKey.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
         return dashboardDict.status[key] || statusKey;
     }, [isClient, dashboardDict]);
@@ -228,7 +249,7 @@ export default function ProjectsPage() {
         case 'delayed': case 'tertunda': variant = 'destructive'; className = 'bg-orange-500 text-white hover:bg-orange-600 border-orange-500'; Icon = Clock; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginput': case 'menunggu input': case 'pendingoffer': case 'menunggu penawaran': variant = 'outline'; className = 'border-blue-500 text-blue-600'; Icon = Clock; break;
-        case 'pendingdpinvoice': case 'menunggu faktur dp': case 'pendingadminfiles': case 'menunggu file admin': case 'pendingarchitectfiles': case 'menunggu file arsitek': case 'pendingstructurefiles': case 'menunggu file struktur': case 'pendingmepfiles': case 'menunggu file mep': case 'pendingfinalcheck': case 'menunggu pemeriksaan akhir': case 'pendingscheduling': case 'menunggu penjadwalan': case 'pendingconsultationdocs': case 'menunggu dok. konsultasi': case 'pendingreview': case 'menunggu tinjauan': variant = 'secondary'; Icon = Clock; break;
+        case 'pendingdpinvoice': case 'menunggu faktur dp': case 'pendingadminfiles': case 'menunggu berkas administrasi': case 'pendingarchitectfiles': case 'menunggu berkas arsitektur': case 'pendingstructurefiles': case 'menunggu berkas struktur': case 'pendingmepfiles': case 'menunggu berkas mep': case 'pendingfinalcheck': case 'menunggu pemeriksaan akhir': case 'pendingscheduling': case 'menunggu penjadwalan': case 'pendingconsultationdocs': case 'menunggu dok. konsultasi': case 'pendingreview': case 'menunggu tinjauan': variant = 'secondary'; Icon = Clock; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = 'bg-purple-500 text-white hover:bg-purple-600'; Icon = Clock; break;
         default: variant = 'secondary'; Icon = Clock;
     }
@@ -242,16 +263,14 @@ export default function ProjectsPage() {
       return;
     }
 
-    // Specific check for Admin Proyek during Pending Offer
     if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer' && uploadedFiles.length === 0) {
         toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: projectsDict.toast.provideOfferFile });
         return;
     }
     
-    // General check for description or files if not a special status/role
     const isSpecialCaseForSubmission = 
-        selectedProject.status === 'Pending Scheduling' || // Scheduling has its own form
-        selectedProject.status === 'Pending Approval' || // Approval is a decision, not file/desc upload
+        selectedProject.status === 'Pending Scheduling' || 
+        selectedProject.status === 'Pending Approval' || 
         ['Completed', 'Canceled'].includes(selectedProject.status);
 
     if (!isSpecialCaseForSubmission && !description && uploadedFiles.length === 0 && actionTaken === 'submitted') {
@@ -297,7 +316,7 @@ export default function ProjectsPage() {
             updaterUsername: currentUser.username,
             actionTaken: actionTaken,
             files: uploadedFileEntries.length > 0 ? uploadedFileEntries : undefined,
-            note: description,
+            note: description || undefined, // Ensure note is undefined if empty
             scheduleDetails: selectedProject.status === 'Pending Scheduling' && actionTaken === 'scheduled' ? {
                 date: scheduleDate,
                 time: scheduleTime,
@@ -305,8 +324,7 @@ export default function ProjectsPage() {
             } : undefined
         };
 
-        await updateProject(updatedProjectData);
-        const newlyUpdatedProject = await fetchProjectById(updatedProjectData.id); 
+        const newlyUpdatedProject = await updateProject(updatedProjectData); 
 
         if (newlyUpdatedProject) {
             setAllProjects(prev => prev.map(p => p.id === newlyUpdatedProject.id ? newlyUpdatedProject : p));
@@ -336,13 +354,8 @@ export default function ProjectsPage() {
       return;
     }
     
-    let noteForHistory = description; 
-    if (decision === 'rejected' && selectedProject.status === 'Pending Approval' && !revisionNote.trim()) {
-      // Use description if revisionNote is empty for a generic rejection
-    } else if ( (decision === 'rejected' || decision === 'revise_after_sidang') && revisionNote.trim()){
-      noteForHistory = revisionNote; // Prioritize specific revision note
-    }
-
+    let noteForHistory = description || revisionNote; // Prioritize revisionNote if available
+    
     handleProgressSubmit(decision); 
     setRevisionNote(''); 
   };
@@ -352,9 +365,14 @@ export default function ProjectsPage() {
         toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.schedulingPermissionDenied });
         return;
      }
-     // Check if current user is the assigned one for "Pending Scheduling" OR is an Owner
-     const canSchedule = ( (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Scheduling' && canPerformSelectedProjectAction) || 
-                         (currentUser.role === 'Owner' && selectedProject.status === 'Pending Scheduling') );
+     const canSchedule = (
+        selectedProject.status === 'Pending Scheduling' &&
+        (
+            (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === 'Admin Proyek') ||
+            currentUser.role === 'Owner'
+        )
+     );
+
 
      if (!canSchedule) {
         toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.schedulingPermissionDenied });
@@ -374,27 +392,22 @@ export default function ProjectsPage() {
         return;
       }
 
-      const schedulingEntry = selectedProject.workflowHistory.find(
-        entry => entry.action.startsWith(projectsDict.workflowActions.scheduledSidangFor.substring(0,10)) 
-      );
-
-      if (!schedulingEntry || !schedulingEntry.note) {
+      if (!currentUser.id) {
+        toast({ variant: 'destructive', title: projectsDict.toast.calendarError, description: "User ID is missing." });
+        return;
+      }
+      
+      if (!selectedProject.scheduleDetails || !selectedProject.scheduleDetails.date || !selectedProject.scheduleDetails.time) {
         toast({ variant: 'destructive', title: projectsDict.toast.errorFindingSchedule, description: projectsDict.toast.couldNotFindSchedule });
         return;
       }
       
-      // Assuming note for scheduling is "YYYY-MM-DDTHH:MM|Location"
-      const [dateTimeString, location] = schedulingEntry.note.split('|');
-      if (!dateTimeString || !location) {
-        toast({ variant: 'destructive', title: projectsDict.toast.errorFindingSchedule, description: "Invalid schedule format in history." });
-        return;
-      }
-      const scheduledDateTime = new Date(dateTimeString);
+      const scheduledDateTime = new Date(`${selectedProject.scheduleDetails.date}T${selectedProject.scheduleDetails.time}`);
       const endTime = new Date(scheduledDateTime.getTime() + 60 * 60 * 1000); // Assume 1 hour duration
 
       const eventDetails = { 
         title: `${projectsDict.sidangEventTitlePrefix}: ${selectedProject.title}`, 
-        location: location, 
+        location: selectedProject.scheduleDetails.location, 
         startTime: scheduledDateTime.toISOString(), 
         endTime: endTime.toISOString(), 
         description: `${projectsDict.sidangEventDescPrefix}: ${selectedProject.title}`
@@ -409,14 +422,30 @@ export default function ProjectsPage() {
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.details || errorData.error || 'Failed to create calendar event.');
+            let errorPayload: any;
+            let responseText = "";
+            try {
+                responseText = await response.text();
+                errorPayload = JSON.parse(responseText);
+            } catch (e) {
+                console.error("Server returned non-JSON error response for calendar event:", response.status, responseText);
+                throw new Error(projectsDict.toast.couldNotAddEvent + ` (Server: ${response.status} - ${responseText.substring(0,100)})`);
+            }
+            const detailMessage = errorPayload?.details || errorPayload?.error || projectsDict.toast.couldNotAddEvent;
+            throw new Error(detailMessage);
         }
         const result = await response.json();
         toast({ title: projectsDict.toast.addedToCalendar, description: projectsDict.toast.eventId.replace('{id}', result.eventId || 'N/A') });
       } catch (error: any) {
         console.error("Error scheduling event:", error);
-        toast({ variant: 'destructive', title: projectsDict.toast.calendarError, description: error.message || projectsDict.toast.couldNotAddEvent });
+        const description = (error && typeof error.message === 'string' && error.message.trim() !== "")
+                            ? error.message
+                            : projectsDict.toast.couldNotAddEvent;
+        toast({ 
+            variant: 'destructive', 
+            title: projectsDict.toast.calendarError, 
+            description
+        });
       } finally {
         setIsAddingToCalendar(false);
       }
@@ -424,10 +453,7 @@ export default function ProjectsPage() {
 
     const roleFilteredProjects = React.useMemo(() => {
         if (!currentUser || !isClient || isLoadingProjects) return [];
-        if (currentUser.role === 'Admin Developer') {
-            return allProjects;
-        }
-        if (['Owner', 'General Admin', 'Admin Proyek'].includes(currentUser.role)) {
+        if (['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'].includes(currentUser.role)) {
             return allProjects;
         }
         return allProjects.filter(project =>
@@ -459,8 +485,11 @@ export default function ProjectsPage() {
         const statusesExpectingUpload = [
             'Pending Offer', 'Pending DP Invoice', 'Pending Admin Files',
             'Pending Architect Files', 'Pending Structure Files', 'Pending MEP Files',
-            'Pending Consultation Docs'
+            'Pending Consultation Docs', 'Pending Final Check' // Admin Proyek can upload for final check
         ];
+         if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Final Check') {
+            return true;
+        }
         return statusesExpectingUpload.includes(selectedProject.status);
    }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
@@ -471,12 +500,14 @@ export default function ProjectsPage() {
         canPerformSelectedProjectAction,
     [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
-   const showSchedulingSection = React.useMemo(() => 
-        selectedProject && 
-        selectedProject.status === 'Pending Scheduling' &&
-        currentUser &&
-        ( (currentUser.role === 'Admin Proyek' && canPerformSelectedProjectAction) || currentUser.role === 'Owner' ),
-    [selectedProject, currentUser, canPerformSelectedProjectAction]);
+   const showSchedulingSection = React.useMemo(() => {
+    if (!selectedProject || !currentUser) return false;
+    return selectedProject.status === 'Pending Scheduling' &&
+           (
+             (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === 'Admin Proyek') ||
+             currentUser.role === 'Owner'
+           );
+    },[selectedProject, currentUser]);
     
    const showCalendarButton = React.useMemo(() => 
         selectedProject && 
@@ -500,7 +531,12 @@ export default function ProjectsPage() {
         try {
             const response = await fetch(`/api/download-file?filePath=${encodeURIComponent(file.path)}`);
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: 'Download failed' }));
+                let errorData = { message: `Failed to download ${file.name}. Status: ${response.status}` };
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    console.warn("Could not parse error response as JSON for file download.");
+                }
                 throw new Error(errorData.message || `Failed to download ${file.name}`);
             }
             const blob = await response.blob();
@@ -512,7 +548,7 @@ export default function ProjectsPage() {
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
-            toast({ title: projectsDict.toast.downloadStarted, description: `${file.name} ${projectsDict.toast.downloadSuccessDesc}` });
+            toast({ title: projectsDict.toast.downloadStarted, description: `${projectsDict.toast.downloadSuccessDesc.replace('{filename}', file.name)}`});
         } catch (error: any) {
             console.error("Error downloading file:", error);
             toast({ variant: 'destructive', title: projectsDict.toast.error, description: error.message || projectsDict.toast.downloadErrorDesc });
@@ -539,13 +575,16 @@ export default function ProjectsPage() {
             setRevisionNote('');
             toast({ title: projectsDict.toast.revisionSuccess, description: projectsDict.toast.revisionSuccessDesc.replace('{division}', getTranslatedStatus(revised.assignedDivision)) });
            } else {
+            // This case means reviseProject returned null, indicating revision is not applicable
             toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: projectsDict.toast.revisionNotApplicable });
            }
        } catch (error: any) {
            console.error("Error revising project:", error);
            let desc = projectsDict.toast.failedToRevise;
-            if (error.message === 'REVISION_NOT_SUPPORTED_FOR_CURRENT_STEP') {
+            if (error.message === 'REVISION_NOT_SUPPORTED_FOR_CURRENT_STEP') { // This error now comes from client-side check if reviseProject returns null
                 desc = projectsDict.toast.revisionNotApplicable || 'Revision is not applicable for the current project step.';
+            } else if (error.message === 'PROJECT_NOT_FOUND' || error.message === 'WORKFLOW_NOT_FOUND') {
+                desc = error.message; // Keep specific server errors
             } else {
                 desc = error.message || desc;
             }
@@ -561,6 +600,10 @@ export default function ProjectsPage() {
        
        if (['Completed', 'Canceled'].includes(selectedProject.status)) return false;
        
+       // Check if the current workflow step allows for a 'revise' transition
+       // This logic would ideally be in workflow-service.ts or pre-checked
+       // For now, we assume if the user role is allowed, they can attempt.
+       // The backend (reviseProject) will ultimately determine if it's possible.
        return true; 
    }, [currentUser, selectedProject]);
 
@@ -618,7 +661,7 @@ export default function ProjectsPage() {
           <div className="space-y-4">
             {displayedProjects.length === 0 ? (<p className="text-muted-foreground text-center py-4">{searchTerm ? projectsDict.noSearchResults : projectsDict.noProjectsFound}</p>) : (
               displayedProjects.map((projectItem) => (
-                <Card key={projectItem.id} className="hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 cursor-pointer" onClick={() => setSelectedProject(projectItem)}>
+                <Card key={projectItem.id} className="hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 cursor-pointer" onClick={() => {setSelectedProject(projectItem); router.push(`/dashboard/projects?projectId=${projectItem.id}`, { scroll: false }); }}>
                   <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6">
                     <div className="flex-1 min-w-0"><CardTitle className="text-base sm:text-lg">{projectItem.title}</CardTitle><CardDescription className="text-xs text-muted-foreground mt-1 truncate">{projectsDict.assignedLabel}: {getTranslatedStatus(projectItem.assignedDivision) || projectsDict.none} {projectItem.nextAction ? `| ${projectsDict.nextActionLabel}: ${projectItem.nextAction}` : ''}</CardDescription></div>
                      <div className="flex-shrink-0 mt-2 sm:mt-0">{getStatusBadge(projectItem.status)}</div>
@@ -641,7 +684,7 @@ export default function ProjectsPage() {
        if (!projectsDict || !isClient) return <Skeleton className="h-64 w-full" />;
        return (
            <>
-               <Button variant="outline" onClick={() => setSelectedProject(null)} className="mb-4 w-full sm:w-auto"><ArrowLeft className="mr-2 h-4 w-4" />{projectsDict.backToList}</Button>
+               <Button variant="outline" onClick={() => {setSelectedProject(null); router.push('/dashboard/projects', { scroll: false });}} className="mb-4 w-full sm:w-auto"><ArrowLeft className="mr-2 h-4 w-4" />{projectsDict.backToList}</Button>
                <Card>
                    <CardHeader className="p-4 sm:p-6">
                      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
@@ -690,7 +733,7 @@ export default function ProjectsPage() {
                           <h3 className="text-lg font-semibold">{projectsDict.ownerActionTitle}</h3><p className="text-sm text-muted-foreground">{projectsDict.ownerActionDesc}</p>
                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                               <AlertDialog><AlertDialogTrigger asChild><Button variant="destructive" disabled={isSubmitting} className="w-full sm:w-auto"><XCircle className="mr-2 h-4 w-4" /> {projectsDict.rejectButton}</Button></AlertDialogTrigger>
-                                <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{projectsDict.cancelDialogTitle}</AlertDialogTitle><AlertDialogDescription>{projectsDict.cancelDialogDesc.replace('{projectName}', project.title)}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={isSubmitting}>{projectsDict.cancelDialogCancel}</AlertDialogCancel><AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleDecision('rejected')} disabled={isSubmitting}>{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}{projectsDict.confirmRejectButton || "Confirm Rejection"}</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+                                <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{projectsDict.cancelDialogTitle}</AlertDialogTitle><AlertDialogDescription>{projectsDict.cancelDialogDesc.replace('{projectName}', project.title)}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={isSubmitting}>{projectsDict.cancelButton}</AlertDialogCancel><AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleDecision('rejected')} disabled={isSubmitting}>{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}{projectsDict.confirmRejectButton || "Confirm Rejection"}</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
                               </AlertDialog>
                               <Button onClick={() => handleDecision('approved')} disabled={isSubmitting} className="accent-teal w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}{projectsDict.approveButton}</Button>
                             </div>
@@ -810,3 +853,4 @@ export default function ProjectsPage() {
     </div>
   );
 }
+
