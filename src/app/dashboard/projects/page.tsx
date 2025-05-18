@@ -82,7 +82,7 @@ const defaultDict = getDictionary('en');
 const projectStatuses = [
     'Pending Offer', 'Pending Approval', 'Pending DP Invoice',
     'Pending Admin Files', 'Pending Survey Details', 'Pending Architect Files', 'Pending Structure Files',
-    'Pending MEP Files', 'Pending Scheduling', 'Scheduled', // Removed 'Pending Final Check' as MEP now leads to Scheduling
+    'Pending MEP Files', 'Pending Scheduling', 'Scheduled',
     'In Progress', 'Completed', 'Canceled', 'Pending Consultation Docs', 'Pending Review'
 ];
 
@@ -347,12 +347,14 @@ export default function ProjectsPage() {
                  toast({ title: projectsDict.toast.sidangOutcomeCanceledTitle, description: projectsDict.toast.sidangOutcomeCanceledDesc.replace('{title}', newlyUpdatedProject.title) });
             } else if (actionTaken === 'revise_after_sidang') {
                  toast({ title: projectsDict.toast.sidangOutcomeRevisionTitle, description: projectsDict.toast.sidangOutcomeRevisionDesc.replace('{title}', newlyUpdatedProject.title).replace('{division}', getTranslatedStatus(newlyUpdatedProject.assignedDivision || ''))});
-            } else if (newlyUpdatedProject.status === 'Completed') { // General completion (not necessarily sidang)
+            } else if (newlyUpdatedProject.status === 'Completed') {
                 toast({ title: projectsDict.toast.projectMarkedCompleted, description: projectsDict.toast.projectCompletedSuccessfully.replace('{title}', newlyUpdatedProject.title) });
-            } else if (newlyUpdatedProject.status === 'Canceled') { // General cancellation
+            } else if (newlyUpdatedProject.status === 'Canceled') {
                 toast({ title: projectsDict.toast.projectMarkedCanceled, description: projectsDict.toast.projectCanceledSuccessfully.replace('{title}', newlyUpdatedProject.title) });
-            } else {
-                // Original toast for ongoing steps
+            } else if (actionTaken === 'scheduled') {
+                toast({ title: projectsDict.toast.sidangScheduled, description: projectsDict.toast.sidangScheduledDesc });
+            }
+            else {
                 toast({ title: projectsDict.toast.progressSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', getTranslatedStatus(newlyUpdatedProject.assignedDivision || '')) });
             }
         }
@@ -390,13 +392,10 @@ export default function ProjectsPage() {
         toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.schedulingPermissionDenied });
         return;
      }
-    const canSchedule = (
-        selectedProject.status === 'Pending Scheduling' &&
-        (
-            currentUser.role === 'Owner' ||
-            (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === 'Admin Proyek')
-        )
-     );
+    const canSchedule = selectedProject.status === 'Pending Scheduling' &&
+                        (currentUser.role === 'Owner' || 
+                         (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === 'Admin Proyek'));
+
 
      if (!canSchedule) {
         toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.schedulingPermissionDenied });
@@ -525,7 +524,6 @@ export default function ProjectsPage() {
             'Pending Architect Files', 'Pending Structure Files', 'Pending MEP Files',
             'Pending Consultation Docs',
         ];
-        // Admin Proyek does not perform "Pending Final Check" upload, it's a decision step.
         if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Final Check') {
             return false;
         }
@@ -533,11 +531,9 @@ export default function ProjectsPage() {
    }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
    const showFinalCheckActionSection = React.useMemo(() => {
-        // This section is for Admin Proyek to "complete" the final check.
-        // It's not an upload section, but an action.
         return selectedProject &&
                currentUser &&
-               selectedProject.status === 'Pending Final Check' && // Assuming this status exists and is assigned to Admin Proyek
+               selectedProject.status === 'Pending Final Check' && 
                currentUser.role === 'Admin Proyek' &&
                canPerformSelectedProjectAction;
    }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
@@ -554,7 +550,7 @@ export default function ProjectsPage() {
     return selectedProject.status === 'Pending Scheduling' &&
            (
              (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === 'Admin Proyek') ||
-             currentUser.role === 'Owner' // Owner can also schedule
+             currentUser.role === 'Owner'
            );
     },[selectedProject, currentUser]);
 
@@ -562,7 +558,7 @@ export default function ProjectsPage() {
         return selectedProject &&
                currentUser &&
                selectedProject.status === 'Pending Survey Details' &&
-               currentUser.role === 'Admin Proyek' && // Assuming Admin Proyek handles this
+               currentUser.role === 'Admin Proyek' && 
                canPerformSelectedProjectAction;
     }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
@@ -570,7 +566,7 @@ export default function ProjectsPage() {
         selectedProject &&
         selectedProject.status === 'Scheduled' &&
         currentUser &&
-        (currentUser.role === 'Owner' || currentUser.role === 'Admin Proyek'), // Admin Proyek might also want to add
+        (currentUser.role === 'Owner' || currentUser.role === 'Admin Proyek'),
     [selectedProject, currentUser]);
 
    const showSidangOutcomeSection = React.useMemo(() =>
@@ -649,14 +645,6 @@ export default function ProjectsPage() {
            setIsRevising(false);
        }
    };
-
-   const canReviseSelectedProject = React.useMemo(() => {
-       if (!currentUser || !selectedProject) return false;
-       if (!['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'].includes(currentUser.role)) return false;
-
-       if (['Completed', 'Canceled'].includes(selectedProject.status)) return false;
-       return true;
-   }, [currentUser, selectedProject]);
 
     if (!isClient || !currentUser || (isLoadingProjects && !selectedProject && !searchParams.get('projectId'))) {
         return (
@@ -788,7 +776,7 @@ export default function ProjectsPage() {
                             <Button onClick={()=> handleProgressSubmit('submitted')}
                                 disabled={
                                     isSubmitting ||
-                                    (currentUser?.role === 'Admin Proyek' && project.status === 'Pending Offer' && uploadedFiles.length === 0 ) || // Removed actionTaken check for this specific case
+                                    (currentUser?.role === 'Admin Proyek' && project.status === 'Pending Offer' && uploadedFiles.length === 0 ) || 
                                     (!description && uploadedFiles.length === 0 && !['Pending Scheduling', 'Pending Approval', 'Completed', 'Canceled', 'Pending Survey Details'].includes(project.status) && !(currentUser?.role === 'Admin Proyek' && project.status === 'Pending Offer') )
                                 }
                                 className="w-full sm:w-auto accent-teal">
@@ -826,7 +814,7 @@ export default function ProjectsPage() {
                                 </Button>
                             </div>
                         )}
-                        {/* Section for Admin Proyek to confirm final check */}
+                        
                          {showFinalCheckActionSection && (
                              <div className="space-y-4 border-t pt-4 mt-4">
                                  <h3 className="text-lg font-semibold">{projectsDict.nextActionDescriptions.performFinalCheck || "Perform Final Check"}</h3>

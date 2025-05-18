@@ -193,6 +193,9 @@ const en = {
     confirmRevisionDesc: 'This will send the project back to the previous stage for correction. Are you sure?',
     confirmRevisionButton: 'Yes, Request Revision',
     cancelButton: 'Cancel',
+    cancelDialogTitle: "Confirm Project Cancellation",
+    cancelDialogDesc: "Are you sure you want to cancel project \"{projectName}\"? This action cannot be undone.",
+    confirmRejectButton: "Yes, Reject",
     revisionNotePrefix: 'Note:',
     invalidDate: 'Invalid Date',
     notApplicable: 'N/A',
@@ -268,8 +271,8 @@ const en = {
       projectCompletedSuccessfully: "Project \"{title}\" has been successfully marked as completed.",
       projectMarkedCanceled: "Project Canceled",
       projectCanceledSuccessfully: "Project \"{title}\" has been successfully canceled.",
-      revisionRequested: "Revision Requested", // General revision
-      projectSentForRevision: "Project \"{title}\" sent back to {division} for revision.", // General revision
+      revisionRequested: "Revision Requested", 
+      projectSentForRevision: "Project \"{title}\" sent back to {division} for revision.", 
       sidangOutcomeSuccessTitle: "Sidang Outcome: Success",
       sidangOutcomeSuccessDesc: "Project \"{title}\" has been marked as completed based on sidang outcome.",
       sidangOutcomeRevisionTitle: "Sidang Outcome: Revision Needed",
