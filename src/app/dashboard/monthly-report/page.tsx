@@ -30,7 +30,7 @@ import {
   TableCaption,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, BarChart3, CheckSquare, XSquare, PieChart as PieChartIcon, AlertTriangle, FileText } from 'lucide-react';
+import { Loader2, FileText, BarChart3, CheckSquare, XSquare, PieChart as PieChartIcon, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
@@ -44,6 +44,7 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartConfig // Pastikan ChartConfig diimpor
 } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList, Cell } from "recharts";
 import type { Language } from '@/context/LanguageContext';
@@ -95,7 +96,7 @@ export default function MonthlyReportPage() {
 
   React.useEffect(() => {
     const fetchProjects = async () => {
-      if (currentUser && ['Owner', 'General Admin'].includes(currentUser.role)) {
+      if (currentUser && ['Owner', 'General Admin', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role)) {
         setIsLoadingProjects(true);
         try {
           const fetchedProjects = await getAllProjects();
@@ -113,7 +114,7 @@ export default function MonthlyReportPage() {
     if (isClient) fetchProjects();
   }, [currentUser, isClient, toast, reportDict]);
 
-  const canViewPage = currentUser && ['Owner', 'General Admin'].includes(currentUser.role);
+  const canViewPage = currentUser && ['Owner', 'General Admin', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role);
 
   const getMonthName = React.useCallback((monthNumber: number, lang: Language) => {
     const date = new Date();
@@ -271,7 +272,7 @@ export default function MonthlyReportPage() {
             let errorDetails = `Server returned status ${response.status}.`;
             let responseText = "";
             try {
-                responseText = await response.text();
+                responseText = await response.text(); // Read as text first
                 if (responseText.trim().startsWith('{') && responseText.trim().endsWith('}')) {
                     const errorData = JSON.parse(responseText);
                     console.error("[Client/WordDownload] Raw errorData from server:", JSON.stringify(errorData)); 
@@ -313,7 +314,7 @@ export default function MonthlyReportPage() {
         toast({ title: reportDict.toast.downloadSuccessTitle, description: reportDict.toast.downloadSuccessDescWord });
     } catch (error: any) {
         console.error('Error downloading Word report:', error);
-        toast({ variant: 'destructive', title: reportDict.toast.error, description: error.message || reportDict.toast.downloadErrorDesc });
+        toast({ variant: 'destructive', title: reportDict.toast.error, description: String(error.message || reportDict.toast.downloadErrorDesc) });
     } finally {
         setIsDownloading(false);
     }
@@ -325,17 +326,17 @@ export default function MonthlyReportPage() {
 
   // Define literal HSL/HEX colors for the chart, matching globals.css
   const chartLiteralColors = {
-    inProgress: "hsl(210, 70%, 55%)", // --chart-2 in globals.css
-    completed: "hsl(120, 60%, 50%)",  // --chart-1 in globals.css
-    canceled: "hsl(0, 84.2%, 60.2%)", // --destructive in globals.css
+    inProgress: "hsl(var(--chart-2))",
+    completed: "hsl(var(--chart-1))",
+    canceled: "hsl(var(--destructive))",
   };
 
   const chartConfig = React.useMemo(() => ({
-    count: { label: reportDict.totalProjectsShort, color: "hsl(0, 0%, 3.9%)" }, // Default foreground
+    count: { label: reportDict.totalProjectsShort, color: "hsl(var(--foreground))" }, // Default foreground
     [reportDict.status.inprogress]: { label: reportDict.status.inprogress, color: chartLiteralColors.inProgress },
     [reportDict.status.completed]: { label: reportDict.status.completed, color: chartLiteralColors.completed },
     [reportDict.status.canceled]: { label: reportDict.status.canceled, color: chartLiteralColors.canceled },
-  }), [reportDict, chartLiteralColors.inprogress, chartLiteralColors.completed, chartLiteralColors.canceled]);
+  } as ChartConfig), [reportDict, chartLiteralColors.inprogress, chartLiteralColors.completed, chartLiteralColors.canceled]);
 
 
   const chartDisplayData = React.useMemo(() => {
@@ -548,4 +549,5 @@ export default function MonthlyReportPage() {
     </div>
   );
 }
+
 
