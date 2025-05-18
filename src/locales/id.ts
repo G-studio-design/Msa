@@ -27,7 +27,7 @@ const id = {
     dashboard: 'Dasbor',
     projects: 'Proyek',
     manageUsers: 'Kelola Pengguna',
-    requestLeave: 'Ajukan Izin', 
+    requestLeave: 'Ajukan Izin',
     leaveApprovals: 'Persetujuan Izin',
     adminActions: 'Tindakan Admin',
     manageWorkflows: 'Kelola Alur Kerja',
@@ -37,9 +37,9 @@ const id = {
     appTitle: 'Msarch App',
     appTitleShort: 'Msarch',
     toggleMenu: 'Buka/Tutup Panel Menu',
-    roles: { // Used for displaying roles in UI
+    roles: {
         owner: 'Pemilik',
-        generaladmin: 'Admin/Akuntan', // Updated Label
+        generaladmin: 'Admin/Akuntan',
         adminproyek: 'MEP - Admin Proyek',
         arsitek: 'MEP - Arsitek',
         struktur: 'MEP - Struktur',
@@ -65,7 +65,7 @@ const id = {
     projectCanceled: 'Proyek ini dibatalkan.',
     projectCompleted: 'Proyek Selesai',
     addNewProject: 'Tambah Proyek Baru',
-    status: { // Used for translating status/division names across the app
+    status: {
       completed: 'Selesai',
       inprogress: 'Sedang Berjalan',
       pendingapproval: 'Menunggu Persetujuan',
@@ -85,14 +85,13 @@ const id = {
       pendingfinalcheck: 'Menunggu Pemeriksaan Akhir',
       pendingscheduling: 'Menunggu Penjadwalan',
       owner: 'Pemilik',
-      generaladmin: 'Admin/Akuntan', // Updated Label
+      generaladmin: 'Admin/Akuntan',
       adminproyek: 'MEP - Admin Proyek',
       arsitek: 'MEP - Arsitek',
       struktur: 'MEP - Struktur',
       mep: 'MEP - Koordinator',
       admindev: 'Developer',
       notassigned: 'Belum Ditugaskan',
-      // Leave types for calendar/display
       sakit: "Sakit",
       cutitahunan: "Cuti Tahunan",
       keperluanpribadi: "Keperluan Pribadi",
@@ -110,18 +109,20 @@ const id = {
      },
     scheduleAgendaTitle: 'Jadwal & Agenda',
     scheduleAgendaDesc: 'Lihat jadwal sidang proyek, survei, izin karyawan, dan hari libur.',
+    todayButtonLabel: 'Hari Ini',
     eventsForDate: 'Acara untuk {date}',
     noEventsOnDate: 'Tidak ada acara terjadwal pada tanggal ini.',
     selectDatePrompt: 'Pilih tanggal untuk melihat acara.',
     eventTimeLabel: 'Waktu:',
     eventLocationLabel: 'Lokasi:',
-    projectSidangLabel: 'Sidang Proyek', 
+    projectSidangLabel: 'Sidang Proyek',
     projectSurveyLabel: 'Survei Proyek',
     surveyDescriptionLabel: 'Deskripsi Survei:',
-    employeeOnLeaveLabel: 'Sedang Izin:', 
-    leaveDurationLabel: 'Durasi:', 
-    holidayLabel: "Hari Libur", // New
-    companyEventLabel: "Acara Perusahaan", // New
+    employeeOnLeaveLabel: 'Sedang Izin',
+    leaveDurationLabel: 'Durasi:',
+    holidayLabel: "Hari Libur",
+    companyEventLabel: "Acara Perusahaan",
+    reasonLabel: "Alasan",
     toast: {
         errorTitle: 'Kesalahan',
         fetchError: 'Tidak dapat memuat data halaman.',
@@ -215,10 +216,10 @@ const id = {
         submittedProgressFor: "Mengirim Progres untuk",
         canceledProject: "Membatalkan Proyek",
         generateDPInvoice: "Membuat Faktur DP",
-        approvedOfferTransition: "Menyetujui Penawaran", 
-        approvedDPInvoiceTransition: "Menyetujui Faktur DP", 
+        approvedOfferTransition: "Menyetujui Penawaran",
+        approvedDPInvoiceTransition: "Menyetujui Faktur DP",
         markedAsCompleted: "Menandai sebagai Selesai",
-        scheduledSidangFor: "Menjadwalkan Sidang untuk", 
+        scheduledSidangFor: "Menjadwalkan Sidang untuk",
         declareSidangOutcome: "Menyatakan Hasil Sidang (Berhasil/Gagal)",
         reEvaluateOffer: "Evaluasi Ulang/Revisi Penawaran",
         reApproveOffer: "Setujui Ulang Penawaran (Masalah pada Pembuatan DP)",
@@ -341,14 +342,14 @@ const id = {
     deleteDialogCancel: 'Batal',
     deleteDialogConfirm: 'Hapus Pengguna',
     cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin/Akuntan terakhir.',
-    roles: { // Used in Manage Users dropdown and table display
+    roles: {
        owner: 'Pemilik',
-       generaladmin: 'Admin/Akuntan', // Updated Label
+       generaladmin: 'Admin/Akuntan',
        adminproyek: 'MEP - Admin Proyek',
        arsitek: 'MEP - Arsitek',
        struktur: 'MEP - Struktur',
        mep: 'MEP - Koordinator',
-       admindev: 'Developer', // Not shown in dropdown for selection
+       admindev: 'Developer',
      },
     toast: {
         userAdded: 'Pengguna Ditambahkan',
@@ -456,7 +457,7 @@ const id = {
     transitionActionLabel: 'Transisi pada tindakan',
     noTransitionsDefined: 'Tidak ada transisi yang didefinisikan untuk langkah ini.',
     noneLabel: 'Tidak Ada',
-    notApplicable: 'T/A',
+    notApplicable: 'N/A',
     cannotDeleteDefaultTooltip: "Alur kerja standar default tidak dapat dihapus jika ini adalah satu-satunya yang tersisa atau sedang digunakan secara aktif.",
     formLabels: {
       name: 'Nama Alur Kerja',
@@ -601,7 +602,7 @@ const id = {
        summaryTitle: "Ringkasan",
        chartTitleWord: "Tinjauan Status Proyek",
        tableCaptionWord: "Daftar Detail Proyek",
-       status: { // For chart legend and table status column display
+       status: {
          completed: 'Selesai',
          inprogress: 'Sedang Berjalan',
          canceled: 'Dibatalkan',
@@ -689,7 +690,7 @@ const id = {
       reasonPlaceholder: "Masukkan alasan penolakan...",
       confirmButton: "Konfirmasi Penolakan",
     },
-    cancelButton: 'Batal', // Added missing cancel button translation for dialog
+    cancelButton: 'Batal',
     toast: {
       errorTitle: "Kesalahan",
       fetchError: "Tidak dapat memuat permintaan izin yang tertunda.",
@@ -719,3 +720,4 @@ const id = {
 };
 
 export default id;
+

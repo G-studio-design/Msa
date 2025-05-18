@@ -27,7 +27,7 @@ const en = {
     dashboard: 'Dashboard',
     projects: 'Projects',
     manageUsers: 'Manage Users',
-    requestLeave: 'Request Leave', 
+    requestLeave: 'Request Leave',
     leaveApprovals: 'Leave Approvals',
     adminActions: 'Admin Actions',
     manageWorkflows: 'Manage Workflows',
@@ -37,9 +37,9 @@ const en = {
     appTitle: 'Msarch App',
     appTitleShort: 'Msarch',
     toggleMenu: 'Toggle Menu Panel',
-    roles: { // Used for displaying roles in UI
+    roles: {
         owner: 'Owner',
-        generaladmin: 'Admin/Accountant', // Updated Label
+        generaladmin: 'Admin/Accountant',
         adminproyek: 'MEP - Project Admin',
         arsitek: 'MEP - Architect',
         struktur: 'MEP - Structure',
@@ -65,7 +65,7 @@ const en = {
     projectCanceled: 'This project was canceled.',
     projectCompleted: 'Project Completed',
     addNewProject: 'Add New Project',
-    status: { // Used for translating status/division names across the app
+    status: {
       completed: 'Completed',
       inprogress: 'In Progress',
       pendingapproval: 'Pending Approval',
@@ -85,14 +85,13 @@ const en = {
       pendingfinalcheck: 'Pending Final Check',
       pendingscheduling: 'Pending Scheduling',
       owner: 'Owner',
-      generaladmin: 'Admin/Accountant', // Updated Label
+      generaladmin: 'Admin/Accountant',
       adminproyek: 'MEP - Project Admin',
       arsitek: 'MEP - Architect',
       struktur: 'MEP - Structure',
       mep: 'MEP - Coordinator',
       admindev: 'Developer',
       notassigned: 'Not Assigned',
-      // Leave types for calendar/display
       sakit: "Sick Leave",
       cutitahunan: "Annual Leave",
       keperluanpribadi: "Personal Leave",
@@ -110,18 +109,20 @@ const en = {
     },
     scheduleAgendaTitle: 'Schedule & Agenda',
     scheduleAgendaDesc: 'View scheduled project sidangs, surveys, employee leaves, and holidays.',
+    todayButtonLabel: 'Today',
     eventsForDate: 'Events for {date}',
     noEventsOnDate: 'No events scheduled on this date.',
     selectDatePrompt: 'Select a date to view events.',
     eventTimeLabel: 'Time:',
     eventLocationLabel: 'Location:',
-    projectSidangLabel: 'Project Sidang', 
+    projectSidangLabel: 'Project Sidang',
     projectSurveyLabel: 'Project Survey',
     surveyDescriptionLabel: 'Survey Desc:',
-    employeeOnLeaveLabel: 'On Leave:', 
-    leaveDurationLabel: 'Duration:', 
-    holidayLabel: "Holiday", // New
-    companyEventLabel: "Company Event", // New
+    employeeOnLeaveLabel: 'On Leave',
+    leaveDurationLabel: 'Duration:',
+    holidayLabel: "Holiday",
+    companyEventLabel: "Company Event",
+    reasonLabel: "Reason",
     toast: {
         errorTitle: 'Error',
         fetchError: 'Could not load page data.',
@@ -215,10 +216,10 @@ const en = {
         submittedProgressFor: "Submitted Progress for",
         canceledProject: "Canceled Project",
         generateDPInvoice: "Generated DP Invoice",
-        approvedOfferTransition: "Approved Offer", 
-        approvedDPInvoiceTransition: "Approved DP Invoice", 
+        approvedOfferTransition: "Approved Offer",
+        approvedDPInvoiceTransition: "Approved DP Invoice",
         markedAsCompleted: "Marked as Completed",
-        scheduledSidangFor: "Scheduled Sidang for", 
+        scheduledSidangFor: "Scheduled Sidang for",
         declareSidangOutcome: "Declared Sidang Outcome (Success/Fail)",
         reEvaluateOffer: "Re-evaluated/Revised Offer",
         reApproveOffer: "Re-Approved Offer (Issue with DP Gen)",
@@ -341,14 +342,14 @@ const en = {
     deleteDialogCancel: 'Cancel',
     deleteDialogConfirm: 'Delete User',
     cannotChangeLastAdminRoleHint: 'Cannot change the role of the last Admin/Accountant.',
-    roles: { // Used in Manage Users dropdown and table display
+    roles: {
       owner: 'Owner',
-      generaladmin: 'Admin/Accountant', // Updated Label
+      generaladmin: 'Admin/Accountant',
       adminproyek: 'MEP - Project Admin',
       arsitek: 'MEP - Architect',
       struktur: 'MEP - Structure',
       mep: 'MEP - Coordinator',
-      admindev: 'Developer', // Not shown in dropdown for selection
+      admindev: 'Developer',
     },
     toast: {
       userAdded: 'User Added',
@@ -601,7 +602,7 @@ const en = {
       summaryTitle: "Summary",
       chartTitleWord: "Project Status Overview",
       tableCaptionWord: "Detailed Project List",
-      status: { // For chart legend and table status column display
+      status: {
         completed: 'Completed',
         inprogress: 'In Progress',
         canceled: 'Canceled',
@@ -689,7 +690,7 @@ const en = {
       reasonPlaceholder: "Enter reason for rejection...",
       confirmButton: "Confirm Rejection",
     },
-    cancelButton: 'Cancel', // Added missing cancel button translation for dialog
+    cancelButton: 'Cancel',
     toast: {
       errorTitle: "Error",
       fetchError: "Could not load pending leave requests.",
@@ -719,3 +720,4 @@ const en = {
 };
 
 export default en;
+

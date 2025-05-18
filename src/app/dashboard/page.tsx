@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, AlertTriangle, PlusCircle, Loader2, TrendingUp, Percent, BarChartIcon, CalendarDays, Info, Plane, Briefcase, MapPin, PartyPopper, Building as BuildingIcon } from 'lucide-react'; // Added PartyPopper, BuildingIcon
+import { CheckCircle, XCircle, AlertTriangle, PlusCircle, Loader2, TrendingUp, Percent, BarChartIcon, CalendarDays, Info, Plane, Briefcase, MapPin, PartyPopper, Building as BuildingIcon } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useToast } from '@/hooks/use-toast';
@@ -16,7 +16,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllProjects, type Project } from '@/services/project-service';
 import { getApprovedLeaveRequests, type LeaveRequest } from '@/services/leave-request-service';
-import { getAllHolidays, type HolidayEntry } from '@/services/holiday-service'; // Import holiday service
+import { getAllHolidays, type HolidayEntry } from '@/services/holiday-service';
 import {
   ChartContainer,
   ChartTooltip,
@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList, Cell } from "recharts";
 import { Calendar } from "@/components/ui/calendar";
-import { parseISO, format, isSameDay, isValid, eachDayOfInterval } from 'date-fns';
+import { parseISO, format, isSameDay, isValid, eachDayOfInterval, startOfMonth } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 
 // Default dictionary for server render / pre-hydration
@@ -48,11 +48,12 @@ export default function DashboardPage() {
 
   const [allProjects, setAllProjects] = React.useState<Project[]>([]);
   const [approvedLeaves, setApprovedLeaves] = React.useState<LeaveRequest[]>([]);
-  const [holidaysAndEvents, setHolidaysAndEvents] = React.useState<HolidayEntry[]>([]); // State for holidays
+  const [holidaysAndEvents, setHolidaysAndEvents] = React.useState<HolidayEntry[]>([]);
   const [isLoadingData, setIsLoadingData] = React.useState(true);
 
   // State for Calendar
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
+  const [displayMonth, setDisplayMonth] = React.useState<Date>(startOfMonth(new Date())); // State for currently displayed month in calendar
   const [eventsForSelectedDate, setEventsForSelectedDate] = React.useState<CalendarDisplayEvent[]>([]);
 
   React.useEffect(() => {
@@ -67,16 +68,17 @@ export default function DashboardPage() {
         const [fetchedProjects, fetchedLeaves, fetchedHolidays] = await Promise.all([
           getAllProjects(),
           getApprovedLeaveRequests(),
-          getAllHolidays() // Fetch holidays
+          getAllHolidays()
         ]);
         setAllProjects(fetchedProjects);
         setApprovedLeaves(fetchedLeaves);
-        setHolidaysAndEvents(fetchedHolidays); // Set holidays state
+        setHolidaysAndEvents(fetchedHolidays);
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
         if (isClient && dashboardDict?.toast?.fetchError) {
           toast({ variant: 'destructive', title: dashboardDict.toast.errorTitle, description: dashboardDict.toast.fetchError });
         } else {
+          // Fallback toast if dict is not ready
           toast({ variant: 'destructive', title: 'Error', description: 'Could not load page data.' });
         }
       } finally {
@@ -101,7 +103,7 @@ export default function DashboardPage() {
   }, [language]);
 
   const userRole = currentUser?.role || '';
-  const canAddProject = currentUser && ['Owner', 'General Admin', 'Admin Proyek', 'Admin Developer'].includes(userRole);
+  const canAddProject = currentUser && ['Owner', 'Admin/Akuntan', 'Admin Proyek', 'Admin Developer'].includes(userRole);
 
   const getTranslatedStatus = React.useCallback((statusKey: string): string => {
     if (!isClient || !dashboardDict?.status || !statusKey) return statusKey;
@@ -114,7 +116,7 @@ export default function DashboardPage() {
     const statusKey = status.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status;
     const translatedStatus = dashboardDict.status[statusKey] || status;
     let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-    let className = "py-1 px-2 text-xs"; // Reduced padding and text size for badges
+    let className = "py-1 px-2 text-xs";
     let Icon = TrendingUp;
     switch (status.toLowerCase()) {
       case 'completed': case 'selesai': variant = 'default'; className = `${className} bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-primary-foreground`; Icon = CheckCircle; break;
@@ -133,7 +135,7 @@ export default function DashboardPage() {
   const filteredProjects = React.useMemo(() => {
     if (!currentUser || !isClient || isLoadingData) return [];
     const userRoleLower = userRole.toLowerCase();
-    if (['owner', 'general admin', 'admin proyek', 'admin developer'].includes(userRoleLower)) {
+    if (['owner', 'admin/akuntan', 'admin proyek', 'admin developer'].includes(userRoleLower)) {
       return allProjects;
     }
     return allProjects.filter(project =>
@@ -161,7 +163,7 @@ export default function DashboardPage() {
         id: project.id
       }))
       .sort((a, b) => b.progress - a.progress)
-      .slice(0, 10); // Show top 10 projects by progress or fewer
+      .slice(0, 10); 
   }, [activeProjects, language]);
 
   const chartConfig = React.useMemo(() => ({
@@ -213,7 +215,10 @@ export default function DashboardPage() {
             const dateString = format(day, 'yyyy-MM-dd');
             if (!eventsByDate[dateString]) eventsByDate[dateString] = [];
             if (!markedDates.some(d => isSameDay(d, day))) markedDates.push(day);
-            eventsByDate[dateString].push({ ...leave, type: 'leave' });
+            // Avoid duplicate display for multi-day leave on the same date string
+            if (!eventsByDate[dateString].some(e => e.type === 'leave' && (e as LeaveRequest).id === leave.id)) {
+              eventsByDate[dateString].push({ ...leave, type: 'leave' });
+            }
           });
         }
       } catch (e) { console.error("Error processing leave dates:", leave.id, e); }
@@ -235,7 +240,7 @@ export default function DashboardPage() {
   }, [allProjects, approvedLeaves, holidaysAndEvents, isLoadingData]);
 
   const handleDateSelect = React.useCallback((date: Date | undefined) => {
-    setSelectedDate(date);
+    setSelectedDate(date); // This will highlight the selected day
     if (date) {
       const dateString = format(date, 'yyyy-MM-dd');
       setEventsForSelectedDate(calendarEventsData.eventsByDate[dateString] || []);
@@ -245,10 +250,10 @@ export default function DashboardPage() {
   }, [calendarEventsData.eventsByDate]);
 
   React.useEffect(() => {
-    if (isClient && selectedDate && !isLoadingData) {
+    if (isClient && !isLoadingData) { // Fetch initial events for current selectedDate (today by default)
       handleDateSelect(selectedDate);
     }
-  }, [isClient, selectedDate, isLoadingData, calendarEventsData, handleDateSelect]);
+  }, [isClient, isLoadingData, selectedDate, handleDateSelect]);
 
 
   const currentLocale = language === 'id' ? IndonesianLocale : EnglishLocale;
@@ -276,10 +281,43 @@ export default function DashboardPage() {
           <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
           <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
         </div>
-        <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><div className="space-y-4">{[...Array(3)].map((_, i) => (<Card key={`project-skel-${i}`} className="opacity-50"><CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2"><div><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div><Skeleton className="h-5 w-20 rounded-full" /></CardHeader><CardContent><Skeleton className="h-2 w-full mb-1" /><Skeleton className="h-3 w-1/4" /></CardContent></Card>))}</div></CardContent></Card>
+        <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><div className="space-y-4">{[...Array(3)].map((_, i) => (<Card key={`project-skel-${i}`} className="opacity-50"><CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 p-4 sm:p-6"><div><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div><Skeleton className="h-5 w-20 rounded-full" /></CardHeader><CardContent className="p-4 sm:p-6 pt-0"><Skeleton className="h-2 w-full mb-1" /><Skeleton className="h-3 w-1/4" /></CardContent></Card>))}</div></CardContent></Card>
       </div>
     );
   }
+
+  const getEventBadge = (eventType: CalendarDisplayEvent['type'], leaveType?: string) => {
+    let label = '';
+    let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
+    let className = "text-xs";
+
+    switch (eventType) {
+      case 'sidang':
+        label = dashboardDict.projectSidangLabel;
+        variant = 'default'; className = `${className} bg-primary text-primary-foreground`;
+        break;
+      case 'survey':
+        label = dashboardDict.projectSurveyLabel;
+        variant = 'default'; className = `${className} bg-green-600 text-white`;
+        break;
+      case 'leave':
+        label = leaveType ? getTranslatedStatus(leaveType) : dashboardDict.employeeOnLeaveLabel;
+        variant = 'destructive';
+        break;
+      case 'holiday':
+        label = dashboardDict.holidayLabel;
+        variant = 'outline'; className = `${className} border-orange-500 text-orange-600`;
+        break;
+      case 'company_event':
+        label = dashboardDict.companyEventLabel;
+        variant = 'outline'; className = `${className} border-purple-600 text-purple-600`;
+        break;
+      default:
+        label = "Event";
+    }
+    return <Badge variant={variant} className={className}>{label}</Badge>;
+  };
+
 
   return (
     <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
@@ -379,13 +417,28 @@ export default function DashboardPage() {
               <CardTitle className="text-lg md:text-xl">{dashboardDict.scheduleAgendaTitle}</CardTitle>
               <CardDescription>{dashboardDict.scheduleAgendaDesc}</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col items-center"> {/* Center calendar */}
+            <CardContent className="flex flex-col items-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const today = new Date();
+                  setSelectedDate(today);
+                  setDisplayMonth(startOfMonth(today));
+                  handleDateSelect(today); // Ensure events are loaded for today
+                }}
+                className="mb-3 self-start"
+              >
+                {dashboardDict.todayButtonLabel}
+              </Button>
               <Calendar
                 mode="single"
                 selected={selectedDate}
+                month={displayMonth}
+                onMonthChange={setDisplayMonth}
                 onSelect={handleDateSelect}
                 locale={currentLocale}
-                className="rounded-md border shadow-sm bg-card text-card-foreground p-3 self-center" // Center calendar
+                className="rounded-md border shadow-sm bg-card text-card-foreground p-3 self-center"
                 modifiers={{
                   sunday: { dayOfWeek: [0] },
                   sidang: calendarEventsData.dates.filter(d => calendarEventsData.eventsByDate[format(d, 'yyyy-MM-dd')]?.some(e => e.type === 'sidang')),
@@ -397,10 +450,10 @@ export default function DashboardPage() {
                 modifiersClassNames={{
                   sunday: 'text-destructive',
                   sidang: 'text-primary font-bold',
-                  leave: 'text-red-500 font-bold', 
+                  leave: 'text-red-500 font-bold',
                   survey: 'text-green-600 font-bold',
-                  holiday: 'text-orange-500 font-semibold', 
-                  company_event: 'text-purple-600 font-semibold', 
+                  holiday: 'text-orange-500 font-semibold',
+                  company_event: 'text-purple-600 font-semibold',
                 }}
                 disabled={(date) => date < new Date("1900-01-01") || date > new Date("2999-12-31")}
               />
@@ -410,72 +463,95 @@ export default function DashboardPage() {
                 </h3>
                 {selectedDate && eventsForSelectedDate.length > 0 ? (
                   <ul className="space-y-2 text-sm max-h-48 overflow-y-auto pr-2">
-                    {eventsForSelectedDate.map((event, index) => (
-                      <li key={`${event.type}-${(event as any).id}-${index}`} className="p-2 border rounded-md bg-muted/50 hover:bg-muted transition-colors">
+                    {eventsForSelectedDate.map((event, index) => {
+                      const key = `${event.type}-${(event as any).id}-${index}`;
+                      return (
+                      <li key={key} className="p-3 border rounded-md bg-muted/30 hover:bg-muted/60 transition-colors shadow-sm">
                         {event.type === 'sidang' && (event as Project).scheduleDetails ? (
                           <>
-                            <p className="font-medium text-primary truncate flex items-center gap-1">
-                              <Briefcase className="h-4 w-4 flex-shrink-0" />
-                              <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="hover:underline">
-                                {(event as Project).title} ({dashboardDict.projectSidangLabel})
-                              </Link>
-                            </p>
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="font-medium text-primary truncate flex items-center gap-1.5">
+                                <Briefcase className="h-4 w-4 flex-shrink-0" />
+                                <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="hover:underline">
+                                  {(event as Project).title}
+                                </Link>
+                              </p>
+                              {getEventBadge('sidang')}
+                            </div>
                             {(event as Project).scheduleDetails?.time && (
-                              <p className="text-xs text-muted-foreground pl-5">
+                              <p className="text-xs text-muted-foreground pl-6">
                                 {dashboardDict.eventTimeLabel} {(event as Project).scheduleDetails!.time}
                               </p>
                             )}
                             {(event as Project).scheduleDetails?.location && (
-                              <p className="text-xs text-muted-foreground pl-5">
+                              <p className="text-xs text-muted-foreground pl-6">
                                 {dashboardDict.eventLocationLabel} {(event as Project).scheduleDetails!.location}
                               </p>
                             )}
                           </>
                         ) : event.type === 'leave' ? (
                           <>
-                            <p className="font-medium text-red-500 truncate flex items-center gap-1">
-                              <Plane className="h-4 w-4 flex-shrink-0" />
-                              {(event as LeaveRequest).displayName || (event as LeaveRequest).username} ({getTranslatedStatus((event as LeaveRequest).leaveType) || (event as LeaveRequest).leaveType})
-                            </p>
-                            <p className="text-xs text-muted-foreground pl-5">
+                            <div className="flex items-center justify-between mb-1">
+                              <p className="font-medium text-destructive truncate flex items-center gap-1.5">
+                                <Plane className="h-4 w-4 flex-shrink-0" />
+                                {(event as LeaveRequest).displayName || (event as LeaveRequest).username}
+                              </p>
+                               {getEventBadge('leave', (event as LeaveRequest).leaveType)}
+                            </div>
+                            <p className="text-xs text-muted-foreground pl-6">
                               {dashboardDict.leaveDurationLabel} {format(parseISO((event as LeaveRequest).startDate), 'PP', { locale: currentLocale })} - {format(parseISO((event as LeaveRequest).endDate), 'PP', { locale: currentLocale })}
                             </p>
+                             {(event as LeaveRequest).reason && (
+                                <p className="text-xs text-muted-foreground pl-6 mt-0.5 whitespace-pre-wrap">
+                                  {dashboardDict.reasonLabel}: {(event as LeaveRequest).reason}
+                                </p>
+                            )}
                           </>
                         ) : event.type === 'survey' && (event as Project).surveyDetails ? (
                           <>
-                            <p className="font-medium text-green-600 truncate flex items-center gap-1">
-                              <MapPin className="h-4 w-4 flex-shrink-0" />
-                              <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="hover:underline">
-                                {(event as Project).title} ({dashboardDict.projectSurveyLabel})
-                              </Link>
-                            </p>
+                           <div className="flex items-center justify-between mb-1">
+                              <p className="font-medium text-green-600 truncate flex items-center gap-1.5">
+                                <MapPin className="h-4 w-4 flex-shrink-0" />
+                                <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="hover:underline">
+                                  {(event as Project).title}
+                                </Link>
+                              </p>
+                              {getEventBadge('survey')}
+                            </div>
                             {(event as Project).surveyDetails?.time && (
-                              <p className="text-xs text-muted-foreground pl-5">
+                              <p className="text-xs text-muted-foreground pl-6">
                                 {dashboardDict.eventTimeLabel} {(event as Project).surveyDetails!.time}
                               </p>
                             )}
                             {(event as Project).surveyDetails?.description && (
-                              <p className="text-xs text-muted-foreground pl-5">
+                              <p className="text-xs text-muted-foreground pl-6">
                                 {dashboardDict.surveyDescriptionLabel} {(event as Project).surveyDetails!.description}
                               </p>
                             )}
                           </>
                         ) : event.type === 'holiday' ? (
-                            <p className="font-medium text-orange-500 truncate flex items-center gap-1">
-                                <PartyPopper className="h-4 w-4 flex-shrink-0" />
-                                {(event as HolidayEntry).name} ({dashboardDict.holidayLabel})
-                            </p>
+                            <div className="flex items-center justify-between">
+                                <p className="font-medium text-orange-500 truncate flex items-center gap-1.5">
+                                    <PartyPopper className="h-4 w-4 flex-shrink-0" />
+                                    {(event as HolidayEntry).name}
+                                </p>
+                                {getEventBadge('holiday')}
+                            </div>
                         ) : event.type === 'company_event' ? (
-                             <p className="font-medium text-purple-600 truncate flex items-center gap-1">
-                                <BuildingIcon className="h-4 w-4 flex-shrink-0" />
-                                {(event as HolidayEntry).name} ({dashboardDict.companyEventLabel})
-                            </p>
+                             <div className="flex items-center justify-between">
+                                <p className="font-medium text-purple-600 truncate flex items-center gap-1.5">
+                                    <BuildingIcon className="h-4 w-4 flex-shrink-0" />
+                                    {(event as HolidayEntry).name}
+                                </p>
+                                {getEventBadge('company_event')}
+                            </div>
                         ) : null}
                       </li>
-                    ))}
+                      );
+                    })}
                   </ul>
                 ) : selectedDate ? (
-                  <p className="text-sm text-muted-foreground italic text-center">{dashboardDict.noEventsOnDate}</p>
+                  <p className="text-sm text-muted-foreground italic text-center py-4">{dashboardDict.noEventsOnDate}</p>
                 ) : null}
               </div>
             </CardContent>
@@ -487,7 +563,7 @@ export default function DashboardPage() {
         <CardHeader>
           <CardTitle className="text-lg md:text-xl">{dashboardDict.projectOverview}</CardTitle>
           <CardDescription>
-            {['owner', 'general admin', 'admin proyek', 'admin developer'].includes(userRole.toLowerCase())
+            {['owner', 'admin/akuntan', 'admin proyek', 'admin developer'].includes(userRole.toLowerCase())
               ? dashboardDict.allProjectsDesc
               : dashboardDict.divisionProjectsDesc.replace('{division}', getTranslatedStatus(userRole))}
           </CardDescription>
