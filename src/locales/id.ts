@@ -27,7 +27,8 @@ const id = {
     dashboard: 'Dasbor',
     projects: 'Proyek',
     manageUsers: 'Kelola Pengguna',
-    requestLeave: 'Ajukan Izin', // New
+    requestLeave: 'Ajukan Izin', 
+    leaveApprovals: 'Persetujuan Izin', // New
     adminActions: 'Tindakan Admin',
     manageWorkflows: 'Kelola Alur Kerja',
     monthlyReport: 'Laporan Bulanan',
@@ -38,11 +39,11 @@ const id = {
     toggleMenu: 'Buka/Tutup Panel Menu',
     roles: {
         owner: 'Pemilik',
-        generaladmin: 'Admin Umum',
+        generaladmin: 'Admin/Akuntan',
         adminproyek: 'MEP - Admin Proyek',
         arsitek: 'MEP - Arsitek',
         struktur: 'MEP - Struktur',
-        mep: 'MEP - Koordinator', // For the specific MEP uploader role
+        mep: 'MEP - Koordinator', 
         admindev: 'Developer',
     },
   },
@@ -84,7 +85,7 @@ const id = {
       pendingfinalcheck: 'Menunggu Pemeriksaan Akhir',
       pendingscheduling: 'Menunggu Penjadwalan',
       owner: 'Pemilik',
-      generaladmin: 'Admin Umum',
+      generaladmin: 'Admin/Akuntan',
       adminproyek: 'MEP - Admin Proyek',
       arsitek: 'MEP - Arsitek',
       struktur: 'MEP - Struktur',
@@ -108,15 +109,17 @@ const id = {
         label: 'Progres'
      },
     scheduleAgendaTitle: 'Jadwal & Agenda',
-    scheduleAgendaDesc: 'Lihat jadwal sidang proyek dan izin karyawan.',
+    scheduleAgendaDesc: 'Lihat jadwal sidang proyek, survei, dan izin karyawan.',
     eventsForDate: 'Acara untuk {date}',
     noEventsOnDate: 'Tidak ada acara terjadwal pada tanggal ini.',
     selectDatePrompt: 'Pilih tanggal untuk melihat acara.',
     eventTimeLabel: 'Waktu:',
     eventLocationLabel: 'Lokasi:',
-    projectSidangLabel: 'Sidang Proyek', // New
-    employeeOnLeaveLabel: 'Sedang Izin:', // New
-    leaveDurationLabel: 'Durasi:', // New
+    projectSidangLabel: 'Sidang Proyek', 
+    projectSurveyLabel: 'Survei Proyek',
+    surveyDescriptionLabel: 'Deskripsi Survei:',
+    employeeOnLeaveLabel: 'Sedang Izin:', 
+    leaveDurationLabel: 'Durasi:', 
     toast: {
         errorTitle: 'Kesalahan',
         fetchError: 'Tidak dapat memuat data halaman.',
@@ -271,7 +274,7 @@ const id = {
       failedToProcessDecision: 'Gagal memproses keputusan.',
       failedToSaveSchedule: 'Gagal menyimpan jadwal.',
       failedToRevise: 'Gagal merevisi proyek.',
-      revisionNotApplicable: 'Revisi tidak berlaku untuk langkah proyek saat ini.',
+      revisionNotApplicable: 'Revisi tidak berlaku untuk langkah ini.',
       maxFilesExceeded: 'Tidak dapat mengunggah lebih dari {max} file sekaligus.',
       uploadError: 'Kesalahan Unggah',
     }
@@ -335,10 +338,10 @@ const id = {
     deleteDialogDesc: 'Apakah Anda yakin ingin menghapus pengguna "{username}"? Tindakan ini tidak dapat dibatalkan.',
     deleteDialogCancel: 'Batal',
     deleteDialogConfirm: 'Hapus Pengguna',
-    cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin Umum terakhir.',
+    cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin/Akuntan terakhir.',
     roles: {
        owner: 'Pemilik',
-       generaladmin: 'Admin Umum',
+       generaladmin: 'Admin/Akuntan',
        adminproyek: 'MEP - Admin Proyek',
        arsitek: 'MEP - Arsitek',
        struktur: 'MEP - Struktur',
@@ -355,7 +358,7 @@ const id = {
         error: 'Kesalahan',
         usernameExists: 'Nama pengguna sudah ada.',
         cannotDeleteSelf: 'Anda tidak dapat menghapus akun Anda sendiri.',
-        cannotDeleteLastAdmin: 'Tidak dapat menghapus Admin Umum terakhir.',
+        cannotDeleteLastAdmin: 'Tidak dapat menghapus Admin/Akuntan terakhir.',
         permissionDenied: 'Izin Ditolak',
         editPermissionDenied: 'Anda tidak memiliki izin untuk mengubah pengguna ini.',
         cannotEditAdminDev: "Akun 'Developer' tidak dapat diubah melalui antarmuka ini.",
@@ -657,6 +660,43 @@ const id = {
       endDateAfterStartDate: "Tanggal selesai tidak boleh sebelum tanggal mulai.",
     },
   },
+  // Leave Approvals Page (New)
+  leaveApprovalsPage: {
+    title: "Permintaan Izin untuk Persetujuan",
+    description: "Tinjau dan proses permintaan izin karyawan yang tertunda.",
+    noPendingRequests: "Tidak Ada Permintaan Izin Tertunda",
+    allCaughtUp: "Semua sudah selesai ditinjau!",
+    tableCaption: "Permintaan izin tertunda yang menunggu tindakan Anda.",
+    tableHeaders: {
+      employee: "Karyawan",
+      leaveType: "Jenis Izin",
+      dates: "Tanggal",
+      reason: "Alasan",
+      actions: "Tindakan",
+    },
+    approveButton: "Setujui",
+    rejectButton: "Tolak",
+    viewReason: "Lihat Alasan",
+    closeButton: "Tutup",
+    reasonDialogTitle: "Alasan Izin - {employee}",
+    rejectDialog: {
+      title: "Tolak Permintaan Izin untuk {employee}",
+      description: "Harap berikan alasan untuk menolak permintaan izin ini. Ini akan dikomunikasikan kepada karyawan.",
+      reasonLabel: "Alasan Penolakan (Wajib)",
+      reasonPlaceholder: "Masukkan alasan penolakan...",
+      confirmButton: "Konfirmasi Penolakan",
+    },
+    toast: {
+      errorTitle: "Kesalahan",
+      fetchError: "Tidak dapat memuat permintaan izin yang tertunda.",
+      actionFailed: "Tindakan tidak dapat diselesaikan.",
+      approvedSuccessTitle: "Izin Disetujui",
+      approvedSuccessDesc: "Permintaan izin telah disetujui.",
+      rejectedSuccessTitle: "Izin Ditolak",
+      rejectedSuccessDesc: "Permintaan izin telah ditolak.",
+      reasonRequired: "Alasan penolakan wajib diisi.",
+    }
+  },
    // Notifications (General)
    notifications: {
        permissionGrantedTitle: "Notifikasi Diaktifkan",
@@ -675,3 +715,4 @@ const id = {
 };
 
 export default id;
+

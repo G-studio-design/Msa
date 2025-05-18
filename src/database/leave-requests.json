@@ -10,5 +10,17 @@
     "endDate": "2025-05-19",
     "reason": "ada calon arang",
     "status": "Pending"
+  },
+  {
+    "id": "leave_1747552515296_48l4s",
+    "userId": "usr_ga_ran",
+    "username": "oksi",
+    "displayName": "oksi",
+    "requestDate": "2025-05-18T07:15:15.295Z",
+    "leaveType": "Keperluan Pribadi",
+    "startDate": "2025-05-19",
+    "endDate": "2025-05-20",
+    "reason": "ada acara resepsi dirumah",
+    "status": "Pending"
   }
 ]

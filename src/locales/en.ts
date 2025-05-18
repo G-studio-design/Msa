@@ -27,7 +27,8 @@ const en = {
     dashboard: 'Dashboard',
     projects: 'Projects',
     manageUsers: 'Manage Users',
-    requestLeave: 'Request Leave', // New
+    requestLeave: 'Request Leave', 
+    leaveApprovals: 'Leave Approvals', // New
     adminActions: 'Admin Actions',
     manageWorkflows: 'Manage Workflows',
     monthlyReport: 'Monthly Report',
@@ -38,11 +39,11 @@ const en = {
     toggleMenu: 'Toggle Menu Panel',
     roles: {
         owner: 'Owner',
-        generaladmin: 'General Admin',
+        generaladmin: 'Admin/Accountant',
         adminproyek: 'MEP - Project Admin',
         arsitek: 'MEP - Architect',
         struktur: 'MEP - Structure',
-        mep: 'MEP - Coordinator', // For the specific MEP uploader role
+        mep: 'MEP - Coordinator', 
         admindev: 'Developer',
     },
   },
@@ -84,7 +85,7 @@ const en = {
       pendingfinalcheck: 'Pending Final Check',
       pendingscheduling: 'Pending Scheduling',
       owner: 'Owner',
-      generaladmin: 'General Admin',
+      generaladmin: 'Admin/Accountant',
       adminproyek: 'MEP - Project Admin',
       arsitek: 'MEP - Architect',
       struktur: 'MEP - Structure',
@@ -108,15 +109,17 @@ const en = {
         label: 'Progress'
     },
     scheduleAgendaTitle: 'Schedule & Agenda',
-    scheduleAgendaDesc: 'View scheduled project sidangs and employee leaves.',
+    scheduleAgendaDesc: 'View scheduled project sidangs, surveys, and employee leaves.',
     eventsForDate: 'Events for {date}',
     noEventsOnDate: 'No events scheduled on this date.',
     selectDatePrompt: 'Select a date to view events.',
     eventTimeLabel: 'Time:',
     eventLocationLabel: 'Location:',
-    projectSidangLabel: 'Project Sidang', // New
-    employeeOnLeaveLabel: 'On Leave:', // New
-    leaveDurationLabel: 'Duration:', // New
+    projectSidangLabel: 'Project Sidang', 
+    projectSurveyLabel: 'Project Survey',
+    surveyDescriptionLabel: 'Survey Desc:',
+    employeeOnLeaveLabel: 'On Leave:', 
+    leaveDurationLabel: 'Duration:', 
     toast: {
         errorTitle: 'Error',
         fetchError: 'Could not load page data.',
@@ -335,10 +338,10 @@ const en = {
     deleteDialogDesc: 'Are you sure you want to delete user "{username}"? This action cannot be undone.',
     deleteDialogCancel: 'Cancel',
     deleteDialogConfirm: 'Delete User',
-    cannotChangeLastAdminRoleHint: 'Cannot change the role of the last General Admin.',
+    cannotChangeLastAdminRoleHint: 'Cannot change the role of the last Admin/Accountant.',
     roles: {
       owner: 'Owner',
-      generaladmin: 'General Admin',
+      generaladmin: 'Admin/Accountant',
       adminproyek: 'MEP - Project Admin',
       arsitek: 'MEP - Architect',
       struktur: 'MEP - Structure',
@@ -355,14 +358,14 @@ const en = {
       error: 'Error',
       usernameExists: 'Username already exists.',
       cannotDeleteSelf: 'You cannot delete your own account.',
-      cannotDeleteLastAdmin: 'Cannot delete the last General Admin.',
+      cannotDeleteLastAdmin: 'Cannot delete the last Admin/Accountant.',
       permissionDenied: 'Permission Denied',
       editPermissionDenied: 'You do not have permission to edit this user.',
-      cannotEditAdminDev: "The 'Admin Developer' account cannot be edited through this interface.",
-      cannotDeleteAdminDev: "The 'Admin Developer' account cannot be deleted.",
-      cannotCreateAdminDev: "Cannot create user with 'Admin Developer' role.",
-      cannotSetAdminDevRole: "The 'Admin Developer' role cannot be assigned.",
-      cannotChangeAdminDevRole: "The role of 'Admin Developer' cannot be changed.",
+      cannotEditAdminDev: "The 'Developer' account cannot be edited through this interface.",
+      cannotDeleteAdminDev: "The 'Developer' account cannot be deleted.",
+      cannotCreateAdminDev: "Cannot create user with 'Developer' role.",
+      cannotSetAdminDevRole: "The 'Developer' role cannot be assigned.",
+      cannotChangeAdminDevRole: "The role of 'Developer' cannot be changed.",
       userNotFound: 'User not found.',
       fetchError: 'Could not load user data.',
     },
@@ -657,6 +660,43 @@ const en = {
       endDateAfterStartDate: "End date cannot be before start date.",
     },
   },
+  // Leave Approvals Page (New)
+  leaveApprovalsPage: {
+    title: "Leave Requests for Approval",
+    description: "Review and process pending employee leave requests.",
+    noPendingRequests: "No Pending Leave Requests",
+    allCaughtUp: "You're all caught up!",
+    tableCaption: "Pending leave requests awaiting your action.",
+    tableHeaders: {
+      employee: "Employee",
+      leaveType: "Leave Type",
+      dates: "Dates",
+      reason: "Reason",
+      actions: "Actions",
+    },
+    approveButton: "Approve",
+    rejectButton: "Reject",
+    viewReason: "View Reason",
+    closeButton: "Close",
+    reasonDialogTitle: "Reason for Leave - {employee}",
+    rejectDialog: {
+      title: "Reject Leave Request for {employee}",
+      description: "Please provide a reason for rejecting this leave request. This will be communicated to the employee.",
+      reasonLabel: "Rejection Reason (Required)",
+      reasonPlaceholder: "Enter reason for rejection...",
+      confirmButton: "Confirm Rejection",
+    },
+    toast: {
+      errorTitle: "Error",
+      fetchError: "Could not load pending leave requests.",
+      actionFailed: "The action could not be completed.",
+      approvedSuccessTitle: "Leave Approved",
+      approvedSuccessDesc: "The leave request has been approved.",
+      rejectedSuccessTitle: "Leave Rejected",
+      rejectedSuccessDesc: "The leave request has been rejected.",
+      reasonRequired: "Rejection reason is required.",
+    }
+  },
   // Notifications (General)
   notifications: {
       permissionGrantedTitle: "Notifications Enabled",
@@ -675,3 +715,4 @@ const en = {
 };
 
 export default en;
+

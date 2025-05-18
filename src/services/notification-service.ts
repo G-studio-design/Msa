@@ -1,3 +1,4 @@
+
 // src/services/notification-service.ts
 'use server';
 
@@ -139,6 +140,44 @@ export async function notifyUsersByRole(role: string, message: string, projectId
 }
 
 /**
+ * Sends a notification message to a specific user.
+ * Ensures the notification is persisted.
+ * @param userId The ID of the user to notify.
+ * @param message The notification message content.
+ * @param projectId Optional ID of the project related to the notification.
+ */
+export async function notifyUserById(userId: string, message: string, projectId?: string): Promise<void> {
+    console.log(`Sending notification to user ID "${userId}": ${message}${projectId ? ` (Project: ${projectId})` : ''}`);
+    try {
+        if (!userId) {
+            console.warn(`No target user ID specified for notification: "${message}". Skipping.`);
+            return;
+        }
+
+        const notifications = await readNotifications();
+        const now = new Date().toISOString();
+
+        const newNotification: Notification = {
+            id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            userId: userId,
+            projectId: projectId,
+            message: message,
+            timestamp: now,
+            isRead: false,
+        };
+        notifications.push(newNotification);
+        console.log(` -> Notification queued for user ${userId}`);
+
+        await writeNotifications(notifications);
+        console.log(`Notification for user ${userId} persisted. Total notifications: ${notifications.length}`);
+
+    } catch (error) {
+        console.error(`Error notifying user ID "${userId}":`, error);
+    }
+}
+
+
+/**
  * Retrieves notifications for a specific user.
  * Fetches from the persisted storage.
  * @param userId The ID of the user whose notifications are to be retrieved.
@@ -213,3 +252,4 @@ export async function clearAllNotifications(): Promise<void> {
         throw new Error("Could not clear notification data.");
     }
 }
+

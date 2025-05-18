@@ -4,7 +4,7 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { notifyUsersByRole } from './notification-service';
+import { notifyUsersByRole, notifyUserById } from './notification-service'; // Added notifyUserById
 import type { User } from './user-service';
 
 export interface LeaveRequest {
@@ -92,8 +92,10 @@ export async function addLeaveRequest(data: AddLeaveRequestData): Promise<LeaveR
 }
 
 export async function getAllLeaveRequests(): Promise<LeaveRequest[]> {
-  return await readLeaveRequests();
+  const allRequests = await readLeaveRequests();
+  return allRequests.sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());
 }
+
 
 export async function getApprovedLeaveRequests(): Promise<LeaveRequest[]> {
   const allRequests = await readLeaveRequests();
@@ -123,10 +125,8 @@ export async function approveLeaveRequest(requestId: string, approverUserId: str
 
   // Notify the employee
   const employeeNotificationMessage = `Permintaan izin Anda (${updatedRequest.leaveType}) dari ${updatedRequest.startDate} hingga ${updatedRequest.endDate} telah disetujui oleh ${approverUsername}.`;
-  // We need a way to send notification to a specific user ID
-  // For now, let's log it. A more robust solution would use a dedicated notifyUserById function.
-  console.log(`TODO: Notify user ${updatedRequest.userId}: ${employeeNotificationMessage}`);
-  // Example: await notifyUserById(updatedRequest.userId, employeeNotificationMessage);
+  await notifyUserById(updatedRequest.userId, employeeNotificationMessage);
+  console.log(`User ${updatedRequest.userId} notified of leave approval.`);
 
   return updatedRequest;
 }
@@ -155,8 +155,8 @@ export async function rejectLeaveRequest(requestId: string, rejectorUserId: stri
   
   // Notify the employee
   const employeeNotificationMessage = `Permintaan izin Anda (${updatedRequest.leaveType}) dari ${updatedRequest.startDate} hingga ${updatedRequest.endDate} telah ditolak oleh ${rejectorUsername}. Alasan: ${rejectionReason}`;
-  console.log(`TODO: Notify user ${updatedRequest.userId}: ${employeeNotificationMessage}`);
-  // Example: await notifyUserById(updatedRequest.userId, employeeNotificationMessage);
+  await notifyUserById(updatedRequest.userId, employeeNotificationMessage);
+  console.log(`User ${updatedRequest.userId} notified of leave rejection.`);
 
   return updatedRequest;
 }
@@ -165,3 +165,4 @@ export async function getLeaveRequestsByUserId(userId: string): Promise<LeaveReq
     const allRequests = await readLeaveRequests();
     return allRequests.filter(req => req.userId === userId).sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());
 }
+

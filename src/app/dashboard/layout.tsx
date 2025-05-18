@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import type { ReactNode } from 'react';
@@ -35,6 +36,7 @@ import {
   Wrench, 
   Replace,
   Plane, // Added for Leave Request
+  ShieldCheck, // For Leave Approvals
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -141,12 +143,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const menuItems = [
     { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
     { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
-    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Developer"] },
+    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] },
     { href: "/dashboard/leave-request/new", icon: Plane, labelKey: "requestLeave" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
-    // Add "My Leave History" and "Leave Approvals (Owner)" later
+    { href: "/dashboard/admin-actions/leave-approvals", icon: ShieldCheck, labelKey: "leaveApprovals" as LayoutDictKeys, roles: ["Owner"] }, // New Leave Approvals
     { href: "/dashboard/admin-actions", icon: Replace, labelKey: "adminActions" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] },
-    { href: "/dashboard/admin-actions/workflows", icon: GitFork, labelKey: "manageWorkflows" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Developer"] },
-    { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Developer"] },
+    { href: "/dashboard/admin-actions/workflows", icon: GitFork, labelKey: "manageWorkflows" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] },
+    { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] },
     { href: "/dashboard/settings", icon: Settings, labelKey: "settings" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
   ];
 
@@ -158,14 +160,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const getUserRoleIcon = (role: string | undefined) => {
       if (!role) return User;
-      switch(role) {
-          case 'Owner': return User;
-          case 'General Admin': return UserCog;
-          case 'Admin Proyek': return UserCog; 
-          case 'Arsitek': return User; 
-          case 'Struktur': return User; 
-          case 'MEP': return Wrench; 
-          case 'Admin Developer': return Code;
+      switch(role.toLowerCase()) { // Added toLowerCase for consistency
+          case 'owner': return User;
+          case 'general admin': return UserCog;
+          case 'admin proyek': return UserCog; 
+          case 'arsitek': return User; 
+          case 'struktur': return User; 
+          case 'mep': return Wrench; 
+          case 'admin developer': return UserCog; // Changed icon for Admin Developer
           default: return User;
       }
   }
@@ -226,10 +228,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
        if (notification.projectId) {
            router.push(`/dashboard/projects?projectId=${notification.projectId}`);
+       } else if (notification.message.toLowerCase().includes("izin") || notification.message.toLowerCase().includes("leave")) {
+           if (currentUser?.role === 'Owner') {
+               router.push("/dashboard/admin-actions/leave-approvals");
+           } else {
+                // Non-owners might go to their leave history page in the future
+                console.warn("Leave-related notification clicked by non-owner. Target page TBD.");
+           }
        } else {
-            // TODO: Handle notifications that are not project-specific, e.g., leave requests
-            console.warn("Notification clicked, but no project ID associated. Target page TBD.");
-            // Example: if (notification.message.includes("izin")) router.push("/dashboard/admin-actions/leave-approvals");
+            console.warn("Notification clicked, but no project ID or leave context. Target page TBD.");
        }
    };
 
@@ -402,3 +409,4 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
