@@ -113,6 +113,16 @@
         "division": "Owner",
         "action": "sudina (Owner) declared Sidang outcome as: revise",
         "timestamp": "2025-05-18T09:59:32.370Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) declared Sidang outcome as: completed",
+        "timestamp": "2025-05-18T10:15:27.509Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) declared Sidang outcome as: completed",
+        "timestamp": "2025-05-18T10:16:43.277Z"
       }
     ],
     "files": [

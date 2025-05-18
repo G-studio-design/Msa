@@ -268,6 +268,14 @@ const en = {
       projectCompletedSuccessfully: "Project \"{title}\" has been successfully marked as completed.",
       projectMarkedCanceled: "Project Canceled",
       projectCanceledSuccessfully: "Project \"{title}\" has been successfully canceled.",
+      revisionRequested: "Revision Requested", // General revision
+      projectSentForRevision: "Project \"{title}\" sent back to {division} for revision.", // General revision
+      sidangOutcomeSuccessTitle: "Sidang Outcome: Success",
+      sidangOutcomeSuccessDesc: "Project \"{title}\" has been marked as completed based on sidang outcome.",
+      sidangOutcomeRevisionTitle: "Sidang Outcome: Revision Needed",
+      sidangOutcomeRevisionDesc: "Project \"{title}\" has been sent back to {division} for post-sidang revisions.",
+      sidangOutcomeCanceledTitle: "Sidang Outcome: Canceled",
+      sidangOutcomeCanceledDesc: "Project \"{title}\" has been canceled based on sidang outcome.",
       offerApproved: 'Offer Approved',
       offerApprovedDesc: '{division} notified for DP Invoice.',
       dpApproved: 'DP Invoice Approved',
