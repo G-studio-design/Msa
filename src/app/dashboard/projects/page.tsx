@@ -75,7 +75,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { DEFAULT_WORKFLOW_ID, type WorkflowStep } from '@/services/workflow-service';
-import { scheduleEvent } from '@/services/google-calendar';
+// import { scheduleEvent } from '@/services/google-calendar'; // Already handled via API route
 
 const defaultDict = getDictionary('en');
 
@@ -95,9 +95,11 @@ export default function ProjectsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [isClient, setIsClient] = React.useState(false);
-  const [dict, setDict] = React.useState(() => getDictionary(language));
-  const [projectsDict, setProjectsDict] = React.useState(() => dict.projectsPage);
-  const [dashboardDict, setDashboardDict] = React.useState(() => dict.dashboardPage);
+
+  const dict = React.useMemo(() => getDictionary(language), [language]);
+  const projectsDict = React.useMemo(() => dict.projectsPage, [dict]);
+  const dashboardDict = React.useMemo(() => dict.dashboardPage, [dict]);
+
 
   const [allProjects, setAllProjects] = React.useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = React.useState(true);
@@ -148,13 +150,6 @@ export default function ProjectsPage() {
   }, [fetchProjects]);
 
   React.useEffect(() => {
-      const newDict = getDictionary(language);
-      setDict(newDict);
-      setProjectsDict(newDict.projectsPage);
-      setDashboardDict(newDict.dashboardPage);
-  }, [language]);
-
-  React.useEffect(() => {
       if (isClient && allProjects.length > 0 && !isLoadingProjects) {
           const projectIdFromUrl = searchParams.get('projectId');
           if (projectIdFromUrl) {
@@ -172,7 +167,9 @@ export default function ProjectsPage() {
                   setRevisionNote('');
               } else {
                   console.warn(`Project with ID "${projectIdFromUrl}" from URL not found.`);
-                  toast({ variant: 'destructive', title: projectsDict.toast.error, description: projectsDict.toast.projectNotFound });
+                  if(projectsDict?.toast?.error && projectsDict?.toast?.projectNotFound) {
+                    toast({ variant: 'destructive', title: projectsDict.toast.error, description: projectsDict.toast.projectNotFound });
+                  }
                   router.replace('/dashboard/projects', { scroll: false });
               }
           } else {
@@ -229,15 +226,16 @@ export default function ProjectsPage() {
 
   const canPerformSelectedProjectAction = React.useMemo(() => {
     if (!currentUser || !selectedProject) return false;
-    if (currentUser.role === 'Admin Developer') return true; 
+    if (currentUser.role === 'Admin Developer') return true;
     if (currentUser.role === 'Owner') {
+        // Owner can act if assigned, or if status is Pending Approval, Scheduled, or Pending Scheduling
         return selectedProject.assignedDivision === 'Owner' ||
-               selectedProject.status === 'Pending Approval' || 
+               selectedProject.status === 'Pending Approval' ||
                selectedProject.status === 'Scheduled' ||
-               selectedProject.status === 'Pending Scheduling'; // Owner can also schedule
+               selectedProject.status === 'Pending Scheduling';
     }
     return currentUser.role === selectedProject.assignedDivision;
-}, [currentUser, selectedProject]);
+  }, [currentUser, selectedProject]);
 
   const getTranslatedStatus = React.useCallback((statusKey: string): string => {
         if (!isClient || !dashboardDict?.status || !statusKey) return statusKey;
@@ -246,10 +244,7 @@ export default function ProjectsPage() {
     }, [isClient, dashboardDict]);
 
   const getStatusBadge = React.useCallback((status: string) => {
-    if (!isClient || !status) return <Skeleton className="h-5 w-20" />;
-    if (!dashboardDict || !dashboardDict.status) {
-      return <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />{status}</Badge>;
-    }
+    if (!isClient || !status || !dashboardDict?.status) return <Skeleton className="h-5 w-20" />;
     const statusKey = status.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
     const translatedStatus = dashboardDict.status[statusKey] || status;
     let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
@@ -269,7 +264,7 @@ export default function ProjectsPage() {
     return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
   }, [isClient, dashboardDict]);
 
-  const handleProgressSubmit = async (actionTaken: string = 'submitted') => {
+  const handleProgressSubmit = React.useCallback(async (actionTaken: string = 'submitted') => {
     if (!currentUser || !selectedProject) {
       toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.notYourTurn });
       return;
@@ -339,9 +334,9 @@ export default function ProjectsPage() {
                 description: surveyDescription
             } : undefined,
         };
-        
+
         const newlyUpdatedProject = await updateProject(updatedProjectData);
-        
+
         if (newlyUpdatedProject) {
             setAllProjects(prev => prev.map(p => p.id === newlyUpdatedProject.id ? newlyUpdatedProject : p));
             if (selectedProject?.id === newlyUpdatedProject.id) setSelectedProject(newlyUpdatedProject);
@@ -378,9 +373,9 @@ export default function ProjectsPage() {
       } finally {
          setIsSubmitting(false);
       }
-  };
+  }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus]);
 
-  const handleDecision = (decision: 'approved' | 'rejected' | 'canceled' | 'completed' | 'revise_after_sidang' | 'canceled_after_sidang') => {
+  const handleDecision = React.useCallback((decision: 'approved' | 'rejected' | 'canceled' | 'completed' | 'revise_after_sidang' | 'canceled_after_sidang') => {
     if (!currentUser || !selectedProject ) {
       toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.onlyOwnerDecision });
       return;
@@ -390,15 +385,15 @@ export default function ProjectsPage() {
         return;
     }
     handleProgressSubmit(decision);
-  };
+  }, [currentUser, selectedProject, projectsDict, toast, handleProgressSubmit]);
 
-  const handleScheduleSubmit = () => {
+  const handleScheduleSubmit = React.useCallback(() => {
      if (!currentUser || !selectedProject ) {
         toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.schedulingPermissionDenied });
         return;
      }
     const canSchedule = selectedProject.status === 'Pending Scheduling' &&
-                        (currentUser.role === 'Owner' || 
+                        (currentUser.role === 'Owner' ||
                          (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === 'Admin Proyek'));
 
 
@@ -412,9 +407,9 @@ export default function ProjectsPage() {
          return;
      }
      handleProgressSubmit('scheduled');
-  };
+  }, [currentUser, selectedProject, scheduleDate, scheduleTime, scheduleLocation, projectsDict, toast, handleProgressSubmit]);
 
-   const handleSurveySubmit = () => {
+   const handleSurveySubmit = React.useCallback(() => {
         if (!currentUser || !selectedProject || !canPerformSelectedProjectAction) {
             toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.notYourTurn });
             return;
@@ -428,9 +423,9 @@ export default function ProjectsPage() {
             return;
         }
         handleProgressSubmit('submitted');
-    };
+    }, [currentUser, selectedProject, surveyDate, surveyTime, surveyDescription, canPerformSelectedProjectAction, projectsDict, toast, handleProgressSubmit]);
 
-    const handleAddToCalendar = async () => {
+    const handleAddToCalendar = React.useCallback(async () => {
       if (!selectedProject || selectedProject.status !== 'Scheduled' || !currentUser) {
         toast({ variant: 'destructive', title: projectsDict.toast.cannotAddCalendarYet, description: projectsDict.toast.mustScheduleFirst });
         return;
@@ -447,7 +442,7 @@ export default function ProjectsPage() {
       }
 
       const scheduledDateTime = new Date(`${selectedProject.scheduleDetails.date}T${selectedProject.scheduleDetails.time}`);
-      const endTime = new Date(scheduledDateTime.getTime() + 60 * 60 * 1000);
+      const endTime = new Date(scheduledDateTime.getTime() + 60 * 60 * 1000); // Assume 1 hour duration
 
       const eventDetails = {
         title: `${projectsDict.sidangEventTitlePrefix}: ${selectedProject.title}`,
@@ -497,7 +492,7 @@ export default function ProjectsPage() {
       } finally {
         setIsAddingToCalendar(false);
       }
-    };
+    }, [selectedProject, currentUser, projectsDict, toast]);
 
     const roleFilteredProjects = React.useMemo(() => {
         if (!currentUser || !isClient || isLoadingProjects) return [];
@@ -533,7 +528,6 @@ export default function ProjectsPage() {
             'Pending Architect Files', 'Pending Structure Files', 'Pending MEP Files',
             'Pending Consultation Docs',
         ];
-        // Admin Proyek specifically should not upload for "Pending Final Check"
         if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Final Check') {
             return false;
         }
@@ -543,7 +537,7 @@ export default function ProjectsPage() {
    const showFinalCheckActionSection = React.useMemo(() => {
         return selectedProject &&
                currentUser &&
-               selectedProject.status === 'Pending Final Check' && 
+               selectedProject.status === 'Pending Final Check' &&
                currentUser.role === 'Admin Proyek' &&
                canPerformSelectedProjectAction;
    }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
@@ -568,7 +562,7 @@ export default function ProjectsPage() {
         return selectedProject &&
                currentUser &&
                selectedProject.status === 'Pending Survey Details' &&
-               currentUser.role === 'Admin Proyek' && 
+               currentUser.role === 'Admin Proyek' &&
                canPerformSelectedProjectAction;
     }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
@@ -576,38 +570,29 @@ export default function ProjectsPage() {
         selectedProject &&
         selectedProject.status === 'Scheduled' &&
         currentUser &&
-        (currentUser.role === 'Owner' || currentUser.role === 'Admin Proyek'), // Admin Proyek can also see/use this
+        (currentUser.role === 'Owner' || currentUser.role === 'Admin Proyek'),
     [selectedProject, currentUser]);
-
-   const showSidangOutcomeSection = React.useMemo(() =>
-        selectedProject &&
-        selectedProject.status === 'Scheduled' &&
-        currentUser?.role === 'Owner' &&
-        canPerformSelectedProjectAction,
-    [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
    const canDownloadFiles = React.useMemo(() => currentUser && ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP', 'Admin Developer'].includes(currentUser.role), [currentUser]);
 
-   const handleDownloadFile = async (file: FileEntry) => {
+   const handleDownloadFile = React.useCallback(async (file: FileEntry) => {
         if (!isClient) return;
         setIsDownloading(true);
         try {
             const response = await fetch(`/api/download-file?filePath=${encodeURIComponent(file.path)}`);
-            
+            let errorDetails = `Failed to download ${file.name}. Status: ${response.status}`; // Default error
+
             if (!response.ok) {
-                let errorDetails = `Failed to download ${file.name}. Status: ${response.status}`;
                 let responseText = "";
                 try {
-                    responseText = await response.text(); // Read response as text
+                    responseText = await response.text();
                     if (responseText.trim().startsWith('{') && responseText.trim().endsWith('}')) {
-                        const errorData = JSON.parse(responseText); // Try to parse as JSON
+                        const errorData = JSON.parse(responseText);
                         errorDetails = errorData.message || errorData.error || errorDetails;
                     } else {
-                        // If not JSON, use the text itself (or a snippet if too long)
-                        errorDetails = responseText.substring(0, 200) || errorDetails; 
+                        errorDetails = responseText.substring(0, 200) || errorDetails;
                     }
                 } catch (e) {
-                    // If reading text or parsing JSON fails, stick with the initial errorDetails
                     console.warn("Could not parse error response for file download, or response text was empty.");
                 }
                 throw new Error(errorDetails);
@@ -629,9 +614,9 @@ export default function ProjectsPage() {
         } finally {
             setIsDownloading(false);
         }
-    };
+    }, [isClient, toast, projectsDict]);
 
-   const handleReviseSubmit = async () => {
+   const handleReviseSubmit = React.useCallback(async () => {
        if (!currentUser || !selectedProject || !['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'].includes(currentUser.role)) {
            toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.revisionPermissionDenied });
            return;
@@ -654,10 +639,12 @@ export default function ProjectsPage() {
        } catch (error: any) {
            console.error("Error revising project:", error);
            let desc = projectsDict.toast.failedToRevise;
-            if (error.message === 'WORKFLOW_NOT_FOUND') { 
+            if (error.message === 'WORKFLOW_NOT_FOUND') {
                 desc = "Workflow definition not found for this project. Cannot process revision.";
             } else if (error.message === 'PROJECT_NOT_FOUND') {
                 desc = "Project not found for revision.";
+            } else if (error.message === 'REVISION_NOT_SUPPORTED_FOR_CURRENT_STEP') {
+                desc = projectsDict.toast.revisionNotApplicable || "Revision is not applicable for the current project step.";
             } else {
                 desc = error.message || desc;
             }
@@ -665,35 +652,37 @@ export default function ProjectsPage() {
        } finally {
            setIsRevising(false);
        }
-   };
+   }, [currentUser, selectedProject, revisionNote, projectsDict, toast, getTranslatedStatus]);
 
-   const canReviseSelectedProject = React.useMemo(() => {
-    if (!currentUser || !selectedProject) return false;
-    const allowedRoles = ['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'];
-    const nonRevisableStatuses = ['Completed', 'Canceled'];
-    return allowedRoles.includes(currentUser.role) && !nonRevisableStatuses.includes(selectedProject.status);
-  }, [currentUser, selectedProject]);
+    // Moved to top level of ProjectsPage
+    const canReviseSelectedProject = React.useMemo(() => {
+        if (!currentUser || !selectedProject) return false;
+        const allowedRoles = ['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'];
+        const nonRevisableStatuses = ['Completed', 'Canceled'];
+        return allowedRoles.includes(currentUser.role) && !nonRevisableStatuses.includes(selectedProject.status);
+    }, [currentUser, selectedProject]);
+
 
     if (!isClient || !currentUser || (isLoadingProjects && !selectedProject && !searchParams.get('projectId'))) {
         return (
             <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
-                 <Card>
+                 <Card className="shadow-md">
                      <CardHeader className="p-4 sm:p-6"><Skeleton className="h-7 w-3/5 mb-2" /><Skeleton className="h-4 w-4/5" /></CardHeader>
                      <CardContent className="p-4 sm:p-6 pt-0">
                          <div className="flex justify-end mb-4"><Skeleton className="h-10 w-32" /></div>
-                         <div className="space-y-4">{[...Array(3)].map((_, i) => (<Card key={`project-skel-${i}`} className="opacity-50"><CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6"><div><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div><div className="flex-shrink-0 mt-2 sm:mt-0"><Skeleton className="h-5 w-20 rounded-full" /></div></CardHeader><CardContent className="p-4 sm:p-6 pt-0"><div className="flex items-center gap-2"><Skeleton className="flex-1 h-2" /><Skeleton className="h-3 w-1/4" /></div></CardContent></Card>))}</div>
+                         <div className="space-y-4">{[...Array(3)].map((_, i) => (<Card key={`project-skel-${i}`} className="opacity-50 border-muted/50"><CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6"><div><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div><div className="flex-shrink-0 mt-2 sm:mt-0"><Skeleton className="h-5 w-20 rounded-full" /></div></CardHeader><CardContent className="p-4 sm:p-6 pt-0"><div className="flex items-center gap-2"><Skeleton className="flex-1 h-2" /><Skeleton className="h-3 w-1/4" /></div></CardContent></Card>))}</div>
                      </CardContent>
                  </Card>
             </div>
         );
     }
-    
+
   const renderProjectList = () => {
     if (!projectsDict || !isClient) {
         return (<div className="container mx-auto py-4 px-4 md:px-6 space-y-6"><Card><CardHeader className="p-4 sm:p-6"><Skeleton className="h-7 w-3/5 mb-2" /></CardHeader></Card></div>);
     }
     return (
-      <Card>
+      <Card className="shadow-md">
         <CardHeader className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -726,7 +715,7 @@ export default function ProjectsPage() {
           <div className="space-y-4">
             {isLoadingProjects && displayedProjects.length === 0 ? (
                 [...Array(3)].map((_, i) => (
-                    <Card key={`project-list-skel-${i}`} className="opacity-50">
+                    <Card key={`project-list-skel-${i}`} className="opacity-50 border-muted/50">
                         <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6">
                             <div className="flex-1 min-w-0"><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div>
                             <div className="flex-shrink-0 mt-2 sm:mt-0"><Skeleton className="h-5 w-20 rounded-full" /></div>
@@ -759,24 +748,17 @@ export default function ProjectsPage() {
        if (!projectsDict || !isClient || !project) return (
             <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
                 <Button variant="outline" onClick={() => {setSelectedProject(null); router.push('/dashboard/projects', { scroll: false });}} className="mb-4 w-full sm:w-auto"><ArrowLeft className="mr-2 h-4 w-4" />{projectsDict.backToList}</Button>
-                <Card>
+                <Card className="shadow-md">
                     <CardHeader className="p-4 sm:p-6"> <Skeleton className="h-8 w-3/4 mb-2" /><Skeleton className="h-4 w-full" /></CardHeader>
                     <CardContent className="p-4 sm:p-6 pt-0"><Skeleton className="h-64 w-full" /></CardContent>
                 </Card>
             </div>
        );
-        const canReviseSelectedProject = React.useMemo(() => {
-            if (!currentUser || !project) return false;
-            const allowedRoles = ['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'];
-            const nonRevisableStatuses = ['Completed', 'Canceled'];
-            return allowedRoles.includes(currentUser.role) && !nonRevisableStatuses.includes(project.status);
-        }, [currentUser, project]);
-
 
        return (
            <>
                <Button variant="outline" onClick={() => {setSelectedProject(null); router.push('/dashboard/projects', { scroll: false });}} className="mb-4 w-full sm:w-auto"><ArrowLeft className="mr-2 h-4 w-4" />{projectsDict.backToList}</Button>
-               <Card>
+               <Card className="shadow-md">
                    <CardHeader className="p-4 sm:p-6">
                      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
                         <div className="flex-1 min-w-0"><CardTitle className="text-xl md:text-2xl">{project.title}</CardTitle><CardDescription className="mt-1 text-xs sm:text-sm">{projectsDict.statusLabel}: {getStatusBadge(project.status)} | {projectsDict.nextActionLabel}: {project.nextAction || projectsDict.none} | {projectsDict.assignedLabel}: {getTranslatedStatus(project.assignedDivision) || projectsDict.none}</CardDescription></div>
@@ -810,7 +792,7 @@ export default function ProjectsPage() {
                             <Button onClick={()=> handleProgressSubmit('submitted')}
                                 disabled={
                                     isSubmitting ||
-                                    (currentUser?.role === 'Admin Proyek' && project.status === 'Pending Offer' && uploadedFiles.length === 0 ) || 
+                                    (currentUser?.role === 'Admin Proyek' && project.status === 'Pending Offer' && uploadedFiles.length === 0 ) ||
                                     (!description && uploadedFiles.length === 0 && !['Pending Scheduling', 'Pending Approval', 'Completed', 'Canceled', 'Pending Survey Details'].includes(project.status) && !(currentUser?.role === 'Admin Proyek' && project.status === 'Pending Offer') )
                                 }
                                 className="w-full sm:w-auto accent-teal">
@@ -848,7 +830,7 @@ export default function ProjectsPage() {
                                 </Button>
                             </div>
                         )}
-                        
+
                          {showFinalCheckActionSection && (
                              <div className="space-y-4 border-t pt-4 mt-4">
                                  <h3 className="text-lg font-semibold">{projectsDict.nextActionDescriptions.performFinalCheck || "Perform Final Check"}</h3>
@@ -936,7 +918,7 @@ export default function ProjectsPage() {
                        {project.status === 'Canceled' && ( <div className="border-t pt-4 mt-4 text-center"><XCircle className="h-12 w-12 text-destructive mx-auto mb-2" /><p className="font-semibold text-lg text-destructive">{projectsDict.canceledMessage}</p></div>)}
                    </CardContent>
                  </Card>
-                   <Card className="mt-6">
+                   <Card className="mt-6 shadow-md">
                        <CardHeader className="p-4 sm:p-6"><CardTitle>{projectsDict.uploadedFilesTitle}</CardTitle><CardDescription>{projectsDict.uploadedFilesDesc}</CardDescription></CardHeader>
                        <CardContent className="p-4 sm:p-6 pt-0">
                          {project.files.length === 0 ? (<p className="text-sm text-muted-foreground">{projectsDict.noFiles}</p>) : (
@@ -959,7 +941,7 @@ export default function ProjectsPage() {
                          )}
                        </CardContent>
                    </Card>
-                  <Card className="mt-6">
+                  <Card className="mt-6 shadow-md">
                     <CardHeader className="p-4 sm:p-6"><CardTitle>{projectsDict.workflowHistoryTitle}</CardTitle><CardDescription>{projectsDict.workflowHistoryDesc}</CardDescription></CardHeader>
                     <CardContent className="p-4 sm:p-6 pt-0">
                         <ul className="space-y-3">
