@@ -28,7 +28,7 @@ const id = {
     projects: 'Proyek',
     manageUsers: 'Kelola Pengguna',
     requestLeave: 'Ajukan Izin', 
-    leaveApprovals: 'Persetujuan Izin', // New
+    leaveApprovals: 'Persetujuan Izin',
     adminActions: 'Tindakan Admin',
     manageWorkflows: 'Kelola Alur Kerja',
     monthlyReport: 'Laporan Bulanan',
@@ -37,13 +37,13 @@ const id = {
     appTitle: 'Msarch App',
     appTitleShort: 'Msarch',
     toggleMenu: 'Buka/Tutup Panel Menu',
-    roles: {
+    roles: { // Used for displaying roles in UI
         owner: 'Pemilik',
-        generaladmin: 'Admin/Akuntan',
+        generaladmin: 'Admin/Akuntan', // Updated Label
         adminproyek: 'MEP - Admin Proyek',
         arsitek: 'MEP - Arsitek',
         struktur: 'MEP - Struktur',
-        mep: 'MEP - Koordinator', 
+        mep: 'MEP - Koordinator',
         admindev: 'Developer',
     },
   },
@@ -65,7 +65,7 @@ const id = {
     projectCanceled: 'Proyek ini dibatalkan.',
     projectCompleted: 'Proyek Selesai',
     addNewProject: 'Tambah Proyek Baru',
-    status: {
+    status: { // Used for translating status/division names across the app
       completed: 'Selesai',
       inprogress: 'Sedang Berjalan',
       pendingapproval: 'Menunggu Persetujuan',
@@ -85,7 +85,7 @@ const id = {
       pendingfinalcheck: 'Menunggu Pemeriksaan Akhir',
       pendingscheduling: 'Menunggu Penjadwalan',
       owner: 'Pemilik',
-      generaladmin: 'Admin/Akuntan',
+      generaladmin: 'Admin/Akuntan', // Updated Label
       adminproyek: 'MEP - Admin Proyek',
       arsitek: 'MEP - Arsitek',
       struktur: 'MEP - Struktur',
@@ -109,7 +109,7 @@ const id = {
         label: 'Progres'
      },
     scheduleAgendaTitle: 'Jadwal & Agenda',
-    scheduleAgendaDesc: 'Lihat jadwal sidang proyek, survei, dan izin karyawan.',
+    scheduleAgendaDesc: 'Lihat jadwal sidang proyek, survei, izin karyawan, dan hari libur.',
     eventsForDate: 'Acara untuk {date}',
     noEventsOnDate: 'Tidak ada acara terjadwal pada tanggal ini.',
     selectDatePrompt: 'Pilih tanggal untuk melihat acara.',
@@ -120,6 +120,8 @@ const id = {
     surveyDescriptionLabel: 'Deskripsi Survei:',
     employeeOnLeaveLabel: 'Sedang Izin:', 
     leaveDurationLabel: 'Durasi:', 
+    holidayLabel: "Hari Libur", // New
+    companyEventLabel: "Acara Perusahaan", // New
     toast: {
         errorTitle: 'Kesalahan',
         fetchError: 'Tidak dapat memuat data halaman.',
@@ -339,14 +341,14 @@ const id = {
     deleteDialogCancel: 'Batal',
     deleteDialogConfirm: 'Hapus Pengguna',
     cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin/Akuntan terakhir.',
-    roles: {
+    roles: { // Used in Manage Users dropdown and table display
        owner: 'Pemilik',
-       generaladmin: 'Admin/Akuntan',
+       generaladmin: 'Admin/Akuntan', // Updated Label
        adminproyek: 'MEP - Admin Proyek',
        arsitek: 'MEP - Arsitek',
        struktur: 'MEP - Struktur',
        mep: 'MEP - Koordinator',
-       admindev: 'Developer',
+       admindev: 'Developer', // Not shown in dropdown for selection
      },
     toast: {
         userAdded: 'Pengguna Ditambahkan',
@@ -479,6 +481,7 @@ const id = {
       deleteSuccessTitle: 'Alur Kerja Dihapus',
       deleteSuccessDesc: 'Alur kerja "{name}" telah dihapus.',
       deleteError: 'Gagal menghapus alur kerja.',
+      cannotDeleteDefaultWorkflowError: "Tidak dapat menghapus alur kerja terakhir atau default.",
     }
   },
   // Settings Page
@@ -686,6 +689,7 @@ const id = {
       reasonPlaceholder: "Masukkan alasan penolakan...",
       confirmButton: "Konfirmasi Penolakan",
     },
+    cancelButton: 'Batal', // Added missing cancel button translation for dialog
     toast: {
       errorTitle: "Kesalahan",
       fetchError: "Tidak dapat memuat permintaan izin yang tertunda.",
@@ -715,4 +719,3 @@ const id = {
 };
 
 export default id;
-

@@ -1,0 +1,24 @@
+
+[
+  {
+    "id": "holiday_20241225",
+    "date": "2024-12-25",
+    "name": "Hari Raya Natal",
+    "type": "National Holiday",
+    "description": "Hari libur nasional untuk memperingati Natal."
+  },
+  {
+    "id": "holiday_20250101",
+    "date": "2025-01-01",
+    "name": "Tahun Baru Masehi",
+    "type": "National Holiday",
+    "description": "Perayaan Tahun Baru."
+  },
+  {
+    "id": "event_20241115",
+    "date": "2024-11-15",
+    "name": "Rapat Umum Perusahaan",
+    "type": "Company Event",
+    "description": "Rapat umum tahunan perusahaan Msarch App."
+  }
+]

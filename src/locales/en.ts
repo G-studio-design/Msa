@@ -28,7 +28,7 @@ const en = {
     projects: 'Projects',
     manageUsers: 'Manage Users',
     requestLeave: 'Request Leave', 
-    leaveApprovals: 'Leave Approvals', // New
+    leaveApprovals: 'Leave Approvals',
     adminActions: 'Admin Actions',
     manageWorkflows: 'Manage Workflows',
     monthlyReport: 'Monthly Report',
@@ -37,13 +37,13 @@ const en = {
     appTitle: 'Msarch App',
     appTitleShort: 'Msarch',
     toggleMenu: 'Toggle Menu Panel',
-    roles: {
+    roles: { // Used for displaying roles in UI
         owner: 'Owner',
-        generaladmin: 'Admin/Accountant',
+        generaladmin: 'Admin/Accountant', // Updated Label
         adminproyek: 'MEP - Project Admin',
         arsitek: 'MEP - Architect',
         struktur: 'MEP - Structure',
-        mep: 'MEP - Coordinator', 
+        mep: 'MEP - Coordinator',
         admindev: 'Developer',
     },
   },
@@ -65,7 +65,7 @@ const en = {
     projectCanceled: 'This project was canceled.',
     projectCompleted: 'Project Completed',
     addNewProject: 'Add New Project',
-    status: {
+    status: { // Used for translating status/division names across the app
       completed: 'Completed',
       inprogress: 'In Progress',
       pendingapproval: 'Pending Approval',
@@ -85,7 +85,7 @@ const en = {
       pendingfinalcheck: 'Pending Final Check',
       pendingscheduling: 'Pending Scheduling',
       owner: 'Owner',
-      generaladmin: 'Admin/Accountant',
+      generaladmin: 'Admin/Accountant', // Updated Label
       adminproyek: 'MEP - Project Admin',
       arsitek: 'MEP - Architect',
       struktur: 'MEP - Structure',
@@ -109,7 +109,7 @@ const en = {
         label: 'Progress'
     },
     scheduleAgendaTitle: 'Schedule & Agenda',
-    scheduleAgendaDesc: 'View scheduled project sidangs, surveys, and employee leaves.',
+    scheduleAgendaDesc: 'View scheduled project sidangs, surveys, employee leaves, and holidays.',
     eventsForDate: 'Events for {date}',
     noEventsOnDate: 'No events scheduled on this date.',
     selectDatePrompt: 'Select a date to view events.',
@@ -120,6 +120,8 @@ const en = {
     surveyDescriptionLabel: 'Survey Desc:',
     employeeOnLeaveLabel: 'On Leave:', 
     leaveDurationLabel: 'Duration:', 
+    holidayLabel: "Holiday", // New
+    companyEventLabel: "Company Event", // New
     toast: {
         errorTitle: 'Error',
         fetchError: 'Could not load page data.',
@@ -339,14 +341,14 @@ const en = {
     deleteDialogCancel: 'Cancel',
     deleteDialogConfirm: 'Delete User',
     cannotChangeLastAdminRoleHint: 'Cannot change the role of the last Admin/Accountant.',
-    roles: {
+    roles: { // Used in Manage Users dropdown and table display
       owner: 'Owner',
-      generaladmin: 'Admin/Accountant',
+      generaladmin: 'Admin/Accountant', // Updated Label
       adminproyek: 'MEP - Project Admin',
       arsitek: 'MEP - Architect',
       struktur: 'MEP - Structure',
       mep: 'MEP - Coordinator',
-      admindev: 'Developer',
+      admindev: 'Developer', // Not shown in dropdown for selection
     },
     toast: {
       userAdded: 'User Added',
@@ -479,6 +481,7 @@ const en = {
       deleteSuccessTitle: 'Workflow Deleted',
       deleteSuccessDesc: 'Workflow "{name}" has been deleted.',
       deleteError: 'Failed to delete workflow.',
+      cannotDeleteDefaultWorkflowError: "Cannot delete the last or default workflow.",
     }
   },
   // Settings Page
@@ -686,6 +689,7 @@ const en = {
       reasonPlaceholder: "Enter reason for rejection...",
       confirmButton: "Confirm Rejection",
     },
+    cancelButton: 'Cancel', // Added missing cancel button translation for dialog
     toast: {
       errorTitle: "Error",
       fetchError: "Could not load pending leave requests.",
@@ -715,4 +719,3 @@ const en = {
 };
 
 export default en;
-
