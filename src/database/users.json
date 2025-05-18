@@ -158,5 +158,15 @@
     "whatsappNumber": "",
     "displayName": "dewik",
     "createdAt": "2025-05-16T03:36:46.910Z"
+  },
+  {
+    "id": "usr_dev_iwg",
+    "username": "I.wayan_govina",
+    "password": "Govina110900",
+    "role": "Admin Developer",
+    "email": "i.wayan_govina@example.dev",
+    "displayName": "I Wayan Govina (Dev)",
+    "createdAt": "2025-05-14T00:00:00.000Z",
+    "whatsappNumber": ""
   }
 ]

@@ -9,7 +9,9 @@
     "startDate": "2025-05-19",
     "endDate": "2025-05-19",
     "reason": "ada calon arang",
-    "status": "Pending"
+    "status": "Approved",
+    "approvedRejectedBy": "usr_1746133383687_vijmn",
+    "approvedRejectedAt": "2025-05-18T07:29:45.412Z"
   },
   {
     "id": "leave_1747552515296_48l4s",
@@ -21,6 +23,8 @@
     "startDate": "2025-05-19",
     "endDate": "2025-05-20",
     "reason": "ada acara resepsi dirumah",
-    "status": "Pending"
+    "status": "Approved",
+    "approvedRejectedBy": "usr_1746133383687_vijmn",
+    "approvedRejectedAt": "2025-05-18T07:29:42.504Z"
   }
 ]

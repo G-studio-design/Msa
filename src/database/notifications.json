@@ -317,5 +317,19 @@
     "message": "Permintaan izin baru dari oksi (Keperluan Pribadi) dari tanggal 2025-05-19 hingga 2025-05-20.",
     "timestamp": "2025-05-18T07:15:15.302Z",
     "isRead": true
+  },
+  {
+    "id": "notif_1747553382509_ez7jr",
+    "userId": "usr_ga_ran",
+    "message": "Permintaan izin Anda (Keperluan Pribadi) dari 2025-05-19 hingga 2025-05-20 telah disetujui oleh sudina.",
+    "timestamp": "2025-05-18T07:29:42.509Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747553385413_idkre",
+    "userId": "usr_1746133383687_vijmn",
+    "message": "Permintaan izin Anda (Keperluan Pribadi) dari 2025-05-19 hingga 2025-05-19 telah disetujui oleh sudina.",
+    "timestamp": "2025-05-18T07:29:45.413Z",
+    "isRead": false
   }
 ]
