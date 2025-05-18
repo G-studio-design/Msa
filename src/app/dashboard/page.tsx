@@ -55,6 +55,10 @@ export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
   const [eventsForSelectedDate, setEventsForSelectedDate] = React.useState<CalendarDisplayEvent[]>([]);
 
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
 
   const fetchData = React.useCallback(async () => {
     if (currentUser) {
@@ -84,10 +88,6 @@ export default function DashboardPage() {
   }, [currentUser, toast, isClient, dashboardDict]);
 
   React.useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  React.useEffect(() => {
     if (isClient && currentUser) {
         fetchData();
     }
@@ -101,7 +101,7 @@ export default function DashboardPage() {
   }, [language]);
 
   const userRole = currentUser?.role || '';
-  const canAddProject = currentUser && ['Owner', 'General Admin', 'Admin Proyek', 'Admin Developer'].includes(userRole.toLowerCase());
+  const canAddProject = currentUser && ['Owner', 'General Admin', 'Admin Proyek', 'Admin Developer'].includes(userRole);
 
   const getTranslatedStatus = React.useCallback((statusKey: string): string => {
     if (!isClient || !dashboardDict?.status || !statusKey) return statusKey;
@@ -112,19 +112,19 @@ export default function DashboardPage() {
   const getStatusBadge = React.useCallback((status: string) => {
     if (!isClient || !dashboardDict?.status || !status) return <Skeleton className="h-5 w-20" />;
     const statusKey = status.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status;
-    const translatedStatus = dashboardDict.status[key] || status;
+    const translatedStatus = dashboardDict.status[statusKey] || status;
     let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-    let className = "";
+    let className = "py-1 px-2 text-xs"; // Reduced padding and text size for badges
     let Icon = TrendingUp;
     switch (status.toLowerCase()) {
-      case 'completed': case 'selesai': variant = 'default'; className = 'bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-primary-foreground'; Icon = CheckCircle; break;
-      case 'inprogress': case 'sedang berjalan': variant = 'secondary'; className = 'bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700'; Icon = TrendingUp; break;
-      case 'pendingapproval': case 'menunggu persetujuan': variant = 'outline'; className = 'border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-500'; Icon = AlertTriangle; break;
-      case 'delayed': case 'tertunda': variant = 'destructive'; className = 'bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600'; Icon = AlertTriangle; break;
+      case 'completed': case 'selesai': variant = 'default'; className = `${className} bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-primary-foreground`; Icon = CheckCircle; break;
+      case 'inprogress': case 'sedang berjalan': variant = 'secondary'; className = `${className} bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700`; Icon = TrendingUp; break;
+      case 'pendingapproval': case 'menunggu persetujuan': variant = 'outline'; className = `${className} border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-500`; Icon = AlertTriangle; break;
+      case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = AlertTriangle; break;
       case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
-      case 'pending': case 'pendinginput': case 'menunggu input': case 'pendingoffer': case 'menunggu penawaran': variant = 'outline'; className = 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500'; Icon = Info; break;
+      case 'pending': case 'pendinginput': case 'menunggu input': case 'pendingoffer': case 'menunggu penawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Info; break;
       case 'pendingdpinvoice': case 'menunggu faktur dp': case 'pendingadminfiles': case 'menunggu berkas administrasi': case 'pendingarchitectfiles': case 'menunggu berkas arsitektur': case 'pendingstructurefiles': case 'menunggu berkas struktur': case 'pendingmepfiles': case 'menunggu berkas mep': case 'pendingfinalcheck': case 'menunggu pemeriksaan akhir': case 'pendingscheduling': case 'menunggu penjadwalan': case 'pendingconsultationdocs': case 'menunggu dok. konsultasi': case 'pendingreview': case 'menunggu tinjauan': variant = 'secondary'; Icon = Info; break;
-      case 'scheduled': case 'terjadwal': variant = 'secondary'; className = 'bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700'; Icon = CalendarDays; break;
+      case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarDays; break;
       default: variant = 'secondary'; Icon = Info;
     }
     return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
@@ -161,7 +161,7 @@ export default function DashboardPage() {
         id: project.id
       }))
       .sort((a, b) => b.progress - a.progress)
-      .slice(0, 10);
+      .slice(0, 10); // Show top 10 projects by progress or fewer
   }, [activeProjects, language]);
 
   const chartConfig = React.useMemo(() => ({
@@ -246,10 +246,9 @@ export default function DashboardPage() {
 
   React.useEffect(() => {
     if (isClient && selectedDate && !isLoadingData) {
-      handleDateSelect(selectedDate); // Refresh events when data might have changed
+      handleDateSelect(selectedDate);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isClient, selectedDate, isLoadingData, calendarEventsData.eventsByDate]); // Re-run if calendarEventsData changes
+  }, [isClient, selectedDate, isLoadingData, calendarEventsData, handleDateSelect]);
 
 
   const currentLocale = language === 'id' ? IndonesianLocale : EnglishLocale;
@@ -398,10 +397,10 @@ export default function DashboardPage() {
                 modifiersClassNames={{
                   sunday: 'text-destructive',
                   sidang: 'text-primary font-bold',
-                  leave: 'text-red-500 font-bold', // Specific red for leave
+                  leave: 'text-red-500 font-bold', 
                   survey: 'text-green-600 font-bold',
-                  holiday: 'text-orange-500 font-semibold', // Orange for holidays
-                  company_event: 'text-purple-600 font-semibold', // Purple for company events
+                  holiday: 'text-orange-500 font-semibold', 
+                  company_event: 'text-purple-600 font-semibold', 
                 }}
                 disabled={(date) => date < new Date("1900-01-01") || date > new Date("2999-12-31")}
               />
@@ -412,23 +411,23 @@ export default function DashboardPage() {
                 {selectedDate && eventsForSelectedDate.length > 0 ? (
                   <ul className="space-y-2 text-sm max-h-48 overflow-y-auto pr-2">
                     {eventsForSelectedDate.map((event, index) => (
-                      <li key={index} className="p-2 border rounded-md bg-muted/50 hover:bg-muted transition-colors">
-                        {event.type === 'sidang' ? (
+                      <li key={`${event.type}-${(event as any).id}-${index}`} className="p-2 border rounded-md bg-muted/50 hover:bg-muted transition-colors">
+                        {event.type === 'sidang' && (event as Project).scheduleDetails ? (
                           <>
                             <p className="font-medium text-primary truncate flex items-center gap-1">
                               <Briefcase className="h-4 w-4 flex-shrink-0" />
-                              <Link href={`/dashboard/projects?projectId=${event.id}`} className="hover:underline">
+                              <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="hover:underline">
                                 {(event as Project).title} ({dashboardDict.projectSidangLabel})
                               </Link>
                             </p>
                             {(event as Project).scheduleDetails?.time && (
                               <p className="text-xs text-muted-foreground pl-5">
-                                {dashboardDict.eventTimeLabel} {(event as Project).scheduleDetails.time}
+                                {dashboardDict.eventTimeLabel} {(event as Project).scheduleDetails!.time}
                               </p>
                             )}
                             {(event as Project).scheduleDetails?.location && (
                               <p className="text-xs text-muted-foreground pl-5">
-                                {dashboardDict.eventLocationLabel} {(event as Project).scheduleDetails.location}
+                                {dashboardDict.eventLocationLabel} {(event as Project).scheduleDetails!.location}
                               </p>
                             )}
                           </>
@@ -442,22 +441,22 @@ export default function DashboardPage() {
                               {dashboardDict.leaveDurationLabel} {format(parseISO((event as LeaveRequest).startDate), 'PP', { locale: currentLocale })} - {format(parseISO((event as LeaveRequest).endDate), 'PP', { locale: currentLocale })}
                             </p>
                           </>
-                        ) : event.type === 'survey' ? (
+                        ) : event.type === 'survey' && (event as Project).surveyDetails ? (
                           <>
                             <p className="font-medium text-green-600 truncate flex items-center gap-1">
                               <MapPin className="h-4 w-4 flex-shrink-0" />
-                              <Link href={`/dashboard/projects?projectId=${event.id}`} className="hover:underline">
+                              <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="hover:underline">
                                 {(event as Project).title} ({dashboardDict.projectSurveyLabel})
                               </Link>
                             </p>
                             {(event as Project).surveyDetails?.time && (
                               <p className="text-xs text-muted-foreground pl-5">
-                                {dashboardDict.eventTimeLabel} {(event as Project).surveyDetails.time}
+                                {dashboardDict.eventTimeLabel} {(event as Project).surveyDetails!.time}
                               </p>
                             )}
                             {(event as Project).surveyDetails?.description && (
                               <p className="text-xs text-muted-foreground pl-5">
-                                {dashboardDict.surveyDescriptionLabel} {(event as Project).surveyDetails.description}
+                                {dashboardDict.surveyDescriptionLabel} {(event as Project).surveyDetails!.description}
                               </p>
                             )}
                           </>
@@ -544,3 +543,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
