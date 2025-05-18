@@ -79,7 +79,7 @@ const en = {
       pendingoffer: 'Pending Offer',
       pendingdpinvoice: 'Pending DP Invoice',
       pendingadminfiles: 'Pending Admin Files',
-      pendingsurveydetails: 'Pending Survey Details', // New status
+      pendingsurveydetails: 'Pending Survey Details', 
       pendingarchitectfiles: 'Pending Architect Files',
       pendingstructurefiles: 'Pending Structure Files',
       pendingmepfiles: 'Pending MEP Files',
@@ -109,7 +109,7 @@ const en = {
         label: 'Progress'
     },
     scheduleAgendaTitle: 'Schedule & Agenda',
-    scheduleAgendaDesc: 'View scheduled project sidangs, surveys, employee leaves, and holidays.',
+    scheduleAgendaDesc: 'View scheduled project sidangs, surveys, employee leaves, holidays and company events.',
     todayButtonLabel: 'Today',
     eventsForDate: 'Events for {date}',
     noEventsOnDate: 'No events scheduled on this date.',
@@ -199,16 +199,21 @@ const en = {
     defaultMeetingLocation: 'Meeting Room 1',
     sidangEventTitlePrefix: 'Sidang',
     sidangEventDescPrefix: 'Sidang discussion for project',
-    nextActionDescriptions: { // For workflow step's nextActionDescription
+    surveyDescriptionPlaceholder: "Enter survey details or location",
+    optionalReportLabel: "Optional Report",
+    optionalNoteLabel: "Optional",
+    finalCheckNotePlaceholder: "Add any notes for the final check...",
+    nextActionDescriptions: { 
         uploadOfferDocument: "Upload Offer Document",
         approveOfferDocument: "Approve Offer Document",
         createDPInvoice: "Create DP Invoice",
         approveDPInvoice: "Approve DP Invoice",
         uploadAdminFiles: "Upload Admin Files",
-        inputSurveyDetails: "Input Survey Details & Upload Report", // New
+        inputSurveyDetails: "Input Survey Details & Upload Report", 
         uploadArchitectFiles: "Upload Architect Files",
         uploadStructureFiles: "Upload Structure Files",
         uploadMEPFiles: "Upload MEP Files",
+        performFinalCheck: "Perform Final Check",
         scheduleSidang: "Schedule Sidang",
         declareSidangOutcome: "Declare Sidang Outcome",
         reviseOfferDocument: "Revise & Re-submit Offer Document",
@@ -247,7 +252,7 @@ const en = {
         reviseMepFiles: "Revised MEP Files",
         reDoFinalCheck: "Re-did Final Check",
         rescheduleSidang: "Rescheduled Sidang",
-        uploadedSurveyResults: "Uploaded Survey Results", // New
+        uploadedSurveyResults: "Uploaded Survey Results", 
     },
     toast: {
       permissionDenied: 'Permission Denied',
@@ -259,6 +264,10 @@ const en = {
       notifiedNextStep: 'Notified {division} for next step.',
       onlyOwnerDecision: 'Only Owner can make this decision.',
       projectCanceled: 'Project Canceled',
+      projectMarkedCompleted: "Project Completed",
+      projectCompletedSuccessfully: "Project \"{title}\" has been successfully marked as completed.",
+      projectMarkedCanceled: "Project Canceled",
+      projectCanceledSuccessfully: "Project \"{title}\" has been successfully canceled.",
       offerApproved: 'Offer Approved',
       offerApprovedDesc: '{division} notified for DP Invoice.',
       dpApproved: 'DP Invoice Approved',
@@ -739,5 +748,3 @@ const en = {
 
 export default en;
 
-
-    

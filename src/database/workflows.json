@@ -32,11 +32,11 @@
         "transitions": {
           "approved": {
             "targetStatus": "Pending DP Invoice",
-            "targetAssignedDivision": "General Admin",
+            "targetAssignedDivision": "Admin/Akuntan",
             "targetNextActionDescription": "Buat Faktur DP",
             "targetProgress": 25,
             "notification": {
-              "division": "General Admin",
+              "division": "Admin/Akuntan",
               "message": "Penawaran untuk proyek '{projectName}' telah disetujui. Mohon buat faktur DP."
             }
           },
@@ -55,7 +55,7 @@
       {
         "stepName": "DP Invoice Submission",
         "status": "Pending DP Invoice",
-        "assignedDivision": "General Admin",
+        "assignedDivision": "Admin/Akuntan",
         "progress": 25,
         "nextActionDescription": "Unggah Faktur DP",
         "transitions": {
@@ -90,11 +90,11 @@
           },
           "rejected": {
             "targetStatus": "Pending DP Invoice",
-            "targetAssignedDivision": "General Admin",
+            "targetAssignedDivision": "Admin/Akuntan",
             "targetNextActionDescription": "Revisi dan Unggah Ulang Faktur DP",
             "targetProgress": 25,
             "notification": {
-              "division": "General Admin",
+              "division": "Admin/Akuntan",
               "message": "Faktur DP untuk proyek '{projectName}' ditolak oleh Owner. Mohon direvisi."
             }
           }
@@ -108,13 +108,32 @@
         "nextActionDescription": "Unggah Berkas Administrasi",
         "transitions": {
           "submitted": {
+            "targetStatus": "Pending Survey Details",
+            "targetAssignedDivision": "Admin Proyek",
+            "targetNextActionDescription": "Input Jadwal Survei & Unggah Hasil",
+            "targetProgress": 45,
+            "notification": {
+              "division": "Admin Proyek",
+              "message": "Berkas administrasi untuk '{projectName}' lengkap. Mohon jadwalkan survei dan unggah hasilnya."
+            }
+          }
+        }
+      },
+      {
+        "stepName": "Survey Details Submission",
+        "status": "Pending Survey Details",
+        "assignedDivision": "Admin Proyek",
+        "progress": 45,
+        "nextActionDescription": "Input Jadwal Survei & Unggah Hasil",
+        "transitions": {
+          "submitted": {
             "targetStatus": "Pending Architect Files",
             "targetAssignedDivision": "Arsitek",
             "targetNextActionDescription": "Unggah Berkas Arsitektur",
             "targetProgress": 50,
             "notification": {
               "division": "Arsitek",
-              "message": "Berkas administrasi untuk '{projectName}' lengkap. Mohon unggah berkas arsitektur."
+              "message": "Hasil survei untuk '{projectName}' telah diunggah. Mohon unggah berkas arsitektur."
             }
           }
         }
@@ -210,13 +229,13 @@
             "notification": null
           },
           "revise_after_sidang": {
-            "targetStatus": "Pending Final Check",
+            "targetStatus": "Pending Admin Files",
             "targetAssignedDivision": "Admin Proyek",
-            "targetNextActionDescription": "Lakukan Revisi Pasca Sidang",
-            "targetProgress": 85,
+            "targetNextActionDescription": "Lakukan Revisi Pasca Sidang pada Berkas Administrasi",
+            "targetProgress": 40,
             "notification": {
               "division": "Admin Proyek",
-              "message": "Proyek '{projectName}' memerlukan revisi setelah sidang."
+              "message": "Proyek '{projectName}' memerlukan revisi setelah sidang. Mohon perbarui berkas administrasi dan teknis yang diperlukan."
             }
           },
           "canceled_after_sidang": {

@@ -79,7 +79,7 @@ const id = {
       pendingoffer: 'Menunggu Penawaran',
       pendingdpinvoice: 'Menunggu Faktur DP',
       pendingadminfiles: 'Menunggu Berkas Administrasi',
-      pendingsurveydetails: 'Menunggu Detail Survei', // New status
+      pendingsurveydetails: 'Menunggu Detail Survei', 
       pendingarchitectfiles: 'Menunggu Berkas Arsitektur',
       pendingstructurefiles: 'Menunggu Berkas Struktur',
       pendingmepfiles: 'Menunggu Berkas MEP',
@@ -109,7 +109,7 @@ const id = {
         label: 'Progres'
      },
     scheduleAgendaTitle: 'Jadwal & Agenda',
-    scheduleAgendaDesc: 'Lihat jadwal sidang proyek, survei, izin karyawan, dan hari libur.',
+    scheduleAgendaDesc: 'Lihat jadwal sidang proyek, survei, izin karyawan, hari libur dan acara perusahaan.',
     todayButtonLabel: 'Hari Ini',
     eventsForDate: 'Acara untuk {date}',
     noEventsOnDate: 'Tidak ada acara terjadwal pada tanggal ini.',
@@ -199,16 +199,21 @@ const id = {
     defaultMeetingLocation: 'Ruang Rapat 1',
     sidangEventTitlePrefix: 'Sidang',
     sidangEventDescPrefix: 'Diskusi sidang untuk proyek',
-    nextActionDescriptions: { // For workflow step's nextActionDescription
+    surveyDescriptionPlaceholder: "Masukkan detail atau lokasi survei",
+    optionalReportLabel: "Laporan Opsional",
+    optionalNoteLabel: "Opsional",
+    finalCheckNotePlaceholder: "Tambahkan catatan untuk pemeriksaan akhir...",
+    nextActionDescriptions: { 
         uploadOfferDocument: "Unggah Dokumen Penawaran",
         approveOfferDocument: "Setujui Dokumen Penawaran",
         createDPInvoice: "Buat Faktur DP",
         approveDPInvoice: "Setujui Faktur DP",
         uploadAdminFiles: "Unggah Berkas Administrasi",
-        inputSurveyDetails: "Input Jadwal Survei & Unggah Hasil", // New
+        inputSurveyDetails: "Input Jadwal Survei & Unggah Hasil", 
         uploadArchitectFiles: "Unggah Berkas Arsitektur",
         uploadStructureFiles: "Unggah Berkas Struktur",
         uploadMEPFiles: "Unggah Berkas MEP",
+        performFinalCheck: "Lakukan Pemeriksaan Akhir",
         scheduleSidang: "Jadwalkan Sidang",
         declareSidangOutcome: "Nyatakan Hasil Sidang",
         reviseOfferDocument: "Revisi & Kirim Ulang Dokumen Penawaran",
@@ -247,7 +252,7 @@ const id = {
         reviseMepFiles: "Merevisi Berkas MEP",
         reDoFinalCheck: "Melakukan Ulang Pemeriksaan Akhir",
         rescheduleSidang: "Menjadwalkan Ulang Sidang",
-        uploadedSurveyResults: "Mengunggah Hasil Survei", // New
+        uploadedSurveyResults: "Mengunggah Hasil Survei", 
     },
     toast: {
       permissionDenied: 'Izin Ditolak',
@@ -259,6 +264,10 @@ const id = {
       notifiedNextStep: 'Memberitahu {division} untuk langkah selanjutnya.',
       onlyOwnerDecision: 'Hanya Pemilik yang dapat membuat keputusan ini.',
       projectCanceled: 'Proyek Dibatalkan',
+      projectMarkedCompleted: "Proyek Selesai",
+      projectCompletedSuccessfully: "Proyek \"{title}\" telah berhasil ditandai sebagai selesai.",
+      projectMarkedCanceled: "Proyek Dibatalkan",
+      projectCanceledSuccessfully: "Proyek \"{title}\" telah berhasil dibatalkan.",
       offerApproved: 'Penawaran Disetujui',
       offerApprovedDesc: '{division} diberitahu untuk Faktur DP.',
       dpApproved: 'Faktur DP Disetujui',
@@ -739,5 +748,3 @@ const id = {
 
 export default id;
 
-
-    

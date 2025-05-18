@@ -93,6 +93,26 @@
         "action": "sudina (Owner) revise_after_sidang Nyatakan Hasil Sidang (Berhasil/Gagal).",
         "timestamp": "2025-05-16T12:58:32.052Z",
         "note": ""
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) declared Sidang outcome as: completed",
+        "timestamp": "2025-05-18T09:58:19.826Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) declared Sidang outcome as: completed",
+        "timestamp": "2025-05-18T09:58:32.913Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) declared Sidang outcome as: completed",
+        "timestamp": "2025-05-18T09:59:01.322Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) declared Sidang outcome as: revise",
+        "timestamp": "2025-05-18T09:59:32.370Z"
       }
     ],
     "files": [
@@ -153,6 +173,7 @@
     ],
     "createdAt": "2025-05-16T03:42:52.158Z",
     "createdBy": "sudina",
-    "nextAction": "Nyatakan Hasil Sidang (Berhasil/Gagal)"
+    "nextAction": "Nyatakan Hasil Sidang (Berhasil/Gagal)",
+    "workflowId": "default_standard_workflow"
   }
 ]
