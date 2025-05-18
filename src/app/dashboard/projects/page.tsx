@@ -48,7 +48,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger, // Added missing import
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
@@ -58,7 +58,7 @@ import {
     getAllProjects,
     updateProject,
     reviseProject,
-    getProjectById as fetchProjectByIdInternal, // Renamed to avoid conflict
+    getProjectById as fetchProjectByIdInternal,
     type Project,
     type WorkflowHistoryEntry,
     type FileEntry,
@@ -75,6 +75,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { DEFAULT_WORKFLOW_ID, type WorkflowStep } from '@/services/workflow-service';
+import { scheduleEvent } from '@/services/google-calendar';
 
 const defaultDict = getDictionary('en');
 
@@ -228,12 +229,12 @@ export default function ProjectsPage() {
 
   const canPerformSelectedProjectAction = React.useMemo(() => {
     if (!currentUser || !selectedProject) return false;
-    if (currentUser.role === 'Admin Developer') return true; // Admin Developer can always act
+    if (currentUser.role === 'Admin Developer') return true; 
     if (currentUser.role === 'Owner') {
-        // Owner can act if project is assigned to them OR if it's pending approval by them OR if it's scheduled (for outcome)
         return selectedProject.assignedDivision === 'Owner' ||
-               selectedProject.status === 'Pending Approval' || // Generic approval status
-               selectedProject.status === 'Scheduled';
+               selectedProject.status === 'Pending Approval' || 
+               selectedProject.status === 'Scheduled' ||
+               selectedProject.status === 'Pending Scheduling'; // Owner can also schedule
     }
     return currentUser.role === selectedProject.assignedDivision;
 }, [currentUser, selectedProject]);
@@ -302,7 +303,7 @@ export default function ProjectsPage() {
                 const response = await fetch('/api/upload-file', { method: 'POST', body: formData });
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({ message: 'File upload failed with status ' + response.status }));
-                    throw new Error(errorData.message || `File upload failed for ${file.name}`);
+                    throw new Error(errorData.message || `Failed to upload ${file.name}`);
                 }
                 const result = await response.json();
                 uploadedFileEntries.push({
@@ -339,10 +340,8 @@ export default function ProjectsPage() {
             } : undefined,
         };
         
-        // Call updateProject which should return the updated project
         const newlyUpdatedProject = await updateProject(updatedProjectData);
-        // No need to call getProjectById here if updateProject returns the updated project
-
+        
         if (newlyUpdatedProject) {
             setAllProjects(prev => prev.map(p => p.id === newlyUpdatedProject.id ? newlyUpdatedProject : p));
             if (selectedProject?.id === newlyUpdatedProject.id) setSelectedProject(newlyUpdatedProject);
@@ -466,18 +465,22 @@ export default function ProjectsPage() {
             body: JSON.stringify({ userId: currentUser.id, eventDetails }),
         });
 
+        let errorDetails = projectsDict.toast.couldNotAddEvent;
         if (!response.ok) {
-            let errorPayload;
             let responseText = "";
             try {
                 responseText = await response.text();
-                errorPayload = JSON.parse(responseText);
+                if (responseText.trim().startsWith('{') && responseText.trim().endsWith('}')) {
+                    const errorPayload = JSON.parse(responseText);
+                    errorDetails = errorPayload?.details || errorPayload?.error || errorDetails;
+                } else {
+                    errorDetails = responseText || errorDetails;
+                }
             } catch (e) {
                 console.error("Server returned non-JSON error response for calendar event:", response.status, responseText);
-                throw new Error(projectsDict.toast.couldNotAddEvent + ` (Server: ${response.status} - ${responseText.substring(0,100)})`);
+                 errorDetails = responseText.substring(0,100) || `Server: ${response.status}`;
             }
-            const detailMessage = errorPayload?.details || errorPayload?.error || projectsDict.toast.couldNotAddEvent;
-            throw new Error(detailMessage);
+            throw new Error(errorDetails);
         }
         const result = await response.json();
         toast({ title: projectsDict.toast.addedToCalendar, description: projectsDict.toast.eventId.replace('{id}', result.eventId || 'N/A') });
@@ -530,6 +533,7 @@ export default function ProjectsPage() {
             'Pending Architect Files', 'Pending Structure Files', 'Pending MEP Files',
             'Pending Consultation Docs',
         ];
+        // Admin Proyek specifically should not upload for "Pending Final Check"
         if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Final Check') {
             return false;
         }
@@ -556,7 +560,7 @@ export default function ProjectsPage() {
     return selectedProject.status === 'Pending Scheduling' &&
            (
              (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === 'Admin Proyek') ||
-             currentUser.role === 'Owner'
+             currentUser.role === 'Owner' // Owner can also schedule
            );
     },[selectedProject, currentUser]);
 
@@ -572,7 +576,7 @@ export default function ProjectsPage() {
         selectedProject &&
         selectedProject.status === 'Scheduled' &&
         currentUser &&
-        (currentUser.role === 'Owner' || currentUser.role === 'Admin Proyek'),
+        (currentUser.role === 'Owner' || currentUser.role === 'Admin Proyek'), // Admin Proyek can also see/use this
     [selectedProject, currentUser]);
 
    const showSidangOutcomeSection = React.useMemo(() =>
@@ -589,15 +593,26 @@ export default function ProjectsPage() {
         setIsDownloading(true);
         try {
             const response = await fetch(`/api/download-file?filePath=${encodeURIComponent(file.path)}`);
+            
             if (!response.ok) {
-                let errorData = { message: `Failed to download ${file.name}. Status: ${response.status}` };
+                let errorDetails = `Failed to download ${file.name}. Status: ${response.status}`;
+                let responseText = "";
                 try {
-                    errorData = await response.json();
+                    responseText = await response.text(); // Read response as text
+                    if (responseText.trim().startsWith('{') && responseText.trim().endsWith('}')) {
+                        const errorData = JSON.parse(responseText); // Try to parse as JSON
+                        errorDetails = errorData.message || errorData.error || errorDetails;
+                    } else {
+                        // If not JSON, use the text itself (or a snippet if too long)
+                        errorDetails = responseText.substring(0, 200) || errorDetails; 
+                    }
                 } catch (e) {
-                    console.warn("Could not parse error response as JSON for file download.");
+                    // If reading text or parsing JSON fails, stick with the initial errorDetails
+                    console.warn("Could not parse error response for file download, or response text was empty.");
                 }
-                throw new Error(errorData.message || `Failed to download ${file.name}`);
+                throw new Error(errorDetails);
             }
+
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -634,18 +649,15 @@ export default function ProjectsPage() {
             setRevisionNote('');
             toast({ title: projectsDict.toast.revisionSuccess, description: projectsDict.toast.revisionSuccessDesc.replace('{division}', getTranslatedStatus(revisedProject.assignedDivision)) });
            } else {
-            // This case means revision was not applicable for the current step as per service logic
             toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: projectsDict.toast.revisionNotApplicable });
            }
        } catch (error: any) {
            console.error("Error revising project:", error);
            let desc = projectsDict.toast.failedToRevise;
-            if (error.message === 'WORKFLOW_NOT_FOUND') { // Check for specific error string from service
+            if (error.message === 'WORKFLOW_NOT_FOUND') { 
                 desc = "Workflow definition not found for this project. Cannot process revision.";
             } else if (error.message === 'PROJECT_NOT_FOUND') {
                 desc = "Project not found for revision.";
-            } else if (error.message === 'REVISION_NOT_SUPPORTED_FOR_CURRENT_STEP') { // Already handled by null return
-                desc = projectsDict.toast.revisionNotApplicable;
             } else {
                 desc = error.message || desc;
             }
@@ -655,6 +667,13 @@ export default function ProjectsPage() {
        }
    };
 
+   const canReviseSelectedProject = React.useMemo(() => {
+    if (!currentUser || !selectedProject) return false;
+    const allowedRoles = ['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'];
+    const nonRevisableStatuses = ['Completed', 'Canceled'];
+    return allowedRoles.includes(currentUser.role) && !nonRevisableStatuses.includes(selectedProject.status);
+  }, [currentUser, selectedProject]);
+
     if (!isClient || !currentUser || (isLoadingProjects && !selectedProject && !searchParams.get('projectId'))) {
         return (
             <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
@@ -662,7 +681,7 @@ export default function ProjectsPage() {
                      <CardHeader className="p-4 sm:p-6"><Skeleton className="h-7 w-3/5 mb-2" /><Skeleton className="h-4 w-4/5" /></CardHeader>
                      <CardContent className="p-4 sm:p-6 pt-0">
                          <div className="flex justify-end mb-4"><Skeleton className="h-10 w-32" /></div>
-                         <div className="space-y-4">{[...Array(3)].map((_, i) => (<Card key={`project-skel-${i}`} className="opacity-50"><CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 p-4 sm:p-6"><div><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div><Skeleton className="h-5 w-20 rounded-full" /></CardHeader><CardContent className="p-4 sm:p-6 pt-0"><Skeleton className="h-2 w-full mb-1" /><Skeleton className="h-3 w-1/4" /></CardContent></Card>))}</div>
+                         <div className="space-y-4">{[...Array(3)].map((_, i) => (<Card key={`project-skel-${i}`} className="opacity-50"><CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6"><div><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div><div className="flex-shrink-0 mt-2 sm:mt-0"><Skeleton className="h-5 w-20 rounded-full" /></div></CardHeader><CardContent className="p-4 sm:p-6 pt-0"><div className="flex items-center gap-2"><Skeleton className="flex-1 h-2" /><Skeleton className="h-3 w-1/4" /></div></CardContent></Card>))}</div>
                      </CardContent>
                  </Card>
             </div>
@@ -712,9 +731,7 @@ export default function ProjectsPage() {
                             <div className="flex-1 min-w-0"><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div>
                             <div className="flex-shrink-0 mt-2 sm:mt-0"><Skeleton className="h-5 w-20 rounded-full" /></div>
                         </CardHeader>
-                        <CardContent className="p-4 sm:p-6 pt-0">
-                           <div className="flex items-center gap-2"><Skeleton className="flex-1 h-2" /><Skeleton className="h-3 w-1/4" /></div>
-                        </CardContent>
+                        <CardContent className="p-4 sm:p-6 pt-0"><div className="flex items-center gap-2"><Skeleton className="flex-1 h-2" /><Skeleton className="h-3 w-1/4" /></div></CardContent>
                     </Card>
                 ))
             ) : displayedProjects.length === 0 ? (<p className="text-muted-foreground text-center py-4">{searchTerm ? projectsDict.noSearchResults : projectsDict.noProjectsFound}</p>) : (
@@ -748,11 +765,12 @@ export default function ProjectsPage() {
                 </Card>
             </div>
        );
-       // Define canReviseSelectedProject here
-        const canReviseSelectedProject = currentUser &&
-                                     project &&
-                                     ['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'].includes(currentUser.role) &&
-                                     !['Completed', 'Canceled'].includes(project.status);
+        const canReviseSelectedProject = React.useMemo(() => {
+            if (!currentUser || !project) return false;
+            const allowedRoles = ['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'];
+            const nonRevisableStatuses = ['Completed', 'Canceled'];
+            return allowedRoles.includes(currentUser.role) && !nonRevisableStatuses.includes(project.status);
+        }, [currentUser, project]);
 
 
        return (
