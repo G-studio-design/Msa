@@ -32,11 +32,11 @@ import {
   MessageSquareWarning,
   FileBarChart,
   GitFork,
-  Wrench, // Kept for MEP role, can be adjusted
-  Replace, // For Admin Actions general
-  Plane, // For Request Leave
-  ShieldCheck, // For Leave Approvals
-  Code, // For Admin Developer
+  Wrench,
+  Replace,
+  Plane,
+  ShieldCheck,
+  Code,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -51,11 +51,9 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { getNotificationsForUser, markNotificationAsRead, type Notification } from '@/services/notification-service';
 
-// Define the type for the layout dictionary keys
 type LayoutDictKeys = keyof ReturnType<typeof getDictionary>['dashboardLayout'];
 
-// Default dictionary for server render / pre-hydration
-const defaultDict = getDictionary('en');
+const defaultGlobalDict = getDictionary('en');
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { language } = useLanguage();
@@ -64,10 +62,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
 
-  // Memoize dictionary objects
+  const defaultDict = useMemo(() => getDictionary('en'), []);
   const layoutDict = useMemo(() => getDictionary(language).dashboardLayout, [language]);
-  const notificationsDict = useMemo(() => getDictionary(language).notifications, [language]);
-  const manageUsersDict = useMemo(() => getDictionary(language).manageUsersPage, [language]);
+  const [notificationsDict, setNotificationsDict] = React.useState(defaultDict.notifications);
+  const [manageUsersDict, setManageUsersDict] = React.useState(defaultDict.manageUsersPage);
 
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -77,9 +75,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     setIsClient(true);
   }, []);
 
+  useEffect(() => {
+    if (isClient) {
+        const newDict = getDictionary(language);
+        setNotificationsDict(newDict.notifications);
+        setManageUsersDict(newDict.manageUsersPage);
+    }
+  }, [isClient, language]);
+
 
   const fetchNotifications = useCallback(async () => {
-    if (currentUser) {
+    if (isClient && currentUser) {
       try {
         const fetchedNotifications = await getNotificationsForUser(currentUser.id);
         setNotifications(fetchedNotifications);
@@ -89,7 +95,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     } else {
       setNotifications([]);
     }
-  }, [currentUser]);
+  }, [isClient, currentUser]);
 
   useEffect(() => {
     if (isClient && currentUser) {
@@ -143,7 +149,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     { href: "/dashboard/leave-request/new", icon: Plane, labelKey: "requestLeave" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
     { href: "/dashboard/admin-actions/leave-approvals", icon: ShieldCheck, labelKey: "leaveApprovals" as LayoutDictKeys, roles: ["Owner"] },
     { href: "/dashboard/admin-actions", icon: Replace, labelKey: "adminActions" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] },
-    { href: "/dashboard/admin-actions/workflows", icon: GitFork, labelKey: "manageWorkflows" as LayoutDictKeys, roles: ["Admin Developer"] }, // Only Admin Developer
+    { href: "/dashboard/admin-actions/workflows", icon: GitFork, labelKey: "manageWorkflows" as LayoutDictKeys, roles: ["Admin Developer"] },
     { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] },
     { href: "/dashboard/settings", icon: Settings, labelKey: "settings" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
   ], []);
@@ -163,11 +169,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       const roleLower = role.toLowerCase().trim();
       switch(roleLower) {
           case 'owner': return User;
-          case 'general admin': return UserCog; // Represents Admin/Akuntan
-          case 'admin proyek': return UserCog; 
-          case 'arsitek': return User; 
-          case 'struktur': return User; 
-          case 'mep': return Wrench; // For MEP (Coordinator) role specifically
+          case 'general admin': return UserCog;
+          case 'admin proyek': return UserCog;
+          case 'arsitek': return User;
+          case 'struktur': return User;
+          case 'mep': return Wrench;
           case 'admin developer': return Code;
           default: return User;
       }
@@ -187,9 +193,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
 
    const getTranslatedRole = useCallback((role: string): string => {
-       if (!isClient || !manageUsersDict?.roles || !role) return role;
+       if (!isClient || !manageUsersDict?.roles || !role) {
+            // Fallback if dict or isClient is not ready
+            const fallbackRoles = defaultGlobalDict.manageUsersPage.roles as Record<string, string>;
+            const roleKeyFallback = role.trim().replace(/\s+/g, '').toLowerCase();
+            return fallbackRoles?.[roleKeyFallback] || role;
+       }
        const rolesDict = manageUsersDict.roles;
-       // Ensure role key matches the keys in translations (e.g., generaladmin, adminproyek)
        const roleKey = role.trim().replace(/\s+/g, '').toLowerCase() as keyof NonNullable<typeof rolesDict>;
        return rolesDict?.[roleKey] || role;
    }, [isClient, manageUsersDict]);
@@ -231,7 +241,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                router.push("/dashboard/admin-actions/leave-approvals");
            }
        }
-   }, [currentUser, router]); 
+   }, [currentUser, router]);
 
 
   return (
@@ -240,8 +250,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
            <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b bg-background px-4 sm:px-6">
              <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-base sm:text-lg text-primary">
                 <Building className="h-5 w-5 sm:h-6 sm:w-6" />
-                 <span className="hidden sm:inline">{layoutDict?.appTitle}</span>
-                 <span className="sm:hidden">{layoutDict?.appTitleShort || layoutDict?.appTitle}</span>
+                 <span className="hidden sm:inline">{isClient ? layoutDict.appTitle : defaultDict.dashboardLayout.appTitle}</span>
+                 <span className="sm:hidden">{isClient ? (layoutDict.appTitleShort || layoutDict.appTitle) : (defaultDict.dashboardLayout.appTitleShort || defaultDict.dashboardLayout.appTitle)}</span>
               </Link>
 
 
@@ -258,14 +268,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                              {unreadCount > 9 ? '9+' : unreadCount}
                            </Badge>
                        )}
-                        <span className="sr-only">{notificationsDict?.tooltip}</span>
+                        <span className="sr-only">
+                          {isClient ? notificationsDict.tooltip : defaultDict.notifications.tooltip}
+                        </span>
                    </Button>
                 </PopoverTrigger>
                  <PopoverContent className="w-80 p-0">
                   <div className="p-4 border-b">
-                      <h4 className="font-medium leading-none">{notificationsDict?.title}</h4>
+                      <h4 className="font-medium leading-none">{isClient ? notificationsDict.title : defaultDict.notifications.title}</h4>
                       <p className="text-sm text-muted-foreground">
-                        {notificationsDict?.description}
+                        {isClient ? notificationsDict.description : defaultDict.notifications.description}
                       </p>
                   </div>
                    <div className="max-h-60 overflow-y-auto">
@@ -289,12 +301,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                            </div>
                          </div>
                        ))
-                   ) : (
+                   ) : isClient ? ( // Only show empty state if isClient is true
                      <div className="p-4 text-center text-sm text-muted-foreground flex flex-col items-center gap-2">
                        <MessageSquareWarning className="h-6 w-6" />
-                       {notificationsDict?.empty}
+                       {notificationsDict.empty}
                      </div>
-                   )}
+                   ) : null }
                  </div>
                 </PopoverContent>
               </Popover>
@@ -304,14 +316,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 <SheetTrigger asChild>
                    <Button variant="outline" size="icon" className="h-9 w-9 sm:h-10 sm:w-10">
                      <PanelRightOpen className="h-4 w-4 sm:h-5 sm:w-5" />
-                    <span className="sr-only">{layoutDict?.toggleMenu}</span>
+                    <span className="sr-only">{isClient ? layoutDict.toggleMenu : defaultDict.dashboardLayout.toggleMenu}</span>
                   </Button>
                 </SheetTrigger>
                  <SheetContent side="right" className="bg-primary text-primary-foreground border-primary-foreground/20 w-[80vw] max-w-[300px] sm:max-w-[320px] flex flex-col p-4">
                   <SheetHeader className="mb-4 text-left">
-                     <SheetTitle className="text-primary-foreground text-lg sm:text-xl">{layoutDict?.menuTitle}</SheetTitle>
+                     <SheetTitle className="text-primary-foreground text-lg sm:text-xl">{isClient ? layoutDict.menuTitle : defaultDict.dashboardLayout.menuTitle}</SheetTitle>
                     <SheetDescription className="text-primary-foreground/80">
-                     {layoutDict?.menuDescription}
+                     {isClient ? layoutDict.menuDescription : defaultDict.dashboardLayout.menuDescription}
                     </SheetDescription>
                   </SheetHeader>
 
@@ -382,7 +394,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                       disabled={!isClient || !currentUser}
                     >
                       <LogOut className="h-5 w-5" />
-                      <span>{layoutDict?.logout}</span>
+                      <span>{isClient ? layoutDict.logout : defaultDict.dashboardLayout.logout}</span>
                     </Button>
                    </div>
                 </SheetContent>
@@ -393,7 +405,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
            <main className="flex-1 overflow-y-auto p-4 md:p-6">
              {isClient && currentUser ? children : (
-                   <div className="flex justify-center items-center h-[calc(100vh-56px)]"> 
+                   <div className="flex justify-center items-center h-[calc(100vh-56px)]">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
               )}

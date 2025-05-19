@@ -1,4 +1,3 @@
-
 [
   {
     "id": "usr_dev_iwg",
@@ -36,5 +35,23 @@
     "email": "admin.proyek@example.com",
     "displayName": "Admin Proyek",
     "createdAt": "2025-05-18T00:02:00.000Z"
+  },
+  {
+    "id": "usr_1747633709593_uxubw",
+    "username": "arsitek",
+    "password": "admin123",
+    "role": "Arsitek",
+    "email": "arsitek@example.com",
+    "displayName": "arsitek",
+    "createdAt": "2025-05-19T05:48:29.593Z"
+  },
+  {
+    "id": "usr_1747633745993_u8h9d",
+    "username": "struktur",
+    "password": "admin123",
+    "role": "Struktur",
+    "email": "struktur@example.com",
+    "displayName": "struktur",
+    "createdAt": "2025-05-19T05:49:05.993Z"
   }
 ]
