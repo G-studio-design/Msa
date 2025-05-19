@@ -1,2 +1,18 @@
-
-[]
+[
+  {
+    "id": "notif_1747634871386_d0245",
+    "userId": "usr_owner_default",
+    "projectId": "project_1747634871321_k9863",
+    "message": "Penawaran untuk proyek 'proyek A' telah diajukan dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-19T06:07:51.385Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747635360419_jdhcn",
+    "userId": "usr_owner_default",
+    "projectId": "project_1747634871321_k9863",
+    "message": "Penawaran untuk proyek 'proyek A' telah diajukan dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-19T06:16:00.419Z",
+    "isRead": false
+  }
+]

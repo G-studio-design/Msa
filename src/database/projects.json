@@ -1,2 +1,55 @@
-
-[]
+[
+  {
+    "id": "project_1747634871321_k9863",
+    "title": "proyek A",
+    "status": "Pending Approval",
+    "progress": 20,
+    "assignedDivision": "Owner",
+    "nextAction": "Setujui Dokumen Penawaran",
+    "workflowId": "default_standard_workflow",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project",
+        "timestamp": "2025-05-19T06:07:51.321Z"
+      },
+      {
+        "division": "sudina",
+        "action": "Uploaded initial file: 1. I KADEK DIKI MAHAYANA (CANDI PERABANAN) Revisi.docx",
+        "timestamp": "2025-05-19T06:07:51.321Z"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
+        "timestamp": "2025-05-19T06:07:51.321Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "adminproyek (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
+        "timestamp": "2025-05-19T06:16:00.394Z",
+        "note": "dokumen penawaran"
+      }
+    ],
+    "files": [
+      {
+        "name": "1. I KADEK DIKI MAHAYANA (CANDI PERABANAN) Revisi.docx",
+        "uploadedBy": "sudina",
+        "timestamp": "2025-05-19T06:07:51.321Z"
+      },
+      {
+        "name": "1. I KADEK DIKI MAHAYANA (CANDI PERABANAN)..odt",
+        "uploadedBy": "adminproyek",
+        "path": "project_1747634871321_k9863-proyek_a/1_i_kadek_diki_mahayana_candi_perabananodt",
+        "timestamp": "2025-05-19T06:16:00.394Z"
+      },
+      {
+        "name": "1. I KADEK DIKI MAHAYANA (CANDI PERABANAN)..pdf",
+        "uploadedBy": "adminproyek",
+        "path": "project_1747634871321_k9863-proyek_a/1_i_kadek_diki_mahayana_candi_perabananpdf",
+        "timestamp": "2025-05-19T06:16:00.394Z"
+      }
+    ],
+    "createdAt": "2025-05-19T06:07:51.321Z",
+    "createdBy": "sudina"
+  }
+]
