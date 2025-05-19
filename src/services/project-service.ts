@@ -7,8 +7,8 @@ import { notifyUsersByRole } from './notification-service';
 import { sanitizeForPath } from '@/lib/path-utils';
 import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants';
 import type { Workflow, WorkflowStep, WorkflowStepTransition } from './workflow-service';
-import { getWorkflowById, getFirstStep, getTransitionInfo } from './workflow-service'; // Diimpor dari layanan workflow
-import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants'; // Diimpor dari konstanta config
+import { getWorkflowById, getFirstStep, getTransitionInfo } from './workflow-service';
+import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
 
 
 // Define the structure of a Workflow History entry
@@ -63,7 +63,7 @@ export interface Project {
 export interface AddProjectData {
     title: string;
     workflowId: string; // User will select a workflow
-    initialFiles: Omit<FileEntry, 'timestamp' | 'path'>[]; // Path will be constructed
+    initialFiles: FileEntry[]; // Path will be constructed from service
     createdBy: string; // Username of the creator
 }
 
@@ -73,7 +73,7 @@ export interface UpdateProjectParams {
     updaterRole: string;
     updaterUsername: string;
     actionTaken: string; // e.g., "submitted", "approved", "rejected", "scheduled"
-    files?: Omit<FileEntry, 'timestamp'>[]; // New files uploaded in this step
+    files?: FileEntry[]; // New files uploaded in this step, path already set by API
     note?: string;
     scheduleDetails?: ScheduleDetails;
     surveyDetails?: SurveyDetails;
@@ -87,7 +87,7 @@ async function readProjects(): Promise<Project[]> {
     try {
         await fs.access(DB_PATH);
     } catch (error) {
-        console.log("[ProjectService] Project database file not found, creating a new one.");
+        console.log("[ProjectService/JSON] Project database file not found, creating a new one.");
         await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
         return [];
     }
@@ -95,40 +95,28 @@ async function readProjects(): Promise<Project[]> {
     try {
         const data = await fs.readFile(DB_PATH, 'utf8');
         if (data.trim() === "") {
-            console.warn("[ProjectService] Project database file is empty. Initializing with an empty array.");
+            console.warn("[ProjectService/JSON] Project database file is empty. Initializing with an empty array.");
             await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
             return [];
         }
-        const parsedData = JSON.parse(data);
-        if (!Array.isArray(parsedData)) {
-            console.error("[ProjectService] Project database file does not contain a valid JSON array. Resetting.");
-            await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
-            return [];
-        }
-        return (parsedData as Project[]).map(project => ({
+        const parsedData = JSON.parse(data) as Project[];
+         return parsedData.map(project => ({
             ...project,
-            files: project.files?.map(file => {
-                if (!file.path && project.id && project.title && file.name) {
-                    const projectTitleSanitized = sanitizeForPath(project.title);
-                    const relativePath = `${project.id}-${projectTitleSanitized}/${sanitizeForPath(file.name)}`;
-                    console.warn(`[ProjectService] File "${file.name}" in project "${project.id}" was missing a path. Assigning: ${relativePath}`);
-                    return { ...file, path: relativePath };
-                }
-                return file;
-            }) || [],
-            workflowId: project.workflowId || DEFAULT_WORKFLOW_ID, // Ensure workflowId defaults if missing
+            files: project.files || [],
+            workflowHistory: project.workflowHistory || [],
+            workflowId: project.workflowId || DEFAULT_WORKFLOW_ID,
         }));
     } catch (error: any) {
-        console.error("[ProjectService] Error reading or parsing project database:", error);
+        console.error("[ProjectService/JSON] Error reading or parsing project database:", error);
          if (error instanceof SyntaxError) {
-            console.warn(`[ProjectService] SyntaxError in project database: ${error.message}. Attempting to reset.`);
+            console.warn(`[ProjectService/JSON] SyntaxError in project database: ${error.message}. Attempting to reset.`);
         }
          try {
-             console.log("[ProjectService] Attempting to reset project database due to read/parse error.");
+             console.log("[ProjectService/JSON] Attempting to reset project database due to read/parse error.");
              await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
              return [];
          } catch (writeError) {
-             console.error("[ProjectService] Failed to reset project database:", writeError);
+             console.error("[ProjectService/JSON] Failed to reset project database:", writeError);
              throw new Error('Failed to read or reset project data.');
          }
     }
@@ -137,9 +125,9 @@ async function readProjects(): Promise<Project[]> {
 async function writeProjects(projects: Project[]): Promise<void> {
     try {
         await fs.writeFile(DB_PATH, JSON.stringify(projects, null, 2), 'utf8');
-        console.log(`[ProjectService] Project data successfully written to: ${DB_PATH}. Total projects: ${projects.length}`);
+        console.log(`[ProjectService/JSON] Project data successfully written. Total projects: ${projects.length}`);
     } catch (error) {
-        console.error("[ProjectService] Error writing project database:", error);
+        console.error("[ProjectService/JSON] Error writing project database:", error);
         throw new Error('Failed to save project data.');
     }
 }
@@ -147,9 +135,9 @@ async function writeProjects(projects: Project[]): Promise<void> {
 export async function ensureProjectFilesBaseDirExists(): Promise<void> {
     try {
         await fs.mkdir(PROJECT_FILES_BASE_DIR, { recursive: true });
-        console.log(`[ProjectService] Project files base directory ensured at: ${PROJECT_FILES_BASE_DIR}`);
+        console.log(`[ProjectService/JSON] Project files base directory ensured at: ${PROJECT_FILES_BASE_DIR}`);
     } catch (error) {
-        console.error(`[ProjectService] Error creating project files base directory ${PROJECT_FILES_BASE_DIR}:`, error);
+        console.error(`[ProjectService/JSON] Error creating project files base directory ${PROJECT_FILES_BASE_DIR}:`, error);
         throw new Error('Failed to create project files base directory.');
     }
 }
@@ -157,34 +145,20 @@ export async function ensureProjectFilesBaseDirExists(): Promise<void> {
 // --- Main Service Functions ---
 
 export async function addProject(projectData: AddProjectData): Promise<Project> {
-    console.log(`[ProjectService] Adding new project: "${projectData.title}", Workflow: ${projectData.workflowId}, by: ${projectData.createdBy}`);
-    await ensureProjectFilesBaseDirExists();
+    console.log(`[ProjectService/JSON] Adding new project: "${projectData.title}", Workflow: ${projectData.workflowId}, by: ${projectData.createdBy}`);
+    await ensureProjectFilesBaseDirExists(); // This still makes sense for file storage
 
     const projects = await readProjects();
     const now = new Date().toISOString();
     const projectId = `project_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    const projectTitleSanitized = sanitizeForPath(projectData.title);
-
-    const projectRelativeFolderPath = `${projectId}-${projectTitleSanitized}`;
-    const projectAbsoluteFolderPath = path.join(PROJECT_FILES_BASE_DIR, projectRelativeFolderPath);
-
-    try {
-        await fs.mkdir(projectAbsoluteFolderPath, { recursive: true });
-    } catch (error) {
-        console.error(`[ProjectService] Error creating folder for project ${projectId}:`, error);
-    }
-
-    const filesWithMetadata: FileEntry[] = projectData.initialFiles.map(file => ({
-        name: file.name,
-        uploadedBy: projectData.createdBy,
-        timestamp: now,
-        path: `${projectRelativeFolderPath}/${sanitizeForPath(file.name)}`,
-    }));
+    
+    // Folder creation logic for files remains relevant if files are stored on server
+    // but initialFiles in AddProjectData now directly includes full FileEntry (with path from upload API)
 
     const firstStep = await getFirstStep(projectData.workflowId);
 
     if (!firstStep) {
-        console.error(`[ProjectService] Cannot create project: Workflow ID "${projectData.workflowId}" not found or has no steps.`);
+        console.error(`[ProjectService/JSON] Cannot create project: Workflow ID "${projectData.workflowId}" not found or has no steps.`);
         throw new Error('WORKFLOW_INVALID');
     }
 
@@ -198,21 +172,21 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
         workflowId: projectData.workflowId,
         workflowHistory: [
             { division: projectData.createdBy, action: 'Created Project', timestamp: now },
-            ...filesWithMetadata.map(file => ({
+            ...projectData.initialFiles.map(file => ({
                  division: file.uploadedBy,
-                 action: `Registered initial file: ${file.name}`,
+                 action: `Uploaded initial file: ${file.name}`,
                  timestamp: file.timestamp,
             })),
             { division: 'System', action: `Assigned to ${firstStep.assignedDivision} for ${firstStep.nextActionDescription || 'initial step'}`, timestamp: now }
         ],
-        files: filesWithMetadata,
+        files: projectData.initialFiles, // Directly use files from AddProjectData
         createdAt: now,
         createdBy: projectData.createdBy,
     };
 
     projects.push(newProject);
     await writeProjects(projects);
-    console.log(`[ProjectService] Project "${newProject.title}" (ID: ${newProject.id}) added successfully. Assigned to ${firstStep.assignedDivision} for ${firstStep.nextActionDescription}.`);
+    console.log(`[ProjectService/JSON] Project "${newProject.title}" (ID: ${newProject.id}) added successfully. Assigned to ${firstStep.assignedDivision} for ${firstStep.nextActionDescription}.`);
 
     const workflow = await getWorkflowById(projectData.workflowId);
     const initialStepDefinition = workflow?.steps.find(s => s.status === firstStep.status && s.progress === firstStep.progress);
@@ -233,13 +207,13 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
 }
 
 export async function getAllProjects(): Promise<Project[]> {
-    console.log("[ProjectService] Fetching all projects from database.");
+    console.log("[ProjectService/JSON] Fetching all projects from JSON.");
     let projects = await readProjects();
     let projectsModified = false;
 
     projects = projects.map(project => {
         if (!project.workflowId) {
-            console.warn(`[ProjectService] Project ID ${project.id} ("${project.title}") is missing a workflowId. Assigning default workflow: ${DEFAULT_WORKFLOW_ID}`);
+            console.warn(`[ProjectService/JSON] Project ID ${project.id} ("${project.title}") is missing a workflowId. Assigning default workflow: ${DEFAULT_WORKFLOW_ID}`);
             projectsModified = true;
             return { ...project, workflowId: DEFAULT_WORKFLOW_ID };
         }
@@ -247,7 +221,7 @@ export async function getAllProjects(): Promise<Project[]> {
     });
 
     if (projectsModified) {
-        console.log("[ProjectService] One or more projects were updated with a default workflowId. Saving changes to projects.json.");
+        console.log("[ProjectService/JSON] One or more projects were updated with a default workflowId. Saving changes to projects.json.");
         await writeProjects(projects);
     }
 
@@ -256,22 +230,22 @@ export async function getAllProjects(): Promise<Project[]> {
 }
 
 export async function getProjectById(projectId: string): Promise<Project | null> {
-    console.log(`[ProjectService] Fetching project with ID: ${projectId}`);
-    let projects = await readProjects(); // Make projects mutable for potential update
+    console.log(`[ProjectService/JSON] Fetching project with ID: ${projectId}`);
+    let projects = await readProjects();
     const projectIndex = projects.findIndex(p => p.id === projectId);
     
     if (projectIndex === -1) {
-        console.warn(`[ProjectService] Project with ID "${projectId}" not found.`);
+        console.warn(`[ProjectService/JSON] Project with ID "${projectId}" not found.`);
         return null;
     }
 
     let project = projects[projectIndex];
 
     if (!project.workflowId) {
-        console.warn(`[ProjectService] Project with ID "${projectId}" was found but is missing a workflowId. Assigning default: ${DEFAULT_WORKFLOW_ID} and attempting to save.`);
+        console.warn(`[ProjectService/JSON] Project with ID "${projectId}" was found but is missing a workflowId. Assigning default: ${DEFAULT_WORKFLOW_ID} and attempting to save.`);
         project = { ...project, workflowId: DEFAULT_WORKFLOW_ID };
-        projects[projectIndex] = project; // Update the project in the array
-        await writeProjects(projects); // Save the change
+        projects[projectIndex] = project;
+        await writeProjects(projects);
     }
     return project;
 }
@@ -282,43 +256,35 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
         updaterRole,
         updaterUsername,
         actionTaken,
-        files: newFilesData = [],
+        files: newFilesData = [], // These files come with path from upload API
         note,
         scheduleDetails,
         surveyDetails
     } = params;
 
-    console.log(`[ProjectService] Updating project ID: ${projectId}. Action: "${actionTaken}" by ${updaterRole} (${updaterUsername}). Note: "${note || 'N/A'}"`);
-    await ensureProjectFilesBaseDirExists();
+    console.log(`[ProjectService/JSON] Updating project ID: ${projectId}. Action: "${actionTaken}" by ${updaterRole} (${updaterUsername}). Note: "${note || 'N/A'}"`);
     let projects = await readProjects();
     const projectIndex = projects.findIndex(p => p.id === projectId);
 
     if (projectIndex === -1) {
-        console.error(`[ProjectService] Project with ID "${projectId}" not found for update.`);
+        console.error(`[ProjectService/JSON] Project with ID "${projectId}" not found for update.`);
         throw new Error('PROJECT_NOT_FOUND');
     }
 
     const currentProject = projects[projectIndex];
-    const projectWorkflowId = currentProject.workflowId || DEFAULT_WORKFLOW_ID; // Ensure workflowId is present
+    const projectWorkflowId = currentProject.workflowId || DEFAULT_WORKFLOW_ID;
 
     const now = new Date().toISOString();
     const transitionInfo = await getTransitionInfo(projectWorkflowId, currentProject.status, currentProject.progress, actionTaken);
+    
+    console.log(`[ProjectService/JSON] Transition info for action "${actionTaken}" from status "${currentProject.status}":`, transitionInfo);
 
-    const projectTitleSanitized = sanitizeForPath(currentProject.title);
-    const projectRelativeFolderPath = `${currentProject.id}-${projectTitleSanitized}`;
-
-    const uploadedFileEntries: FileEntry[] = newFilesData.map(fileData => ({
-        name: fileData.name,
-        uploadedBy: updaterUsername,
-        timestamp: now,
-        path: `${projectRelativeFolderPath}/${sanitizeForPath(fileData.name)}`,
-    }));
 
     let historyAction = `${updaterUsername} (${updaterRole}) ${actionTaken} for "${currentProject.nextAction || 'progress'}"`;
     if (actionTaken === 'scheduled' && scheduleDetails) {
-        historyAction = `${updaterUsername} (${updaterRole}) scheduled Sidang for ${new Date(scheduleDetails.date + 'T' + scheduleDetails.time).toISOString()}`;
+        historyAction = `${updaterUsername} (${updaterRole}) scheduled Sidang on ${scheduleDetails.date} at ${scheduleDetails.time}`;
     } else if (actionTaken === 'submitted' && surveyDetails && currentProject.status === 'Pending Survey Details') {
-        historyAction = `${updaterUsername} (${updaterRole}) submitted Survey Details for ${new Date(surveyDetails.date + 'T' + surveyDetails.time).toISOString()}`;
+        historyAction = `${updaterUsername} (${updaterRole}) submitted Survey Details for ${surveyDetails.date} at ${surveyDetails.time}`;
     } else if (actionTaken === 'approved') {
         historyAction = `${updaterUsername} (${updaterRole}) approved: ${currentProject.nextAction || 'current step'}`;
     } else if (actionTaken === 'rejected' || actionTaken === 'canceled') {
@@ -334,7 +300,7 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
         timestamp: now,
         note: note,
     };
-    if (actionTaken === 'scheduled' && scheduleDetails) {
+     if (actionTaken === 'scheduled' && scheduleDetails) {
         newWorkflowHistoryEntry.note = `Location: ${scheduleDetails.location}. ${note ? `Note: ${note}` : ''}`.trim();
     } else if (actionTaken === 'submitted' && surveyDetails && currentProject.status === 'Pending Survey Details') {
          newWorkflowHistoryEntry.note = `Survey Description: ${surveyDetails.description}. ${note ? `Note: ${note}` : ''}`.trim();
@@ -344,8 +310,8 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
     let updatedProject: Project = {
         ...currentProject,
         workflowId: projectWorkflowId,
-        files: [...currentProject.files, ...uploadedFileEntries],
-        workflowHistory: [...currentProject.workflowHistory, newWorkflowHistoryEntry],
+        files: [...(currentProject.files || []), ...newFilesData], // Ensure currentProject.files is an array
+        workflowHistory: [...(currentProject.workflowHistory || []), newWorkflowHistoryEntry],
     };
 
     if (transitionInfo) {
@@ -354,7 +320,7 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
         updatedProject.nextAction = transitionInfo.targetNextActionDescription;
         updatedProject.progress = transitionInfo.targetProgress;
     } else if (!['Completed', 'Canceled'].includes(currentProject.status) && !['completed', 'canceled', 'revise_after_sidang', 'canceled_after_sidang'].includes(actionTaken) ) {
-         console.warn(`[ProjectService] No specific transition info for action "${actionTaken}" from status "${currentProject.status}". Updating files/notes if any, but status remains.`);
+         console.warn(`[ProjectService/JSON] No specific transition info for action "${actionTaken}" from status "${currentProject.status}". Updating files/notes if any, but status remains.`);
     }
     
     if (actionTaken === 'scheduled' && scheduleDetails) {
@@ -364,10 +330,9 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
         updatedProject.surveyDetails = surveyDetails;
     }
 
-
     projects[projectIndex] = updatedProject;
     await writeProjects(projects);
-    console.log(`[ProjectService] Project ${projectId} updated. New status: ${updatedProject.status}, Assigned to: ${updatedProject.assignedDivision}`);
+    console.log(`[ProjectService/JSON] Project ${projectId} updated. New status: ${updatedProject.status}, Assigned to: ${updatedProject.assignedDivision}`);
 
     if (transitionInfo && transitionInfo.notification && transitionInfo.targetAssignedDivision) {
         const notificationConfig = transitionInfo.notification;
@@ -382,16 +347,17 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
 }
 
 export async function updateProjectTitle(projectId: string, newTitle: string): Promise<void> {
-    console.log(`[ProjectService] Updating title for project ID: ${projectId} to "${newTitle}"`);
-    await ensureProjectFilesBaseDirExists();
+    console.log(`[ProjectService/JSON] Updating title for project ID: ${projectId} to "${newTitle}"`);
+    // Folder renaming logic for local file system storage is still relevant if used
+    await ensureProjectFilesBaseDirExists(); 
     let projects = await readProjects();
     const projectIndex = projects.findIndex(p => p.id === projectId);
 
     if (projectIndex === -1) {
-        console.error(`[ProjectService] Project with ID "${projectId}" not found for title update.`);
+        console.error(`[ProjectService/JSON] Project with ID "${projectId}" not found for title update.`);
         throw new Error('PROJECT_NOT_FOUND');
     }
-
+    
     const originalProject = projects[projectIndex];
     const oldSanitizedTitle = sanitizeForPath(originalProject.title);
     const newSanitizedTitle = sanitizeForPath(newTitle);
@@ -403,37 +369,35 @@ export async function updateProjectTitle(projectId: string, newTitle: string): P
     const newProjectAbsoluteFolderPath = path.join(PROJECT_FILES_BASE_DIR, newProjectRelativeFolderPath);
 
     if (oldProjectRelativeFolderPath !== newProjectRelativeFolderPath) {
-        console.log(`[ProjectService] Sanitized title changed for project ${projectId}. Attempting to rename folder and update file paths.`);
+        console.log(`[ProjectService/JSON] Sanitized title changed for project ${projectId}. Attempting to rename folder and update file paths.`);
         try {
              try {
                 await fs.access(oldProjectAbsoluteFolderPath);
                 await fs.rename(oldProjectAbsoluteFolderPath, newProjectAbsoluteFolderPath);
-                console.log(`[ProjectService] Renamed folder from "${oldProjectAbsoluteFolderPath}" to "${newProjectAbsoluteFolderPath}"`);
+                console.log(`[ProjectService/JSON] Renamed folder from "${oldProjectAbsoluteFolderPath}" to "${newProjectAbsoluteFolderPath}"`);
              } catch (renameError: any) {
                  if (renameError.code === 'ENOENT') {
-                    console.warn(`[ProjectService] Old project folder "${oldProjectAbsoluteFolderPath}" not found. Creating new folder "${newProjectAbsoluteFolderPath}" instead.`);
+                    console.warn(`[ProjectService/JSON] Old project folder "${oldProjectAbsoluteFolderPath}" not found. Creating new folder "${newProjectAbsoluteFolderPath}" instead.`);
                     await fs.mkdir(newProjectAbsoluteFolderPath, { recursive: true });
                  } else {
-                    console.error(`[ProjectService] Error during folder rename operation for project ${projectId}:`, renameError);
+                    console.error(`[ProjectService/JSON] Error during folder rename operation for project ${projectId}:`, renameError);
                  }
              }
 
-            projects[projectIndex].files = originalProject.files.map(file => {
+            projects[projectIndex].files = (originalProject.files || []).map(file => {
                 const sanitizedFileName = sanitizeForPath(file.name);
                 const updatedRelativePath = `${newProjectRelativeFolderPath}/${sanitizedFileName}`;
-                console.log(`[ProjectService]  -> Updating path for file "${file.name}": To "${updatedRelativePath}"`);
+                console.log(`[ProjectService/JSON]  -> Updating path for file "${file.name}": To "${updatedRelativePath}"`);
                 return { ...file, path: updatedRelativePath };
             });
         } catch (error) {
-            console.error(`[ProjectService] Error processing folder rename or file path updates for project ${projectId}:`, error);
+            console.error(`[ProjectService/JSON] Error processing folder rename or file path updates for project ${projectId}:`, error);
         }
-    } else {
-        console.log(`[ProjectService] Sanitized title for project ${projectId} remains the same. No folder or file path update needed.`);
     }
 
     projects[projectIndex].title = newTitle;
     await writeProjects(projects);
-    console.log(`[ProjectService] Title for project ${projectId} updated successfully in JSON.`);
+    console.log(`[ProjectService/JSON] Title for project ${projectId} updated successfully in JSON.`);
 }
 
 export async function reviseProject(
@@ -442,21 +406,21 @@ export async function reviseProject(
     reviserRole: string,
     revisionNote?: string
 ): Promise<Project | null> {
-    console.log(`[ProjectService] Revising project ID: ${projectId} by ${reviserRole} (${reviserUsername}). Note: "${revisionNote || 'N/A'}"`);
+    console.log(`[ProjectService/JSON] Revising project ID: ${projectId} by ${reviserRole} (${reviserUsername}). Note: "${revisionNote || 'N/A'}"`);
     let projects = await readProjects();
     const projectIndex = projects.findIndex(p => p.id === projectId);
 
     if (projectIndex === -1) {
-        console.error(`[ProjectService] Project with ID "${projectId}" not found for revision.`);
+        console.error(`[ProjectService/JSON] Project with ID "${projectId}" not found for revision.`);
         throw new Error('PROJECT_NOT_FOUND');
     }
 
     const currentProject = projects[projectIndex];
-    const projectWorkflowId = currentProject.workflowId || DEFAULT_WORKFLOW_ID;
+    const projectWorkflowId = currentProject.workflowId || DEFAULT_WORKFLOW_ID; // Ensure workflowId
 
     const workflow = await getWorkflowById(projectWorkflowId);
     if (!workflow) {
-        console.error(`[ProjectService] Workflow with ID "${projectWorkflowId}" for project "${projectId}" not found.`);
+        console.error(`[ProjectService/JSON] Workflow with ID "${projectWorkflowId}" for project "${projectId}" not found.`);
         throw new Error('WORKFLOW_NOT_FOUND');
     }
 
@@ -476,11 +440,11 @@ export async function reviseProject(
             assignedDivision: revisionTransition.targetAssignedDivision,
             nextAction: revisionTransition.targetNextActionDescription,
             progress: revisionTransition.targetProgress,
-            workflowHistory: [...currentProject.workflowHistory, historyEntry],
+            workflowHistory: [...(currentProject.workflowHistory || []), historyEntry],
         };
 
         await writeProjects(projects);
-        console.log(`[ProjectService] Project ${projectId} revised via workflow. New status: ${projects[projectIndex].status}, Assigned to: ${projects[projectIndex].assignedDivision}`);
+        console.log(`[ProjectService/JSON] Project ${projectId} revised via workflow. New status: ${projects[projectIndex].status}, Assigned to: ${projects[projectIndex].assignedDivision}`);
 
         if (revisionTransition.notification && revisionTransition.targetAssignedDivision) {
             const notificationConfig = revisionTransition.notification;
@@ -494,8 +458,9 @@ export async function reviseProject(
         }
         return projects[projectIndex];
     } else {
-        console.warn(`No explicit 'revise' transition found for project ${projectId} status ${currentProject.status}. Fallback revision logic might be needed or this action is not allowed.`);
-        throw new Error('REVISION_NOT_SUPPORTED_FOR_CURRENT_STEP');
+        console.warn(`[ProjectService/JSON] No explicit 'revise' transition found for project ${projectId} status ${currentProject.status}. Fallback revision logic might be needed or this action is not allowed.`);
+        // throw new Error('REVISION_NOT_SUPPORTED_FOR_CURRENT_STEP'); // Keep throwing or return null
+        return null;
     }
 }
 
@@ -516,12 +481,12 @@ export async function manuallyUpdateProjectStatusAndAssignment({
     adminUsername: string;
     reasonNote: string;
 }): Promise<Project> {
-    console.log(`[ProjectService] Manually updating project ID: ${projectId} by admin ${adminUsername}. New Status: ${newStatus}, New Division: ${newAssignedDivision}`);
+    console.log(`[ProjectService/JSON] Manually updating project ID: ${projectId} by admin ${adminUsername}. New Status: ${newStatus}, New Division: ${newAssignedDivision}`);
     let projects = await readProjects();
     const projectIndex = projects.findIndex(p => p.id === projectId);
 
     if (projectIndex === -1) {
-        console.error(`[ProjectService] Project with ID "${projectId}" not found for manual update.`);
+        console.error(`[ProjectService/JSON] Project with ID "${projectId}" not found for manual update.`);
         throw new Error('PROJECT_NOT_FOUND');
     }
 
@@ -529,7 +494,7 @@ export async function manuallyUpdateProjectStatusAndAssignment({
     const projectWorkflowId = currentProject.workflowId || DEFAULT_WORKFLOW_ID;
 
     const historyEntry: WorkflowHistoryEntry = {
-        division: adminUsername,
+        division: adminUsername, // Record the admin who made the change
         action: `Manually changed status to "${newStatus}" and assigned to "${newAssignedDivision}".`,
         timestamp: new Date().toISOString(),
         note: `Reason: ${reasonNote}`,
@@ -542,12 +507,12 @@ export async function manuallyUpdateProjectStatusAndAssignment({
         assignedDivision: newAssignedDivision,
         nextAction: newNextAction,
         progress: newProgress,
-        workflowHistory: [...currentProject.workflowHistory, historyEntry],
+        workflowHistory: [...(currentProject.workflowHistory || []), historyEntry],
     };
 
     projects[projectIndex] = updatedProjectData;
     await writeProjects(projects);
-    console.log(`[ProjectService] Project ${projectId} manually updated. New status: ${newStatus}, Assigned to: ${newAssignedDivision}`);
+    console.log(`[ProjectService/JSON] Project ${projectId} manually updated. New status: ${newStatus}, Assigned to: ${newAssignedDivision}`);
 
     if (newAssignedDivision && newStatus !== 'Completed' && newStatus !== 'Canceled') {
         const notificationMessage = `Project "${updatedProjectData.title}" has been manually updated. New Status: "${newStatus}", Assigned to: "${newAssignedDivision}". Next action: ${newNextAction || 'Review project'}. Reason: ${reasonNote}`;
@@ -558,34 +523,36 @@ export async function manuallyUpdateProjectStatusAndAssignment({
 }
 
 export async function deleteProject(projectId: string, deleterUsername: string): Promise<void> {
-    console.log(`[ProjectService] Attempting to delete project ID: ${projectId} by user: ${deleterUsername}`);
+    console.log(`[ProjectService/JSON] Attempting to delete project ID: ${projectId} by user: ${deleterUsername}`);
     let projects = await readProjects();
     const projectIndex = projects.findIndex(p => p.id === projectId);
 
     if (projectIndex === -1) {
-        console.error(`[ProjectService] Project with ID "${projectId}" not found for deletion.`);
+        console.error(`[ProjectService/JSON] Project with ID "${projectId}" not found for deletion.`);
         throw new Error('PROJECT_NOT_FOUND_FOR_DELETION');
     }
 
     const projectToDelete = projects[projectIndex];
 
-    projects.splice(projectIndex, 1);
+    projects.splice(projectIndex, 1); // Remove project from array
     await writeProjects(projects);
-    console.log(`[ProjectService] Project "${projectToDelete.title}" (ID: ${projectId}) removed from projects.json.`);
+    console.log(`[ProjectService/JSON] Project "${projectToDelete.title}" (ID: ${projectId}) removed from projects.json.`);
 
+    // Delete project folder and files
     const projectTitleSanitized = sanitizeForPath(projectToDelete.title);
     const projectSpecificDirRelative = `${projectId}-${projectTitleSanitized}`;
     const projectSpecificDirAbsolute = path.join(PROJECT_FILES_BASE_DIR, projectSpecificDirRelative);
 
     try {
-        await fs.access(projectSpecificDirAbsolute);
+        await fs.access(projectSpecificDirAbsolute); // Check if folder exists
         await fs.rm(projectSpecificDirAbsolute, { recursive: true, force: true });
-        console.log(`[ProjectService] Successfully deleted project folder: ${projectSpecificDirAbsolute}`);
+        console.log(`[ProjectService/JSON] Successfully deleted project folder: ${projectSpecificDirAbsolute}`);
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-            console.warn(`[ProjectService] Project folder not found, no need to delete: ${projectSpecificDirAbsolute}`);
+            console.warn(`[ProjectService/JSON] Project folder not found, no need to delete: ${projectSpecificDirAbsolute}`);
         } else {
-            console.error(`[ProjectService] Error deleting project folder ${projectSpecificDirAbsolute}:`, error);
+            console.error(`[ProjectService/JSON] Error deleting project folder ${projectSpecificDirAbsolute}:`, error);
+            // Optionally, re-throw or handle this error if folder deletion is critical
         }
     }
 }

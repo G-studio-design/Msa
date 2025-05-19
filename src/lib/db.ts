@@ -1,4 +1,6 @@
 // src/lib/db.ts
+// MySQL connection logic is commented out as we are reverting to JSON for demo purposes.
+/*
 import mysql from 'mysql2/promise';
 
 const pool = mysql.createPool({
@@ -10,6 +12,7 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
+  connectTimeout: 20000, // Increased timeout
 });
 
 pool.getConnection()
@@ -28,8 +31,11 @@ pool.getConnection()
     if (err.code === 'ECONNREFUSED') {
       console.error('[DB] Database connection was refused.');
     }
-    // You might want to throw an error here or handle it gracefully
-    // depending on how critical the DB connection is at startup.
   });
 
+export default pool;
+*/
+
+// Placeholder export if needed by other parts of the app, though services will be refactored.
+const pool = null;
 export default pool;

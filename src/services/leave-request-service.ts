@@ -1,26 +1,25 @@
-
 // src/services/leave-request-service.ts
 'use server';
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { notifyUsersByRole, notifyUserById } from './notification-service'; // Added notifyUserById
+import { notifyUsersByRole, notifyUserById } from './notification-service';
 import type { User } from './user-service';
 
 export interface LeaveRequest {
   id: string;
-  userId: string; // ID of the employee requesting leave
-  username: string; // Username of the employee
-  displayName?: string; // Display name of the employee
-  requestDate: string; // ISO string of when the request was made
-  leaveType: string; // e.g., "Sakit", "Cuti Tahunan", "Keperluan Pribadi"
-  startDate: string; // ISO string (date only, e.g., "2024-12-20")
-  endDate: string; // ISO string (date only, e.g., "2024-12-22")
+  userId: string; 
+  username: string; 
+  displayName?: string; 
+  requestDate: string; // ISO string
+  leaveType: string; 
+  startDate: string; // ISO string (date only)
+  endDate: string; // ISO string (date only)
   reason: string;
   status: 'Pending' | 'Approved' | 'Rejected';
-  approvedRejectedBy?: string; // userId of the Owner who approved/rejected
-  approvedRejectedAt?: string; // ISO string of when it was approved/rejected
-  rejectionReason?: string; // Optional reason if rejected
+  approvedRejectedBy?: string; 
+  approvedRejectedAt?: string; // ISO string
+  rejectionReason?: string; 
 }
 
 export interface AddLeaveRequestData {
@@ -33,13 +32,13 @@ export interface AddLeaveRequestData {
   reason: string;
 }
 
-const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave-requests.json');
+const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json'); // Corrected filename
 
 async function readLeaveRequests(): Promise<LeaveRequest[]> {
   try {
     await fs.access(DB_PATH);
   } catch (error) {
-    console.log("Leave requests database file not found, creating a new one.");
+    console.log("[LeaveRequestService/JSON] Leave requests database file not found, creating a new one.");
     await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
     return [];
   }
@@ -48,7 +47,7 @@ async function readLeaveRequests(): Promise<LeaveRequest[]> {
     if (data.trim() === "") return [];
     return JSON.parse(data) as LeaveRequest[];
   } catch (error) {
-    console.error("Error reading or parsing leave requests database:", error);
+    console.error("[LeaveRequestService/JSON] Error reading or parsing leave requests database:", error);
     await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8'); // Reset if corrupted
     return [];
   }
@@ -58,7 +57,7 @@ async function writeLeaveRequests(requests: LeaveRequest[]): Promise<void> {
   try {
     await fs.writeFile(DB_PATH, JSON.stringify(requests, null, 2), 'utf8');
   } catch (error) {
-    console.error("Error writing leave requests database:", error);
+    console.error("[LeaveRequestService/JSON] Error writing leave requests database:", error);
     throw new Error('Failed to save leave request data.');
   }
 }
@@ -74,8 +73,8 @@ export async function addLeaveRequest(data: AddLeaveRequestData): Promise<LeaveR
     displayName: data.displayName || data.username,
     requestDate: now.toISOString(),
     leaveType: data.leaveType,
-    startDate: data.startDate, // Should be YYYY-MM-DD string
-    endDate: data.endDate,     // Should be YYYY-MM-DD string
+    startDate: data.startDate,
+    endDate: data.endDate,    
     reason: data.reason,
     status: 'Pending',
   };
@@ -83,11 +82,10 @@ export async function addLeaveRequest(data: AddLeaveRequestData): Promise<LeaveR
   leaveRequests.push(newRequest);
   await writeLeaveRequests(leaveRequests);
 
-  // Notify Owners
   const notificationMessage = `Permintaan izin baru dari ${newRequest.displayName} (${newRequest.leaveType}) dari tanggal ${newRequest.startDate} hingga ${newRequest.endDate}.`;
-  await notifyUsersByRole('Owner', notificationMessage);
+  await notifyUsersByRole('Owner', notificationMessage); // Assuming Owner approves
 
-  console.log(`Leave request added for ${data.username}. Owners notified.`);
+  console.log(`[LeaveRequestService/JSON] Leave request added for ${data.username}. Owners notified.`);
   return newRequest;
 }
 
@@ -107,13 +105,13 @@ export async function approveLeaveRequest(requestId: string, approverUserId: str
   const requestIndex = leaveRequests.findIndex(req => req.id === requestId);
 
   if (requestIndex === -1) {
-    console.warn(`Leave request with ID ${requestId} not found for approval.`);
+    console.warn(`[LeaveRequestService/JSON] Leave request with ID ${requestId} not found for approval.`);
     return null;
   }
 
   if (leaveRequests[requestIndex].status !== 'Pending') {
-    console.warn(`Leave request ${requestId} is not in Pending state, cannot approve.`);
-    return null; // Or throw error
+    console.warn(`[LeaveRequestService/JSON] Leave request ${requestId} is not in Pending state, cannot approve.`);
+    return null; 
   }
 
   leaveRequests[requestIndex].status = 'Approved';
@@ -123,10 +121,9 @@ export async function approveLeaveRequest(requestId: string, approverUserId: str
   await writeLeaveRequests(leaveRequests);
   const updatedRequest = leaveRequests[requestIndex];
 
-  // Notify the employee
   const employeeNotificationMessage = `Permintaan izin Anda (${updatedRequest.leaveType}) dari ${updatedRequest.startDate} hingga ${updatedRequest.endDate} telah disetujui oleh ${approverUsername}.`;
   await notifyUserById(updatedRequest.userId, employeeNotificationMessage);
-  console.log(`User ${updatedRequest.userId} notified of leave approval.`);
+  console.log(`[LeaveRequestService/JSON] User ${updatedRequest.userId} notified of leave approval.`);
 
   return updatedRequest;
 }
@@ -136,13 +133,13 @@ export async function rejectLeaveRequest(requestId: string, rejectorUserId: stri
   const requestIndex = leaveRequests.findIndex(req => req.id === requestId);
 
   if (requestIndex === -1) {
-    console.warn(`Leave request with ID ${requestId} not found for rejection.`);
+    console.warn(`[LeaveRequestService/JSON] Leave request with ID ${requestId} not found for rejection.`);
     return null;
   }
 
   if (leaveRequests[requestIndex].status !== 'Pending') {
-    console.warn(`Leave request ${requestId} is not in Pending state, cannot reject.`);
-    return null; // Or throw error
+    console.warn(`[LeaveRequestService/JSON] Leave request ${requestId} is not in Pending state, cannot reject.`);
+    return null; 
   }
 
   leaveRequests[requestIndex].status = 'Rejected';
@@ -153,10 +150,9 @@ export async function rejectLeaveRequest(requestId: string, rejectorUserId: stri
   await writeLeaveRequests(leaveRequests);
   const updatedRequest = leaveRequests[requestIndex];
   
-  // Notify the employee
   const employeeNotificationMessage = `Permintaan izin Anda (${updatedRequest.leaveType}) dari ${updatedRequest.startDate} hingga ${updatedRequest.endDate} telah ditolak oleh ${rejectorUsername}. Alasan: ${rejectionReason}`;
   await notifyUserById(updatedRequest.userId, employeeNotificationMessage);
-  console.log(`User ${updatedRequest.userId} notified of leave rejection.`);
+  console.log(`[LeaveRequestService/JSON] User ${updatedRequest.userId} notified of leave rejection.`);
 
   return updatedRequest;
 }
@@ -165,4 +161,3 @@ export async function getLeaveRequestsByUserId(userId: string): Promise<LeaveReq
     const allRequests = await readLeaveRequests();
     return allRequests.filter(req => req.userId === userId).sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());
 }
-

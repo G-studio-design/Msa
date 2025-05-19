@@ -13,12 +13,5 @@
     "name": "Tahun Baru Masehi",
     "type": "National Holiday",
     "description": "Perayaan Tahun Baru."
-  },
-  {
-    "id": "event_20241115",
-    "date": "2024-11-15",
-    "name": "Rapat Umum Perusahaan",
-    "type": "Company Event",
-    "description": "Rapat umum tahunan perusahaan Msarch App."
   }
 ]

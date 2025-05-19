@@ -1,8 +1,8 @@
 // src/services/user-service.ts
 'use server';
 
-import pool from '@/lib/db';
-import type { RowDataPacket, ResultSetHeader, FieldPacket } from 'mysql2';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import { notifyUsersByRole } from './notification-service';
 
 // Define the structure of a user
@@ -10,12 +10,12 @@ export interface User {
     id: string;
     username: string;
     role: string;
-    password?: string; // Hashed password
+    password?: string; // Plain text password for JSON, should be hashed in real DB
     email?: string;
     whatsappNumber?: string;
     profilePictureUrl?: string;
     displayName?: string;
-    createdAt?: string; // ISO date string from DB
+    createdAt?: string; // ISO date string
     googleRefreshToken?: string | null;
     googleAccessToken?: string | null;
     googleAccessTokenExpiresAt?: number | null; // Unix timestamp (milliseconds)
@@ -41,7 +41,7 @@ export interface UpdateProfileData {
 
 export interface UpdatePasswordData {
     userId: string;
-    currentPassword?: string;
+    currentPassword?: string; // For verifying against current password
     newPassword: string;
 }
 
@@ -52,346 +52,316 @@ export interface UpdateUserGoogleTokensData {
 }
 
 
-// --- Database Helper Functions ---
+const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
 
-async function hashPassword(password: string): Promise<string> {
-    console.warn("[UserService/DB] Password hashing is not implemented. Storing plain text password (UNSAFE).");
-    return password;
+// --- Helper Functions ---
+
+async function readUsers(): Promise<User[]> {
+    try {
+        await fs.access(DB_PATH);
+    } catch (error) {
+        console.log("[UserService/JSON] User database file not found, creating a new one with default admin if missing.");
+        // Create with a default Admin Developer and Owner if not present
+        const defaultUsers: User[] = [
+            {
+              id: "usr_dev_iwg",
+              username: "I.wayan_govina",
+              password: "Govina110900",
+              role: "Admin Developer",
+              email: "i.wayan_govina@example.dev",
+              displayName: "I Wayan Govina (Dev)",
+              createdAt: new Date().toISOString(),
+              whatsappNumber: ""
+            },
+            {
+              id: "usr_owner_default",
+              username: "owner_default",
+              password: "owner123",
+              role: "Owner",
+              email: "owner@example.com",
+              displayName: "Default Owner",
+              createdAt: new Date().toISOString()
+            }
+        ];
+        await fs.writeFile(DB_PATH, JSON.stringify(defaultUsers, null, 2), 'utf8');
+        return defaultUsers;
+    }
+    try {
+        const data = await fs.readFile(DB_PATH, 'utf8');
+        if (data.trim() === "") {
+             console.warn("[UserService/JSON] User database file is empty. Initializing with default users.");
+             const defaultUsers: User[] = [
+                {
+                  id: "usr_dev_iwg",
+                  username: "I.wayan_govina",
+                  password: "Govina110900",
+                  role: "Admin Developer",
+                  email: "i.wayan_govina@example.dev",
+                  displayName: "I Wayan Govina (Dev)",
+                  createdAt: new Date().toISOString(),
+                  whatsappNumber: ""
+                },
+                {
+                  id: "usr_owner_default",
+                  username: "owner_default",
+                  password: "owner123",
+                  role: "Owner",
+                  email: "owner@example.com",
+                  displayName: "Default Owner",
+                  createdAt: new Date().toISOString()
+                }
+            ];
+            await fs.writeFile(DB_PATH, JSON.stringify(defaultUsers, null, 2), 'utf8');
+            return defaultUsers;
+        }
+        return JSON.parse(data) as User[];
+    } catch (error) {
+        console.error("[UserService/JSON] Error reading or parsing user database:", error);
+        throw new Error('Failed to read user data.');
+    }
 }
 
-async function verifyPassword(passwordInput: string, storedHash: string): Promise<boolean> {
-    console.warn("[UserService/DB] Password verification is not implemented. Comparing plain text password (UNSAFE).");
-    return passwordInput === storedHash;
+async function writeUsers(users: User[]): Promise<void> {
+    try {
+        // When writing back, we keep the password as is (plain text for JSON version)
+        await fs.writeFile(DB_PATH, JSON.stringify(users, null, 2), 'utf8');
+    } catch (error) {
+        console.error("[UserService/JSON] Error writing user database:", error);
+        throw new Error('Failed to save user data.');
+    }
 }
-
 
 // --- Main Service Functions ---
 
 export async function findUserByUsername(username: string): Promise<User | null> {
-    console.log(`[UserService/DB] Finding user by username: ${username}`);
+    console.log(`[UserService/JSON] Finding user by username: ${username}`);
     if (!username) return null;
-    try {
-        const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM users WHERE username = ?', [username]);
-        if (rows.length > 0) {
-            const user = rows[0] as User;
-            if (user.createdAt && user.createdAt instanceof Date) {
-                 user.createdAt = user.createdAt.toISOString();
-            }
-            return user;
-        }
-        return null;
-    } catch (error: any) {
-        const originalErrorMessage = error.message || 'Unknown database error';
-        const errorMessage = `[UserService/DB] Error finding user by username "${username}": ${originalErrorMessage}`;
-        console.error(errorMessage);
-        throw new Error(`Database query failed while finding user by username. Original error: ${originalErrorMessage}`);
-    }
+    const users = await readUsers();
+    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    return user || null;
 }
 
 export async function findUserByEmail(email: string): Promise<User | null> {
     if (!email) return null;
-    console.log(`[UserService/DB] Finding user by email: ${email}`);
-    try {
-        const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM users WHERE email = ?', [email]);
-        if (rows.length > 0) {
-            const user = rows[0] as User;
-             if (user.createdAt && user.createdAt instanceof Date) {
-                 user.createdAt = user.createdAt.toISOString();
-            }
-            return user;
-        }
-        return null;
-    } catch (error: any) {
-        const originalErrorMessage = error.message || 'Unknown database error';
-        const errorMessage = `[UserService/DB] Error finding user by email "${email}": ${originalErrorMessage}`;
-        console.error(errorMessage);
-        throw new Error(`Database query failed while finding user by email. Original error: ${originalErrorMessage}`);
-    }
+    console.log(`[UserService/JSON] Finding user by email: ${email}`);
+    const users = await readUsers();
+    const user = users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+    return user || null;
 }
 
 export async function findUserById(userId: string): Promise<User | null> {
-    console.log(`[UserService/DB] Finding user by ID: ${userId}`);
+    console.log(`[UserService/JSON] Finding user by ID: ${userId}`);
     if(!userId) return null;
-    try {
-        const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM users WHERE id = ?', [userId]);
-        if (rows.length > 0) {
-            const user = rows[0] as User;
-             if (user.createdAt && user.createdAt instanceof Date) {
-                 user.createdAt = user.createdAt.toISOString();
-            }
-            return user;
-        }
-        return null;
-    } catch (error: any) {
-        const originalErrorMessage = error.message || 'Unknown database error';
-        const errorMessage = `[UserService/DB] Error finding user by ID "${userId}": ${originalErrorMessage}`;
-        console.error(errorMessage);
-        throw new Error(`Database query failed while finding user by ID. Original error: ${originalErrorMessage}`);
-    }
+    const users = await readUsers();
+    const user = users.find(u => u.id === userId);
+    return user || null;
 }
 
 export async function verifyUserCredentials(usernameInput: string, passwordInput: string): Promise<Omit<User, 'password'> | null> {
-    console.log(`[UserService/DB] Verifying credentials for username: "${usernameInput}"`);
+    console.log(`[UserService/JSON] Verifying credentials for username: "${usernameInput}"`);
     const user = await findUserByUsername(usernameInput);
 
     if (!user) {
-        console.log(`[UserService/DB] User "${usernameInput}" not found.`);
+        console.log(`[UserService/JSON] User "${usernameInput}" not found.`);
         return null;
     }
-    console.log(`[UserService/DB] User "${usernameInput}" found. ID: ${user.id}, Role: ${user.role}`);
+    console.log(`[UserService/JSON] User "${usernameInput}" found. ID: ${user.id}, Role: ${user.role}`);
 
     if (!user.password) {
-        console.error(`[UserService/DB] Login failed for ${usernameInput}: User has no password stored.`);
+        console.error(`[UserService/JSON] Login failed for ${usernameInput}: User has no password stored.`);
         return null;
     }
 
-    const isPasswordCorrect = await verifyPassword(passwordInput, user.password);
+    // For JSON, we compare plain text passwords. In a real DB, this would be hashed.
+    const isPasswordCorrect = passwordInput === user.password;
 
     if (isPasswordCorrect) {
-        console.log(`[UserService/DB] Password match successful for user "${usernameInput}".`);
+        console.log(`[UserService/JSON] Password match successful for user "${usernameInput}".`);
         const { password: _p, ...userWithoutPassword } = user;
         return userWithoutPassword;
     } else {
-        console.log(`[UserService/DB] Password mismatch for user "${usernameInput}".`);
+        console.log(`[UserService/JSON] Password mismatch for user "${usernameInput}".`);
         return null;
     }
 }
 
 export async function addUser(userData: AddUserData): Promise<Omit<User, 'password'>> {
-    console.log('[UserService/DB] Attempting to add user:', userData.username, userData.role);
+    console.log('[UserService/JSON] Attempting to add user:', userData.username, userData.role);
+    const users = await readUsers();
 
     if (userData.role === 'Admin Developer') {
-        console.error('[UserService/DB] Cannot add user with role "Admin Developer" through this function.');
+        console.error('[UserService/JSON] Cannot add user with role "Admin Developer" through this function.');
         throw new Error('INVALID_ROLE_CREATION_ATTEMPT');
     }
 
-    const existingUser = await findUserByUsername(userData.username);
+    const existingUser = users.find(u => u.username.toLowerCase() === userData.username.toLowerCase());
     if (existingUser) {
-        console.error(`[UserService/DB] Username "${userData.username}" already exists.`);
+        console.error(`[UserService/JSON] Username "${userData.username}" already exists.`);
         throw new Error('USERNAME_EXISTS');
     }
     if (userData.email) {
-        const existingEmail = await findUserByEmail(userData.email);
+        const existingEmail = users.find(u => u.email && u.email.toLowerCase() === userData.email!.toLowerCase());
         if (existingEmail) {
-            console.error(`[UserService/DB] Email "${userData.email}" already exists.`);
+            console.error(`[UserService/JSON] Email "${userData.email}" already exists.`);
             throw new Error('EMAIL_EXISTS');
         }
     }
 
-
-    const hashedPassword = await hashPassword(userData.password);
     const userId = `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const now = new Date();
 
     const newUser: User = {
         id: userId,
         username: userData.username,
-        password: hashedPassword,
+        password: userData.password, // Storing plain text for JSON demo
         role: userData.role,
         email: userData.email || `${userData.username.toLowerCase().replace(/\s+/g, '_')}@example.com`,
         displayName: userData.displayName || userData.username,
         createdAt: now.toISOString(),
     };
 
-    try {
-        await pool.query(
-            'INSERT INTO users (id, username, password, role, email, displayName, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [newUser.id, newUser.username, newUser.password, newUser.role, newUser.email, newUser.displayName, newUser.createdAt]
-        );
-        console.log(`[UserService/DB] User "${newUser.username}" added successfully with role "${newUser.role}".`);
-        const { password: _p, ...newUserWithoutPassword } = newUser;
-        return newUserWithoutPassword;
-    } catch (error: any) {
-        const originalErrorMessage = error.message || 'Unknown database error';
-        console.error(`[UserService/DB] Error adding user "${userData.username}":`, originalErrorMessage);
-        throw new Error(`Database query failed while adding user. Original error: ${originalErrorMessage}`);
-    }
+    users.push(newUser);
+    await writeUsers(users);
+    console.log(`[UserService/JSON] User "${newUser.username}" added successfully with role "${newUser.role}".`);
+    const { password: _p, ...newUserWithoutPassword } = newUser;
+    return newUserWithoutPassword;
 }
 
 export async function deleteUser(userId: string): Promise<void> {
-    console.log(`[UserService/DB] Attempting to delete user with ID: ${userId}`);
-    const userToDelete = await findUserById(userId);
+    console.log(`[UserService/JSON] Attempting to delete user with ID: ${userId}`);
+    let users = await readUsers();
+    const userToDelete = users.find(user => user.id === userId);
 
     if (!userToDelete) {
-        console.error(`[UserService/DB] User with ID "${userId}" not found for deletion.`);
+        console.error(`[UserService/JSON] User with ID "${userId}" not found for deletion.`);
         throw new Error('USER_NOT_FOUND');
     }
 
     if (userToDelete.role === 'Admin Developer') {
-        console.error(`[UserService/DB] Cannot delete user with role "Admin Developer". ID: ${userId}`);
+        console.error(`[UserService/JSON] Cannot delete user with role "Admin Developer". ID: ${userId}`);
         throw new Error('CANNOT_DELETE_ADMIN_DEVELOPER');
     }
 
-    try {
-        await pool.query('DELETE FROM users WHERE id = ?', [userId]);
-        console.log(`[UserService/DB] User ${userId} deleted successfully.`);
-    } catch (error: any) {
-        const originalErrorMessage = error.message || 'Unknown database error';
-        console.error(`[UserService/DB] Error deleting user "${userId}":`, originalErrorMessage);
-        throw new Error(`Database query failed while deleting user. Original error: ${originalErrorMessage}`);
-    }
+    users = users.filter(user => user.id !== userId);
+    await writeUsers(users);
+    console.log(`[UserService/JSON] User ${userId} deleted successfully.`);
 }
 
 export async function updateUserProfile(updateData: UpdateProfileData): Promise<User | null> {
-    console.log(`[UserService/DB] Attempting to update profile for user ID: ${updateData.userId}`);
-    const currentUserState = await findUserById(updateData.userId);
+    console.log(`[UserService/JSON] Attempting to update profile for user ID: ${updateData.userId}`);
+    let users = await readUsers();
+    const userIndex = users.findIndex(u => u.id === updateData.userId);
 
-    if (!currentUserState) {
-        console.error(`[UserService/DB] User with ID "${updateData.userId}" not found for profile update.`);
+    if (userIndex === -1) {
+        console.error(`[UserService/JSON] User with ID "${updateData.userId}" not found for profile update.`);
         throw new Error('USER_NOT_FOUND');
     }
 
+    const currentUserState = users[userIndex];
+
     if (updateData.role && updateData.role === 'Admin Developer' && currentUserState.role !== 'Admin Developer') {
-        console.error('[UserService/DB] Cannot update user role to "Admin Developer" via this function.');
+        console.error('[UserService/JSON] Cannot update user role to "Admin Developer" via this function.');
         throw new Error('INVALID_ROLE_UPDATE_ATTEMPT');
     }
     if (currentUserState.role === 'Admin Developer' && updateData.role && updateData.role !== 'Admin Developer') {
-        console.error('[UserService/DB] Role of "Admin Developer" cannot be changed via this function.');
+        console.error('[UserService/JSON] Role of "Admin Developer" cannot be changed via this function.');
         throw new Error('CANNOT_CHANGE_ADMIN_DEVELOPER_ROLE');
     }
 
     if (updateData.username && updateData.username.toLowerCase() !== currentUserState.username.toLowerCase()) {
-        const existingUser = await findUserByUsername(updateData.username);
-        if (existingUser && existingUser.id !== updateData.userId) {
-            console.error(`[UserService/DB] New username "${updateData.username}" is already taken.`);
+        const existingUser = users.find(u => u.id !== updateData.userId && u.username.toLowerCase() === updateData.username!.toLowerCase());
+        if (existingUser) {
+            console.error(`[UserService/JSON] New username "${updateData.username}" is already taken.`);
             throw new Error('USERNAME_EXISTS');
         }
     }
-     if (updateData.email && updateData.email.toLowerCase() !== (currentUserState.email || '').toLowerCase()) {
-        const existingEmailUser = await findUserByEmail(updateData.email);
-        if (existingEmailUser && existingEmailUser.id !== updateData.userId) {
-            console.error(`[UserService/DB] New email "${updateData.email}" is already taken.`);
+    if (updateData.email && updateData.email.toLowerCase() !== (currentUserState.email || '').toLowerCase()) {
+        const existingEmailUser = users.find(u => u.id !== updateData.userId && u.email && u.email.toLowerCase() === updateData.email!.toLowerCase());
+        if (existingEmailUser) {
+            console.error(`[UserService/JSON] New email "${updateData.email}" is already taken.`);
             throw new Error('EMAIL_EXISTS');
         }
     }
-
-    const fieldsToUpdate: any = {};
-    if (updateData.username !== undefined && updateData.username !== currentUserState.username) fieldsToUpdate.username = updateData.username;
-    if (updateData.role !== undefined && updateData.role !== currentUserState.role) fieldsToUpdate.role = updateData.role;
-    if (updateData.email !== undefined && updateData.email !== currentUserState.email) fieldsToUpdate.email = updateData.email;
-    if (updateData.whatsappNumber !== undefined && updateData.whatsappNumber !== currentUserState.whatsappNumber) fieldsToUpdate.whatsappNumber = updateData.whatsappNumber;
-    if (updateData.profilePictureUrl !== undefined && updateData.profilePictureUrl !== currentUserState.profilePictureUrl) {
-        fieldsToUpdate.profilePictureUrl = updateData.profilePictureUrl === null ? null : updateData.profilePictureUrl;
-    }
-    if (updateData.displayName !== undefined && updateData.displayName !== currentUserState.displayName) fieldsToUpdate.displayName = updateData.displayName;
-
-
-    if (Object.keys(fieldsToUpdate).length === 0) {
-        console.log(`[UserService/DB] No changes to update for user ${updateData.userId}.`);
-        return currentUserState; // Return current state if no changes
-    }
     
-    const setClauses = Object.keys(fieldsToUpdate).map(key => `${key} = ?`).join(', ');
-    const values = [...Object.values(fieldsToUpdate), updateData.userId];
-
-    try {
-        await pool.query(`UPDATE users SET ${setClauses} WHERE id = ?`, values);
-        console.log(`[UserService/DB] User profile for ${updateData.userId} updated successfully.`);
-
-        if (currentUserState.role !== 'Admin Developer') {
-            const adminRolesToNotify = ['Owner', 'Admin/Akuntan']; // General Admin is now Admin/Akuntan
-            adminRolesToNotify.forEach(async (role) => {
-                await notifyUsersByRole(role, `User profile for "${fieldsToUpdate.username || currentUserState.username}" (Role: ${fieldsToUpdate.role || currentUserState.role}) has been updated.`);
-            });
-        }
-        return { ...currentUserState, ...fieldsToUpdate };
-    } catch (error: any) {
-        const originalErrorMessage = error.message || 'Unknown database error';
-        console.error(`[UserService/DB] Error updating user profile for "${updateData.userId}":`, originalErrorMessage);
-        throw new Error(`Database query failed while updating user profile. Original error: ${originalErrorMessage}`);
+    const updatedUser = { ...currentUserState, ...updateData };
+    users[userIndex] = updatedUser;
+    await writeUsers(users);
+    console.log(`[UserService/JSON] User profile for ${updateData.userId} updated successfully.`);
+    
+    if (currentUserState.role !== 'Admin Developer' && (updateData.username || updateData.role)) {
+      const adminRolesToNotify = ['Owner', 'General Admin'];
+      adminRolesToNotify.forEach(async (role) => {
+          await notifyUsersByRole(role, `User profile for "${updatedUser.username}" (Role: ${updatedUser.role}) has been updated.`);
+      });
     }
+    // Return user without password for security, even though it's plain in JSON for demo
+    const { password: _p, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword;
 }
 
 export async function updatePassword(updateData: UpdatePasswordData): Promise<void> {
-    console.log(`[UserService/DB] Attempting to update password for user ID: ${updateData.userId}`);
-    const user = await findUserById(updateData.userId);
+    console.log(`[UserService/JSON] Attempting to update password for user ID: ${updateData.userId}`);
+    let users = await readUsers();
+    const userIndex = users.findIndex(u => u.id === updateData.userId);
 
-    if (!user) {
-        console.error(`[UserService/DB] User with ID "${updateData.userId}" not found for password update.`);
+    if (userIndex === -1) {
+        console.error(`[UserService/JSON] User with ID "${updateData.userId}" not found for password update.`);
         throw new Error('USER_NOT_FOUND');
     }
 
+    const user = users[userIndex];
+
     if (updateData.currentPassword) {
-        if (!user.password) {
-            console.error(`[UserService/DB] Password update failed for ${updateData.userId}: User has no password set.`);
+        if (!user.password || updateData.currentPassword !== user.password) {
+            console.error(`[UserService/JSON] Current password mismatch for user ID: ${updateData.userId}`);
             throw new Error('PASSWORD_MISMATCH');
         }
-        const isCurrentPasswordCorrect = await verifyPassword(updateData.currentPassword, user.password);
-        if (!isCurrentPasswordCorrect) {
-            console.error(`[UserService/DB] Current password mismatch for user ID: ${updateData.userId}`);
-            throw new Error('PASSWORD_MISMATCH');
-        }
-        console.log(`[UserService/DB] Current password verified for user ${updateData.userId}.`);
+        console.log(`[UserService/JSON] Current password verified for user ${updateData.userId}.`);
     }
 
-    const newHashedPassword = await hashPassword(updateData.newPassword);
-
-    try {
-        await pool.query('UPDATE users SET password = ? WHERE id = ?', [newHashedPassword, updateData.userId]);
-        console.log(`[UserService/DB] Password for user ${updateData.userId} updated successfully.`);
+    users[userIndex].password = updateData.newPassword; // Storing new plain text password
+    await writeUsers(users);
+    console.log(`[UserService/JSON] Password for user ${updateData.userId} updated successfully.`);
         
-        if (user.role !== 'Admin Developer') {
-            const adminRolesToNotify = ['Owner', 'Admin/Akuntan'];
-            adminRolesToNotify.forEach(async (role) => {
-                await notifyUsersByRole(role, `Password for user "${user.username}" (Role: ${user.role}) has been changed.`);
-            });
-        }
-    } catch (error: any) {
-        const originalErrorMessage = error.message || 'Unknown database error';
-        console.error(`[UserService/DB] Error updating password for user "${updateData.userId}":`, originalErrorMessage);
-        throw new Error(`Database query failed while updating password. Original error: ${originalErrorMessage}`);
+    if (user.role !== 'Admin Developer') {
+        const adminRolesToNotify = ['Owner', 'General Admin'];
+        adminRolesToNotify.forEach(async (role) => {
+            await notifyUsersByRole(role, `Password for user "${user.username}" (Role: ${user.role}) has been changed.`);
+        });
     }
 }
 
 export async function getAllUsersForDisplay(): Promise<Omit<User, 'password'>[]> {
-    console.log("[UserService/DB] Fetching all users for display (excluding Admin Developer).");
-    try {
-        const [rows] = await pool.query<RowDataPacket[]>("SELECT id, username, role, email, whatsappNumber, profilePictureUrl, displayName, createdAt, googleRefreshToken, googleAccessToken, googleAccessTokenExpiresAt FROM users WHERE role != 'Admin Developer'");
-        return rows.map(row => {
-            const user = row as User;
-             if (user.createdAt && user.createdAt instanceof Date) {
-                 user.createdAt = user.createdAt.toISOString();
-            }
-            return user;
-        }) as Omit<User, 'password'>[];
-    } catch (error: any) {
-        const originalErrorMessage = error.message || 'Unknown database error';
-        console.error("[UserService/DB] Error fetching all users for display:", originalErrorMessage);
-        throw new Error(`Database query failed while fetching users for display. Original error: ${originalErrorMessage}`);
-    }
+    console.log("[UserService/JSON] Fetching all users for display (excluding Admin Developer).");
+    const users = await readUsers();
+    return users
+        .filter(user => user.role !== 'Admin Developer')
+        .map(user => {
+            const { password: _p, ...userWithoutPassword } = user;
+            return userWithoutPassword;
+        });
 }
 
 export async function updateUserGoogleTokens(
     userId: string,
     tokens: UpdateUserGoogleTokensData
 ): Promise<void> {
-    console.log(`[UserService/DB] Updating Google tokens for user ID: ${userId}`);
+    console.log(`[UserService/JSON] Updating Google tokens for user ID: ${userId}`);
+    let users = await readUsers();
+    const userIndex = users.findIndex(u => u.id === userId);
+
+    if (userIndex === -1) {
+        console.error(`[UserService/JSON] User with ID "${userId}" not found for Google token update.`);
+        throw new Error('USER_NOT_FOUND');
+    }
+
+    users[userIndex] = {
+        ...users[userIndex],
+        googleRefreshToken: tokens.refreshToken !== undefined ? tokens.refreshToken : users[userIndex].googleRefreshToken,
+        googleAccessToken: tokens.accessToken !== undefined ? tokens.accessToken : users[userIndex].googleAccessToken,
+        googleAccessTokenExpiresAt: tokens.accessTokenExpiresAt !== undefined ? tokens.accessTokenExpiresAt : users[userIndex].googleAccessTokenExpiresAt,
+    };
     
-    const fieldsToUpdate: any = {};
-    // Only add fields to update if they are explicitly provided (not undefined)
-    if (tokens.accessToken !== undefined) fieldsToUpdate.googleAccessToken = tokens.accessToken;
-    if (tokens.accessTokenExpiresAt !== undefined) fieldsToUpdate.googleAccessTokenExpiresAt = tokens.accessTokenExpiresAt;
-    if (tokens.refreshToken !== undefined) fieldsToUpdate.googleRefreshToken = tokens.refreshToken;
-
-
-    if (Object.keys(fieldsToUpdate).length === 0) {
-        console.log(`[UserService/DB] No Google token fields to update for user ID: ${userId}.`);
-        return;
-    }
-
-    const setClauses = Object.keys(fieldsToUpdate).map(key => `${key} = ?`).join(', ');
-    const values = [...Object.values(fieldsToUpdate), userId];
-
-    try {
-        const [result] = await pool.query<ResultSetHeader>(`UPDATE users SET ${setClauses} WHERE id = ?`, values);
-        if (result.affectedRows === 0) {
-            console.error(`[UserService/DB] User with ID "${userId}" not found for Google token update.`);
-            throw new Error('USER_NOT_FOUND');
-        }
-        console.log(`[UserService/DB] Google tokens for user ${userId} updated successfully.`);
-    } catch (error: any) {
-        const originalErrorMessage = error.message || 'Unknown database error';
-        console.error(`[UserService/DB] Error updating Google tokens for user "${userId}":`, originalErrorMessage);
-        throw new Error(`Database query failed while updating Google tokens. Original error: ${originalErrorMessage}`);
-    }
+    await writeUsers(users);
+    console.log(`[UserService/JSON] Google tokens for user ${userId} updated successfully.`);
 }

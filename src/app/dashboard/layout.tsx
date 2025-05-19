@@ -32,11 +32,11 @@ import {
   MessageSquareWarning,
   FileBarChart,
   GitFork,
-  Wrench,
-  Replace,
-  Plane,
-  ShieldCheck,
-  Code,
+  Wrench, // Kept for MEP role, can be adjusted
+  Replace, // For Admin Actions general
+  Plane, // For Request Leave
+  ShieldCheck, // For Leave Approvals
+  Code, // For Admin Developer
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -64,10 +64,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
 
-  const dict = useMemo(() => getDictionary(language), [language]);
-  const layoutDict = useMemo(() => dict.dashboardLayout, [dict]);
-  const notificationsDict = useMemo(() => dict.notifications, [dict]);
-  const manageUsersDict = useMemo(() => dict.manageUsersPage, [dict]);
+  // Memoize dictionary objects
+  const layoutDict = useMemo(() => getDictionary(language).dashboardLayout, [language]);
+  const notificationsDict = useMemo(() => getDictionary(language).notifications, [language]);
+  const manageUsersDict = useMemo(() => getDictionary(language).manageUsersPage, [language]);
 
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -83,13 +83,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       try {
         const fetchedNotifications = await getNotificationsForUser(currentUser.id);
         setNotifications(fetchedNotifications);
-        // console.log(`Fetched ${fetchedNotifications.length} notifications for user ${currentUser.id}`);
       } catch (error) {
          console.error("Failed to fetch notifications:", error);
       }
     } else {
       setNotifications([]);
-      // console.log("No current user, clearing notifications.");
     }
   }, [currentUser]);
 
@@ -109,9 +107,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       if (isClient && currentUser && notificationsDict) {
           if ('Notification' in window) {
               if (Notification.permission === 'default') {
-                  // console.log('Requesting notification permission...');
                   Notification.requestPermission().then(permission => {
-                      // console.log('Notification permission status:', permission);
                       if (permission === 'granted') {
                           toast({
                               title: notificationsDict.permissionGrantedTitle,
@@ -132,10 +128,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                           variant: 'destructive'
                       });
                   });
-              } else if (Notification.permission === 'granted') {
-                  // console.log('Notification permission already granted.');
-              } else {
-                  // console.log('Notification permission previously denied.');
               }
           } else {
               console.warn('This browser does not support desktop notification');
@@ -151,15 +143,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     { href: "/dashboard/leave-request/new", icon: Plane, labelKey: "requestLeave" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
     { href: "/dashboard/admin-actions/leave-approvals", icon: ShieldCheck, labelKey: "leaveApprovals" as LayoutDictKeys, roles: ["Owner"] },
     { href: "/dashboard/admin-actions", icon: Replace, labelKey: "adminActions" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] },
-    { href: "/dashboard/admin-actions/workflows", icon: GitFork, labelKey: "manageWorkflows" as LayoutDictKeys, roles: ["Admin Developer"] },
+    { href: "/dashboard/admin-actions/workflows", icon: GitFork, labelKey: "manageWorkflows" as LayoutDictKeys, roles: ["Admin Developer"] }, // Only Admin Developer
     { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] },
     { href: "/dashboard/settings", icon: Settings, labelKey: "settings" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
   ], []);
 
 
-  const visibleMenuItems = useMemo(() => {
+ const visibleMenuItems = useMemo(() => {
     if (isClient && currentUser && currentUser.role) {
-      const userRoleCleaned = currentUser.role.trim(); // Trim whitespace from user's role
+      const userRoleCleaned = currentUser.role.trim();
       return menuItems.filter(item => item.roles.includes(userRoleCleaned));
     }
     return [];
@@ -171,11 +163,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       const roleLower = role.toLowerCase().trim();
       switch(roleLower) {
           case 'owner': return User;
-          case 'general admin': return UserCog;
-          case 'admin proyek': return UserCog;
-          case 'arsitek': return User;
-          case 'struktur': return User;
-          case 'mep': return Wrench;
+          case 'general admin': return UserCog; // Represents Admin/Akuntan
+          case 'admin proyek': return UserCog; 
+          case 'arsitek': return User; 
+          case 'struktur': return User; 
+          case 'mep': return Wrench; // For MEP (Coordinator) role specifically
           case 'admin developer': return Code;
           default: return User;
       }
@@ -197,6 +189,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
    const getTranslatedRole = useCallback((role: string): string => {
        if (!isClient || !manageUsersDict?.roles || !role) return role;
        const rolesDict = manageUsersDict.roles;
+       // Ensure role key matches the keys in translations (e.g., generaladmin, adminproyek)
        const roleKey = role.trim().replace(/\s+/g, '').toLowerCase() as keyof NonNullable<typeof rolesDict>;
        return rolesDict?.[roleKey] || role;
    }, [isClient, manageUsersDict]);
@@ -220,15 +213,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
 
    const handleNotificationClick = useCallback(async (notification: Notification) => {
-       // console.log(`Notification clicked: ${notification.id}, Project ID: ${notification.projectId}`);
-
        if (!notification.isRead) {
            try {
                await markNotificationAsRead(notification.id);
                setNotifications(prev =>
                    prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
                );
-               // console.log(`Notification ${notification.id} marked as read successfully.`);
            } catch (error) {
                 console.error("Failed to mark notification as read:", error);
            }
@@ -237,15 +227,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
        if (notification.projectId) {
            router.push(`/dashboard/projects?projectId=${notification.projectId}`);
        } else if (notification.message.toLowerCase().includes("izin") || notification.message.toLowerCase().includes("leave")) {
-           if (currentUser?.role === 'Owner') {
+           if (currentUser?.role.trim() === 'Owner') {
                router.push("/dashboard/admin-actions/leave-approvals");
-           } else {
-                // console.warn("Leave-related notification clicked by non-owner. Target page TBD.");
            }
-       } else {
-            // console.warn("Notification clicked, but no project ID or leave context. Target page TBD.");
        }
-   }, [currentUser, router]); // Removed notifications from dependencies, it's modified inside
+   }, [currentUser, router]); 
 
 
   return (
@@ -407,7 +393,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
            <main className="flex-1 overflow-y-auto p-4 md:p-6">
              {isClient && currentUser ? children : (
-                   <div className="flex justify-center items-center h-[calc(100vh-56px)]"> {/* Adjust height based on header */}
+                   <div className="flex justify-center items-center h-[calc(100vh-56px)]"> 
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
               )}
