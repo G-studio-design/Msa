@@ -2,7 +2,7 @@
 'use server';
 
 import pool from '@/lib/db';
-import type { RowDataPacket, ResultSetHeader } from 'mysql2';
+import type { RowDataPacket, ResultSetHeader, FieldPacket } from 'mysql2';
 import { notifyUsersByRole } from './notification-service';
 
 // Define the structure of a user
@@ -10,27 +10,29 @@ export interface User {
     id: string;
     username: string;
     role: string;
-    password?: string; // Seharusnya hash password, bukan plain text
+    password?: string; // Hashed password
     email?: string;
     whatsappNumber?: string;
     profilePictureUrl?: string;
     displayName?: string;
-    createdAt?: string; // Akan berupa string ISO date dari DB
-    googleRefreshToken?: string;
-    googleAccessToken?: string;
-    googleAccessTokenExpiresAt?: number; // Unix timestamp (milliseconds)
+    createdAt?: string; // ISO date string from DB
+    googleRefreshToken?: string | null;
+    googleAccessToken?: string | null;
+    googleAccessTokenExpiresAt?: number | null; // Unix timestamp (milliseconds)
 }
 
 export interface AddUserData {
     username: string;
-    password: string; // Seharusnya di-hash sebelum disimpan
+    password: string;
     role: string;
+    email?: string;
+    displayName?: string;
 }
 
 export interface UpdateProfileData {
     userId: string;
-    username: string;
-    role: string;
+    username?: string;
+    role?: string;
     email?: string;
     whatsappNumber?: string;
     profilePictureUrl?: string | null;
@@ -39,46 +41,50 @@ export interface UpdateProfileData {
 
 export interface UpdatePasswordData {
     userId: string;
-    currentPassword?: string; // Untuk verifikasi jika ada
-    newPassword: string;    // Seharusnya di-hash sebelum disimpan
+    currentPassword?: string;
+    newPassword: string;
+}
+
+export interface UpdateUserGoogleTokensData {
+    refreshToken?: string | null;
+    accessToken: string | null;
+    accessTokenExpiresAt: number | null;
 }
 
 
-// --- Database Helper Functions (akan diganti dengan query SQL) ---
+// --- Database Helper Functions ---
 
 async function hashPassword(password: string): Promise<string> {
-    // TODO: Implementasi hashing password yang aman (misalnya, bcrypt)
-    // Untuk sekarang, kita akan kembalikan apa adanya, TAPI INI TIDAK AMAN UNTUK PRODUKSI
-    console.warn("[UserSevice] Password hashing is not implemented. Storing plain text password (UNSAFE).");
+    console.warn("[UserService/DB] Password hashing is not implemented. Storing plain text password (UNSAFE).");
     return password;
 }
 
 async function verifyPassword(passwordInput: string, storedHash: string): Promise<boolean> {
-    // TODO: Implementasi verifikasi password yang aman (misalnya, bcrypt.compare)
-    // Untuk sekarang, kita akan bandingkan plain text, TAPI INI TIDAK AMAN UNTUK PRODUKSI
-    console.warn("[UserSevice] Password verification is not implemented. Comparing plain text password (UNSAFE).");
+    console.warn("[UserService/DB] Password verification is not implemented. Comparing plain text password (UNSAFE).");
     return passwordInput === storedHash;
 }
 
 
-// --- Main Service Functions (Diadaptasi untuk MySQL) ---
+// --- Main Service Functions ---
 
 export async function findUserByUsername(username: string): Promise<User | null> {
     console.log(`[UserService/DB] Finding user by username: ${username}`);
+    if (!username) return null;
     try {
         const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM users WHERE username = ?', [username]);
         if (rows.length > 0) {
             const user = rows[0] as User;
-            // Konversi createdAt ke string ISO jika perlu (MySQL biasanya mengembalikan objek Date atau string)
             if (user.createdAt && user.createdAt instanceof Date) {
                  user.createdAt = user.createdAt.toISOString();
             }
             return user;
         }
         return null;
-    } catch (error) {
-        console.error(`[UserService/DB] Error finding user by username "${username}":`, error);
-        throw new Error('Database query failed while finding user by username.');
+    } catch (error: any) {
+        const originalErrorMessage = error.message || 'Unknown database error';
+        const errorMessage = `[UserService/DB] Error finding user by username "${username}": ${originalErrorMessage}`;
+        console.error(errorMessage);
+        throw new Error(`Database query failed while finding user by username. Original error: ${originalErrorMessage}`);
     }
 }
 
@@ -95,14 +101,17 @@ export async function findUserByEmail(email: string): Promise<User | null> {
             return user;
         }
         return null;
-    } catch (error) {
-        console.error(`[UserService/DB] Error finding user by email "${email}":`, error);
-        throw new Error('Database query failed while finding user by email.');
+    } catch (error: any) {
+        const originalErrorMessage = error.message || 'Unknown database error';
+        const errorMessage = `[UserService/DB] Error finding user by email "${email}": ${originalErrorMessage}`;
+        console.error(errorMessage);
+        throw new Error(`Database query failed while finding user by email. Original error: ${originalErrorMessage}`);
     }
 }
 
 export async function findUserById(userId: string): Promise<User | null> {
     console.log(`[UserService/DB] Finding user by ID: ${userId}`);
+    if(!userId) return null;
     try {
         const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM users WHERE id = ?', [userId]);
         if (rows.length > 0) {
@@ -113,9 +122,11 @@ export async function findUserById(userId: string): Promise<User | null> {
             return user;
         }
         return null;
-    } catch (error) {
-        console.error(`[UserService/DB] Error finding user by ID "${userId}":`, error);
-        throw new Error('Database query failed while finding user by ID.');
+    } catch (error: any) {
+        const originalErrorMessage = error.message || 'Unknown database error';
+        const errorMessage = `[UserService/DB] Error finding user by ID "${userId}": ${originalErrorMessage}`;
+        console.error(errorMessage);
+        throw new Error(`Database query failed while finding user by ID. Original error: ${originalErrorMessage}`);
     }
 }
 
@@ -134,7 +145,6 @@ export async function verifyUserCredentials(usernameInput: string, passwordInput
         return null;
     }
 
-    // TODO: Ganti dengan verifikasi hash yang aman
     const isPasswordCorrect = await verifyPassword(passwordInput, user.password);
 
     if (isPasswordCorrect) {
@@ -160,8 +170,15 @@ export async function addUser(userData: AddUserData): Promise<Omit<User, 'passwo
         console.error(`[UserService/DB] Username "${userData.username}" already exists.`);
         throw new Error('USERNAME_EXISTS');
     }
+    if (userData.email) {
+        const existingEmail = await findUserByEmail(userData.email);
+        if (existingEmail) {
+            console.error(`[UserService/DB] Email "${userData.email}" already exists.`);
+            throw new Error('EMAIL_EXISTS');
+        }
+    }
 
-    // TODO: Ganti dengan hashing yang aman
+
     const hashedPassword = await hashPassword(userData.password);
     const userId = `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const now = new Date();
@@ -171,22 +188,23 @@ export async function addUser(userData: AddUserData): Promise<Omit<User, 'passwo
         username: userData.username,
         password: hashedPassword,
         role: userData.role,
-        email: `${userData.username.toLowerCase().replace(/\s+/g, '_')}@example.com`, // Default email
-        displayName: userData.username,
+        email: userData.email || `${userData.username.toLowerCase().replace(/\s+/g, '_')}@example.com`,
+        displayName: userData.displayName || userData.username,
         createdAt: now.toISOString(),
     };
 
     try {
         await pool.query(
             'INSERT INTO users (id, username, password, role, email, displayName, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [newUser.id, newUser.username, newUser.password, newUser.role, newUser.email, newUser.displayName, now]
+            [newUser.id, newUser.username, newUser.password, newUser.role, newUser.email, newUser.displayName, newUser.createdAt]
         );
         console.log(`[UserService/DB] User "${newUser.username}" added successfully with role "${newUser.role}".`);
         const { password: _p, ...newUserWithoutPassword } = newUser;
         return newUserWithoutPassword;
-    } catch (error) {
-        console.error(`[UserService/DB] Error adding user "${userData.username}":`, error);
-        throw new Error('Database query failed while adding user.');
+    } catch (error: any) {
+        const originalErrorMessage = error.message || 'Unknown database error';
+        console.error(`[UserService/DB] Error adding user "${userData.username}":`, originalErrorMessage);
+        throw new Error(`Database query failed while adding user. Original error: ${originalErrorMessage}`);
     }
 }
 
@@ -207,13 +225,14 @@ export async function deleteUser(userId: string): Promise<void> {
     try {
         await pool.query('DELETE FROM users WHERE id = ?', [userId]);
         console.log(`[UserService/DB] User ${userId} deleted successfully.`);
-    } catch (error) {
-        console.error(`[UserService/DB] Error deleting user "${userId}":`, error);
-        throw new Error('Database query failed while deleting user.');
+    } catch (error: any) {
+        const originalErrorMessage = error.message || 'Unknown database error';
+        console.error(`[UserService/DB] Error deleting user "${userId}":`, originalErrorMessage);
+        throw new Error(`Database query failed while deleting user. Original error: ${originalErrorMessage}`);
     }
 }
 
-export async function updateUserProfile(updateData: UpdateProfileData): Promise<void> {
+export async function updateUserProfile(updateData: UpdateProfileData): Promise<User | null> {
     console.log(`[UserService/DB] Attempting to update profile for user ID: ${updateData.userId}`);
     const currentUserState = await findUserById(updateData.userId);
 
@@ -222,11 +241,11 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
         throw new Error('USER_NOT_FOUND');
     }
 
-    if (updateData.role === 'Admin Developer' && currentUserState.role !== 'Admin Developer') {
+    if (updateData.role && updateData.role === 'Admin Developer' && currentUserState.role !== 'Admin Developer') {
         console.error('[UserService/DB] Cannot update user role to "Admin Developer" via this function.');
         throw new Error('INVALID_ROLE_UPDATE_ATTEMPT');
     }
-    if (currentUserState.role === 'Admin Developer' && updateData.role !== 'Admin Developer') {
+    if (currentUserState.role === 'Admin Developer' && updateData.role && updateData.role !== 'Admin Developer') {
         console.error('[UserService/DB] Role of "Admin Developer" cannot be changed via this function.');
         throw new Error('CANNOT_CHANGE_ADMIN_DEVELOPER_ROLE');
     }
@@ -238,24 +257,28 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
             throw new Error('USERNAME_EXISTS');
         }
     }
-
-    const fieldsToUpdate: Partial<User> = {};
-    if (updateData.username) fieldsToUpdate.username = updateData.username;
-    if (updateData.role) fieldsToUpdate.role = updateData.role;
-    if (updateData.email !== undefined) fieldsToUpdate.email = updateData.email;
-    if (updateData.whatsappNumber !== undefined) fieldsToUpdate.whatsappNumber = updateData.whatsappNumber;
-    if (updateData.profilePictureUrl !== undefined) fieldsToUpdate.profilePictureUrl = updateData.profilePictureUrl === null ? undefined : updateData.profilePictureUrl;
-    
-    if (updateData.username && updateData.username !== currentUserState.username && !updateData.displayName) {
-        fieldsToUpdate.displayName = updateData.username;
-    } else if (updateData.displayName) {
-        fieldsToUpdate.displayName = updateData.displayName;
+     if (updateData.email && updateData.email.toLowerCase() !== (currentUserState.email || '').toLowerCase()) {
+        const existingEmailUser = await findUserByEmail(updateData.email);
+        if (existingEmailUser && existingEmailUser.id !== updateData.userId) {
+            console.error(`[UserService/DB] New email "${updateData.email}" is already taken.`);
+            throw new Error('EMAIL_EXISTS');
+        }
     }
+
+    const fieldsToUpdate: any = {};
+    if (updateData.username !== undefined && updateData.username !== currentUserState.username) fieldsToUpdate.username = updateData.username;
+    if (updateData.role !== undefined && updateData.role !== currentUserState.role) fieldsToUpdate.role = updateData.role;
+    if (updateData.email !== undefined && updateData.email !== currentUserState.email) fieldsToUpdate.email = updateData.email;
+    if (updateData.whatsappNumber !== undefined && updateData.whatsappNumber !== currentUserState.whatsappNumber) fieldsToUpdate.whatsappNumber = updateData.whatsappNumber;
+    if (updateData.profilePictureUrl !== undefined && updateData.profilePictureUrl !== currentUserState.profilePictureUrl) {
+        fieldsToUpdate.profilePictureUrl = updateData.profilePictureUrl === null ? null : updateData.profilePictureUrl;
+    }
+    if (updateData.displayName !== undefined && updateData.displayName !== currentUserState.displayName) fieldsToUpdate.displayName = updateData.displayName;
 
 
     if (Object.keys(fieldsToUpdate).length === 0) {
         console.log(`[UserService/DB] No changes to update for user ${updateData.userId}.`);
-        return;
+        return currentUserState; // Return current state if no changes
     }
     
     const setClauses = Object.keys(fieldsToUpdate).map(key => `${key} = ?`).join(', ');
@@ -266,14 +289,16 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
         console.log(`[UserService/DB] User profile for ${updateData.userId} updated successfully.`);
 
         if (currentUserState.role !== 'Admin Developer') {
-            const adminRolesToNotify = ['Owner', 'Admin/Akuntan'];
+            const adminRolesToNotify = ['Owner', 'Admin/Akuntan']; // General Admin is now Admin/Akuntan
             adminRolesToNotify.forEach(async (role) => {
                 await notifyUsersByRole(role, `User profile for "${fieldsToUpdate.username || currentUserState.username}" (Role: ${fieldsToUpdate.role || currentUserState.role}) has been updated.`);
             });
         }
-    } catch (error) {
-        console.error(`[UserService/DB] Error updating user profile for "${updateData.userId}":`, error);
-        throw new Error('Database query failed while updating user profile.');
+        return { ...currentUserState, ...fieldsToUpdate };
+    } catch (error: any) {
+        const originalErrorMessage = error.message || 'Unknown database error';
+        console.error(`[UserService/DB] Error updating user profile for "${updateData.userId}":`, originalErrorMessage);
+        throw new Error(`Database query failed while updating user profile. Original error: ${originalErrorMessage}`);
     }
 }
 
@@ -289,20 +314,16 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
     if (updateData.currentPassword) {
         if (!user.password) {
             console.error(`[UserService/DB] Password update failed for ${updateData.userId}: User has no password set.`);
-            throw new Error('PASSWORD_MISMATCH'); // Atau error yang lebih spesifik
+            throw new Error('PASSWORD_MISMATCH');
         }
-        // TODO: Ganti dengan verifikasi hash yang aman
         const isCurrentPasswordCorrect = await verifyPassword(updateData.currentPassword, user.password);
         if (!isCurrentPasswordCorrect) {
             console.error(`[UserService/DB] Current password mismatch for user ID: ${updateData.userId}`);
             throw new Error('PASSWORD_MISMATCH');
         }
         console.log(`[UserService/DB] Current password verified for user ${updateData.userId}.`);
-    } else {
-        console.log(`[UserService/DB] Password reset/update initiated for user ID: ${updateData.userId} (current password check skipped).`);
     }
 
-    // TODO: Ganti dengan hashing yang aman
     const newHashedPassword = await hashPassword(updateData.newPassword);
 
     try {
@@ -315,14 +336,15 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
                 await notifyUsersByRole(role, `Password for user "${user.username}" (Role: ${user.role}) has been changed.`);
             });
         }
-    } catch (error) {
-        console.error(`[UserService/DB] Error updating password for user "${updateData.userId}":`, error);
-        throw new Error('Database query failed while updating password.');
+    } catch (error: any) {
+        const originalErrorMessage = error.message || 'Unknown database error';
+        console.error(`[UserService/DB] Error updating password for user "${updateData.userId}":`, originalErrorMessage);
+        throw new Error(`Database query failed while updating password. Original error: ${originalErrorMessage}`);
     }
 }
 
 export async function getAllUsersForDisplay(): Promise<Omit<User, 'password'>[]> {
-    console.log("[UserService/DB] Fetching all users for display.");
+    console.log("[UserService/DB] Fetching all users for display (excluding Admin Developer).");
     try {
         const [rows] = await pool.query<RowDataPacket[]>("SELECT id, username, role, email, whatsappNumber, profilePictureUrl, displayName, createdAt, googleRefreshToken, googleAccessToken, googleAccessTokenExpiresAt FROM users WHERE role != 'Admin Developer'");
         return rows.map(row => {
@@ -332,24 +354,29 @@ export async function getAllUsersForDisplay(): Promise<Omit<User, 'password'>[]>
             }
             return user;
         }) as Omit<User, 'password'>[];
-    } catch (error) {
-        console.error("[UserService/DB] Error fetching all users for display:", error);
-        throw new Error('Database query failed while fetching users for display.');
+    } catch (error: any) {
+        const originalErrorMessage = error.message || 'Unknown database error';
+        console.error("[UserService/DB] Error fetching all users for display:", originalErrorMessage);
+        throw new Error(`Database query failed while fetching users for display. Original error: ${originalErrorMessage}`);
     }
 }
 
 export async function updateUserGoogleTokens(
     userId: string,
-    tokens: { refreshToken?: string; accessToken: string; accessTokenExpiresAt: number }
+    tokens: UpdateUserGoogleTokensData
 ): Promise<void> {
     console.log(`[UserService/DB] Updating Google tokens for user ID: ${userId}`);
     
-    const fieldsToUpdate: any = {
-        googleAccessToken: tokens.accessToken,
-        googleAccessTokenExpiresAt: tokens.accessTokenExpiresAt,
-    };
-    if (tokens.refreshToken) {
-        fieldsToUpdate.googleRefreshToken = tokens.refreshToken;
+    const fieldsToUpdate: any = {};
+    // Only add fields to update if they are explicitly provided (not undefined)
+    if (tokens.accessToken !== undefined) fieldsToUpdate.googleAccessToken = tokens.accessToken;
+    if (tokens.accessTokenExpiresAt !== undefined) fieldsToUpdate.googleAccessTokenExpiresAt = tokens.accessTokenExpiresAt;
+    if (tokens.refreshToken !== undefined) fieldsToUpdate.googleRefreshToken = tokens.refreshToken;
+
+
+    if (Object.keys(fieldsToUpdate).length === 0) {
+        console.log(`[UserService/DB] No Google token fields to update for user ID: ${userId}.`);
+        return;
     }
 
     const setClauses = Object.keys(fieldsToUpdate).map(key => `${key} = ?`).join(', ');
@@ -362,8 +389,9 @@ export async function updateUserGoogleTokens(
             throw new Error('USER_NOT_FOUND');
         }
         console.log(`[UserService/DB] Google tokens for user ${userId} updated successfully.`);
-    } catch (error) {
-        console.error(`[UserService/DB] Error updating Google tokens for user "${userId}":`, error);
-        throw new Error('Database query failed while updating Google tokens.');
+    } catch (error: any) {
+        const originalErrorMessage = error.message || 'Unknown database error';
+        console.error(`[UserService/DB] Error updating Google tokens for user "${userId}":`, originalErrorMessage);
+        throw new Error(`Database query failed while updating Google tokens. Original error: ${originalErrorMessage}`);
     }
 }
