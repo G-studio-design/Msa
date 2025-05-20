@@ -59,7 +59,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'; // Removed AlertDialogTrigger
+  AlertDialogTrigger, // Added AlertDialogTrigger
+} from '@/components/ui/alert-dialog';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import {
@@ -68,13 +69,13 @@ import {
     updateUserProfile,
     deleteUser,
     type User as UserType,
-    type UpdateProfileData, // Added for explicit type
+    type UpdateProfileData,
 } from '@/services/user-service';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Define available roles for selection (excluding Admin Developer)
-// "MEP" role is removed as its tasks are absorbed by Admin Proyek in standard workflow
+// Define available roles for selection
+// "MEP" role is effectively removed as a selectable/distinct operational role, its tasks absorbed.
 const divisions = ['Owner', 'General Admin', 'Admin Proyek', 'Arsitek', 'Struktur'];
 
 // Default dictionary for server render / pre-hydration
@@ -147,6 +148,7 @@ export default function ManageUsersPage() {
 
   const canManageUsers = React.useMemo(() => {
     if (!currentUser) return false;
+    // Admin Proyek now has user management capabilities similar to General Admin
     return ['Owner', 'General Admin', 'Admin Proyek'].includes(currentUser.role);
   }, [currentUser]);
 
@@ -173,7 +175,8 @@ export default function ManageUsersPage() {
       if (editingUser) {
         editUserForm.reset({
           username: editingUser.username,
-          role: divisions.includes(editingUser.role) ? editingUser.role : undefined,
+          // Ensure the role is one of the valid 'divisions'
+          role: divisions.includes(editingUser.role) ? editingUser.role as typeof divisions[number] : undefined,
         });
       } else {
         editUserForm.reset({ username: '', role: undefined });
@@ -232,7 +235,11 @@ export default function ManageUsersPage() {
             return;
         }
 
-        const canChangeRole = currentUser.role === 'Owner' || (currentUser.role === 'General Admin' && editingUser.role !== 'General Admin');
+        const canChangeRole = 
+            currentUser.role === 'Owner' || 
+            (currentUser.role === 'General Admin' && editingUser.role !== 'General Admin' && editingUser.role !== 'Owner') ||
+            (currentUser.role === 'Admin Proyek' && !['Owner', 'General Admin', 'Admin Developer'].includes(editingUser.role));
+            
         const newRole = canChangeRole ? data.role : editingUser.role;
 
         if (currentUser.role === 'General Admin' && editingUser.role === 'General Admin' && data.role !== 'General Admin') {
@@ -243,6 +250,12 @@ export default function ManageUsersPage() {
                 return;
             }
         }
+         if (currentUser.role === 'Admin Proyek' && (editingUser.role === 'Owner' || editingUser.role === 'General Admin')) {
+            toast({ variant: 'destructive', title: usersDict.toast.permissionDenied, description: "Admin Proyek cannot change Owner or Admin/Accountant roles."});
+            setIsProcessing(false);
+            return;
+        }
+
 
         try {
             const updatePayload: UpdateProfileData = {
@@ -308,6 +321,10 @@ export default function ManageUsersPage() {
         toast({ variant: 'destructive', title: usersDict.toast.error, description: "Only an Owner can delete another Owner." });
         return;
      }
+     if (currentUser.role === 'Admin Proyek' && (userToDelete.role === 'Owner' || userToDelete.role === 'General Admin')) {
+        toast({ variant: 'destructive', title: usersDict.toast.permissionDenied, description: "Admin Proyek cannot delete Owner or Admin/Accountant accounts." });
+        return;
+    }
 
 
     setIsProcessing(true);
@@ -352,8 +369,10 @@ export default function ManageUsersPage() {
          let canActuallyEdit = false;
          if (currentUser.role === 'Owner') {
              canActuallyEdit = true;
-         } else if (currentUser.role === 'General Admin' || currentUser.role === 'Admin Proyek') {
-             canActuallyEdit = user.role !== 'Owner' && user.role !== 'Admin Developer' && user.role !== 'General Admin';
+         } else if (currentUser.role === 'General Admin') {
+             canActuallyEdit = user.role !== 'Owner' && user.role !== 'Admin Developer';
+         } else if (currentUser.role === 'Admin Proyek') {
+             canActuallyEdit = !['Owner', 'General Admin', 'Admin Developer'].includes(user.role);
          }
 
 
@@ -377,23 +396,25 @@ export default function ManageUsersPage() {
   const getRoleIcon = (role: string) => {
       const roleLower = role.toLowerCase();
       if (roleLower.includes('owner')) return <User className="h-4 w-4 text-blue-600" />;
-      if (roleLower.includes('general admin') || roleLower.includes('admin/akuntan')) return <UserCog className="h-4 w-4 text-purple-600" />;
+      // Updated to check for "General Admin" which is the internal role name for "Admin/Accountant"
+      if (roleLower.includes('general admin')) return <UserCog className="h-4 w-4 text-purple-600" />;
       if (roleLower.includes('admin proyek')) return <UserCog className="h-4 w-4 text-orange-600" />;
       if (roleLower.includes('arsitek')) return <User className="h-4 w-4 text-green-600" />;
       if (roleLower.includes('struktur')) return <User className="h-4 w-4 text-yellow-600" />;
-      if (roleLower.includes('mep')) return <Wrench className="h-4 w-4 text-pink-600" />;
-      if (roleLower.includes('developer')) return <Code className="h-4 w-4 text-gray-700" />;
+      if (roleLower.includes('mep')) return <Wrench className="h-4 w-4 text-pink-600" />; // For MEP Coordinator if still used
+      if (roleLower.includes('admin developer')) return <Code className="h-4 w-4 text-gray-700" />;
       return <User className="h-4 w-4 text-muted-foreground" />;
   }
   
   const getTranslatedRole = React.useCallback((roleKey: string) => {
     if (!isClient || !usersDict?.roles) return roleKey;
-    const key = roleKey.toLowerCase().replace(/\s+/g, '') as keyof typeof usersDict.roles;
-    return usersDict.roles[key] || roleKey;
+    // Use the actual roleKey (e.g., "General Admin") for lookup, then normalize
+    const normalizedKey = roleKey.trim().replace(/\s+/g, '').toLowerCase() as keyof typeof usersDict.roles;
+    return usersDict.roles[normalizedKey] || roleKey;
   }, [isClient, usersDict]);
 
 
-  if (!isClient || isLoading || !usersDict?.title) { // Check usersDict.title for readiness
+  if (!isClient || isLoading || !usersDict?.title) { 
        return (
             <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
                <Card>
@@ -480,7 +501,7 @@ export default function ManageUsersPage() {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>{usersDict.roleLabel}</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <Select onValueChange={field.onChange} value={field.value || ""} disabled={isProcessing}>
                                   <FormControl>
                                     <SelectTrigger>
                                       <SelectValue placeholder={usersDict.rolePlaceholder} />
@@ -490,7 +511,8 @@ export default function ManageUsersPage() {
                                     {divisions
                                         .filter(division => {
                                             if (!currentUser) return false;
-                                            if (currentUser.role === 'Owner') return true;
+                                            if (currentUser.role === 'Owner') return true; // Owner can create any non-dev role
+                                            // General Admin and Admin Proyek can create roles below them, excluding Owner and General Admin itself.
                                             if (currentUser.role === 'General Admin' || currentUser.role === 'Admin Proyek') {
                                                 return division !== 'Owner' && division !== 'General Admin';
                                             }
@@ -507,7 +529,7 @@ export default function ManageUsersPage() {
                             </FormItem>
                           )}
                         />
-                      <DialogFooter>
+                      <DialogFooter className="pt-2">
                           <Button type="button" variant="outline" onClick={() => setIsAddUserDialogOpen(false)} disabled={isProcessing}>{usersDict.cancelButton}</Button>
                           <Button type="submit" className="accent-teal" disabled={isProcessing}>
                             {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -542,23 +564,23 @@ export default function ManageUsersPage() {
                        const isSelf = user.id === currentUser?.id;
                         const isTargetAdminDeveloper = user.role === 'Admin Developer'; 
                         const isTargetOwner = user.role === 'Owner';
-                        const isTargetGeneralAdmin = user.role === 'General Admin';
+                        const isTargetGeneralAdmin = user.role === 'General Admin'; // Use internal role name
                         
-                        const disableEditBasedOnRole = 
+                        let disableEditBasedOnRole = 
                             isTargetAdminDeveloper ||
                             (currentUser?.role === 'General Admin' && (isTargetOwner || isTargetGeneralAdmin)) ||
-                            (currentUser?.role === 'Admin Proyek' && (isTargetOwner || isTargetGeneralAdmin || user.id === currentUser.id && user.role === 'Admin Proyek'));
+                            (currentUser?.role === 'Admin Proyek' && (isTargetOwner || isTargetGeneralAdmin || (isTargetAdminDeveloper && user.id !== currentUser.id)));
 
 
-                        const disableDeleteBasedOnRole =
+                        let disableDeleteBasedOnRole =
                             isTargetAdminDeveloper ||
                             isSelf ||
-                            isTargetOwner || // No one can delete Owner except maybe another system process
-                            (isTargetGeneralAdmin && currentUser?.role !== 'Owner') ||
-                            (currentUser?.role === 'Admin Proyek' && (isTargetGeneralAdmin || user.role === 'Admin Proyek'));
-
+                            (isTargetOwner && currentUser?.role !== 'Admin Developer') || 
+                            (isTargetGeneralAdmin && currentUser?.role !== 'Owner' && currentUser?.role !== 'Admin Developer') ||
+                            (currentUser?.role === 'Admin Proyek' && (isTargetOwner || isTargetGeneralAdmin || isTargetAdminDeveloper));
+                        
                         const isPasswordVisible = visiblePasswords[user.id] || false;
-                        const canViewPassword = currentUser && ['Owner', 'General Admin', 'Admin Developer'].includes(currentUser.role) && !isTargetAdminDeveloper;
+                        const canViewPassword = currentUser && (currentUser.role === 'Owner' || currentUser.role === 'General Admin' || currentUser.role === 'Admin Developer') && !isTargetAdminDeveloper;
 
 
                         return (
@@ -674,12 +696,13 @@ export default function ManageUsersPage() {
                                 <FormLabel>{usersDict.roleLabel}</FormLabel>
                                 <Select
                                    onValueChange={field.onChange}
-                                   value={field.value} 
+                                   value={field.value || ""}
                                    disabled={
                                        isProcessing ||
-                                       !currentUser || // Ensure currentUser is defined
-                                       currentUser.role === 'Admin Proyek' || // Admin Proyek cannot change roles
-                                       (currentUser.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1)
+                                       !currentUser || 
+                                       editingUser?.role === 'Owner' || // Owner role cannot be changed by anyone
+                                       (currentUser.role === 'Admin Proyek' && editingUser?.role === 'General Admin') || // Admin Proyek cannot change General Admin
+                                       (currentUser.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1 && field.value !== 'General Admin') // Last GA cannot change their own role unless to another GA (which makes no sense here but covers edge)
                                     }
                                 >
                                     <FormControl>
@@ -691,14 +714,17 @@ export default function ManageUsersPage() {
                                         {divisions
                                             .filter(division => {
                                                 if (!currentUser || !editingUser) return false;
-                                                if (currentUser.role === 'Owner') return true; // Owner can assign any non-dev role
+                                                if (currentUser.role === 'Owner') return division !== 'Admin Developer'; // Owner can assign any non-dev role
                                                 if (currentUser.role === 'General Admin') {
-                                                    // GA can assign non-Owner, non-GA roles,
-                                                    // unless editing a non-GA user (then can assign GA if not last one)
-                                                    if (editingUser.role === 'General Admin') return division === 'General Admin';
+                                                    // GA can assign roles below them, not Owner or itself (unless it's the current role)
+                                                    if (editingUser.role === 'General Admin') return division === 'General Admin'; // Can "re-select" own role
                                                     return division !== 'Owner' && division !== 'General Admin';
                                                 }
-                                                // Admin Proyek cannot change roles
+                                                if (currentUser.role === 'Admin Proyek') {
+                                                     // Admin Proyek can assign roles below them, not Owner, GA
+                                                     if(editingUser.role === 'Admin Proyek') return division === 'Admin Proyek';
+                                                     return !['Owner', 'General Admin'].includes(division);
+                                                }
                                                 return false; 
                                             })
                                             .map((division) => (
@@ -709,16 +735,16 @@ export default function ManageUsersPage() {
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
-                                {(currentUser?.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1) && (
+                                {(currentUser?.role === 'General Admin' && editingUser?.role === 'General Admin' && users.filter(u => u.role === 'General Admin').length <= 1 && editUserForm.getValues('role') !== 'General Admin') && (
                                     <p className="text-xs text-muted-foreground">{usersDict.cannotChangeLastAdminRoleHint}</p>
                                 )}
-                                 {currentUser?.role === 'Admin Proyek' && (
-                                    <p className="text-xs text-muted-foreground">{getTranslatedRole(currentUser.role)} cannot change user roles.</p>
+                                 {(currentUser?.role === 'Admin Proyek' && (editingUser?.role === 'Owner' || editingUser?.role === 'General Admin')) && (
+                                    <p className="text-xs text-muted-foreground">{(usersDict.toast.editPermissionDenied || "You cannot edit users with this role.").replace('this user', getTranslatedRole(editingUser?.role || ''))}</p>
                                 )}
                               </FormItem>
                             )}
                         />
-                        <DialogFooter>
+                        <DialogFooter className="pt-2">
                             <Button type="button" variant="outline" onClick={() => {setIsEditUserDialogOpen(false); setEditingUser(null);}} disabled={isProcessing}>{usersDict.cancelButton}</Button>
                             <Button type="submit" className="accent-teal" disabled={isProcessing || !editUserForm.formState.isDirty}>
                                 {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -733,3 +759,4 @@ export default function ManageUsersPage() {
     </div>
   );
 }
+
