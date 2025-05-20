@@ -37,13 +37,13 @@ const id = {
     appTitle: 'Msarch App',
     appTitleShort: 'Msarch',
     toggleMenu: 'Buka/Tutup Panel Menu',
-    roles: {
+    roles: { // Display names for roles in the user profile section of the layout
         owner: 'Pemilik',
-        generaladmin: 'Admin/Akuntan',
-        adminproyek: 'MEP - Admin Proyek',
-        arsitek: 'MEP - Arsitek',
-        struktur: 'MEP - Struktur',
-        mep: 'MEP - Koordinator',
+        generaladmin: 'Admin/Akuntan', // Changed from Admin Umum
+        adminproyek: 'Admin Proyek', // Reverted
+        arsitek: 'Arsitek',       // Reverted
+        struktur: 'Struktur',     // Reverted
+        mep: 'Koordinator MEP', // Kept for now
         admindev: 'Developer',
     },
   },
@@ -65,7 +65,7 @@ const id = {
     projectCanceled: 'Proyek ini dibatalkan.',
     projectCompleted: 'Proyek Selesai',
     addNewProject: 'Tambah Proyek Baru',
-    status: {
+    status: { // Used for displaying assignedDivision, project status, leave types etc.
       completed: 'Selesai',
       inprogress: 'Sedang Berjalan',
       pendingapproval: 'Menunggu Persetujuan',
@@ -79,18 +79,18 @@ const id = {
       pendingoffer: 'Menunggu Penawaran',
       pendingdpinvoice: 'Menunggu Faktur DP',
       pendingadminfiles: 'Menunggu Berkas Administrasi',
-      pendingsurveydetails: 'Menunggu Detail Survei', 
+      pendingsurveydetails: 'Menunggu Detail Survei',
       pendingarchitectfiles: 'Menunggu Berkas Arsitektur',
       pendingstructurefiles: 'Menunggu Berkas Struktur',
-      pendingmepfiles: 'Menunggu Berkas MEP',
+      pendingmepfiles: 'Menunggu Berkas MEP', // This status might be unused if workflow changed
       pendingfinalcheck: 'Menunggu Pemeriksaan Akhir',
       pendingscheduling: 'Menunggu Penjadwalan',
       owner: 'Pemilik',
       generaladmin: 'Admin/Akuntan',
-      adminproyek: 'MEP - Admin Proyek',
-      arsitek: 'MEP - Arsitek',
-      struktur: 'MEP - Struktur',
-      mep: 'MEP - Koordinator',
+      adminproyek: 'Admin Proyek', // Reverted
+      arsitek: 'Arsitek',       // Reverted
+      struktur: 'Struktur',     // Reverted
+      mep: 'Koordinator MEP', // Kept for now
       admindev: 'Developer',
       notassigned: 'Belum Ditugaskan',
       sakit: "Sakit",
@@ -206,16 +206,16 @@ const id = {
     optionalReportLabel: "Laporan Opsional",
     optionalNoteLabel: "Opsional",
     finalCheckNotePlaceholder: "Tambahkan catatan untuk pemeriksaan akhir...",
-    nextActionDescriptions: { 
+    nextActionDescriptions: {
         uploadOfferDocument: "Unggah Dokumen Penawaran",
         approveOfferDocument: "Setujui Dokumen Penawaran",
         createDPInvoice: "Buat Faktur DP",
         approveDPInvoice: "Setujui Faktur DP",
         uploadAdminFiles: "Unggah Berkas Administrasi",
-        inputSurveyDetails: "Input Jadwal Survei & Unggah Hasil", 
+        inputSurveyDetails: "Input Jadwal Survei & Unggah Hasil",
         uploadArchitectFiles: "Unggah Berkas Arsitektur",
         uploadStructureFiles: "Unggah Berkas Struktur",
-        uploadMEPFiles: "Unggah Berkas MEP",
+        uploadMEPFiles: "Unggah Berkas MEP", // Kept for potential custom workflows
         performFinalCheck: "Lakukan Pemeriksaan Akhir",
         scheduleSidang: "Jadwalkan Sidang",
         declareSidangOutcome: "Nyatakan Hasil Sidang",
@@ -229,7 +229,7 @@ const id = {
         uploadArchitectFiles: "Unggah Berkas Arsitektur",
         uploadedAdminFiles: "Mengunggah Berkas Administrasi",
         uploadMepFiles: "Unggah Berkas MEP",
-        uploadedMEPFiles: "Mengunggah Berkas MEP",
+        uploadedMEPFiles: "Mengunggah Berkas MEP", // Kept for potential custom workflows
         scheduleSidang: "Menjadwalkan Sidang",
         completedFinalCheck: "Menyelesaikan Pemeriksaan Akhir",
         approveDPInvoice: "Menyetujui Faktur DP",
@@ -255,7 +255,7 @@ const id = {
         reviseMepFiles: "Merevisi Berkas MEP",
         reDoFinalCheck: "Melakukan Ulang Pemeriksaan Akhir",
         rescheduleSidang: "Menjadwalkan Ulang Sidang",
-        uploadedSurveyResults: "Mengunggah Hasil Survei", 
+        uploadedSurveyResults: "Mengunggah Hasil Survei",
     },
     toast: {
       permissionDenied: 'Izin Ditolak',
@@ -265,6 +265,8 @@ const id = {
       provideOfferFile: 'Harap unggah file penawaran.',
       progressSubmitted: 'Progres Terkirim',
       notifiedNextStep: 'Memberitahu {division} untuk langkah selanjutnya.',
+      noTransitionFound: 'Tidak ditemukan transisi alur kerja yang valid untuk tindakan ini dari status saat ini.',
+      revisionNotApplicable: 'Revisi tidak berlaku untuk langkah proyek saat ini.',
       onlyOwnerDecision: 'Hanya Pemilik yang dapat membuat keputusan ini.',
       projectCanceled: 'Proyek Dibatalkan',
       projectMarkedCompleted: "Proyek Selesai",
@@ -315,7 +317,7 @@ const id = {
       failedToProcessDecision: 'Gagal memproses keputusan.',
       failedToSaveSchedule: 'Gagal menyimpan jadwal.',
       failedToRevise: 'Gagal merevisi proyek.',
-      revisionNotApplicable: 'Revisi tidak berlaku untuk langkah ini.',
+      revisionNotApplicableShort: 'Revisi tidak berlaku.',
       maxFilesExceeded: 'Tidak dapat mengunggah lebih dari {max} file sekaligus.',
       uploadError: 'Kesalahan Unggah',
     }
@@ -338,6 +340,7 @@ const id = {
           successDesc: 'Proyek "{title}" berhasil ditambahkan menggunakan alur kerja "{workflowName}". {division} diberitahu untuk langkah pertama.',
           error: 'Gagal Membuat Proyek',
           fetchWorkflowsError: 'Tidak dapat memuat jenis alur kerja.',
+          uploadFailed: "Satu atau lebih file gagal diunggah. Proyek tidak dibuat."
       },
       validation: {
           titleMin: 'Judul proyek minimal 5 karakter.',
@@ -380,14 +383,14 @@ const id = {
     deleteDialogCancel: 'Batal',
     deleteDialogConfirm: 'Hapus Pengguna',
     cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin/Akuntan terakhir.',
-    roles: {
+    roles: { // Used for displaying roles in Manage Users page and select options
        owner: 'Pemilik',
        generaladmin: 'Admin/Akuntan',
-       adminproyek: 'MEP - Admin Proyek',
-       arsitek: 'MEP - Arsitek',
-       struktur: 'MEP - Struktur',
-       mep: 'MEP - Koordinator',
-       admindev: 'Developer',
+       adminproyek: 'Admin Proyek', // Reverted
+       arsitek: 'Arsitek',       // Reverted
+       struktur: 'Struktur',     // Reverted
+       mep: 'Koordinator MEP', // Kept for now
+       admindev: 'Developer', // Not selectable in UI
      },
     toast: {
         userAdded: 'Pengguna Ditambahkan',
@@ -422,13 +425,14 @@ const id = {
    // Admin Actions Page
    adminActionsPage: {
        title: 'Tindakan Admin',
-       description: 'Ubah judul proyek atau ubah status proyek secara manual.',
+       description: 'Ubah judul proyek, ubah status proyek secara manual, atau hapus proyek.',
        tableHeaderId: 'ID Proyek',
        tableHeaderTitle: 'Judul Saat Ini',
        tableHeaderStatus: 'Status',
        tableHeaderActions: 'Tindakan',
        editTitleActionTooltip: "Ubah Judul",
        changeStatusActionTooltip: "Ubah Status Secara Manual",
+       deleteProjectActionTooltip: "Hapus Proyek",
        noProjects: 'Tidak ada proyek ditemukan.',
        changeStatusDialogTitle: 'Ubah Status Proyek: {title}',
        changeStatusDialogDesc: 'Perbarui status dan penugasan untuk proyek ini secara manual. Gunakan dengan hati-hati.',
@@ -446,6 +450,9 @@ const id = {
        savingChangesButton: 'Menyimpan...',
        cancelButton: 'Batal',
        noneAssignedLabel: '(Tidak Ada)',
+       deleteProjectDialogTitle: "Konfirmasi Penghapusan Proyek",
+       deleteProjectDialogDesc: "Apakah Anda yakin ingin menghapus proyek \"{title}\"? Ini juga akan menghapus semua file terkait dan tidak dapat dibatalkan.",
+       deleteProjectConfirmButton: "Ya, Hapus Proyek",
        toast: {
            error: 'Kesalahan',
            titleEmpty: 'Judul tidak boleh kosong.',
@@ -457,6 +464,10 @@ const id = {
            statusChangeSuccessDesc: 'Status proyek "{title}" diubah menjadi "{status}". {division} diberitahu.',
            failedToUpdateStatus: 'Gagal memperbarui status proyek secara manual.',
            fetchError: 'Tidak dapat memuat data proyek.',
+           projectDeletedTitle: "Proyek Dihapus",
+           projectDeletedDesc: "Proyek \"{title}\" telah dihapus.",
+           deletePermissionDenied: "Anda tidak memiliki izin untuk menghapus proyek.",
+           deleteError: "Gagal menghapus proyek.",
        },
        accessDeniedTitle: 'Akses Ditolak',
        accessDeniedDesc: 'Anda tidak memiliki izin untuk mengakses halaman ini.',
@@ -464,7 +475,7 @@ const id = {
   // Manage Workflows Page
   manageWorkflowsPage: {
     title: 'Kelola Alur Kerja',
-    description: 'Definisikan dan kelola alur kerja proyek.',
+    description: 'Definisikan dan kelola alur kerja proyek. Hanya Admin Developer yang dapat melakukan tindakan ini.',
     addWorkflowButton: 'Tambah Alur Kerja Baru',
     tableHeaderName: 'Nama Alur Kerja',
     tableHeaderDescription: 'Deskripsi',
@@ -478,13 +489,13 @@ const id = {
     deleteDialogConfirm: 'Ya, Hapus Alur Kerja',
     cancelButton: 'Batal',
     accessDeniedTitle: 'Akses Ditolak',
-    accessDeniedDesc: 'Anda tidak memiliki izin yang diperlukan untuk mengelola alur kerja.',
+    accessDeniedDesc: 'Hanya Admin Developer yang dapat mengelola alur kerja.',
     addDialogTitle: 'Tambah Alur Kerja Baru',
     addDialogDesc: 'Masukkan nama dan deskripsi untuk alur kerja baru. Langkah-langkah akan didasarkan pada alur kerja standar default.',
     addDialogStepsInfo: 'Alur kerja baru akan dibuat dengan langkah-langkah proyek standar. Anda dapat mengeditnya nanti.',
     addDialogSubmitButton: 'Buat Alur Kerja',
     editDialogTitle: 'Ubah Alur Kerja: {name}',
-    editDialogDesc: 'Modifikasi nama, deskripsi, dan urutan langkah alur kerja.',
+    editDialogDesc: 'Modifikasi nama dan deskripsi alur kerja. Pengurutan langkah tersedia.',
     editDialogSubmitButton: 'Simpan Perubahan',
     editStepsInfo: 'Gunakan tombol untuk mengatur ulang langkah. Pengeditan langkah lengkap akan tersedia nanti.',
     stepsLabel: 'Langkah Alur Kerja',
@@ -576,7 +587,7 @@ const id = {
     googleCalendarNoCode: 'Tidak ada kode otorisasi yang diterima dari Google.',
     googleCalendarNoAccessToken: 'Tidak ada token akses yang diterima dari Google.',
     googleCalendarNoEmail: 'Tidak dapat mengambil email dari profil Google.',
-    googleCalendarUserNotFound: 'Pengguna dengan email {email} tidak ditemukan. Harap daftar atau tautkan secara manual.',
+    googleCalendarUserNotFound: 'Pengguna dengan email {email} tidak ditemukan. Pembuatan/penautan akun manual mungkin diperlukan.',
     googleCalendarTokenExchangeFailed: 'Gagal menukar token Google.',
     toast: {
         error: 'Kesalahan',
@@ -656,7 +667,7 @@ const id = {
            downloadSuccessDescWord: "Unduhan laporan Word telah dimulai.",
            downloadErrorDesc: "Gagal mengunduh laporan Word. Harap periksa log server atau coba lagi.",
            wordGenerationError: "Kesalahan Pembuatan Dokumen Word",
-           wordGenerationErrorDetails: "Dokumen Word tidak dapat dibuat. Silakan coba lagi atau hubungi dukungan jika masalah berlanjut.",
+           wordGenerationErrorDetails: "Dokumen Word tidak dapat dibuat karena kesalahan struktur internal. Silakan hubungi dukungan atau coba lagi nanti.",
        }
    },
   // Leave Request Page
@@ -702,7 +713,7 @@ const id = {
       endDateAfterStartDate: "Tanggal selesai tidak boleh sebelum tanggal mulai.",
     },
   },
-  // Leave Approvals Page (New)
+  // Leave Approvals Page
   leaveApprovalsPage: {
     title: "Permintaan Izin untuk Persetujuan",
     description: "Tinjau dan proses permintaan izin karyawan yang tertunda.",
@@ -758,4 +769,3 @@ const id = {
 };
 
 export default id;
-

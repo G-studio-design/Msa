@@ -37,13 +37,13 @@ const en = {
     appTitle: 'Msarch App',
     appTitleShort: 'Msarch',
     toggleMenu: 'Toggle Menu Panel',
-    roles: {
+    roles: { // Display names for roles in the user profile section of the layout
         owner: 'Owner',
-        generaladmin: 'Admin/Accountant',
-        adminproyek: 'MEP - Project Admin',
-        arsitek: 'MEP - Architect',
-        struktur: 'MEP - Structure',
-        mep: 'MEP - Coordinator',
+        generaladmin: 'Admin/Accountant', // Changed from General Admin
+        adminproyek: 'Admin Proyek', // Reverted: Was MEP - Admin Proyek
+        arsitek: 'Arsitek',       // Reverted: Was MEP - Architect
+        struktur: 'Struktur',     // Reverted: Was MEP - Structure
+        mep: 'MEP Coordinator', // Kept for now, might be unused if role is removed from selection
         admindev: 'Developer',
     },
   },
@@ -65,7 +65,7 @@ const en = {
     projectCanceled: 'This project was canceled.',
     projectCompleted: 'Project Completed',
     addNewProject: 'Add New Project',
-    status: {
+    status: { // Used for displaying assignedDivision, project status, leave types etc.
       completed: 'Completed',
       inprogress: 'In Progress',
       pendingapproval: 'Pending Approval',
@@ -79,18 +79,18 @@ const en = {
       pendingoffer: 'Pending Offer',
       pendingdpinvoice: 'Pending DP Invoice',
       pendingadminfiles: 'Pending Admin Files',
-      pendingsurveydetails: 'Pending Survey Details', 
+      pendingsurveydetails: 'Pending Survey Details',
       pendingarchitectfiles: 'Pending Architect Files',
       pendingstructurefiles: 'Pending Structure Files',
-      pendingmepfiles: 'Pending MEP Files',
+      pendingmepfiles: 'Pending MEP Files', // This status might be unused if workflow changed
       pendingfinalcheck: 'Pending Final Check',
       pendingscheduling: 'Pending Scheduling',
       owner: 'Owner',
       generaladmin: 'Admin/Accountant',
-      adminproyek: 'MEP - Project Admin',
-      arsitek: 'MEP - Architect',
-      struktur: 'MEP - Structure',
-      mep: 'MEP - Coordinator',
+      adminproyek: 'Admin Proyek', // Reverted
+      arsitek: 'Arsitek',       // Reverted
+      struktur: 'Struktur',     // Reverted
+      mep: 'MEP Coordinator', // Kept for now
       admindev: 'Developer',
       notassigned: 'Not Assigned',
       sakit: "Sick Leave",
@@ -206,16 +206,16 @@ const en = {
     optionalReportLabel: "Optional Report",
     optionalNoteLabel: "Optional",
     finalCheckNotePlaceholder: "Add any notes for the final check...",
-    nextActionDescriptions: { 
+    nextActionDescriptions: {
         uploadOfferDocument: "Upload Offer Document",
         approveOfferDocument: "Approve Offer Document",
         createDPInvoice: "Create DP Invoice",
         approveDPInvoice: "Approve DP Invoice",
         uploadAdminFiles: "Upload Admin Files",
-        inputSurveyDetails: "Input Survey Details & Upload Report", 
+        inputSurveyDetails: "Input Survey Details & Upload Report",
         uploadArchitectFiles: "Upload Architect Files",
         uploadStructureFiles: "Upload Structure Files",
-        uploadMEPFiles: "Upload MEP Files",
+        uploadMEPFiles: "Upload MEP Files", // Kept for potential custom workflows
         performFinalCheck: "Perform Final Check",
         scheduleSidang: "Schedule Sidang",
         declareSidangOutcome: "Declare Sidang Outcome",
@@ -229,7 +229,7 @@ const en = {
         uploadArchitectFiles: "Upload Architect Files",
         uploadedAdminFiles: "Uploaded Admin Files",
         uploadMepFiles: "Upload MEP Files",
-        uploadedMEPFiles: "Uploaded MEP Files",
+        uploadedMEPFiles: "Uploaded MEP Files", // Kept for potential custom workflows
         scheduleSidang: "Scheduled Sidang",
         completedFinalCheck: "Completed Final Check",
         approveDPInvoice: "Approved DP Invoice",
@@ -255,7 +255,7 @@ const en = {
         reviseMepFiles: "Revised MEP Files",
         reDoFinalCheck: "Re-did Final Check",
         rescheduleSidang: "Rescheduled Sidang",
-        uploadedSurveyResults: "Uploaded Survey Results", 
+        uploadedSurveyResults: "Uploaded Survey Results",
     },
     toast: {
       permissionDenied: 'Permission Denied',
@@ -265,14 +265,16 @@ const en = {
       provideOfferFile: 'Please upload offer files.',
       progressSubmitted: 'Progress Submitted',
       notifiedNextStep: 'Notified {division} for next step.',
+      noTransitionFound: 'No valid workflow transition found for this action from the current state.',
+      revisionNotApplicable: 'Revision is not applicable for the current project step.',
       onlyOwnerDecision: 'Only Owner can make this decision.',
       projectCanceled: 'Project Canceled',
       projectMarkedCompleted: "Project Completed",
       projectCompletedSuccessfully: "Project \"{title}\" has been successfully marked as completed.",
       projectMarkedCanceled: "Project Canceled",
       projectCanceledSuccessfully: "Project \"{title}\" has been successfully canceled.",
-      revisionRequested: "Revision Requested", 
-      projectSentForRevision: "Project \"{title}\" sent back to {division} for revision.", 
+      revisionRequested: "Revision Requested",
+      projectSentForRevision: "Project \"{title}\" sent back to {division} for revision.",
       sidangOutcomeSuccessTitle: "Sidang Outcome: Success",
       sidangOutcomeSuccessDesc: "Project \"{title}\" has been marked as completed based on sidang outcome.",
       sidangOutcomeRevisionTitle: "Sidang Outcome: Revision Needed",
@@ -315,7 +317,7 @@ const en = {
       failedToProcessDecision: 'Failed to process decision.',
       failedToSaveSchedule: 'Failed to save schedule.',
       failedToRevise: 'Failed to revise project.',
-      revisionNotApplicable: 'Revision is not applicable for the current project step.',
+      revisionNotApplicableShort: 'Revision not applicable.',
       maxFilesExceeded: 'Cannot upload more than {max} files at once.',
       uploadError: 'Upload Error',
     }
@@ -338,6 +340,7 @@ const en = {
           successDesc: 'Project "{title}" added successfully using "{workflowName}" workflow. {division} notified for the first step.',
           error: 'Failed to Create Project',
           fetchWorkflowsError: 'Could not load workflow types.',
+          uploadFailed: "One or more files failed to upload. Project not created."
       },
       validation: {
           titleMin: 'Project title must be at least 5 characters.',
@@ -380,14 +383,14 @@ const en = {
     deleteDialogCancel: 'Cancel',
     deleteDialogConfirm: 'Delete User',
     cannotChangeLastAdminRoleHint: 'Cannot change the role of the last Admin/Accountant.',
-    roles: {
+    roles: { // Used for displaying roles in Manage Users page and select options
       owner: 'Owner',
       generaladmin: 'Admin/Accountant',
-      adminproyek: 'MEP - Project Admin',
-      arsitek: 'MEP - Architect',
-      struktur: 'MEP - Structure',
-      mep: 'MEP - Coordinator',
-      admindev: 'Developer',
+      adminproyek: 'Admin Proyek', // Reverted
+      arsitek: 'Arsitek',       // Reverted
+      struktur: 'Struktur',     // Reverted
+      mep: 'MEP Coordinator', // Kept for now, may not be selectable if removed from 'divisions' array in users/page.tsx
+      admindev: 'Developer', // Not selectable in UI
     },
     toast: {
       userAdded: 'User Added',
@@ -422,13 +425,14 @@ const en = {
   // Admin Actions Page
   adminActionsPage: {
       title: 'Admin Actions',
-      description: 'Modify project titles or manually change project status.',
+      description: 'Modify project titles, manually change project status, or delete projects.',
       tableHeaderId: 'Project ID',
       tableHeaderTitle: 'Current Title',
       tableHeaderStatus: 'Status',
       tableHeaderActions: 'Actions',
       editTitleActionTooltip: "Edit Title",
       changeStatusActionTooltip: "Change Status Manually",
+      deleteProjectActionTooltip: "Delete Project",
       noProjects: 'No projects found.',
       changeStatusDialogTitle: 'Change Project Status: {title}',
       changeStatusDialogDesc: 'Manually update the status and assignment for this project. Use with caution.',
@@ -446,6 +450,9 @@ const en = {
       savingChangesButton: 'Saving...',
       cancelButton: 'Cancel',
       noneAssignedLabel: '(None)',
+      deleteProjectDialogTitle: "Confirm Project Deletion",
+      deleteProjectDialogDesc: "Are you sure you want to delete project \"{title}\"? This will also delete all associated files and cannot be undone.",
+      deleteProjectConfirmButton: "Yes, Delete Project",
       toast: {
           error: 'Error',
           titleEmpty: 'Title cannot be empty.',
@@ -457,6 +464,10 @@ const en = {
           statusChangeSuccessDesc: 'Project "{title}" status changed to "{status}". {division} notified.',
           failedToUpdateStatus: 'Failed to update project status manually.',
           fetchError: 'Could not load project data.',
+          projectDeletedTitle: "Project Deleted",
+          projectDeletedDesc: "Project \"{title}\" has been deleted.",
+          deletePermissionDenied: "You do not have permission to delete projects.",
+          deleteError: "Failed to delete project.",
       },
        accessDeniedTitle: 'Access Denied',
        accessDeniedDesc: 'You do not have permission to access this page.',
@@ -464,7 +475,7 @@ const en = {
    // Manage Workflows Page
   manageWorkflowsPage: {
     title: 'Manage Workflows',
-    description: 'Define and manage project workflows.',
+    description: 'Define and manage project workflows. Only Admin Developers can perform these actions.',
     addWorkflowButton: 'Add New Workflow',
     tableHeaderName: 'Workflow Name',
     tableHeaderDescription: 'Description',
@@ -478,13 +489,13 @@ const en = {
     deleteDialogConfirm: 'Yes, Delete Workflow',
     cancelButton: 'Cancel',
     accessDeniedTitle: 'Access Denied',
-    accessDeniedDesc: 'You do not have the required permissions to manage workflows.',
+    accessDeniedDesc: 'Only Admin Developers can manage workflows.',
     addDialogTitle: 'Add New Workflow',
     addDialogDesc: 'Enter the name and description for the new workflow. Steps will be based on the default standard workflow.',
     addDialogStepsInfo: 'The new workflow will be created with the standard project steps. You can edit them later.',
     addDialogSubmitButton: 'Create Workflow',
     editDialogTitle: 'Edit Workflow: {name}',
-    editDialogDesc: 'Modify the workflow name, description, and reorder steps.',
+    editDialogDesc: 'Modify the workflow name and description. Step reordering is available.',
     editDialogSubmitButton: 'Save Changes',
     editStepsInfo: 'Use buttons to reorder steps. Full step editing will be available later.',
     stepsLabel: 'Workflow Steps',
@@ -576,7 +587,7 @@ const en = {
     googleCalendarNoCode: 'No authorization code received from Google.',
     googleCalendarNoAccessToken: 'No access token received from Google.',
     googleCalendarNoEmail: 'Could not retrieve email from Google profile.',
-    googleCalendarUserNotFound: 'User with email {email} not found. Please register or link manually.',
+    googleCalendarUserNotFound: 'User with email {email} not found. Manual account creation/linking might be required.',
     googleCalendarTokenExchangeFailed: 'Failed to exchange Google token.',
     toast: {
         error: 'Error',
@@ -656,7 +667,7 @@ const en = {
           downloadSuccessDescWord: "Word report download has started.",
           downloadErrorDesc: "Failed to download Word report. Please check server logs or try again.",
           wordGenerationError: "Word Document Generation Error",
-          wordGenerationErrorDetails: "The Word document could not be generated. Please try again or contact support if the issue persists.",
+          wordGenerationErrorDetails: "The Word document could not be generated due to an internal structure error. Please contact support or try again later.",
       }
   },
   // Leave Request Page
@@ -702,7 +713,7 @@ const en = {
       endDateAfterStartDate: "End date cannot be before start date.",
     },
   },
-  // Leave Approvals Page (New)
+  // Leave Approvals Page
   leaveApprovalsPage: {
     title: "Leave Requests for Approval",
     description: "Review and process pending employee leave requests.",
@@ -758,4 +769,3 @@ const en = {
 };
 
 export default en;
-
