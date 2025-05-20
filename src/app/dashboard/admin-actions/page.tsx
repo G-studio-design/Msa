@@ -47,9 +47,9 @@ import {
     getAllProjects,
     updateProjectTitle,
     manuallyUpdateProjectStatusAndAssignment,
-    deleteProject, // Import deleteProject
+    deleteProject, 
     type Project,
-    type UpdateProjectParams // Changed from UpdateProfileData
+    type UpdateProjectParams 
 } from '@/services/project-service';
 import { getAllUniqueStatuses, type WorkflowStep } from '@/services/workflow-service';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -61,13 +61,14 @@ const defaultDict = getDictionary('en');
 // Map status to default next step details
 const statusWorkflowDetailsMap: Record<string, Partial<WorkflowStep>> = {
   'Pending Offer': { assignedDivision: 'Admin Proyek', nextActionDescription: 'Unggah Dokumen Penawaran', progress: 10 },
-  'Pending Approval': { assignedDivision: 'Owner', nextActionDescription: 'Setujui Dokumen Penawaran/Faktur', progress: 20 },
+  'Pending Approval': { assignedDivision: 'Owner', nextActionDescription: 'Setujui Dokumen Penawaran/Faktur', progress: 20 }, // General approval, progress might vary
   'Pending DP Invoice': { assignedDivision: 'Admin/Akuntan', nextActionDescription: 'Buat Faktur DP', progress: 25 },
   'Pending Admin Files': { assignedDivision: 'Admin Proyek', nextActionDescription: 'Unggah Berkas Administrasi', progress: 40 },
   'Pending Survey Details': { assignedDivision: 'Admin Proyek', nextActionDescription: 'Input Jadwal Survei & Unggah Hasil', progress: 45},
   'Pending Architect Files': { assignedDivision: 'Arsitek', nextActionDescription: 'Unggah Berkas Arsitektur', progress: 50 },
   'Pending Structure Files': { assignedDivision: 'Struktur', nextActionDescription: 'Unggah Berkas Struktur', progress: 70 },
-  'Pending MEP Files': { assignedDivision: 'Admin Proyek', nextActionDescription: 'Unggah Berkas MEP', progress: 80 },
+  // 'Pending MEP Files' removed as it's no longer a default distinct step handled by a separate MEP division in the standard flow.
+  // Admin Proyek now handles MEP file uploads then moves to scheduling.
   'Pending Scheduling': { assignedDivision: 'Admin Proyek', nextActionDescription: 'Jadwalkan Sidang', progress: 90 },
   'Scheduled': { assignedDivision: 'Owner', nextActionDescription: 'Nyatakan Hasil Sidang', progress: 95 },
   'Completed': { assignedDivision: '', nextActionDescription: null, progress: 100 },
@@ -103,7 +104,7 @@ export default function AdminActionsPage() {
   const [newProgress, setNewProgress] = React.useState<number | string>('');
   const [reasonNote, setReasonNote] = React.useState('');
   const [availableStatuses, setAvailableStatuses] = React.useState<string[]>([]);
-  const [availableDivisions, setAvailableDivisions] = React.useState<string[]>(['Owner', 'Admin/Akuntan', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP']);
+  const [availableDivisions, setAvailableDivisions] = React.useState<string[]>(['Owner', 'Admin/Akuntan', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP']); // MEP role still exists for users
 
   const [isDeleting, setIsDeleting] = React.useState(false);
 
@@ -131,8 +132,14 @@ export default function AdminActionsPage() {
 
    React.useEffect(() => {
        setIsClient(true);
-       fetchProjectsAndStatuses();
-  }, [fetchProjectsAndStatuses]);
+    // Moved fetchProjectsAndStatuses to a separate useEffect that depends on isClient and currentUser
+  }, []);
+
+  React.useEffect(() => {
+    if (isClient && currentUser) {
+      fetchProjectsAndStatuses();
+    }
+  }, [isClient, currentUser, fetchProjectsAndStatuses]);
 
 
   const handleEditClick = (projectId: string, currentTitle: string) => {
@@ -186,13 +193,14 @@ export default function AdminActionsPage() {
     if (newStatus && projectForStatusChange) {
         const defaults = statusWorkflowDetailsMap[newStatus];
         if (defaults) {
+            // Only update if the current value matches the project's original value or if the current value is not a valid division
             if (newAssignedDivision === projectForStatusChange.assignedDivision || !availableDivisions.includes(newAssignedDivision)) {
                 setNewAssignedDivision(defaults.assignedDivision || '');
             }
             if (newNextAction === (projectForStatusChange.nextAction || '') || newNextAction === '') {
                  setNewNextAction(defaults.nextActionDescription || '');
             }
-            if (newProgress === projectForStatusChange.progress || newProgress === '') {
+            if (newProgress === projectForStatusChange.progress || newProgress === '') { // Check against project's original progress
                  setNewProgress(defaults.progress !== undefined ? defaults.progress : '');
             }
         }
