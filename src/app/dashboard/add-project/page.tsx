@@ -30,7 +30,7 @@ const getAddProjectSchema = (dictValidation: ReturnType<typeof getDictionary>['a
 });
 
 const defaultDict = getDictionary('en');
-const defaultDashboardDict = defaultDict.dashboardPage;
+const defaultDashboardDict = defaultDict.dashboardPage; // For getTranslatedStatus fallback
 
 export default function AddProjectPage() {
   const { currentUser } = useAuth();
@@ -82,22 +82,26 @@ export default function AddProjectPage() {
     resolver: zodResolver(addProjectSchema),
     defaultValues: {
       title: '',
-      workflowId: fetchedWorkflows.length > 0 ? (fetchedWorkflows.find(wf => wf.id === DEFAULT_WORKFLOW_ID)?.id || fetchedWorkflows[0].id) : undefined,
+      workflowId: undefined, // Will be set by useEffect
     },
   });
   
   React.useEffect(() => {
     if (isClient && addProjectDict?.validation) {
       form.trigger();
-      // Set default workflowId once workflows are fetched
-      if (fetchedWorkflows.length > 0 && !form.getValues('workflowId')) {
-        form.setValue('workflowId', fetchedWorkflows.find(wf => wf.id === DEFAULT_WORKFLOW_ID)?.id || fetchedWorkflows[0].id);
-      }
+    }
+    // Set default workflowId once workflows are fetched and if none is set
+    if (fetchedWorkflows.length > 0 && !form.getValues('workflowId')) {
+      const defaultWf = fetchedWorkflows.find(wf => wf.id === DEFAULT_WORKFLOW_ID);
+      form.setValue('workflowId', defaultWf ? defaultWf.id : fetchedWorkflows[0].id);
     }
   }, [addProjectDict, form, isClient, fetchedWorkflows]);
 
 
-  const canAddProject = React.useMemo(() => currentUser && ['Owner', 'Admin/Akuntan', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role), [currentUser]);
+  const canAddProject = React.useMemo(() => {
+    if (!currentUser) return false;
+    return ['Owner', 'Admin/Akuntan', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role);
+  }, [currentUser]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -119,9 +123,10 @@ export default function AddProjectPage() {
   };
 
   const getTranslatedStatus = React.useCallback((statusKey: string) => {
-    if (!isClient || !dashboardDict?.status || !statusKey) return statusKey;
-    const key = statusKey?.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status;
-    return dashboardDict.status[key] || statusKey;
+    const dictToUse = isClient ? dashboardDict : defaultDashboardDict;
+    if (!dictToUse?.status || !statusKey) return statusKey;
+    const key = statusKey?.toLowerCase().replace(/ /g, '') as keyof typeof dictToUse.status;
+    return dictToUse.status[key] || statusKey;
   }, [isClient, dashboardDict]);
 
 
@@ -131,20 +136,14 @@ export default function AddProjectPage() {
     setIsLoading(true);
     form.clearErrors();
     
-    const uploadedFileEntries: Omit<FileEntry, 'timestamp' | 'path'>[] = [];
     const actualFileEntriesForService: FileEntry[] = [];
 
     if (selectedFiles.length > 0) {
       for (const file of selectedFiles) {
         const formData = new FormData();
         formData.append('file', file);
-        // projectId and projectTitle are not known yet, but the API can handle it or we can pass a temporary one
-        // For now, the API route is designed to create folders based on future projectId and title
-        // It's better to let the service handle folder creation after project ID is known.
-        // The API upload-file route has been modified to accept this.
-        formData.append('projectId', 'temp-id-for-upload'); 
+        formData.append('projectId', 'temp-id-for-upload'); // Will be replaced by service logic
         formData.append('projectTitle', data.title);
-
 
         try {
           const response = await fetch('/api/upload-file', { method: 'POST', body: formData });
@@ -156,14 +155,14 @@ export default function AddProjectPage() {
           actualFileEntriesForService.push({
             name: result.originalName,
             uploadedBy: currentUser.username,
-            path: result.relativePath, // This path is relative to PROJECT_FILES_BASE_DIR
+            path: result.relativePath,
             timestamp: new Date().toISOString(),
           });
         } catch (error: any) {
           console.error('File upload error:', file.name, error);
           toast({ variant: 'destructive', title: addProjectDict.toast.error, description: error.message || `Failed to upload ${file.name}.` });
           setIsLoading(false);
-          return; // Stop if any file fails to upload
+          return; 
         }
       }
     }
@@ -183,11 +182,13 @@ export default function AddProjectPage() {
       console.log('Project created successfully on server:', createdProject);
 
       const workflowUsed = fetchedWorkflows.find(wf => wf.id === createdProject.workflowId);
-      const workflowName = workflowUsed 
-        ? workflowUsed.name 
-        : (createdProject.workflowId === DEFAULT_WORKFLOW_ID 
-            ? (addProjectDict.toast.defaultWorkflowName || 'Standard Workflow') 
-            : (addProjectDict.toast.unknownWorkflow || 'Selected Workflow'));
+      
+      let workflowName = addProjectDict.toast.unknownWorkflow || 'Selected Workflow';
+      if (workflowUsed) {
+        workflowName = workflowUsed.name;
+      } else if (createdProject.workflowId === DEFAULT_WORKFLOW_ID) {
+        workflowName = addProjectDict.toast.defaultWorkflowName || 'Standard Workflow';
+      }
             
       const firstStepAssignedDivision = createdProject.assignedDivision;
       const translatedDivision = getTranslatedStatus(firstStepAssignedDivision) || firstStepAssignedDivision;
@@ -201,7 +202,7 @@ export default function AddProjectPage() {
       });
       form.reset();
       setSelectedFiles([]);
-      router.push('/dashboard/projects'); // Redirect to projects list on success
+      router.push('/dashboard/projects'); 
     } catch (error: any) {
       console.error('Failed to add project:', error);
       let desc = addProjectDict.toast.error;
