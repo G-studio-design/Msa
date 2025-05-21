@@ -30,7 +30,7 @@ const getAddProjectSchema = (dictValidation: ReturnType<typeof getDictionary>['a
 });
 
 const defaultDict = getDictionary('en');
-const defaultDashboardDict = defaultDict.dashboardPage; // For getTranslatedStatus fallback
+const defaultDashboardDict = defaultDict.dashboardPage;
 
 export default function AddProjectPage() {
   const { currentUser } = useAuth();
@@ -53,6 +53,7 @@ export default function AddProjectPage() {
   }, []);
 
   const fetchWorkflows = React.useCallback(async () => {
+    if (!isClient) return;
     setIsLoadingWorkflows(true);
     try {
       const wfs = await getAllWorkflows();
@@ -67,7 +68,7 @@ export default function AddProjectPage() {
     } finally {
       setIsLoadingWorkflows(false);
     }
-  }, [toast, addProjectDict]);
+  }, [isClient, toast, addProjectDict]);
 
   React.useEffect(() => {
     if (isClient && currentUser && (currentUser.role === 'Owner' || currentUser.role === 'Admin/Akuntan' || currentUser.role === 'Admin Proyek' || currentUser.role === 'Admin Developer')) {
@@ -82,7 +83,7 @@ export default function AddProjectPage() {
     resolver: zodResolver(addProjectSchema),
     defaultValues: {
       title: '',
-      workflowId: undefined, // Will be set by useEffect
+      workflowId: undefined, 
     },
   });
   
@@ -90,17 +91,21 @@ export default function AddProjectPage() {
     if (isClient && addProjectDict?.validation) {
       form.trigger();
     }
-    // Set default workflowId once workflows are fetched and if none is set
     if (fetchedWorkflows.length > 0 && !form.getValues('workflowId')) {
       const defaultWf = fetchedWorkflows.find(wf => wf.id === DEFAULT_WORKFLOW_ID);
-      form.setValue('workflowId', defaultWf ? defaultWf.id : fetchedWorkflows[0].id);
+      if (defaultWf) {
+        form.setValue('workflowId', defaultWf.id);
+      } else if (fetchedWorkflows[0]) {
+        form.setValue('workflowId', fetchedWorkflows[0].id);
+      }
     }
   }, [addProjectDict, form, isClient, fetchedWorkflows]);
 
 
   const canAddProject = React.useMemo(() => {
     if (!currentUser) return false;
-    return ['Owner', 'Admin/Akuntan', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role);
+    const userRole = currentUser.role.trim();
+    return ['Owner', 'Admin/Akuntan', 'Admin Proyek', 'Admin Developer'].includes(userRole);
   }, [currentUser]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,7 +115,7 @@ export default function AddProjectPage() {
         toast({
           variant: 'destructive',
           title: addProjectDict.toast.error,
-          description: addProjectDict.filesHint.replace('{max}', MAX_FILES_UPLOAD.toString()),
+          description: (addProjectDict.filesHint || defaultDict.addProjectPage.filesHint).replace('{max}', MAX_FILES_UPLOAD.toString()),
         });
         return;
       }
@@ -136,13 +141,13 @@ export default function AddProjectPage() {
     setIsLoading(true);
     form.clearErrors();
     
-    const actualFileEntriesForService: FileEntry[] = [];
+    const actualFileEntriesForService: Omit<FileEntry, 'timestamp'>[] = [];
 
     if (selectedFiles.length > 0) {
       for (const file of selectedFiles) {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('projectId', 'temp-id-for-upload'); // Will be replaced by service logic
+        formData.append('projectId', 'temp-id-for-upload'); 
         formData.append('projectTitle', data.title);
 
         try {
@@ -156,7 +161,7 @@ export default function AddProjectPage() {
             name: result.originalName,
             uploadedBy: currentUser.username,
             path: result.relativePath,
-            timestamp: new Date().toISOString(),
+            // timestamp will be added by the service
           });
         } catch (error: any) {
           console.error('File upload error:', file.name, error);
@@ -173,7 +178,7 @@ export default function AddProjectPage() {
     const newProjectData: AddProjectData = {
       title: data.title,
       workflowId: effectiveWorkflowId,
-      initialFiles: actualFileEntriesForService,
+      initialFiles: actualFileEntriesForService.map(f => ({...f, timestamp: new Date().toISOString()})), // Add timestamp here
       createdBy: currentUser.username,
     };
 
@@ -195,12 +200,12 @@ export default function AddProjectPage() {
 
       toast({
         title: addProjectDict.toast.success,
-        description: addProjectDict.toast.successDesc
+        description: (addProjectDict.toast.successDesc || defaultDict.addProjectPage.toast.successDesc)
           .replace('"{title}"', createdProject.title) 
           .replace('"{workflowName}"', workflowName)
-          .replace('"{division}"', translatedDivision),
+          .replace('{division}', translatedDivision), // Corrected placeholder
       });
-      form.reset();
+      form.reset({ title: '', workflowId: DEFAULT_WORKFLOW_ID });
       setSelectedFiles([]);
       router.push('/dashboard/projects'); 
     } catch (error: any) {
@@ -319,13 +324,13 @@ export default function AddProjectPage() {
                        <Upload className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                  </div>
                   <p className="text-xs text-muted-foreground">
-                      {addProjectDict.filesHint.replace('{max}', MAX_FILES_UPLOAD.toString())}
+                      {(addProjectDict.filesHint || defaultDict.addProjectPage.filesHint).replace('{max}', MAX_FILES_UPLOAD.toString())}
                   </p>
                </div>
 
                  {selectedFiles.length > 0 && (
                    <div className="space-y-2 rounded-md border p-3">
-                     <Label>{addProjectDict.selectedFilesLabel || defaultDict.projectsPage.selectedFilesLabel} ({selectedFiles.length}/{MAX_FILES_UPLOAD})</Label>
+                     <Label>{(addProjectDict.selectedFilesLabel || defaultDict.addProjectPage.selectedFilesLabel)} ({selectedFiles.length}/{MAX_FILES_UPLOAD})</Label>
                      <ul className="list-disc list-inside text-sm space-y-1 max-h-32 overflow-y-auto">
                        {selectedFiles.map((file, index) => (
                          <li key={index} className="flex items-center justify-between group">
@@ -365,4 +370,3 @@ export default function AddProjectPage() {
     </div>
   );
 }
-

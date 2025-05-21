@@ -261,5 +261,41 @@
     ],
     "createdAt": "2025-05-21T05:56:39.711Z",
     "createdBy": "sudina"
+  },
+  {
+    "id": "project_1747807864992_pn1cp",
+    "title": "proyek I",
+    "status": "Pending Offer",
+    "progress": 10,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Unggah Dokumen Penawaran",
+    "workflowId": "default_standard_workflow",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project",
+        "timestamp": "2025-05-21T06:11:04.992Z"
+      },
+      {
+        "division": "sudina",
+        "action": "Uploaded initial file: 1.png",
+        "timestamp": "2025-05-21T06:11:05.015Z"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
+        "timestamp": "2025-05-21T06:11:04.992Z"
+      }
+    ],
+    "files": [
+      {
+        "name": "1.png",
+        "uploadedBy": "sudina",
+        "path": "temp-id-for-upload-proyek_i/1png",
+        "timestamp": "2025-05-21T06:11:05.015Z"
+      }
+    ],
+    "createdAt": "2025-05-21T06:11:04.992Z",
+    "createdBy": "sudina"
   }
 ]
