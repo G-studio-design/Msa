@@ -1,3 +1,4 @@
+
 [
   {
     "id": "default_standard_workflow",
@@ -18,7 +19,7 @@
             "targetProgress": 20,
             "notification": {
               "division": "Owner",
-              "message": "Penawaran untuk proyek '{projectName}' telah diajukan dan menunggu persetujuan Anda."
+              "message": "Penawaran untuk proyek '{projectName}' telah diajukan oleh {actorUsername} dan menunggu persetujuan Anda."
             }
           }
         }
@@ -37,7 +38,7 @@
             "targetProgress": 25,
             "notification": {
               "division": "Admin/Akuntan",
-              "message": "Penawaran untuk proyek '{projectName}' telah disetujui. Mohon buat faktur DP."
+              "message": "Penawaran untuk proyek '{projectName}' telah disetujui oleh {actorUsername}. Mohon buat faktur DP."
             }
           },
           "rejected": {
@@ -47,7 +48,7 @@
             "targetProgress": 20,
             "notification": {
               "division": "Admin Proyek",
-              "message": "Penawaran untuk proyek '{projectName}' ditolak oleh Owner."
+              "message": "Penawaran untuk proyek '{projectName}' telah dibatalkan oleh {actorUsername}."
             }
           }
         }
@@ -66,7 +67,7 @@
             "targetProgress": 30,
             "notification": {
               "division": "Owner",
-              "message": "Faktur DP untuk proyek '{projectName}' telah diajukan dan menunggu persetujuan Anda."
+              "message": "Faktur DP untuk proyek '{projectName}' telah diajukan oleh {actorUsername} dan menunggu persetujuan Anda."
             }
           }
         }
@@ -85,7 +86,7 @@
             "targetProgress": 40,
             "notification": {
               "division": "Admin Proyek",
-              "message": "Faktur DP untuk proyek '{projectName}' telah disetujui. Mohon unggah berkas administrasi."
+              "message": "Faktur DP untuk proyek '{projectName}' telah disetujui oleh {actorUsername}. Mohon unggah berkas administrasi."
             }
           },
           "rejected": {
@@ -95,7 +96,7 @@
             "targetProgress": 25,
             "notification": {
               "division": "Admin/Akuntan",
-              "message": "Faktur DP untuk proyek '{projectName}' ditolak oleh Owner. Mohon direvisi."
+              "message": "Faktur DP untuk proyek '{projectName}' ditolak oleh {actorUsername}. Mohon direvisi."
             }
           }
         }
@@ -114,7 +115,7 @@
             "targetProgress": 45,
             "notification": {
               "division": "Admin Proyek",
-              "message": "Berkas administrasi untuk '{projectName}' lengkap. Mohon jadwalkan survei dan unggah hasilnya."
+              "message": "Berkas administrasi untuk '{projectName}' oleh {actorUsername} lengkap. Mohon jadwalkan survei dan unggah hasilnya."
             }
           }
         }
@@ -133,7 +134,7 @@
             "targetProgress": 50,
             "notification": {
               "division": "Arsitek",
-              "message": "Hasil survei untuk '{projectName}' telah diunggah. Mohon unggah berkas arsitektur."
+              "message": "Hasil survei untuk '{projectName}' telah diunggah oleh {actorUsername}. Mohon unggah berkas arsitektur."
             }
           }
         }
@@ -152,7 +153,7 @@
             "targetProgress": 70,
             "notification": {
               "division": "Struktur",
-              "message": "Berkas arsitektur untuk '{projectName}' lengkap. Mohon unggah berkas struktur."
+              "message": "Berkas arsitektur untuk '{projectName}' telah diunggah oleh {actorUsername}. Mohon unggah berkas struktur."
             }
           }
         }
@@ -171,7 +172,7 @@
             "targetProgress": 90,
             "notification": {
               "division": "Admin Proyek",
-              "message": "Berkas struktur untuk '{projectName}' lengkap. Mohon jadwalkan sidang."
+              "message": "Berkas struktur untuk '{projectName}' telah diunggah oleh {actorUsername}. Mohon jadwalkan sidang."
             }
           }
         }
@@ -190,7 +191,7 @@
             "targetProgress": 95,
             "notification": {
               "division": "Owner",
-              "message": "Sidang untuk proyek '{projectName}' telah dijadwalkan. Mohon nyatakan hasilnya setelah selesai."
+              "message": "Sidang untuk proyek '{projectName}' telah dijadwalkan oleh {actorUsername}. Mohon nyatakan hasilnya setelah selesai."
             }
           }
         }
@@ -207,16 +208,19 @@
             "targetAssignedDivision": "",
             "targetNextActionDescription": null,
             "targetProgress": 100,
-            "notification": null
-          },
-          "revise_after_sidang": {
-            "targetStatus": "Pending Admin Files",
-            "targetAssignedDivision": "Admin Proyek",
-            "targetNextActionDescription": "Lakukan Revisi Pasca Sidang pada Berkas Administrasi",
-            "targetProgress": 40,
             "notification": {
               "division": "Admin Proyek",
-              "message": "Proyek '{projectName}' memerlukan revisi setelah sidang. Mohon perbarui berkas administrasi dan teknis yang diperlukan."
+              "message": "Proyek '{projectName}' telah berhasil diselesaikan oleh {actorUsername}."
+            }
+          },
+          "revise_after_sidang": {
+            "targetStatus": "Pending Post-Sidang Revision",
+            "targetAssignedDivision": "Admin Proyek",
+            "targetNextActionDescription": "Lakukan revisi pasca-sidang. Notifikasi Arsitek/Struktur jika perlu, lalu konfirmasi penyelesaian.",
+            "targetProgress": 85,
+            "notification": {
+              "division": "Admin Proyek",
+              "message": "Proyek '{projectName}' memerlukan revisi setelah sidang yang dinyatakan oleh {actorUsername}."
             }
           },
           "canceled_after_sidang": {
@@ -224,7 +228,29 @@
             "targetAssignedDivision": "",
             "targetNextActionDescription": null,
             "targetProgress": 95,
-            "notification": null
+            "notification": {
+              "division": "Admin Proyek",
+              "message": "Proyek '{projectName}' telah dibatalkan oleh {actorUsername} setelah sidang."
+            }
+          }
+        }
+      },
+      {
+        "stepName": "Post-Sidang Revision",
+        "status": "Pending Post-Sidang Revision",
+        "assignedDivision": "Admin Proyek",
+        "progress": 85,
+        "nextActionDescription": "Lakukan revisi, notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.",
+        "transitions": {
+          "revision_completed_and_finish": {
+            "targetStatus": "Completed",
+            "targetAssignedDivision": "",
+            "targetNextActionDescription": null,
+            "targetProgress": 100,
+            "notification": {
+              "division": "Owner",
+              "message": "Proyek '{projectName}' telah berhasil diselesaikan setelah revisi oleh {actorUsername}."
+            }
           }
         }
       },
@@ -241,6 +267,69 @@
         "status": "Canceled",
         "assignedDivision": "",
         "progress": 0,
+        "nextActionDescription": null,
+        "transitions": null
+      }
+    ]
+  },
+  {
+    "id": "simple_consultation_v1",
+    "name": "Simple Consultation Workflow",
+    "description": "A shorter workflow for consultation-only projects.",
+    "steps": [
+      {
+        "stepName": "Consultation Document Upload",
+        "status": "Pending Consultation Docs",
+        "assignedDivision": "Admin Proyek",
+        "progress": 10,
+        "nextActionDescription": "Unggah Ringkasan Konsultasi",
+        "transitions": {
+          "submitted": {
+            "targetStatus": "Pending Review",
+            "targetAssignedDivision": "Owner",
+            "targetNextActionDescription": "Tinjau Ringkasan Konsultasi",
+            "targetProgress": 50,
+            "notification": {
+              "division": "Owner",
+              "message": "Ringkasan konsultasi untuk '{projectName}' telah diajukan oleh {actorUsername}."
+            }
+          }
+        }
+      },
+      {
+        "stepName": "Consultation Review",
+        "status": "Pending Review",
+        "assignedDivision": "Owner",
+        "progress": 50,
+        "nextActionDescription": "Tinjau dan Setujui Ringkasan",
+        "transitions": {
+          "approved": {
+            "targetStatus": "Completed",
+            "targetAssignedDivision": "",
+            "targetNextActionDescription": null,
+            "targetProgress": 100,
+            "notification": {
+              "division": "Admin Proyek",
+              "message": "Konsultasi untuk '{projectName}' telah disetujui oleh {actorUsername} dan selesai."
+            }
+          },
+          "rejected": {
+            "targetStatus": "Pending Consultation Docs",
+            "targetAssignedDivision": "Admin Proyek",
+            "targetNextActionDescription": "Revisi Ringkasan Konsultasi",
+            "targetProgress": 10,
+            "notification": {
+              "division": "Admin Proyek",
+              "message": "Ringkasan konsultasi untuk '{projectName}' perlu direvisi setelah tinjauan oleh {actorUsername}."
+            }
+          }
+        }
+      },
+      {
+        "stepName": "Consultation Completed",
+        "status": "Completed",
+        "assignedDivision": "",
+        "progress": 100,
         "nextActionDescription": null,
         "transitions": null
       }

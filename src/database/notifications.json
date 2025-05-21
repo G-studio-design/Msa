@@ -21,7 +21,7 @@
     "projectId": "project_1747798488006_76uua",
     "message": "Penawaran untuk proyek 'proyek B' telah diajukan dan menunggu persetujuan Anda.",
     "timestamp": "2025-05-21T03:34:48.029Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1747799510111_k0v9h",
@@ -29,6 +29,62 @@
     "projectId": "project_1747798488006_76uua",
     "message": "Penawaran untuk proyek 'proyek B' telah diajukan dan menunggu persetujuan Anda.",
     "timestamp": "2025-05-21T03:51:50.111Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747803291042_obqo9",
+    "userId": "usr_admin_akuntan_default",
+    "projectId": "project_1747798488006_76uua",
+    "message": "Penawaran untuk proyek 'proyek B' telah disetujui. Mohon buat faktur DP.",
+    "timestamp": "2025-05-21T04:54:51.041Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747804014905_aouks",
+    "userId": "usr_owner_default",
+    "projectId": "project_1747798488006_76uua",
+    "message": "Faktur DP untuk proyek 'proyek B' telah diajukan dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-21T05:06:54.904Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747804067200_64pvx",
+    "userId": "usr_admin_proyek_default",
+    "projectId": "project_1747798488006_76uua",
+    "message": "Faktur DP untuk proyek 'proyek B' telah disetujui. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-05-21T05:07:47.200Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747804067201_z047g",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1747798488006_76uua",
+    "message": "Faktur DP untuk proyek 'proyek B' telah disetujui. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-05-21T05:07:47.200Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747804132884_lojjn",
+    "userId": "usr_owner_default",
+    "projectId": "project_1747804132877_ydc0n",
+    "message": "Penawaran untuk proyek 'proyek c' telah diajukan dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-21T05:08:52.884Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747804168605_newbx",
+    "userId": "usr_owner_default",
+    "projectId": "project_1747804168591_0o9yj",
+    "message": "Penawaran untuk proyek 'proyek d' telah diajukan dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-21T05:09:28.605Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747804235932_m5cuv",
+    "userId": "usr_owner_default",
+    "projectId": "project_1747804235922_s7npg",
+    "message": "Penawaran untuk proyek 'proyek f' telah diajukan dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-21T05:10:35.932Z",
     "isRead": true
   }
 ]
