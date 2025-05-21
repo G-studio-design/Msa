@@ -1,3 +1,4 @@
+
 [
   {
     "id": "usr_dev_iwg",
@@ -24,7 +25,7 @@
     "password": "admin123",
     "role": "Admin Proyek",
     "email": "admin.proyek@example.com",
-    "displayName": "Admin Proyek",
+    "displayName": "Admin Proyek Default",
     "createdAt": "2025-05-18T00:02:00.000Z"
   },
   {
@@ -33,7 +34,7 @@
     "password": "admin123",
     "role": "Arsitek",
     "email": "arsitek@example.com",
-    "displayName": "arsitek",
+    "displayName": "Arsitek Default",
     "createdAt": "2025-05-19T05:48:29.593Z"
   },
   {
@@ -42,7 +43,7 @@
     "password": "admin123",
     "role": "Struktur",
     "email": "struktur@example.com",
-    "displayName": "struktur",
+    "displayName": "Struktur Default",
     "createdAt": "2025-05-19T05:49:05.993Z"
   },
   {
@@ -51,16 +52,16 @@
     "password": "admin123",
     "role": "Admin Proyek",
     "email": "komangmerta@example.com",
-    "displayName": "komangmerta",
+    "displayName": "Komang Merta",
     "createdAt": "2025-05-21T03:43:28.584Z"
   },
   {
-    "id": "usr_1747803320883_hwg7f",
-    "username": "oksi",
+    "id": "usr_admin_akuntan_default",
+    "username": "adminakuntan",
     "password": "admin123",
     "role": "General Admin",
-    "email": "oksi@example.com",
-    "displayName": "oksi",
-    "createdAt": "2025-05-21T04:55:20.883Z"
+    "email": "admin.akuntan@example.com",
+    "displayName": "Admin Akuntan Default",
+    "createdAt": "2025-05-18T00:01:00.000Z"
   }
 ]

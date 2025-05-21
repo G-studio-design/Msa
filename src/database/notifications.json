@@ -61,7 +61,7 @@
     "projectId": "project_1747798488006_76uua",
     "message": "Faktur DP untuk proyek 'proyek B' telah disetujui. Mohon unggah berkas administrasi.",
     "timestamp": "2025-05-21T05:07:47.200Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1747804132884_lojjn",
@@ -101,7 +101,7 @@
     "projectId": "project_1747805204677_u0k9e",
     "message": "Proyek baru 'proyek g' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
     "timestamp": "2025-05-21T05:26:44.691Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1747806999723_3ryhb",
@@ -117,7 +117,7 @@
     "projectId": "project_1747806999711_8ultt",
     "message": "Proyek baru 'proyek h' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
     "timestamp": "2025-05-21T05:56:39.722Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1747807865003_6qkih",
@@ -133,6 +133,30 @@
     "projectId": "project_1747807864992_pn1cp",
     "message": "Proyek baru 'proyek I' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
     "timestamp": "2025-05-21T06:11:05.003Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747808480683_c55ly",
+    "userId": "usr_admin_proyek_default",
+    "projectId": "project_1747808480674_o5ldl",
+    "message": "Proyek baru 'proyek villa canggu' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-21T06:21:20.683Z",
     "isRead": false
+  },
+  {
+    "id": "notif_1747808480683_5741o",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1747808480674_o5ldl",
+    "message": "Proyek baru 'proyek villa canggu' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-21T06:21:20.683Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747808596365_7qu0r",
+    "userId": "usr_owner_default",
+    "projectId": "project_1747808480674_o5ldl",
+    "message": "Penawaran untuk proyek 'proyek villa canggu' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-21T06:23:16.364Z",
+    "isRead": true
   }
 ]

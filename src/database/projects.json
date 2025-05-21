@@ -1,301 +1,55 @@
 [
   {
-    "id": "project_1747634871321_k9863",
-    "title": "proyek A",
-    "status": "Canceled",
-    "progress": 20,
-    "assignedDivision": "",
-    "nextAction": null,
+    "id": "project_1747808480674_o5ldl",
+    "title": "proyek villa canggu",
+    "status": "Pending DP Invoice",
+    "progress": 25,
+    "assignedDivision": "Admin/Akuntan",
+    "nextAction": "Buat Faktur DP",
     "workflowId": "default_standard_workflow",
     "workflowHistory": [
       {
         "division": "sudina",
         "action": "Created Project",
-        "timestamp": "2025-05-19T06:07:51.321Z"
-      },
-      {
-        "division": "sudina",
-        "action": "Uploaded initial file: 1. I KADEK DIKI MAHAYANA (CANDI PERABANAN) Revisi.docx",
-        "timestamp": "2025-05-19T06:07:51.321Z"
-      },
-      {
-        "division": "System",
-        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
-        "timestamp": "2025-05-19T06:07:51.321Z"
-      },
-      {
-        "division": "Admin Proyek",
-        "action": "adminproyek (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
-        "timestamp": "2025-05-19T06:16:00.394Z",
-        "note": "dokumen penawaran"
-      },
-      {
-        "division": "Owner",
-        "action": "sudina (Owner) rejected: Setujui Dokumen Penawaran",
-        "timestamp": "2025-05-21T03:31:04.539Z"
-      }
-    ],
-    "files": [
-      {
-        "name": "1. I KADEK DIKI MAHAYANA (CANDI PERABANAN) Revisi.docx",
-        "uploadedBy": "sudina",
-        "timestamp": "2025-05-19T06:07:51.321Z"
-      },
-      {
-        "name": "1. I KADEK DIKI MAHAYANA (CANDI PERABANAN)..odt",
-        "uploadedBy": "adminproyek",
-        "path": "project_1747634871321_k9863-proyek_a/1_i_kadek_diki_mahayana_candi_perabananodt",
-        "timestamp": "2025-05-19T06:16:00.394Z"
-      },
-      {
-        "name": "1. I KADEK DIKI MAHAYANA (CANDI PERABANAN)..pdf",
-        "uploadedBy": "adminproyek",
-        "path": "project_1747634871321_k9863-proyek_a/1_i_kadek_diki_mahayana_candi_perabananpdf",
-        "timestamp": "2025-05-19T06:16:00.394Z"
-      }
-    ],
-    "createdAt": "2025-05-19T06:07:51.321Z",
-    "createdBy": "sudina"
-  },
-  {
-    "id": "project_1747798488006_76uua",
-    "title": "proyek B",
-    "status": "Pending Admin Files",
-    "progress": 40,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Unggah Berkas Administrasi",
-    "workflowId": "default_standard_workflow",
-    "workflowHistory": [
-      {
-        "division": "sudina",
-        "action": "Created Project",
-        "timestamp": "2025-05-21T03:34:48.006Z"
+        "timestamp": "2025-05-21T06:21:20.674Z"
       },
       {
         "division": "sudina",
         "action": "Uploaded initial file: CamScanner 01-10-2024 18.28.jpg",
-        "timestamp": "2025-05-21T03:34:48.006Z"
+        "timestamp": "2025-05-21T06:21:20.654Z"
       },
       {
         "division": "System",
         "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
-        "timestamp": "2025-05-21T03:34:48.006Z"
+        "timestamp": "2025-05-21T06:21:20.674Z"
       },
       {
         "division": "Admin Proyek",
         "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
-        "timestamp": "2025-05-21T03:51:50.096Z",
-        "note": "dokumen penawaran proyek"
+        "timestamp": "2025-05-21T06:23:16.353Z",
+        "note": "berkas penawaran proyek"
       },
       {
         "division": "Owner",
         "action": "sudina (Owner) approved: Setujui Dokumen Penawaran",
-        "timestamp": "2025-05-21T04:54:51.027Z"
-      },
-      {
-        "division": "General Admin",
-        "action": "oksi (General Admin) requested revision. Project sent to Owner for Setujui Faktur DP.",
-        "timestamp": "2025-05-21T05:06:54.899Z",
-        "note": "coba ulang notifikasinya"
-      },
-      {
-        "division": "Owner",
-        "action": "sudina (Owner) approved: Setujui Faktur DP",
-        "timestamp": "2025-05-21T05:07:47.194Z"
+        "timestamp": "2025-05-21T06:24:06.147Z"
       }
     ],
     "files": [
       {
         "name": "CamScanner 01-10-2024 18.28.jpg",
         "uploadedBy": "sudina",
-        "timestamp": "2025-05-21T03:34:48.006Z"
+        "path": "temp-id-for-upload-proyek_villa_canggu/camscanner_01-10-2024_1828jpg",
+        "timestamp": "2025-05-21T06:21:20.654Z"
       },
       {
-        "name": "label nama undangan siap download.docx",
+        "name": "20201103_145326.jpg",
         "uploadedBy": "komangmerta",
-        "path": "project_1747798488006_76uua-proyek_b/label_nama_undangan_siap_downloaddocx",
-        "timestamp": "2025-05-21T03:51:50.096Z"
+        "path": "project_1747808480674_o5ldl-proyek_villa_canggu/20201103_145326jpg",
+        "timestamp": "2025-05-21T06:23:16.353Z"
       }
     ],
-    "createdAt": "2025-05-21T03:34:48.006Z",
-    "createdBy": "sudina"
-  },
-  {
-    "id": "project_1747804132877_ydc0n",
-    "title": "proyek c",
-    "status": "Pending Offer",
-    "progress": 10,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Unggah Dokumen Penawaran",
-    "workflowId": "default_standard_workflow",
-    "workflowHistory": [
-      {
-        "division": "sudina",
-        "action": "Created Project",
-        "timestamp": "2025-05-21T05:08:52.877Z"
-      },
-      {
-        "division": "System",
-        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
-        "timestamp": "2025-05-21T05:08:52.877Z"
-      }
-    ],
-    "files": [],
-    "createdAt": "2025-05-21T05:08:52.877Z",
-    "createdBy": "sudina"
-  },
-  {
-    "id": "project_1747804168591_0o9yj",
-    "title": "proyek d",
-    "status": "Pending Offer",
-    "progress": 10,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Unggah Dokumen Penawaran",
-    "workflowId": "default_standard_workflow",
-    "workflowHistory": [
-      {
-        "division": "sudina",
-        "action": "Created Project",
-        "timestamp": "2025-05-21T05:09:28.591Z"
-      },
-      {
-        "division": "System",
-        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
-        "timestamp": "2025-05-21T05:09:28.591Z"
-      }
-    ],
-    "files": [],
-    "createdAt": "2025-05-21T05:09:28.591Z",
-    "createdBy": "sudina"
-  },
-  {
-    "id": "project_1747804235922_s7npg",
-    "title": "proyek f",
-    "status": "Pending Offer",
-    "progress": 10,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Unggah Dokumen Penawaran",
-    "workflowId": "default_standard_workflow",
-    "workflowHistory": [
-      {
-        "division": "sudina",
-        "action": "Created Project",
-        "timestamp": "2025-05-21T05:10:35.922Z"
-      },
-      {
-        "division": "System",
-        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
-        "timestamp": "2025-05-21T05:10:35.922Z"
-      }
-    ],
-    "files": [],
-    "createdAt": "2025-05-21T05:10:35.922Z",
-    "createdBy": "sudina"
-  },
-  {
-    "id": "project_1747805204677_u0k9e",
-    "title": "proyek g",
-    "status": "Pending Offer",
-    "progress": 10,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Unggah Dokumen Penawaran",
-    "workflowId": "default_standard_workflow",
-    "workflowHistory": [
-      {
-        "division": "sudina",
-        "action": "Created Project",
-        "timestamp": "2025-05-21T05:26:44.677Z"
-      },
-      {
-        "division": "sudina",
-        "action": "Uploaded initial file: INVOICE Gstudio.docx",
-        "timestamp": "2025-05-21T05:26:44.677Z"
-      },
-      {
-        "division": "System",
-        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
-        "timestamp": "2025-05-21T05:26:44.677Z"
-      }
-    ],
-    "files": [
-      {
-        "name": "INVOICE Gstudio.docx",
-        "uploadedBy": "sudina",
-        "timestamp": "2025-05-21T05:26:44.677Z"
-      }
-    ],
-    "createdAt": "2025-05-21T05:26:44.677Z",
-    "createdBy": "sudina"
-  },
-  {
-    "id": "project_1747806999711_8ultt",
-    "title": "proyek h",
-    "status": "Pending Offer",
-    "progress": 10,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Unggah Dokumen Penawaran",
-    "workflowId": "default_standard_workflow",
-    "workflowHistory": [
-      {
-        "division": "sudina",
-        "action": "Created Project",
-        "timestamp": "2025-05-21T05:56:39.711Z"
-      },
-      {
-        "division": "sudina",
-        "action": "Uploaded initial file: 1.png",
-        "timestamp": "2025-05-21T05:56:39.711Z"
-      },
-      {
-        "division": "System",
-        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
-        "timestamp": "2025-05-21T05:56:39.711Z"
-      }
-    ],
-    "files": [
-      {
-        "name": "1.png",
-        "uploadedBy": "sudina",
-        "timestamp": "2025-05-21T05:56:39.711Z"
-      }
-    ],
-    "createdAt": "2025-05-21T05:56:39.711Z",
-    "createdBy": "sudina"
-  },
-  {
-    "id": "project_1747807864992_pn1cp",
-    "title": "proyek I",
-    "status": "Pending Offer",
-    "progress": 10,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Unggah Dokumen Penawaran",
-    "workflowId": "default_standard_workflow",
-    "workflowHistory": [
-      {
-        "division": "sudina",
-        "action": "Created Project",
-        "timestamp": "2025-05-21T06:11:04.992Z"
-      },
-      {
-        "division": "sudina",
-        "action": "Uploaded initial file: 1.png",
-        "timestamp": "2025-05-21T06:11:05.015Z"
-      },
-      {
-        "division": "System",
-        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
-        "timestamp": "2025-05-21T06:11:04.992Z"
-      }
-    ],
-    "files": [
-      {
-        "name": "1.png",
-        "uploadedBy": "sudina",
-        "path": "temp-id-for-upload-proyek_i/1png",
-        "timestamp": "2025-05-21T06:11:05.015Z"
-      }
-    ],
-    "createdAt": "2025-05-21T06:11:04.992Z",
+    "createdAt": "2025-05-21T06:21:20.674Z",
     "createdBy": "sudina"
   }
 ]
