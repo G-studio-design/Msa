@@ -14,5 +14,21 @@
     "message": "Penawaran untuk proyek 'proyek A' telah diajukan dan menunggu persetujuan Anda.",
     "timestamp": "2025-05-19T06:16:00.419Z",
     "isRead": true
+  },
+  {
+    "id": "notif_1747798488030_1sls8",
+    "userId": "usr_owner_default",
+    "projectId": "project_1747798488006_76uua",
+    "message": "Penawaran untuk proyek 'proyek B' telah diajukan dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-21T03:34:48.029Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747799510111_k0v9h",
+    "userId": "usr_owner_default",
+    "projectId": "project_1747798488006_76uua",
+    "message": "Penawaran untuk proyek 'proyek B' telah diajukan dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-21T03:51:50.111Z",
+    "isRead": true
   }
 ]

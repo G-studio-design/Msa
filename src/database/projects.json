@@ -2,10 +2,10 @@
   {
     "id": "project_1747634871321_k9863",
     "title": "proyek A",
-    "status": "Pending Approval",
+    "status": "Canceled",
     "progress": 20,
-    "assignedDivision": "Owner",
-    "nextAction": "Setujui Dokumen Penawaran",
+    "assignedDivision": "",
+    "nextAction": null,
     "workflowId": "default_standard_workflow",
     "workflowHistory": [
       {
@@ -28,6 +28,11 @@
         "action": "adminproyek (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
         "timestamp": "2025-05-19T06:16:00.394Z",
         "note": "dokumen penawaran"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) rejected: Setujui Dokumen Penawaran",
+        "timestamp": "2025-05-21T03:31:04.539Z"
       }
     ],
     "files": [
@@ -50,6 +55,53 @@
       }
     ],
     "createdAt": "2025-05-19T06:07:51.321Z",
+    "createdBy": "sudina"
+  },
+  {
+    "id": "project_1747798488006_76uua",
+    "title": "proyek B",
+    "status": "Pending Approval",
+    "progress": 20,
+    "assignedDivision": "Owner",
+    "nextAction": "Setujui Dokumen Penawaran",
+    "workflowId": "default_standard_workflow",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project",
+        "timestamp": "2025-05-21T03:34:48.006Z"
+      },
+      {
+        "division": "sudina",
+        "action": "Uploaded initial file: CamScanner 01-10-2024 18.28.jpg",
+        "timestamp": "2025-05-21T03:34:48.006Z"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
+        "timestamp": "2025-05-21T03:34:48.006Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
+        "timestamp": "2025-05-21T03:51:50.096Z",
+        "note": "dokumen penawaran proyek"
+      }
+    ],
+    "files": [
+      {
+        "name": "CamScanner 01-10-2024 18.28.jpg",
+        "uploadedBy": "sudina",
+        "timestamp": "2025-05-21T03:34:48.006Z"
+      },
+      {
+        "name": "label nama undangan siap download.docx",
+        "uploadedBy": "komangmerta",
+        "path": "project_1747798488006_76uua-proyek_b/label_nama_undangan_siap_downloaddocx",
+        "timestamp": "2025-05-21T03:51:50.096Z"
+      }
+    ],
+    "createdAt": "2025-05-21T03:34:48.006Z",
     "createdBy": "sudina"
   }
 ]

@@ -1,4 +1,3 @@
-
 [
   {
     "id": "default_standard_workflow",
@@ -125,7 +124,7 @@
         "status": "Pending Survey Details",
         "assignedDivision": "Admin Proyek",
         "progress": 45,
-        "nextActionDescription": "Input Jadwal Survei & Unggah Hasil",
+        "nextActionDescription": "Input Jadwal Survei & Unggah Laporan Hasil Survei",
         "transitions": {
           "submitted": {
             "targetStatus": "Pending Architect Files",
@@ -166,32 +165,13 @@
         "nextActionDescription": "Unggah Berkas Struktur",
         "transitions": {
           "submitted": {
-            "targetStatus": "Pending MEP Files",
-            "targetAssignedDivision": "Admin Proyek",
-            "targetNextActionDescription": "Unggah Berkas MEP",
-            "targetProgress": 80,
-            "notification": {
-              "division": "Admin Proyek",
-              "message": "Berkas struktur untuk '{projectName}' lengkap. Mohon unggah berkas MEP."
-            }
-          }
-        }
-      },
-      {
-        "stepName": "MEP Files Submission",
-        "status": "Pending MEP Files",
-        "assignedDivision": "Admin Proyek",
-        "progress": 80,
-        "nextActionDescription": "Unggah Berkas MEP",
-        "transitions": {
-          "submitted": {
             "targetStatus": "Pending Scheduling",
             "targetAssignedDivision": "Admin Proyek",
             "targetNextActionDescription": "Jadwalkan Sidang",
             "targetProgress": 90,
             "notification": {
               "division": "Admin Proyek",
-              "message": "Semua berkas teknis untuk '{projectName}' lengkap. Mohon jadwalkan sidang."
+              "message": "Berkas struktur untuk '{projectName}' lengkap. Mohon jadwalkan sidang."
             }
           }
         }
