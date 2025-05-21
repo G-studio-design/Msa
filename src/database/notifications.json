@@ -86,5 +86,37 @@
     "message": "Penawaran untuk proyek 'proyek f' telah diajukan dan menunggu persetujuan Anda.",
     "timestamp": "2025-05-21T05:10:35.932Z",
     "isRead": true
+  },
+  {
+    "id": "notif_1747805204691_tfrgs",
+    "userId": "usr_admin_proyek_default",
+    "projectId": "project_1747805204677_u0k9e",
+    "message": "Proyek baru 'proyek g' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-21T05:26:44.691Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747805204691_jxdap",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1747805204677_u0k9e",
+    "message": "Proyek baru 'proyek g' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-21T05:26:44.691Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747806999723_3ryhb",
+    "userId": "usr_admin_proyek_default",
+    "projectId": "project_1747806999711_8ultt",
+    "message": "Proyek baru 'proyek h' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-21T05:56:39.722Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747806999723_4qupe",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1747806999711_8ultt",
+    "message": "Proyek baru 'proyek h' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-21T05:56:39.722Z",
+    "isRead": false
   }
 ]

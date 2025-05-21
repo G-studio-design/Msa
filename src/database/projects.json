@@ -191,5 +191,75 @@
     "files": [],
     "createdAt": "2025-05-21T05:10:35.922Z",
     "createdBy": "sudina"
+  },
+  {
+    "id": "project_1747805204677_u0k9e",
+    "title": "proyek g",
+    "status": "Pending Offer",
+    "progress": 10,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Unggah Dokumen Penawaran",
+    "workflowId": "default_standard_workflow",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project",
+        "timestamp": "2025-05-21T05:26:44.677Z"
+      },
+      {
+        "division": "sudina",
+        "action": "Uploaded initial file: INVOICE Gstudio.docx",
+        "timestamp": "2025-05-21T05:26:44.677Z"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
+        "timestamp": "2025-05-21T05:26:44.677Z"
+      }
+    ],
+    "files": [
+      {
+        "name": "INVOICE Gstudio.docx",
+        "uploadedBy": "sudina",
+        "timestamp": "2025-05-21T05:26:44.677Z"
+      }
+    ],
+    "createdAt": "2025-05-21T05:26:44.677Z",
+    "createdBy": "sudina"
+  },
+  {
+    "id": "project_1747806999711_8ultt",
+    "title": "proyek h",
+    "status": "Pending Offer",
+    "progress": 10,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Unggah Dokumen Penawaran",
+    "workflowId": "default_standard_workflow",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project",
+        "timestamp": "2025-05-21T05:56:39.711Z"
+      },
+      {
+        "division": "sudina",
+        "action": "Uploaded initial file: 1.png",
+        "timestamp": "2025-05-21T05:56:39.711Z"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
+        "timestamp": "2025-05-21T05:56:39.711Z"
+      }
+    ],
+    "files": [
+      {
+        "name": "1.png",
+        "uploadedBy": "sudina",
+        "timestamp": "2025-05-21T05:56:39.711Z"
+      }
+    ],
+    "createdAt": "2025-05-21T05:56:39.711Z",
+    "createdBy": "sudina"
   }
 ]
