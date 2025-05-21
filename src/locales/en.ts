@@ -1,4 +1,3 @@
-
 // src/locales/en.ts
 const en = {
   // Login Page
@@ -43,7 +42,7 @@ const en = {
         adminproyek: 'Admin Proyek',
         arsitek: 'Arsitek',
         struktur: 'Struktur',
-        mep: 'MEP Coordinator',
+        mep: 'MEP', // Simplified from MEP Coordinator as its tasks are now part of Admin Proyek workflow
         admindev: 'Developer',
     },
   },
@@ -83,7 +82,7 @@ const en = {
       pendingsurveydetails: 'Pending Survey Details',
       pendingarchitectfiles: 'Pending Architect Files',
       pendingstructurefiles: 'Pending Structure Files',
-      pendingmepfiles: 'Pending MEP Files',
+      pendingmepfiles: 'Pending MEP Files', // Kept for potential custom workflows
       pendingfinalcheck: 'Pending Final Check',
       pendingscheduling: 'Pending Scheduling',
       owner: 'Owner',
@@ -91,7 +90,7 @@ const en = {
       adminproyek: 'Admin Proyek',
       arsitek: 'Arsitek',
       struktur: 'Struktur',
-      mep: 'MEP Coordinator',
+      mep: 'MEP', // Simplified label
       admindev: 'Developer',
       notassigned: 'Not Assigned',
       sakit: "Sick Leave",
@@ -148,7 +147,7 @@ const en = {
     ownerActionTitle: 'Owner Action Required',
     ownerActionDesc: 'Review the submitted documents and decide whether to proceed.',
     approveButton: 'Approve',
-    rejectButton: 'Reject',
+    cancelProjectButton: 'Cancel Project', // Changed from rejectButton
     scheduleSidangTitle: 'Schedule Sidang ({role})',
     dateLabel: 'Date',
     timeLabel: 'Time',
@@ -203,7 +202,7 @@ const en = {
     cancelButton: 'Cancel',
     cancelDialogTitle: "Confirm Project Cancellation",
     cancelDialogDesc: "Are you sure you want to cancel project \"{projectName}\"? This action cannot be undone.",
-    confirmRejectButton: "Yes, Reject",
+    confirmCancelButton: "Yes, Cancel Project", // Changed from confirmRejectButton
     revisionNotePrefix: 'Note:',
     invalidDate: 'Invalid Date',
     notApplicable: 'N/A',
@@ -227,29 +226,30 @@ const en = {
         inputSurveyDetails: "Input Survey Details & Upload Report",
         uploadArchitectFiles: "Upload Architect Files",
         uploadStructureFiles: "Upload Structure Files",
-        uploadMEPFiles: "Upload MEP Files",
-        performFinalCheck: "Perform Final Check",
+        // uploadMEPFiles: "Upload MEP Files", // Removed as Admin Proyek handles this
+        performFinalCheck: "Perform Final Check", // This might be obsolete if MEP step by Admin Proyek replaces it
         scheduleSidang: "Schedule Sidang",
         declareSidangOutcome: "Declare Sidang Outcome",
         reviseOfferDocument: "Revise & Re-submit Offer Document",
         reviseDPInvoice: "Revise and Re-upload DP Invoice",
         performPostSidangRevisions: "Perform Post-Sidang Revisions on Admin Files",
         uploadPostSidangRevisions: "Upload post-sidang revisions, notify relevant parties if needed, then confirm project completion.",
+        uploadMEPFilesByAdmin: "Upload MEP Files (Admin Proyek)",
     },
     workflowActions: {
         approveOffer: "Approved Offer Document",
         uploadedOffer: "Uploaded Offer Document",
         uploadArchitectFiles: "Upload Architect Files",
         uploadedAdminFiles: "Uploaded Admin Files",
-        uploadMepFiles: "Upload MEP Files",
-        uploadedMEPFiles: "Uploaded MEP Files",
+        // uploadMepFiles: "Upload MEP Files",
+        uploadedMEPFiles: "Uploaded MEP Files", // Kept for generic logging, or if a custom workflow uses it
         scheduleSidang: "Scheduled Sidang",
         completedFinalCheck: "Completed Final Check",
         approveDPInvoice: "Approved DP Invoice",
         uploadedDPInvoice: "Uploaded DP Invoice",
         uploadStructureFiles: "Upload Structure Files",
         uploadedArchitectFiles: "Uploaded Architect Files",
-        performFinalCheck: "Performed Final Check",
+        // performFinalCheck: "Performed Final Check", // Potentially obsolete
         uploadedStructureFiles: "Uploaded Structure Files",
         submittedProgressFor: "Submitted Progress for",
         canceledProject: "Canceled Project",
@@ -271,6 +271,7 @@ const en = {
         uploadedSurveyResults: "Uploaded Survey Results",
         architectUploadedInitialImages: "Architect uploaded initial reference images for Structure.",
         adminProyekCompletedPostSidangRevision: "Admin Proyek completed post-sidang revisions and finalized the project.",
+        adminProyekUploadedMEPFiles: "Admin Proyek uploaded MEP files.",
     },
     toast: {
       permissionDenied: 'Permission Denied',
@@ -287,7 +288,7 @@ const en = {
       projectMarkedCompleted: "Project Completed",
       projectCompletedSuccessfully: "Project \"{title}\" has been successfully marked as completed.",
       projectMarkedCanceled: "Project Canceled",
-      projectCanceledSuccessfully: "Project \"{title}\" has been successfully canceled.",
+      projectCanceledSuccessfully: "Project \"{title}\" has been successfully canceled by the Owner.",
       revisionRequested: "Revision Requested",
       projectSentForRevision: "Project \"{title}\" sent back to {division} for revision.",
       sidangOutcomeSuccessTitle: "Sidang Outcome: Success",
@@ -332,10 +333,11 @@ const en = {
       failedToProcessDecision: 'Failed to process decision.',
       failedToSaveSchedule: 'Failed to save schedule.',
       failedToRevise: 'Failed to revise project.',
-      revisionNotApplicableShort: 'Revision not applicable.',
+      revisionNotApplicableShort: 'Revision Not Applicable',
       maxFilesExceeded: 'Cannot upload more than {max} files at once.',
       uploadError: 'Upload Error',
-      actionDidNotChangeStatus: "Action completed, but project status remains the same. No applicable workflow transition found.",
+      actionDidNotChangeStatusTitle: "Action Processed",
+      actionDidNotChangeStatusDesc: "The action was processed, but the project status or assignment did not change based on the current workflow definition.",
       initialImagesUploadedTitle: "Initial Images Uploaded",
       initialImagesUploadedDesc: "Initial reference images for project \"{projectName}\" have been uploaded. Division Structure has been notified.",
       revisionNotificationSentTitle: "Notification Sent",
@@ -409,7 +411,7 @@ const en = {
        adminproyek: 'Admin Proyek',
        arsitek: 'Arsitek',
        struktur: 'Struktur',
-       mep: 'MEP Coordinator',
+       mep: 'MEP', // Simplified
        admindev: 'Developer',
      },
     toast: {
@@ -791,3 +793,4 @@ const en = {
 };
 
 export default en;
+

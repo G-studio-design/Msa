@@ -1,4 +1,3 @@
-
 // src/locales/id.ts
 const id = {
   // Login Page
@@ -43,7 +42,7 @@ const id = {
         adminproyek: 'Admin Proyek',
         arsitek: 'Arsitek',
         struktur: 'Struktur',
-        mep: 'Koordinator MEP',
+        mep: 'MEP', // Disederhanakan
         admindev: 'Developer',
     },
   },
@@ -83,7 +82,7 @@ const id = {
       pendingsurveydetails: 'Menunggu Detail Survei',
       pendingarchitectfiles: 'Menunggu Berkas Arsitektur',
       pendingstructurefiles: 'Menunggu Berkas Struktur',
-      pendingmepfiles: 'Menunggu Berkas MEP',
+      pendingmepfiles: 'Menunggu Berkas MEP', // Disimpan untuk potensi alur kerja kustom
       pendingfinalcheck: 'Menunggu Pemeriksaan Akhir',
       pendingscheduling: 'Menunggu Penjadwalan',
       owner: 'Pemilik',
@@ -91,7 +90,7 @@ const id = {
       adminproyek: 'Admin Proyek',
       arsitek: 'Arsitek',
       struktur: 'Struktur',
-      mep: 'Koordinator MEP',
+      mep: 'MEP', // Label disederhanakan
       admindev: 'Developer',
       notassigned: 'Belum Ditugaskan',
       sakit: "Sakit",
@@ -148,7 +147,7 @@ const id = {
     ownerActionTitle: 'Tindakan Pemilik Diperlukan',
     ownerActionDesc: 'Tinjau dokumen yang dikirim dan putuskan apakah akan melanjutkan.',
     approveButton: 'Setujui',
-    rejectButton: 'Tolak',
+    cancelProjectButton: 'Batalkan Proyek', // Diubah dari rejectButton
     scheduleSidangTitle: 'Jadwalkan Sidang ({role})',
     dateLabel: 'Tanggal',
     timeLabel: 'Waktu',
@@ -203,7 +202,7 @@ const id = {
     cancelButton: 'Batal',
     cancelDialogTitle: "Konfirmasi Pembatalan Proyek",
     cancelDialogDesc: "Apakah Anda yakin ingin membatalkan proyek \"{projectName}\"? Tindakan ini tidak dapat dibatalkan.",
-    confirmRejectButton: "Ya, Tolak",
+    confirmCancelButton: "Ya, Batalkan Proyek", // Diubah dari confirmRejectButton
     revisionNotePrefix: 'Catatan:',
     invalidDate: 'Tanggal Tidak Valid',
     notApplicable: 'N/A',
@@ -227,21 +226,22 @@ const id = {
         inputSurveyDetails: "Input Jadwal Survei & Unggah Hasil",
         uploadArchitectFiles: "Unggah Berkas Arsitektur",
         uploadStructureFiles: "Unggah Berkas Struktur",
-        uploadMEPFiles: "Unggah Berkas MEP",
-        performFinalCheck: "Lakukan Pemeriksaan Akhir",
+        // uploadMEPFiles: "Unggah Berkas MEP", // Dihapus karena Admin Proyek yang menangani
+        performFinalCheck: "Lakukan Pemeriksaan Akhir", // Mungkin usang jika langkah MEP oleh Admin Proyek menggantikannya
         scheduleSidang: "Jadwalkan Sidang",
         declareSidangOutcome: "Nyatakan Hasil Sidang",
         reviseOfferDocument: "Revisi & Kirim Ulang Dokumen Penawaran",
         reviseDPInvoice: "Revisi dan Unggah Ulang Faktur DP",
         performPostSidangRevisions: "Lakukan Revisi Pasca Sidang pada Berkas Administrasi",
         uploadPostSidangRevisions: "Unggah revisi pasca-sidang, notifikasi pihak terkait jika perlu, lalu konfirmasi penyelesaian proyek.",
+        uploadMEPFilesByAdmin: "Unggah Berkas MEP (Admin Proyek)",
     },
     workflowActions: {
         approveOffer: "Menyetujui Dokumen Penawaran",
         uploadedOffer: "Mengunggah Dokumen Penawaran",
         uploadArchitectFiles: "Unggah Berkas Arsitektur",
         uploadedAdminFiles: "Mengunggah Berkas Administrasi",
-        uploadMepFiles: "Unggah Berkas MEP",
+        // uploadMepFiles: "Unggah Berkas MEP",
         uploadedMEPFiles: "Mengunggah Berkas MEP",
         scheduleSidang: "Menjadwalkan Sidang",
         completedFinalCheck: "Menyelesaikan Pemeriksaan Akhir",
@@ -249,10 +249,10 @@ const id = {
         uploadedDPInvoice: "Mengunggah Faktur DP",
         uploadStructureFiles: "Unggah Berkas Struktur",
         uploadedArchitectFiles: "Mengunggah Berkas Arsitektur",
-        performFinalCheck: "Melakukan Pemeriksaan Akhir",
+        // performFinalCheck: "Melakukan Pemeriksaan Akhir",
         uploadedStructureFiles: "Mengunggah Berkas Struktur",
         submittedProgressFor: "Mengirim Progres untuk",
-        canceledProject: "Membatalkan Proyek",
+        canceledProject: "Membatalkan Proyek", // Disesuaikan
         generateDPInvoice: "Membuat Faktur DP",
         approvedOfferTransition: "Menyetujui Penawaran",
         approvedDPInvoiceTransition: "Menyetujui Faktur DP",
@@ -271,6 +271,8 @@ const id = {
         uploadedSurveyResults: "Mengunggah Hasil Survei",
         architectUploadedInitialImages: "Arsitek mengunggah gambar referensi awal untuk Struktur.",
         adminProyekCompletedPostSidangRevision: "Admin Proyek menyelesaikan revisi pasca-sidang dan menyelesaikan proyek.",
+        adminProyekUploadedMEPFiles: "Admin Proyek mengunggah berkas MEP.",
+        offerCanceledByOwner: "Penawaran proyek dibatalkan oleh Pemilik.", // Pesan baru
     },
     toast: {
       permissionDenied: 'Izin Ditolak',
@@ -287,7 +289,7 @@ const id = {
       projectMarkedCompleted: "Proyek Selesai",
       projectCompletedSuccessfully: "Proyek \"{title}\" telah berhasil ditandai sebagai selesai.",
       projectMarkedCanceled: "Proyek Dibatalkan",
-      projectCanceledSuccessfully: "Proyek \"{title}\" telah berhasil dibatalkan.",
+      projectCanceledSuccessfully: "Proyek \"{title}\" telah berhasil dibatalkan oleh Pemilik.", // Diperbarui
       revisionRequested: "Permintaan Revisi",
       projectSentForRevision: "Proyek \"{title}\" dikirim kembali ke {division} untuk direvisi.",
       sidangOutcomeSuccessTitle: "Hasil Sidang: Berhasil",
@@ -332,10 +334,11 @@ const id = {
       failedToProcessDecision: 'Gagal memproses keputusan.',
       failedToSaveSchedule: 'Gagal menyimpan jadwal.',
       failedToRevise: 'Gagal merevisi proyek.',
-      revisionNotApplicableShort: 'Revisi tidak berlaku.',
+      revisionNotApplicableShort: 'Revisi Tidak Berlaku',
       maxFilesExceeded: 'Tidak dapat mengunggah lebih dari {max} file sekaligus.',
       uploadError: 'Kesalahan Unggah',
-      actionDidNotChangeStatus: "Tindakan selesai, tetapi status proyek tetap sama. Tidak ada transisi alur kerja yang berlaku ditemukan.",
+      actionDidNotChangeStatusTitle: "Tindakan Diproses",
+      actionDidNotChangeStatusDesc: "Tindakan telah diproses, tetapi status atau penugasan proyek tidak berubah berdasarkan definisi alur kerja saat ini.",
       initialImagesUploadedTitle: "Gambar Awal Diunggah",
       initialImagesUploadedDesc: "Gambar referensi awal untuk proyek \"{projectName}\" telah diunggah. Divisi Struktur telah dinotifikasi.",
       revisionNotificationSentTitle: "Notifikasi Terkirim",
@@ -409,7 +412,7 @@ const id = {
        adminproyek: 'Admin Proyek',
        arsitek: 'Arsitek',
        struktur: 'Struktur',
-       mep: 'Koordinator MEP',
+       mep: 'MEP', // Disederhanakan
        admindev: 'Developer',
      },
     toast: {
@@ -791,3 +794,4 @@ const id = {
 };
 
 export default id;
+

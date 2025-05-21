@@ -70,11 +70,11 @@ const DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
         transitions: {
           "approved": {
             targetStatus: "Pending DP Invoice",
-            targetAssignedDivision: "Admin/Akuntan",
+            targetAssignedDivision: "General Admin", // This will be displayed as Admin/Akuntan
             targetNextActionDescription: "Buat Faktur DP",
             targetProgress: 25,
             notification: {
-              division: "Admin/Akuntan",
+              division: "General Admin",
               message: "Penawaran untuk proyek '{projectName}' telah disetujui. Mohon buat faktur DP."
             }
           },
@@ -82,10 +82,10 @@ const DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
             targetStatus: "Canceled",
             targetAssignedDivision: "",
             targetNextActionDescription: null,
-            targetProgress: 20, // Or current progress
+            targetProgress: 20, 
             notification: {
               division: "Admin Proyek",
-              message: "Penawaran untuk proyek '{projectName}' ditolak oleh Owner."
+              message: "Penawaran proyek '{projectName}' telah dibatalkan oleh Owner." // Updated message
             }
           }
         }
@@ -93,7 +93,7 @@ const DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
       {
         stepName: "DP Invoice Submission",
         status: "Pending DP Invoice",
-        assignedDivision: "Admin/Akuntan",
+        assignedDivision: "General Admin",
         progress: 25,
         nextActionDescription: "Unggah Faktur DP",
         transitions: {
@@ -128,11 +128,11 @@ const DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           },
           "rejected": { 
             targetStatus: "Pending DP Invoice",
-            targetAssignedDivision: "Admin/Akuntan",
+            targetAssignedDivision: "General Admin",
             targetNextActionDescription: "Revisi dan Unggah Ulang Faktur DP",
             targetProgress: 25, 
             notification: {
-              division: "Admin/Akuntan",
+              division: "General Admin",
               message: "Faktur DP untuk proyek '{projectName}' ditolak oleh Owner. Mohon direvisi."
             }
           }
@@ -146,12 +146,12 @@ const DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
         nextActionDescription: "Unggah Berkas Administrasi",
         transitions: {
           "submitted": {
-            targetStatus: "Pending Survey Details", // Added survey step
+            targetStatus: "Pending Survey Details",
             targetAssignedDivision: "Admin Proyek",
             targetNextActionDescription: "Input Jadwal Survei & Unggah Hasil",
             targetProgress: 45,
             notification: {
-              division: "Admin Proyek",
+              division: "Admin Proyek", // Notify Admin Proyek to schedule survey
               message: "Berkas administrasi untuk '{projectName}' lengkap. Mohon jadwalkan survei dan unggah hasilnya."
             }
           }
@@ -195,7 +195,7 @@ const DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           }
         }
       },
-      { // 7. Structure Files Submission
+      { 
         stepName: "Structure Files Submission",
         status: "Pending Structure Files",
         assignedDivision: "Struktur",
@@ -203,10 +203,10 @@ const DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
         nextActionDescription: "Unggah Berkas Struktur",
         transitions: {
           "submitted": {
-            targetStatus: "Pending Scheduling", // Directly to Scheduling
+            targetStatus: "Pending Scheduling", 
             targetAssignedDivision: "Admin Proyek", 
             targetNextActionDescription: "Jadwalkan Sidang", 
-            targetProgress: 90, // Progress for Scheduling
+            targetProgress: 90,
             notification: {
               division: "Admin Proyek",
               message: "Berkas struktur untuk '{projectName}' lengkap. Mohon jadwalkan sidang." 
@@ -214,8 +214,7 @@ const DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           }
         }
       },
-      // MEP Files Submission step is removed
-      { // Now step 8 (previously 9)
+      { 
         stepName: "Sidang Scheduling",
         status: "Pending Scheduling",
         assignedDivision: "Admin Proyek", 
@@ -234,7 +233,7 @@ const DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           }
         }
       },
-      { // Now step 9 (previously 10)
+      { 
         stepName: "Sidang Outcome Declaration",
         status: "Scheduled",
         assignedDivision: "Owner",
@@ -249,13 +248,13 @@ const DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
             notification: null
           },
           "revise_after_sidang": { 
-            targetStatus: "Pending Admin Files", 
+            targetStatus: "Pending Post-Sidang Revision", 
             targetAssignedDivision: "Admin Proyek",
-            targetNextActionDescription: "Lakukan Revisi Pasca Sidang pada Berkas Administrasi",
-            targetProgress: 40, 
+            targetNextActionDescription: "Lakukan revisi pasca-sidang. Notifikasi Arsitek/Struktur jika perlu, lalu konfirmasi penyelesaian.",
+            targetProgress: 85, 
             notification: {
               division: "Admin Proyek",
-              message: "Proyek '{projectName}' memerlukan revisi setelah sidang. Mohon perbarui berkas administrasi dan teknis yang diperlukan."
+              message: "Proyek '{projectName}' memerlukan revisi setelah sidang. Mohon perbarui berkas yang diperlukan."
             }
           },
           "canceled_after_sidang": {
@@ -267,7 +266,26 @@ const DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           }
         }
       },
-      { // Now step 10 (previously 11)
+      {
+        stepName: "Post-Sidang Revision",
+        status: "Pending Post-Sidang Revision",
+        assignedDivision: "Admin Proyek",
+        progress: 85,
+        nextActionDescription: "Lakukan revisi, notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.",
+        transitions: {
+            "revision_completed_and_finish": {
+                targetStatus: "Completed",
+                targetAssignedDivision: "",
+                targetNextActionDescription: null,
+                targetProgress: 100,
+                notification: { // Optional: Notify Owner
+                    division: "Owner",
+                    message: "Proyek '{projectName}' telah berhasil diselesaikan setelah revisi pasca-sidang."
+                }
+            }
+        }
+      },
+      { 
         stepName: "Project Completed",
         status: "Completed",
         assignedDivision: "",
@@ -275,7 +293,7 @@ const DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
         nextActionDescription: null,
         transitions: null 
       },
-      { // Now step 11 (previously 12)
+      { 
         stepName: "Project Canceled",
         status: "Canceled",
         assignedDivision: "",
@@ -296,7 +314,6 @@ async function _readWorkflowsFromFile(): Promise<Workflow[]> {
     }
     try {
         const workflows = JSON.parse(data) as Workflow[];
-        // console.log(`[WorkflowService/JSON] Successfully read ${workflows.length} workflows from file.`);
         return workflows;
     } catch (parseError) {
         console.error("[WorkflowService/JSON] Error parsing workflows.json, returning empty array. File might be corrupted.", parseError);
@@ -323,7 +340,6 @@ async function writeWorkflows(workflows: Workflow[]): Promise<void> {
 }
 
 export async function getAllWorkflows(): Promise<Workflow[]> {
-  // console.log("[WorkflowService/JSON] getAllWorkflows called.");
   let workflows = await _readWorkflowsFromFile();
   let saveNeeded = false;
 
@@ -337,19 +353,16 @@ export async function getAllWorkflows(): Promise<Workflow[]> {
       description: DEFAULT_WORKFLOW_DESCRIPTION,
       steps: JSON.parse(JSON.stringify(DEFAULT_STANDARD_WORKFLOW_STRUCTURE)), 
     };
-    workflows.unshift(defaultWorkflow); // Add to the beginning
+    workflows.unshift(defaultWorkflow);
     saveNeeded = true;
   } else {
-     // Optional: Check if the existing default workflow's structure matches DEFAULT_STANDARD_WORKFLOW_STRUCTURE
      const existingDefault = workflows.find(wf => wf.id === DEFAULT_WORKFLOW_ID);
-     if (existingDefault && JSON.stringify(existingDefault.steps) !== JSON.stringify(DEFAULT_STANDARD_WORKFLOW_STRUCTURE)) {
-         console.log(`[WorkflowService/JSON] Default workflow (ID: ${DEFAULT_WORKFLOW_ID}) structure mismatch. Updating to the latest structure.`);
+     if (existingDefault && (JSON.stringify(existingDefault.steps) !== JSON.stringify(DEFAULT_STANDARD_WORKFLOW_STRUCTURE) || existingDefault.name !== DEFAULT_WORKFLOW_NAME || existingDefault.description !== DEFAULT_WORKFLOW_DESCRIPTION)) {
+         console.log(`[WorkflowService/JSON] Default workflow (ID: ${DEFAULT_WORKFLOW_ID}) definition mismatch. Updating to the latest structure, name, and description.`);
          existingDefault.steps = JSON.parse(JSON.stringify(DEFAULT_STANDARD_WORKFLOW_STRUCTURE));
-         existingDefault.name = DEFAULT_WORKFLOW_NAME; // Ensure name and description are also up-to-date
+         existingDefault.name = DEFAULT_WORKFLOW_NAME;
          existingDefault.description = DEFAULT_WORKFLOW_DESCRIPTION;
          saveNeeded = true;
-     } else if (existingDefault) {
-        // console.log(`[WorkflowService/JSON] Default workflow (ID: ${DEFAULT_WORKFLOW_ID}) already exists and structure is up-to-date.`);
      }
   }
   
@@ -370,15 +383,12 @@ export async function getAllWorkflows(): Promise<Workflow[]> {
       console.error("[WorkflowService/JSON] Failed to persist workflows.json after ensuring/updating default workflow:", writeError);
     }
   }
-  // console.log(`[WorkflowService/JSON] Returning ${workflows.length} workflows.`);
   return workflows;
 }
 
 export async function getWorkflowById(id: string): Promise<Workflow | null> {
   const workflows = await getAllWorkflows(); 
   const workflow = workflows.find(wf => wf.id === id) || null;
-  // if (workflow) console.log(`[WorkflowService/JSON] Found workflow for ID "${id}": ${workflow.name}`);
-  // else console.warn(`[WorkflowService/JSON] Workflow not found for ID "${id}".`);
   return workflow;
 }
 
@@ -456,7 +466,7 @@ export async function addWorkflow(name: string, description: string): Promise<Wo
     id: newWorkflowId,
     name,
     description: description || '',
-    steps: JSON.parse(JSON.stringify(DEFAULT_STANDARD_WORKFLOW_STRUCTURE)), 
+    steps: JSON.parse(JSON.stringify(DEFAULT_STANDARD_WORKFLOW_STRUCTURE)), // Use full default structure
   };
 
   workflows.push(newWorkflow);
@@ -505,7 +515,8 @@ export async function deleteWorkflow(workflowId: string): Promise<void> {
 
   if (workflows.length === initialLength && !(workflowId === DEFAULT_WORKFLOW_ID && initialLength > 1)) { 
       console.warn(`[WorkflowService/JSON] Workflow with ID ${workflowId} not found for deletion, or no change made that would affect default workflow logic.`);
-      throw new Error('WORKFLOW_NOT_FOUND_FOR_DELETION');
+      // Do not throw error if it's just not found, simply proceed to save the current list.
+      // throw new Error('WORKFLOW_NOT_FOUND_FOR_DELETION'); 
   } else if (workflows.length < initialLength) {
     console.log(`[WorkflowService/JSON] Workflow with ID ${workflowId} deleted. Remaining workflows: ${workflows.length}`);
   }
@@ -538,3 +549,4 @@ export async function getAllUniqueStatuses(): Promise<string[]> {
     });
     return Array.from(allStatuses);
 }
+
