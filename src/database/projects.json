@@ -1,3 +1,4 @@
+
 [
   {
     "id": "project_demo_aktif_001",
@@ -54,7 +55,7 @@
     "title": "Pembangunan Villa Ubud",
     "status": "Pending DP Invoice",
     "progress": 25,
-    "assignedDivision": "General Admin",
+    "assignedDivision": "Akuntan",
     "nextAction": "Buat Faktur DP",
     "workflowHistory": [
       {
