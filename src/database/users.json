@@ -53,5 +53,14 @@
     "email": "oksi@example.com",
     "displayName": "oksi",
     "createdAt": "2025-05-22T14:49:29.552Z"
+  },
+  {
+    "id": "usr_1748081668166_rkls1",
+    "username": "agung",
+    "password": "admin123",
+    "role": "MEP",
+    "email": "agung@example.com",
+    "displayName": "agung",
+    "createdAt": "2025-05-24T10:14:28.166Z"
   }
 ]

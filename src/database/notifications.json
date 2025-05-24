@@ -269,7 +269,7 @@
     "projectId": "project_demo_aktif_001",
     "message": "Faktur DP untuk proyek 'Proyek Renovasi Kantor Pusat' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
     "timestamp": "2025-05-24T09:48:07.174Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1748080165055_d5nla",
