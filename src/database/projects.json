@@ -1,120 +1,87 @@
 [
   {
-    "id": "project_1747808480674_o5ldl",
-    "title": "proyek villa canggu",
-    "status": "Pending DP Invoice",
-    "progress": 25,
-    "assignedDivision": "Admin/Akuntan",
-    "nextAction": "Buat Faktur DP",
-    "workflowId": "default_standard_workflow",
+    "id": "project_demo_aktif_001",
+    "title": "Proyek Renovasi Kantor Pusat",
+    "status": "Pending Offer",
+    "progress": 10,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Unggah Dokumen Penawaran",
     "workflowHistory": [
       {
         "division": "sudina",
         "action": "Created Project",
-        "timestamp": "2025-05-21T06:21:20.674Z"
-      },
-      {
-        "division": "sudina",
-        "action": "Uploaded initial file: CamScanner 01-10-2024 18.28.jpg",
-        "timestamp": "2025-05-21T06:21:20.654Z"
+        "timestamp": "2024-05-24T10:00:00.000Z",
+        "note": "Proyek baru untuk renovasi."
       },
       {
         "division": "System",
         "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
-        "timestamp": "2025-05-21T06:21:20.674Z"
+        "timestamp": "2024-05-24T10:00:00.000Z"
+      }
+    ],
+    "files": [],
+    "createdAt": "2024-05-24T10:00:00.000Z",
+    "createdBy": "sudina",
+    "workflowId": "default_standard_workflow"
+  },
+  {
+    "id": "project_demo_selesai_002",
+    "title": "Konsultasi Desain Interior Apartemen",
+    "status": "Completed",
+    "progress": 100,
+    "assignedDivision": "",
+    "nextAction": null,
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project",
+        "timestamp": "2024-05-20T11:00:00.000Z",
+        "note": "Proyek konsultasi cepat."
+      },
+      {
+        "division": "System",
+        "action": "Project marked as Completed",
+        "timestamp": "2024-05-21T15:00:00.000Z"
+      }
+    ],
+    "files": [],
+    "createdAt": "2024-05-20T11:00:00.000Z",
+    "createdBy": "sudina",
+    "workflowId": "simple_consultation_v1"
+  },
+  {
+    "id": "project_demo_menunggu_dp_003",
+    "title": "Pembangunan Villa Ubud",
+    "status": "Pending DP Invoice",
+    "progress": 25,
+    "assignedDivision": "General Admin",
+    "nextAction": "Buat Faktur DP",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project",
+        "timestamp": "2024-05-25T09:00:00.000Z"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
+        "timestamp": "2024-05-25T09:00:00.000Z"
       },
       {
         "division": "Admin Proyek",
-        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
-        "timestamp": "2025-05-21T06:23:16.353Z",
-        "note": "berkas penawaran proyek"
+        "action": "adminproyek (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
+        "timestamp": "2024-05-25T10:00:00.000Z",
+        "note": "Penawaran awal terlampir."
       },
       {
         "division": "Owner",
         "action": "sudina (Owner) approved: Setujui Dokumen Penawaran",
-        "timestamp": "2025-05-21T06:24:06.147Z"
+        "timestamp": "2024-05-25T11:00:00.000Z"
       }
     ],
-    "files": [
-      {
-        "name": "CamScanner 01-10-2024 18.28.jpg",
-        "uploadedBy": "sudina",
-        "path": "temp-id-for-upload-proyek_villa_canggu/camscanner_01-10-2024_1828jpg",
-        "timestamp": "2025-05-21T06:21:20.654Z"
-      },
-      {
-        "name": "20201103_145326.jpg",
-        "uploadedBy": "komangmerta",
-        "path": "project_1747808480674_o5ldl-proyek_villa_canggu/20201103_145326jpg",
-        "timestamp": "2025-05-21T06:23:16.353Z"
-      }
-    ],
-    "createdAt": "2025-05-21T06:21:20.674Z",
-    "createdBy": "sudina"
-  },
-  {
-    "id": "project_1748064025980_k6s3m",
-    "title": "proyek hotel seminyak",
-    "status": "Pending Offer",
-    "progress": 10,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Revisi dan Unggah Ulang Dokumen Penawaran berdasarkan masukan Owner.",
-    "workflowId": "default_standard_workflow",
-    "workflowHistory": [
-      {
-        "division": "sudina",
-        "action": "Created Project",
-        "timestamp": "2025-05-24T05:20:25.980Z"
-      },
-      {
-        "division": "sudina",
-        "action": "Uploaded initial file: pool warung semana.pdf",
-        "timestamp": "2025-05-24T05:20:25.855Z"
-      },
-      {
-        "division": "sudina",
-        "action": "Uploaded initial file: POOL.pdf",
-        "timestamp": "2025-05-24T05:20:25.855Z"
-      },
-      {
-        "division": "System",
-        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
-        "timestamp": "2025-05-24T05:20:25.980Z"
-      },
-      {
-        "division": "Admin Proyek",
-        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
-        "timestamp": "2025-05-24T05:21:29.622Z",
-        "note": "berkas penawaran"
-      },
-      {
-        "division": "Owner",
-        "action": "sudina (Owner) requested revision (revise_offer). Project sent to Admin Proyek for Revisi dan Unggah Ulang Dokumen Penawaran berdasarkan masukan Owner..",
-        "timestamp": "2025-05-24T05:55:27.098Z",
-        "note": "revisi bagian ini mang"
-      }
-    ],
-    "files": [
-      {
-        "name": "pool warung semana.pdf",
-        "uploadedBy": "sudina",
-        "path": "temp-id-for-upload-proyek_hotel_seminyak/pool_warung_semanapdf",
-        "timestamp": "2025-05-24T05:20:25.855Z"
-      },
-      {
-        "name": "POOL.pdf",
-        "uploadedBy": "sudina",
-        "path": "temp-id-for-upload-proyek_hotel_seminyak/poolpdf",
-        "timestamp": "2025-05-24T05:20:25.855Z"
-      },
-      {
-        "name": "RAB angkul angkul  warung semana.xlsx",
-        "uploadedBy": "komangmerta",
-        "path": "project_1748064025980_k6s3m-proyek_hotel_seminyak/rab_angkul_angkul_warung_semanaxlsx",
-        "timestamp": "2025-05-24T05:21:29.622Z"
-      }
-    ],
-    "createdAt": "2025-05-24T05:20:25.980Z",
-    "createdBy": "sudina"
+    "files": [],
+    "createdAt": "2024-05-25T09:00:00.000Z",
+    "createdBy": "sudina",
+    "workflowId": "default_standard_workflow"
   }
 ]

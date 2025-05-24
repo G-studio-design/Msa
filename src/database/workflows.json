@@ -32,11 +32,11 @@
         "transitions": {
           "approved": {
             "targetStatus": "Pending DP Invoice",
-            "targetAssignedDivision": "Admin/Akuntan",
+            "targetAssignedDivision": "General Admin",
             "targetNextActionDescription": "Buat Faktur DP",
             "targetProgress": 25,
             "notification": {
-              "division": "Admin/Akuntan",
+              "division": "General Admin",
               "message": "Penawaran untuk proyek '{projectName}' telah disetujui oleh {actorUsername}. Mohon buat faktur DP."
             }
           },
@@ -47,7 +47,7 @@
             "targetProgress": 20,
             "notification": {
               "division": "Admin Proyek",
-              "message": "Proyek '{projectName}' telah dibatalkan oleh {actorUsername} pada tahap penawaran."
+              "message": "Penawaran untuk proyek '{projectName}' dibatalkan oleh {actorUsername}."
             }
           },
           "revise_offer": {
@@ -65,7 +65,7 @@
       {
         "stepName": "DP Invoice Submission",
         "status": "Pending DP Invoice",
-        "assignedDivision": "Admin/Akuntan",
+        "assignedDivision": "General Admin",
         "progress": 25,
         "nextActionDescription": "Unggah Faktur DP",
         "transitions": {
@@ -100,11 +100,11 @@
           },
           "rejected": {
             "targetStatus": "Pending DP Invoice",
-            "targetAssignedDivision": "Admin/Akuntan",
+            "targetAssignedDivision": "General Admin",
             "targetNextActionDescription": "Revisi dan Unggah Ulang Faktur DP",
             "targetProgress": 25,
             "notification": {
-              "division": "Admin/Akuntan",
+              "division": "General Admin",
               "message": "Faktur DP untuk proyek '{projectName}' ditolak oleh {actorUsername}. Mohon direvisi."
             }
           }
@@ -225,7 +225,7 @@
           "revise_after_sidang": {
             "targetStatus": "Pending Post-Sidang Revision",
             "targetAssignedDivision": "Admin Proyek",
-            "targetNextActionDescription": "Lakukan revisi, notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.",
+            "targetNextActionDescription": "Lakukan revisi pasca-sidang. Notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.",
             "targetProgress": 85,
             "notification": {
               "division": "Admin Proyek",
