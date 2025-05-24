@@ -63,5 +63,14 @@
     "email": "admin.akuntan@example.com",
     "displayName": "Admin Akuntan Default",
     "createdAt": "2025-05-18T00:01:00.000Z"
+  },
+  {
+    "id": "usr_1747925369552_66ue2",
+    "username": "oksi",
+    "password": "admin123",
+    "role": "Akuntan",
+    "email": "oksi@example.com",
+    "displayName": "oksi",
+    "createdAt": "2025-05-22T14:49:29.552Z"
   }
 ]
