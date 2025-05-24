@@ -75,7 +75,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Define available roles for selection (internal role names)
-const divisions = ['Owner', 'Akuntan', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP'];
+const divisions = ['Owner', 'Akuntan', 'Admin Proyek', 'Arsitek', 'Struktur']; // MEP Coordinator (internal 'MEP') is not directly assignable by most roles, Admin Developer is hidden
 
 const defaultDict = getDictionary('en');
 
@@ -96,8 +96,8 @@ export default function ManageUsersPage() {
   const { currentUser } = useAuth();
   const [isClient, setIsClient] = React.useState(false);
   
-  const dict = useMemo(() => getDictionary(language), [language]);
-  const usersDict = useMemo(() => dict.manageUsersPage, [dict]);
+  const dict = React.useMemo(() => getDictionary(language), [language]);
+  const usersDict = React.useMemo(() => dict.manageUsersPage, [dict]);
 
 
   const [users, setUsers] = React.useState<UserType[]>([]);
@@ -109,9 +109,13 @@ export default function ManageUsersPage() {
   const [visiblePasswords, setVisiblePasswords] = React.useState<Record<string, boolean>>({});
 
   const fetchUsers = React.useCallback(async () => {
+      if (!isClient || !currentUser) {
+          setIsLoading(false);
+          return;
+      }
       setIsLoading(true);
       try {
-          const fetchedUsers = await getAllUsersForDisplay();
+          const fetchedUsers = await getAllUsersForDisplay(); // This already filters out Admin Developer
           setUsers(fetchedUsers);
       } catch (error) {
           console.error("Failed to fetch users:", error);
@@ -121,14 +125,14 @@ export default function ManageUsersPage() {
       } finally {
           setIsLoading(false);
       }
-  }, [isClient, usersDict, toast]);
+  }, [isClient, currentUser, usersDict, toast]);
 
 
-  useEffect(() => {
+  React.useEffect(() => {
       setIsClient(true);
   }, []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (isClient && currentUser && ['Owner', 'Akuntan', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role.trim())) {
         fetchUsers();
     } else if (isClient) {
@@ -169,9 +173,10 @@ export default function ManageUsersPage() {
 
    React.useEffect(() => {
       if (editingUser) {
+        const userRoleToSet = divisions.includes(editingUser.role) ? editingUser.role as typeof divisions[number] : undefined;
         editUserForm.reset({
           username: editingUser.username,
-          role: divisions.includes(editingUser.role) ? editingUser.role as typeof divisions[number] : undefined,
+          role: userRoleToSet,
         });
       } else {
         editUserForm.reset({ username: '', role: undefined });
@@ -180,13 +185,13 @@ export default function ManageUsersPage() {
 
 
      React.useEffect(() => {
-         if(isClient) {
+         if(isClient && usersDict?.validation) { // Check if usersDict and its validation property exist
              addUserForm.trigger();
-             if (isEditUserDialogOpen) { 
+             if (isEditUserDialogOpen && editUserForm) { 
                 editUserForm.trigger();
              }
          }
-     }, [dict, addUserForm, editUserForm, isClient, isEditUserDialogOpen]);
+     }, [usersDict, addUserForm, editUserForm, isClient, isEditUserDialogOpen]);
 
 
   const handleAddUser = async (data: AddUserFormValues) => {
@@ -199,7 +204,7 @@ export default function ManageUsersPage() {
 
     setIsProcessing(true);
     addUserForm.clearErrors();
-    console.log('Adding user:', data.username);
+    console.log('[ManageUsersPage] Adding user:', data.username, 'Role:', data.role);
     try {
         const newUser = await addUser(data);
         setUsers(prevUsers => [...prevUsers, newUser as UserType]);
@@ -207,7 +212,7 @@ export default function ManageUsersPage() {
         addUserForm.reset();
         setIsAddUserDialogOpen(false);
     } catch (error: any) {
-        console.error("Add user error:", error);
+        console.error("[ManageUsersPage] Add user error:", error);
         let desc = usersDict.toast.error;
         if (error.message === 'USERNAME_EXISTS') {
             desc = usersDict.toast.usernameExists;
@@ -228,7 +233,7 @@ export default function ManageUsersPage() {
         if (!editingUser || !canManageUsers || !currentUser) return;
         setIsProcessing(true);
         editUserForm.clearErrors();
-        console.log(`Editing user ${editingUser.id}:`, data.username, data.role);
+        console.log(`[ManageUsersPage] Editing user ${editingUser.id}:`, data.username, data.role);
 
         if (editingUser.role === 'Admin Developer' && currentUser.role !== 'Admin Developer') {
             toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotEditAdminDev });
@@ -236,24 +241,45 @@ export default function ManageUsersPage() {
             return;
         }
 
-        const canChangeRole = 
-            currentUser.role === 'Owner' ||
-            currentUser.role === 'Admin Developer' ||
-            (currentUser.role === 'Akuntan' && editingUser.role !== 'Akuntan' && editingUser.role !== 'Owner') ||
-            (currentUser.role === 'Admin Proyek' && !['Owner', 'Akuntan', 'Admin Developer'].includes(editingUser.role));
-            
-        const newRole = canChangeRole ? data.role : editingUser.role;
+        let canChangeRole = false;
+        let newRole = editingUser.role; // Default to original role
 
-        if (currentUser.role === 'Akuntan' && editingUser.role === 'Akuntan' && data.role !== 'Akuntan') {
-            const accountantCount = users.filter(u => u.role === 'Akuntan').length;
-            if (accountantCount <= 1) {
-                toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotChangeLastAdminRole });
-                setIsProcessing(false);
-                return;
+        if (currentUser.role === 'Owner' || currentUser.role === 'Admin Developer') {
+            canChangeRole = true;
+        } else if (currentUser.role === 'Akuntan') {
+             // Akuntan can change other roles to Akuntan, or other non-Owner/Dev roles to something else.
+             // Akuntan cannot change an Owner or Admin Developer.
+             // Akuntan cannot change another Akuntan to a non-Akuntan role if they are the last Akuntan.
+            if (editingUser.role !== 'Owner' && editingUser.role !== 'Admin Developer') {
+                if (editingUser.role === 'Akuntan') {
+                     // If trying to change an Akuntan's role
+                     if (data.role !== 'Akuntan') {
+                         const accountantCount = users.filter(u => u.role === 'Akuntan').length;
+                         if (accountantCount <= 1) {
+                             toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotChangeLastAdminRole });
+                             setIsProcessing(false);
+                             return;
+                         }
+                     }
+                     canChangeRole = true;
+                } else {
+                    // Changing a non-Owner, non-Dev, non-Akuntan user.
+                    canChangeRole = true;
+                }
+            }
+        } else if (currentUser.role === 'Admin Proyek') {
+            // Admin Proyek can only edit roles that are not Owner, Akuntan, or Admin Developer.
+            // And cannot change a user TO Owner, Akuntan, or Admin Developer.
+            if (!['Owner', 'Akuntan', 'Admin Developer'].includes(editingUser.role) &&
+                !['Owner', 'Akuntan', 'Admin Developer'].includes(data.role) ) {
+                canChangeRole = true;
             }
         }
-         if (currentUser.role === 'Admin Proyek' && (editingUser.role === 'Owner' || editingUser.role === 'Akuntan')) {
-            toast({ variant: 'destructive', title: usersDict.toast.permissionDenied, description: "Admin Proyek cannot change Owner or Accountant roles."});
+
+        if (canChangeRole) {
+            newRole = data.role;
+        } else if (data.role !== editingUser.role) { // If role was changed in form but not allowed
+            toast({ variant: 'destructive', title: usersDict.toast.permissionDenied, description: usersDict.toast.editPermissionDenied });
             setIsProcessing(false);
             return;
         }
@@ -263,7 +289,7 @@ export default function ManageUsersPage() {
             const updatePayload: UpdateProfileData = {
                  userId: editingUser.id,
                  username: data.username,
-                 role: newRole,
+                 role: newRole, // Use the determined newRole
                  email: editingUser.email, 
                  whatsappNumber: editingUser.whatsappNumber, 
                  profilePictureUrl: editingUser.profilePictureUrl, 
@@ -271,12 +297,12 @@ export default function ManageUsersPage() {
             };
 
             await updateUserProfile(updatePayload);
-            fetchUsers(); // Re-fetch users to get the updated list
+            fetchUsers(); 
             toast({ title: usersDict.toast.userUpdated, description: usersDict.toast.userUpdatedDesc.replace('{username}', data.username) });
             setIsEditUserDialogOpen(false);
             setEditingUser(null);
         } catch (error: any) {
-             console.error("Edit user error:", error);
+             console.error("[ManageUsersPage] Edit user error:", error);
              let desc = usersDict.toast.error;
              if (error.message === 'USERNAME_EXISTS') {
                  desc = usersDict.toast.usernameExists;
@@ -319,7 +345,7 @@ export default function ManageUsersPage() {
              return;
          }
      }
-     if (userToDelete.role === 'Owner' && currentUser.role !== 'Admin Developer' && currentUser.role !== 'Owner'){ // Owner can delete other owner if they are the last one
+     if (userToDelete.role === 'Owner' && currentUser.role !== 'Admin Developer' && currentUser.role !== 'Owner'){ 
         toast({ variant: 'destructive', title: usersDict.toast.error, description: "Only an Owner or Developer can delete another Owner." });
         return;
      }
@@ -330,10 +356,10 @@ export default function ManageUsersPage() {
 
 
     setIsProcessing(true);
-    console.log('Attempting to delete user:', userId, username);
+    console.log('[ManageUsersPage] Attempting to delete user:', userId, username);
     try {
         await deleteUser(userId);
-        fetchUsers(); // Re-fetch users
+        fetchUsers(); 
         setVisiblePasswords(prev => {
             const newState = {...prev};
             delete newState[userId];
@@ -341,7 +367,7 @@ export default function ManageUsersPage() {
         });
         toast({ title: usersDict.toast.userDeleted, description: usersDict.toast.userDeletedDesc.replace('{username}', username) });
     } catch (error: any) {
-         console.error("Delete user error:", error);
+         console.error("[ManageUsersPage] Delete user error:", error);
          toast({
              variant: 'destructive',
              title: usersDict.toast.error,
@@ -402,7 +428,7 @@ export default function ManageUsersPage() {
       if (roleLower.includes('admin proyek')) return <UserCog className="h-4 w-4 text-orange-600" />;
       if (roleLower.includes('arsitek')) return <User className="h-4 w-4 text-green-600" />;
       if (roleLower.includes('struktur')) return <User className="h-4 w-4 text-yellow-600" />;
-      if (roleLower.includes('mep')) return <Wrench className="h-4 w-4 text-pink-600" />;
+      // MEP icon removed as MEP role is not directly assignable or listed
       if (roleLower.includes('admin developer')) return <Code className="h-4 w-4 text-gray-700" />;
       return <User className="h-4 w-4 text-muted-foreground" />;
   }
@@ -511,12 +537,17 @@ export default function ManageUsersPage() {
                                     {divisions
                                         .filter(division => {
                                             if (!currentUser) return false;
-                                            if (currentUser.role === 'Owner' || currentUser.role === 'Admin Developer') return true; 
+                                            // Admin Developer can create any role except another Admin Developer
+                                            if (currentUser.role === 'Admin Developer') return true; 
+                                            // Owner can create any role except Admin Developer
+                                            if (currentUser.role === 'Owner') return true; 
+                                            // Akuntan can create Admin Proyek, Arsitek, Struktur
                                             if (currentUser.role === 'Akuntan') {
-                                                return division !== 'Owner' && division !== 'Akuntan';
+                                                return ['Admin Proyek', 'Arsitek', 'Struktur'].includes(division);
                                             }
+                                            // Admin Proyek can create Arsitek, Struktur
                                             if (currentUser.role === 'Admin Proyek') {
-                                                return !['Owner', 'Akuntan'].includes(division);
+                                                 return ['Arsitek', 'Struktur'].includes(division);
                                             }
                                             return false; 
                                         })
@@ -570,9 +601,8 @@ export default function ManageUsersPage() {
                         
                         let disableEditBasedOnRole = 
                             (isTargetAdminDeveloper && currentUser?.role !== 'Admin Developer') ||
-                            (currentUser?.role === 'Akuntan' && (isTargetOwner || isTargetAccountant)) ||
-                            (currentUser?.role === 'Admin Proyek' && (isTargetOwner || isTargetAccountant || (isTargetAdminDeveloper && user.id !== currentUser?.id)));
-
+                            (currentUser?.role === 'Akuntan' && (isTargetOwner || isTargetAdminDeveloper)) ||
+                            (currentUser?.role === 'Admin Proyek' && (isTargetOwner || isTargetAccountant || isTargetAdminDeveloper));
 
                         let disableDeleteBasedOnRole =
                             isTargetAdminDeveloper ||
@@ -582,7 +612,10 @@ export default function ManageUsersPage() {
                             (currentUser?.role === 'Admin Proyek' && (isTargetOwner || isTargetAccountant || isTargetAdminDeveloper));
                         
                         const isPasswordVisible = visiblePasswords[user.id] || false;
-                        const canViewPassword = currentUser && (currentUser.role === 'Owner' || currentUser.role === 'Akuntan' || currentUser.role === 'Admin Developer') && !isTargetAdminDeveloper;
+                        let canViewPassword = false;
+                        if(currentUser) {
+                           canViewPassword = (currentUser.role === 'Owner' || currentUser.role === 'Akuntan' || currentUser.role === 'Admin Developer') && !isTargetAdminDeveloper;
+                        }
 
 
                         return (
@@ -702,8 +735,9 @@ export default function ManageUsersPage() {
                                    disabled={
                                        isProcessing ||
                                        !currentUser || 
-                                       editingUser?.role === 'Owner' || 
-                                       (currentUser.role === 'Admin Proyek' && editingUser?.role === 'Akuntan') || 
+                                       (editingUser?.role === 'Admin Developer' && currentUser.role !== 'Admin Developer') || // Only Admin Dev can edit Admin Dev role (to itself)
+                                       (editingUser?.role === 'Owner' && currentUser.role !== 'Owner' && currentUser.role !== 'Admin Developer') ||
+                                       (editingUser?.role === 'Akuntan' && currentUser.role === 'Admin Proyek') || // Admin Proyek cannot edit Akuntan
                                        (currentUser.role === 'Akuntan' && editingUser?.role === 'Akuntan' && users.filter(u => u.role === 'Akuntan').length <= 1 && field.value !== 'Akuntan')
                                     }
                                 >
@@ -716,14 +750,15 @@ export default function ManageUsersPage() {
                                         {divisions
                                             .filter(division => {
                                                 if (!currentUser || !editingUser) return false;
-                                                if (currentUser.role === 'Owner' || currentUser.role === 'Admin Developer') return division !== 'Admin Developer'; 
+                                                if (editingUser.role === 'Admin Developer') return division === 'Admin Developer'; // Cannot change Admin Dev role
+                                                if (currentUser.role === 'Admin Developer') return true; 
+                                                if (currentUser.role === 'Owner') return true; 
                                                 if (currentUser.role === 'Akuntan') {
-                                                    if (editingUser.role === 'Akuntan') return division === 'Akuntan'; 
-                                                    return division !== 'Owner' && division !== 'Akuntan';
+                                                    if (editingUser.role === 'Akuntan') return division === 'Akuntan';
+                                                    return ['Admin Proyek', 'Arsitek', 'Struktur'].includes(division);
                                                 }
                                                 if (currentUser.role === 'Admin Proyek') {
-                                                     if(editingUser.role === 'Admin Proyek') return division === 'Admin Proyek';
-                                                     return !['Owner', 'Akuntan'].includes(division);
+                                                     if (['Admin Proyek', 'Arsitek', 'Struktur'].includes(editingUser.role)) return ['Admin Proyek', 'Arsitek', 'Struktur'].includes(division);
                                                 }
                                                 return false; 
                                             })
@@ -738,7 +773,8 @@ export default function ManageUsersPage() {
                                 {(currentUser?.role === 'Akuntan' && editingUser?.role === 'Akuntan' && users.filter(u => u.role === 'Akuntan').length <= 1 && editUserForm.getValues('role') !== 'Akuntan') && (
                                     <p className="text-xs text-muted-foreground">{usersDict.cannotChangeLastAdminRoleHint}</p>
                                 )}
-                                 {(currentUser?.role === 'Admin Proyek' && (editingUser?.role === 'Owner' || editingUser?.role === 'Akuntan')) && (
+                                 {((currentUser?.role === 'Admin Proyek' && (editingUser?.role === 'Owner' || editingUser?.role === 'Akuntan' || editingUser?.role === 'Admin Developer')) ||
+                                   (currentUser?.role === 'Akuntan' && (editingUser?.role === 'Owner' || editingUser?.role === 'Admin Developer'))) && (
                                     <p className="text-xs text-muted-foreground">{(usersDict.toast.editPermissionDenied || "You cannot edit users with this role.").replace('this user', getTranslatedRole(editingUser?.role || ''))}</p>
                                 )}
                               </FormItem>
@@ -759,3 +795,4 @@ export default function ManageUsersPage() {
     </div>
   );
 }
+
