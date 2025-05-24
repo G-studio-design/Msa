@@ -37,15 +37,14 @@ const id = {
     appTitle: 'Msarch App',
     appTitleShort: 'Msarch',
     toggleMenu: 'Buka/Tutup Panel Menu',
-    roles: { // Label tampilan untuk peran
+    roles: { 
         owner: 'Pemilik',
         adminakuntan: 'Admin/Akuntan',
         adminproyek: 'Admin Proyek',
         arsitek: 'Arsitek',
         struktur: 'Struktur',
-        mep: 'MEP',
+        mep: 'MEP', // Label umum jika diperlukan
         admindev: 'Developer',
-        generaladmin: 'Admin/Akuntan', // Kunci internal tetap, tampilan diubah
     },
   },
   // Dashboard Page
@@ -94,7 +93,6 @@ const id = {
       struktur: 'Struktur',
       mep: 'MEP',
       admindev: 'Developer',
-      generaladmin: 'Admin/Akuntan', // Kunci internal tetap, tampilan diubah
       notassigned: 'Belum Ditugaskan',
       sakit: "Sakit",
       cutitahunan: "Cuti Tahunan",
@@ -150,7 +148,7 @@ const id = {
     ownerActionTitle: 'Tindakan Pemilik Diperlukan',
     ownerActionDesc: 'Tinjau dokumen yang dikirim dan putuskan apakah akan melanjutkan.',
     approveButton: 'Setujui',
-    cancelProjectButton: 'Batalkan Proyek', // Menggantikan rejectButton
+    cancelProjectButton: 'Batalkan Proyek', 
     scheduleSidangTitle: 'Jadwalkan Sidang ({role})',
     dateLabel: 'Tanggal',
     timeLabel: 'Waktu',
@@ -200,7 +198,7 @@ const id = {
     reviseButton: 'Minta Revisi',
     revisingButton: 'Meminta Revisi...',
     confirmRevisionTitle: 'Konfirmasi Permintaan Revisi',
-    confirmRevisionDesc: 'Ini akan mengirim proyek kembali ke tahap sebelumnya untuk diperbaiki. Apakah Anda yakin?',
+    confirmRevisionDesc: 'Ini akan mengirim proyek kembali untuk diperbaiki. Apakah Anda yakin?',
     confirmRevisionButton: 'Ya, Minta Revisi',
     cancelButton: 'Batal',
     cancelDialogTitle: "Konfirmasi Pembatalan Proyek",
@@ -220,6 +218,7 @@ const id = {
     architectUploadInitialImagesButton: "Unggah Gambar Awal & Notifikasi Struktur",
     architectUploadInitialImagesDialogTitle: "Unggah Gambar Referensi Awal",
     architectUploadInitialImagesDialogDesc: "Gambar-gambar ini akan dikirim ke divisi Struktur untuk perencanaan awal. Proyek akan tetap menjadi tanggung jawab Anda.",
+    currentProjectActionsTitle: "Tindakan Proyek Saat Ini",
     nextActionDescriptions: {
         uploadOfferDocument: "Unggah Dokumen Penawaran",
         approveOfferDocument: "Setujui Dokumen Penawaran",
@@ -238,7 +237,7 @@ const id = {
         uploadPostSidangRevisions: "Unggah revisi pasca-sidang, notifikasi pihak terkait jika perlu, lalu konfirmasi penyelesaian proyek.",
         uploadMEPFilesByAdmin: "Unggah Berkas MEP (Admin Proyek)",
     },
-    workflowActions: { // Used in WorkflowHistoryEntry.action
+    workflowActions: { 
         approveOffer: "Menyetujui Dokumen Penawaran",
         uploadedOffer: "Mengunggah Dokumen Penawaran",
         uploadArchitectFiles: "Unggah Berkas Arsitektur",
@@ -421,7 +420,6 @@ const id = {
        struktur: 'Struktur',
        mep: 'MEP',
        admindev: 'Developer',
-       generaladmin: 'Admin/Akuntan',
      },
     toast: {
         userAdded: 'Pengguna Ditambahkan',
@@ -528,7 +526,7 @@ const id = {
     addDialogStepsInfo: 'Alur kerja baru akan dibuat dengan langkah-langkah proyek standar. Anda dapat mengeditnya nanti.',
     addDialogSubmitButton: 'Buat Alur Kerja',
     editDialogTitle: 'Ubah Alur Kerja: {name}',
-    editDialogDesc: 'Modifikasi nama dan deskripsi alur kerja. Pengurutan langkah tersedia.',
+    editDialogDesc: 'Modifikasi nama dan deskripsi alur kerja, dan atur ulang urutan langkah.',
     editDialogSubmitButton: 'Simpan Perubahan',
     editStepsInfo: 'Gunakan tombol untuk mengatur ulang langkah. Pengeditan langkah lengkap akan tersedia nanti.',
     stepsLabel: 'Langkah Alur Kerja',
@@ -642,7 +640,7 @@ const id = {
         usernameExistsError: 'Nama pengguna sudah ada. Silakan pilih yang lain.',
     }
   },
-   // Monthly Report Page
+  // Monthly Report Page
    monthlyReportPage: {
        title: "Laporan Proyek Bulanan",
        description: "Ringkasan proyek aktif, selesai, dan dibatalkan dalam bulan yang dipilih.",
@@ -802,3 +800,4 @@ const id = {
 };
 
 export default id;
+

@@ -55,10 +55,10 @@
   {
     "id": "project_1748064025980_k6s3m",
     "title": "proyek hotel seminyak",
-    "status": "Pending Approval",
-    "progress": 20,
-    "assignedDivision": "Owner",
-    "nextAction": "Setujui Dokumen Penawaran",
+    "status": "Pending Offer",
+    "progress": 10,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Revisi dan Unggah Ulang Dokumen Penawaran berdasarkan masukan Owner.",
     "workflowId": "default_standard_workflow",
     "workflowHistory": [
       {
@@ -86,6 +86,12 @@
         "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
         "timestamp": "2025-05-24T05:21:29.622Z",
         "note": "berkas penawaran"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) requested revision (revise_offer). Project sent to Admin Proyek for Revisi dan Unggah Ulang Dokumen Penawaran berdasarkan masukan Owner..",
+        "timestamp": "2025-05-24T05:55:27.098Z",
+        "note": "revisi bagian ini mang"
       }
     ],
     "files": [

@@ -43,9 +43,8 @@ const en = {
         adminproyek: 'Admin Proyek',
         arsitek: 'Arsitek',
         struktur: 'Struktur',
-        mep: 'MEP',
+        mep: 'MEP', // Keep as general MEP label if needed elsewhere
         admindev: 'Developer',
-        generaladmin: 'Admin/Accountant', // Keep for internal consistency if needed, but UI uses adminakuntan
     },
   },
   // Dashboard Page
@@ -94,7 +93,6 @@ const en = {
       struktur: 'Struktur',
       mep: 'MEP',
       admindev: 'Developer',
-      generaladmin: 'Admin/Accountant',
       notassigned: 'Not Assigned',
       sakit: "Sick Leave",
       cutitahunan: "Annual Leave",
@@ -200,7 +198,7 @@ const en = {
     reviseButton: 'Request Revision',
     revisingButton: 'Requesting Revision...',
     confirmRevisionTitle: 'Confirm Revision Request',
-    confirmRevisionDesc: 'This will send the project back to the previous stage for correction. Are you sure?',
+    confirmRevisionDesc: 'This will send the project back for correction. Are you sure?',
     confirmRevisionButton: 'Yes, Request Revision',
     cancelButton: 'Cancel',
     cancelDialogTitle: "Confirm Project Cancellation",
@@ -220,6 +218,7 @@ const en = {
     architectUploadInitialImagesButton: "Upload Initial Images & Notify Structure",
     architectUploadInitialImagesDialogTitle: "Upload Initial Reference Images",
     architectUploadInitialImagesDialogDesc: "These images will be sent to the Structure division for early planning. The project will remain in your court.",
+    currentProjectActionsTitle: "Current Project Actions",
     nextActionDescriptions: {
         uploadOfferDocument: "Upload Offer Document",
         approveOfferDocument: "Approve Offer Document",
@@ -238,7 +237,7 @@ const en = {
         uploadPostSidangRevisions: "Upload post-sidang revisions, notify relevant parties if needed, then confirm project completion.",
         uploadMEPFilesByAdmin: "Upload MEP Files (Admin Proyek)",
     },
-    workflowActions: { // Used in WorkflowHistoryEntry.action
+    workflowActions: { 
         approveOffer: "Approved Offer Document",
         uploadedOffer: "Uploaded Offer Document",
         uploadArchitectFiles: "Upload Architect Files",
@@ -421,7 +420,6 @@ const en = {
        struktur: 'Struktur',
        mep: 'MEP',
        admindev: 'Developer',
-       generaladmin: 'Admin/Accountant',
      },
     toast: {
         userAdded: 'User Added',
@@ -528,7 +526,7 @@ const en = {
     addDialogStepsInfo: 'The new workflow will be created with the standard project steps. You can edit them later.',
     addDialogSubmitButton: 'Create Workflow',
     editDialogTitle: 'Edit Workflow: {name}',
-    editDialogDesc: 'Modify the workflow name and description. Step reordering is available.',
+    editDialogDesc: 'Modify the workflow name, description, and reorder steps.',
     editDialogSubmitButton: 'Save Changes',
     editStepsInfo: 'Use buttons to reorder steps. Full step editing will be available later.',
     stepsLabel: 'Workflow Steps',
@@ -802,3 +800,4 @@ const en = {
 };
 
 export default en;
+

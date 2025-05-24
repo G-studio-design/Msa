@@ -47,7 +47,17 @@
             "targetProgress": 20,
             "notification": {
               "division": "Admin Proyek",
-              "message": "Penawaran untuk proyek '{projectName}' telah dibatalkan oleh {actorUsername}."
+              "message": "Proyek '{projectName}' telah dibatalkan oleh {actorUsername} pada tahap penawaran."
+            }
+          },
+          "revise_offer": {
+            "targetStatus": "Pending Offer",
+            "targetAssignedDivision": "Admin Proyek",
+            "targetNextActionDescription": "Revisi dan Unggah Ulang Dokumen Penawaran berdasarkan masukan Owner.",
+            "targetProgress": 10,
+            "notification": {
+              "division": "Admin Proyek",
+              "message": "Penawaran untuk proyek '{projectName}' perlu direvisi oleh Anda berdasarkan masukan dari {actorUsername}."
             }
           }
         }
@@ -171,7 +181,7 @@
             "targetProgress": 90,
             "notification": {
               "division": "Admin Proyek",
-              "message": "Berkas struktur untuk '{projectName}' telah diunggah oleh {actorUsername}. Mohon jadwalkan sidang."
+              "message": "Berkas struktur untuk '{projectName}' oleh {actorUsername} lengkap. Mohon jadwalkan sidang."
             }
           }
         }

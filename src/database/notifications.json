@@ -182,5 +182,21 @@
     "message": "Penawaran untuk proyek 'proyek hotel seminyak' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
     "timestamp": "2025-05-24T05:21:29.626Z",
     "isRead": true
+  },
+  {
+    "id": "notif_1748066127106_cf08j",
+    "userId": "usr_admin_proyek_default",
+    "projectId": "project_1748064025980_k6s3m",
+    "message": "Penawaran untuk proyek 'proyek hotel seminyak' perlu direvisi oleh Anda berdasarkan masukan dari sudina.",
+    "timestamp": "2025-05-24T05:55:27.106Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1748066127106_brfv1",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1748064025980_k6s3m",
+    "message": "Penawaran untuk proyek 'proyek hotel seminyak' perlu direvisi oleh Anda berdasarkan masukan dari sudina.",
+    "timestamp": "2025-05-24T05:55:27.106Z",
+    "isRead": true
   }
 ]

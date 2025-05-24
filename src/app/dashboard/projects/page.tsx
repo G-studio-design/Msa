@@ -191,7 +191,7 @@ export default function ProjectsPage() {
                   setInitialImageDescription('');
               } else {
                   console.warn(`Project with ID "${projectIdFromUrl}" from URL not found.`);
-                  if(projectsDict?.toast?.error && projectsDict?.toast?.projectNotFound) {
+                  if(isClient && projectsDict?.toast?.error && projectsDict?.toast?.projectNotFound) {
                     toast({ variant: 'destructive', title: projectsDict.toast.error, description: projectsDict.toast.projectNotFound });
                   }
                   router.replace('/dashboard/projects', { scroll: false });
@@ -272,14 +272,12 @@ export default function ProjectsPage() {
     if (!currentUser || !selectedProject) return false;
     if (currentUser.role === 'Admin Developer') return true;
     if (currentUser.role === 'Owner') {
+        // Owner can act if project is assigned to them OR if it's in Pending Approval, Scheduled, or Pending Scheduling.
         return selectedProject.assignedDivision === 'Owner' ||
-               selectedProject.status === 'Pending Approval' ||
-               selectedProject.status === 'Scheduled' ||
-               selectedProject.status === 'Pending Scheduling';
+               ['Pending Approval', 'Scheduled', 'Pending Scheduling'].includes(selectedProject.status);
     }
-    // Ensure role comparison is case-insensitive by trimming and converting to lower case
-    const currentUserRoleCleaned = currentUser.role.trim().toLowerCase();
-    const assignedDivisionCleaned = selectedProject.assignedDivision?.trim().toLowerCase();
+    const currentUserRoleCleaned = currentUser.role.trim();
+    const assignedDivisionCleaned = selectedProject.assignedDivision?.trim();
     return currentUserRoleCleaned === assignedDivisionCleaned;
   }, [currentUser, selectedProject]);
 
@@ -303,7 +301,7 @@ export default function ProjectsPage() {
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = Clock; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginput': case 'menunggu input': case 'pendingoffer': case 'menunggu penawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Clock; break;
-        case 'pendingdpinvoice': case 'menunggu faktur dp': case 'pendingadminfiles': case 'menunggu berkas administrasi': case 'pendingarchitectfiles': case 'menunggu berkas arsitektur': case 'pendingstructurefiles': case 'menunggu berkas struktur': case 'pendingmepfiles': case 'menunggu berkas mep': case 'pendingfinalcheck': case 'menunggu pemeriksaan akhir': case 'pendingscheduling': case 'menunggu penjadwalan': case 'pendingconsultationdocs': case 'menunggu dok. konsultasi': case 'pendingreview': case 'menunggu tinjauan': case 'pendingsurveydetails': case 'menunggu detail survei': case 'pendingpostsidangrevision': case 'menunggu revisi pasca sidang': variant = 'secondary'; Icon = Clock; break;
+        case 'pendingdpinvoice': case 'menunggu faktur dp': case 'pendingadminfiles': case 'menunggu berkas administrasi': case 'pendingarchitectfiles': case 'menunggu berkas arsitektur': case 'pendingstructurefiles': case 'menunggu berkas struktur':  case 'pendingfinalcheck': case 'menunggu pemeriksaan akhir': case 'pendingscheduling': case 'menunggu penjadwalan': case 'pendingconsultationdocs': case 'menunggu dok. konsultasi': case 'pendingreview': case 'menunggu tinjauan': case 'pendingsurveydetails': case 'menunggu detail survei': case 'pendingpostsidangrevision': case 'menunggu revisi pasca sidang': case 'pendingmepfiles': case 'menunggu berkas mep': variant = 'secondary'; Icon = Clock; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = Clock; break;
         default: variant = 'secondary'; Icon = Clock;
     }
@@ -392,15 +390,11 @@ export default function ProjectsPage() {
 
         if (newlyUpdatedProject) {
             setAllProjects(prev => prev.map(p => p.id === newlyUpdatedProject.id ? newlyUpdatedProject : p));
-            setSelectedProject(newlyUpdatedProject); // Update selected project with latest data
+            setSelectedProject(newlyUpdatedProject);
 
+            // Toast messages specific to actions
             if (actionTaken === 'revise_offer') {
-                toast({
-                  title: projectsDict.toast.revisionRequested,
-                  description: projectsDict.toast.projectSentForRevision
-                    .replace('{projectName}', newlyUpdatedProject.title) // Use projectName for consistency
-                    .replace('{division}', getTranslatedStatus(newlyUpdatedProject.assignedDivision)),
-                });
+                toast({ title: projectsDict.toast.revisionRequested, description: projectsDict.toast.projectSentForRevision.replace('{projectName}', newlyUpdatedProject.title).replace('{division}', getTranslatedStatus(newlyUpdatedProject.assignedDivision))});
             } else if (actionTaken === 'completed') {
                  toast({ title: projectsDict.toast.sidangOutcomeSuccessTitle, description: projectsDict.toast.sidangOutcomeSuccessDesc.replace('{title}', newlyUpdatedProject.title) });
             } else if (actionTaken === 'canceled_after_sidang') {
@@ -417,14 +411,14 @@ export default function ProjectsPage() {
                 toast({ title: projectsDict.toast.projectMarkedCanceled, description: projectsDict.toast.projectCanceledSuccessfully.replace('{title}', newlyUpdatedProject.title) });
             } else if (actionTaken === 'scheduled') {
                 toast({ title: projectsDict.toast.sidangScheduled, description: projectsDict.toast.sidangScheduledDesc });
-            } else if (newlyUpdatedProject.assignedDivision) {
+            } else if (newlyUpdatedProject.assignedDivision) { // General progress submission
                 toast({ title: projectsDict.toast.progressSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', getTranslatedStatus(newlyUpdatedProject.assignedDivision)) });
-            } else {
+            } else { // Fallback for other cases or terminal states without specific messages
                 toast({ title: projectsDict.toast.progressSubmitted, description: `Project "${newlyUpdatedProject.title}" has been updated.` });
             }
-        } else {
+        } else { // If updateProject returns null (e.g., no valid transition)
              toast({
-                variant: 'default',
+                variant: 'default', // Or 'destructive' if it's an error-like situation
                 title: projectsDict.toast.actionDidNotChangeStatusTitle,
                 description: projectsDict.toast.actionDidNotChangeStatusDesc
              });
@@ -434,7 +428,7 @@ export default function ProjectsPage() {
             setDescription('');
             setUploadedFiles([]);
         }
-        if (actionTaken.includes('revise')) { // Clear revision note for any revision action
+        if (actionTaken.includes('revise')) { 
             setRevisionNote('');
         }
         if (isArchitectInitialImageUpload) {
@@ -450,7 +444,7 @@ export default function ProjectsPage() {
          setIsSubmitting(false);
          if (isArchitectInitialImageUpload) setIsSubmittingInitialImages(false);
       }
-  }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus, initialImageFiles, initialImageDescription, router]);
+  }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus, initialImageFiles, initialImageDescription]);
 
   const handleDecision = React.useCallback((decision: 'approved' | 'rejected' | 'canceled' | 'completed' | 'revise_after_sidang' | 'canceled_after_sidang' | 'revision_completed_and_finish') => {
     if (!currentUser || !selectedProject ) {
@@ -472,14 +466,13 @@ export default function ProjectsPage() {
   }, [currentUser, selectedProject, projectsDict, toast, handleProgressSubmit]);
 
   const handleScheduleSubmit = React.useCallback(() => {
-     if (!currentUser || !selectedProject ) {
+    if (!currentUser || !selectedProject) {
         toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.schedulingPermissionDenied });
         return;
-     }
+    }
     const canSchedule = selectedProject.status === 'Pending Scheduling' &&
                         ( (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === 'Admin Proyek') ||
                           currentUser.role === 'Owner' );
-
 
      if (!canSchedule) {
         toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.schedulingPermissionDenied });
@@ -580,7 +573,7 @@ export default function ProjectsPage() {
 
     const roleFilteredProjects = React.useMemo(() => {
         if (!currentUser || !isClient || isLoadingProjects) return [];
-        if (['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'].includes(currentUser.role.trim())) {
+        if (['Owner', 'Admin/Akuntan', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role.trim())) {
             return allProjects;
         }
         const userRoleLower = currentUser.role.trim().toLowerCase();
@@ -611,11 +604,8 @@ export default function ProjectsPage() {
         const statusesExpectingUpload = [
             'Pending Offer', 'Pending DP Invoice', 'Pending Admin Files',
             'Pending Architect Files', 'Pending Structure Files',
-            'Pending Consultation Docs',
+            'Pending Consultation Docs', 'Pending MEP Files', // Include Pending MEP Files
         ];
-        if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Final Check') { // Obsolete with new workflow
-            return false;
-        }
         return statusesExpectingUpload.includes(selectedProject.status);
    }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
@@ -627,20 +617,20 @@ export default function ProjectsPage() {
            canPerformSelectedProjectAction;
     }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
-   const showOwnerDecisionSection = React.useMemo(() =>
-        selectedProject &&
-        selectedProject.status === 'Pending Approval' &&
-        currentUser?.role === 'Owner' &&
-        canPerformSelectedProjectAction,
-    [selectedProject, currentUser, canPerformSelectedProjectAction]);
+   const showOwnerDecisionSection = React.useMemo(() => {
+    if (!selectedProject || !currentUser || !canPerformSelectedProjectAction) return false;
+    // This section is for offer approval (progress 20) OR DP invoice approval (progress 30)
+    return selectedProject.status === 'Pending Approval' && currentUser.role === 'Owner' && 
+           (selectedProject.progress === 20 || selectedProject.progress === 30);
+   },[selectedProject, currentUser, canPerformSelectedProjectAction]);
+
 
    const showSchedulingSection = React.useMemo(() => {
     if (!selectedProject || !currentUser) return false;
+    // Admin Proyek assigned to "Pending Scheduling" OR Owner can schedule
     return selectedProject.status === 'Pending Scheduling' &&
-           (
-             (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === 'Admin Proyek') ||
-             currentUser.role === 'Owner'
-           ) && canPerformSelectedProjectAction;
+           ( (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === 'Admin Proyek') ||
+             currentUser.role === 'Owner' ) && canPerformSelectedProjectAction;
     },[selectedProject, currentUser, canPerformSelectedProjectAction]);
 
     const showSurveyDetailsInputSection = React.useMemo(() => {
@@ -706,7 +696,7 @@ export default function ProjectsPage() {
         toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.revisionPermissionDenied });
         return;
       }
-      if (!['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'].includes(currentUser.role.trim())) {
+      if (!['Owner', 'Admin/Akuntan', 'Admin Developer', 'Admin Proyek'].includes(currentUser.role.trim())) {
         toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.revisionPermissionDenied });
         return;
       }
@@ -717,7 +707,6 @@ export default function ProjectsPage() {
 
       setIsRevising(true);
 
-      // Determine the specific revision action based on context
       let actionForRevision = 'revise'; // Default general revision action
       if (currentUser.role === 'Owner' && selectedProject.status === 'Pending Approval' && selectedProject.progress === 20) {
         actionForRevision = 'revise_offer';
@@ -730,7 +719,7 @@ export default function ProjectsPage() {
           setSelectedProject(revisedProjectResult);
           setRevisionNote('');
           toast({ title: projectsDict.toast.revisionSuccess, description: projectsDict.toast.revisionSuccessDesc.replace('{division}', getTranslatedStatus(revisedProjectResult.assignedDivision)) });
-        } else {
+        } else { // If reviseProject returns null
           toast({ variant: 'default', title: projectsDict.toast.revisionNotApplicableShort, description: projectsDict.toast.revisionNotApplicable });
         }
       } catch (error: any) {
@@ -752,19 +741,23 @@ export default function ProjectsPage() {
     }, [currentUser, selectedProject, revisionNote, projectsDict, toast, getTranslatedStatus]);
 
 
-    const canReviseSelectedProject = React.useMemo(() => {
+   const canReviseSelectedProject = React.useMemo(() => {
         if (!currentUser || !selectedProject) return false;
-        const allowedRoles = ['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'];
+        const allowedRoles = ['Owner', 'Admin/Akuntan', 'Admin Developer', 'Admin Proyek'];
         const nonRevisableStatuses = ['Completed', 'Canceled'];
+        // Additionally, Owner can request revision for offer if status is Pending Approval and progress is 20
+        if (currentUser.role === 'Owner' && selectedProject.status === 'Pending Approval' && selectedProject.progress === 20) {
+            return true;
+        }
+        // For other revision scenarios, check general allowed roles and non-revisable statuses
         return allowedRoles.includes(currentUser.role.trim()) && !nonRevisableStatuses.includes(selectedProject.status);
     }, [currentUser, selectedProject]);
 
 
     const showSidangOutcomeSection = React.useMemo(() => {
-        if (!selectedProject || !currentUser) return false;
+        if (!selectedProject || !currentUser || !canPerformSelectedProjectAction) return false;
         return selectedProject.status === 'Scheduled' &&
-               currentUser.role === 'Owner' &&
-               canPerformSelectedProjectAction;
+               currentUser.role === 'Owner';
     }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
     const showPostSidangRevisionSection = React.useMemo(() => {
@@ -810,7 +803,7 @@ export default function ProjectsPage() {
     }
 
   const renderProjectList = () => {
-    if (!projectsDict || !isClient) {
+    if (!isClient || !projectsDict?.projectListTitle) {
         return (<div className="container mx-auto py-4 px-4 md:px-6 space-y-6"><Card><CardHeader className="p-4 sm:p-6"><Skeleton className="h-7 w-3/5 mb-2" /></CardHeader></Card></div>);
     }
     return (
@@ -877,7 +870,7 @@ export default function ProjectsPage() {
   };
 
   const renderSelectedProjectDetail = (project: Project) => {
-       if (!projectsDict || !isClient || !project) return (
+       if (!isClient || !projectsDict?.backToList || !project) return (
             <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
                 <Button variant="outline" onClick={() => {setSelectedProject(null); router.push('/dashboard/projects', { scroll: false });}} className="mb-4 w-full sm:w-auto"><ArrowLeft className="mr-2 h-4 w-4" />{projectsDict.backToList}</Button>
                 <Card className="shadow-md animate-pulse">
@@ -889,8 +882,8 @@ export default function ProjectsPage() {
 
        return (
            <>
-               <Button variant="outline" onClick={() => {setSelectedProject(null); router.push('/dashboard/projects', { scroll: false });}} className="mb-4 w-full sm:w-auto"><ArrowLeft className="mr-2 h-4 w-4" />{projectsDict.backToList}</Button>
-               <Card className="shadow-md">
+                <Button variant="outline" onClick={() => {setSelectedProject(null); router.push('/dashboard/projects', { scroll: false });}} className="mb-4 w-full sm:w-auto"><ArrowLeft className="mr-2 h-4 w-4" />{projectsDict.backToList}</Button>
+                <Card className="shadow-md mb-6">
                    <CardHeader className="p-4 sm:p-6">
                      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
                         <div className="flex-1 min-w-0"><CardTitle className="text-xl md:text-2xl">{project.title}</CardTitle><CardDescription className="mt-1 text-xs sm:text-sm">{projectsDict.statusLabel}: {getStatusBadge(project.status)} | {projectsDict.nextActionLabel}: {project.nextAction || projectsDict.none} | {projectsDict.assignedLabel}: {getTranslatedStatus(project.assignedDivision) || projectsDict.none}</CardDescription></div>
@@ -900,6 +893,31 @@ export default function ProjectsPage() {
                            </div>
                      </div>
                    </CardHeader>
+                </Card>
+
+                 <Card className="mb-6 shadow-md">
+                    <CardHeader className="p-4 sm:p-6"><CardTitle>{projectsDict.workflowHistoryTitle}</CardTitle><CardDescription>{projectsDict.workflowHistoryDesc}</CardDescription></CardHeader>
+                    <CardContent className="p-4 sm:p-6 pt-0">
+                        <ul className="space-y-3">
+                        {(project.workflowHistory || []).map((entry, index) => (
+                            <li key={`${entry.timestamp}-${index}-${entry.action.replace(/\s/g, '_')}`} className="flex items-start gap-3">
+                                <div className={`mt-1 h-3 w-3 rounded-full flex-shrink-0 ${index === project.workflowHistory.length - 1 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
+                                <div>
+                                    <p className="text-sm font-medium">{entry.action}</p>
+                                    <p className="text-xs text-muted-foreground">{formatTimestamp(entry.timestamp)}</p>
+                                    {entry.note && <p className="text-xs text-muted-foreground italic mt-1 whitespace-pre-wrap">{projectsDict.revisionNotePrefix} {entry.note}</p>}
+                                </div>
+                            </li>
+                        ))}
+                        </ul>
+                    </CardContent>
+                  </Card>
+
+                <Card className="shadow-md">
+                    <CardHeader className="p-4 sm:p-6">
+                        <CardTitle>{projectsDict.currentProjectActionsTitle || "Current Project Actions"}</CardTitle>
+                        <CardDescription>{project.nextAction || projectsDict.none}</CardDescription>
+                    </CardHeader>
                    <CardContent className="p-4 sm:p-6 pt-0">
                       {showUploadSection && (
                          <div className="space-y-4 border-t pt-4 mt-4">
@@ -1015,7 +1033,8 @@ export default function ProjectsPage() {
 
                       {showOwnerDecisionSection && (
                         <div className="space-y-4 border-t pt-4 mt-4">
-                          <h3 className="text-lg font-semibold">{projectsDict.ownerActionTitle}</h3><p className="text-sm text-muted-foreground">{projectsDict.ownerActionDesc}</p>
+                           <h3 className="text-lg font-semibold">{projectsDict.ownerActionTitle}</h3>
+                           <p className="text-sm text-muted-foreground">{projectsDict.ownerActionDesc}</p>
                            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                               <AlertDialog><AlertDialogTrigger asChild><Button variant="destructive" disabled={isSubmitting} className="w-full sm:w-auto"><XCircle className="mr-2 h-4 w-4" /> {projectsDict.cancelProjectButton}</Button></AlertDialogTrigger>
                                 <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{projectsDict.cancelDialogTitle}</AlertDialogTitle><AlertDialogDescription>{projectsDict.cancelDialogDesc.replace('{projectName}', project.title)}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={isSubmitting}>{projectsDict.cancelButton}</AlertDialogCancel><AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleDecision('rejected')} disabled={isSubmitting}>{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}{projectsDict.confirmCancelButton}</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
@@ -1128,9 +1147,9 @@ export default function ProjectsPage() {
                    <Card className="mt-6 shadow-md">
                        <CardHeader className="p-4 sm:p-6"><CardTitle>{projectsDict.uploadedFilesTitle}</CardTitle><CardDescription>{projectsDict.uploadedFilesDesc}</CardDescription></CardHeader>
                        <CardContent className="p-4 sm:p-6 pt-0">
-                         {project.files.length === 0 ? (<p className="text-sm text-muted-foreground">{projectsDict.noFiles}</p>) : (
+                         {(project.files || []).length === 0 ? (<p className="text-sm text-muted-foreground">{projectsDict.noFiles}</p>) : (
                            <ul className="space-y-2">
-                              {project.files.map((file, index) => (
+                              {(project.files || []).map((file, index) => (
                                <li key={`${file.path}-${index}`} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 border rounded-md hover:bg-secondary/50 gap-2 sm:gap-4">
                                   <div className="flex items-center gap-2 flex-grow min-w-0"><FileText className="h-5 w-5 text-primary flex-shrink-0" />
                                       <div className="flex-1 min-w-0">
@@ -1148,23 +1167,6 @@ export default function ProjectsPage() {
                          )}
                        </CardContent>
                    </Card>
-                  <Card className="mt-6 shadow-md">
-                    <CardHeader className="p-4 sm:p-6"><CardTitle>{projectsDict.workflowHistoryTitle}</CardTitle><CardDescription>{projectsDict.workflowHistoryDesc}</CardDescription></CardHeader>
-                    <CardContent className="p-4 sm:p-6 pt-0">
-                        <ul className="space-y-3">
-                        {project.workflowHistory.map((entry, index) => (
-                            <li key={`${entry.timestamp}-${index}-${entry.action.replace(/\s/g, '_')}`} className="flex items-start gap-3">
-                                <div className={`mt-1 h-3 w-3 rounded-full flex-shrink-0 ${index === project.workflowHistory.length - 1 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
-                                <div>
-                                    <p className="text-sm font-medium">{entry.action}</p>
-                                    <p className="text-xs text-muted-foreground">{isClient ? formatTimestamp(entry.timestamp) : '...'}</p>
-                                    {entry.note && <p className="text-xs text-muted-foreground italic mt-1">{projectsDict.revisionNotePrefix} {entry.note}</p>}
-                                </div>
-                            </li>
-                        ))}
-                        </ul>
-                    </CardContent>
-                  </Card>
                 </>
        );
   }
