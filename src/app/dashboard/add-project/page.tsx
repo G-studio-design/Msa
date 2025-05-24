@@ -1,3 +1,4 @@
+
 // src/app/dashboard/add-project/page.tsx
 'use client';
 
@@ -71,7 +72,7 @@ export default function AddProjectPage() {
   }, [isClient, toast, addProjectDict]);
 
   React.useEffect(() => {
-    if (isClient && currentUser && (currentUser.role === 'Owner' || currentUser.role === 'Admin/Akuntan' || currentUser.role === 'Admin Proyek' || currentUser.role === 'Admin Developer')) {
+    if (isClient && currentUser && ['Owner', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role.trim())) {
       fetchWorkflows();
     }
   }, [isClient, currentUser, fetchWorkflows]);
@@ -105,7 +106,8 @@ export default function AddProjectPage() {
   const canAddProject = React.useMemo(() => {
     if (!currentUser) return false;
     const userRole = currentUser.role.trim();
-    return ['Owner', 'Admin/Akuntan', 'Admin Proyek', 'Admin Developer'].includes(userRole);
+    // Removed "Admin/Akuntan" (internal "Akuntan") from roles that can add projects
+    return ['Owner', 'Admin Proyek', 'Admin Developer'].includes(userRole);
   }, [currentUser]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {

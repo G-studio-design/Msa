@@ -2,8 +2,8 @@
 // src/app/dashboard/page.tsx
 'use client';
 
-import type { ReactNode } from 'react';
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import type { ReactNode }from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -24,7 +24,7 @@ import {
   ChartTooltipContent,
   type ChartConfig
 } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList } from "recharts"; // Removed Cell import
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList, Cell } from "recharts";
 import { Calendar } from "@/components/ui/calendar";
 import { parseISO, format, isSameDay, isValid, eachDayOfInterval, startOfMonth } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
@@ -60,7 +60,7 @@ export default function DashboardPage() {
   const [displayMonth, setDisplayMonth] = React.useState<Date>(startOfMonth(new Date()));
   const [eventsForSelectedDate, setEventsForSelectedDate] = React.useState<CalendarDisplayEvent[]>([]);
 
-  React.useEffect(() => {
+ React.useEffect(() => {
     setIsClient(true);
   }, []);
 
@@ -105,10 +105,12 @@ export default function DashboardPage() {
 
 
   const userRole = currentUser?.role || '';
-  const canAddProject = useMemo(() => {
+  const canAddProject = React.useMemo(() => {
     if (!currentUser) return false;
     const userRoleCleaned = currentUser.role.trim().toLowerCase();
-    return ['owner', 'akuntan', 'admin proyek', 'admin developer'].includes(userRoleCleaned);
+    // Roles that can add projects: Owner, Admin Proyek, Admin Developer
+    // Akuntan (internal role "Akuntan") is removed.
+    return ['owner', 'admin proyek', 'admin developer'].includes(userRoleCleaned);
   }, [currentUser]);
 
   const getTranslatedStatus = React.useCallback((statusKey: string): string => {
@@ -123,16 +125,17 @@ export default function DashboardPage() {
     const translatedStatus = dashboardDict.status[statusKey] || status;
     let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
     let className = "py-1 px-2 text-xs";
-    let Icon = TrendingUp; // Default icon
+    let Icon = TrendingUp; 
 
     switch (statusKey) {
         case 'completed': case 'selesai': variant = 'default'; className = `${className} bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-primary-foreground`; Icon = CheckCircle; break;
         case 'inprogress': case 'sedangberjalan': variant = 'secondary'; className = `${className} bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700`; Icon = TrendingUp; break;
         case 'pendingapproval': case 'menunggupersetujuan': variant = 'outline'; className = `${className} border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-500`; Icon = AlertTriangle; break;
+        case 'pendingpostsidangrevision': case 'menunggurevisipascSidang': variant = 'outline'; className = `${className} border-orange-400 text-orange-500 dark:border-orange-300 dark:text-orange-400`; Icon = TrendingUp; break;
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = AlertTriangle; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Info; break;
-        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles': case 'menungguberkasstruktur': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingpostsidangrevision': case 'menunggurevisipascSidang': variant = 'secondary'; Icon = Info; break;
+        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles': case 'menungguberkasstruktur': case 'pendingsurveydetails': case 'menunggudetailsurvei': variant = 'secondary'; Icon = Info; break;
         case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs': case 'menungudokkonsultasi': case 'pendingreview': case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarDays; break;
         default: variant = 'secondary'; Icon = Info;
@@ -273,14 +276,15 @@ export default function DashboardPage() {
       case 'sidang': variant = 'default'; className = `${className} bg-primary text-primary-foreground`; break;
       case 'survey': variant = 'default'; className = `${className} bg-green-600 text-white`; break;
       case 'leave':
-        label = eventSubType ? getTranslatedStatus(eventSubType) : dashboardDict.eventTypes.leave;
+        const leaveTypeKey = (eventSubType || "").toLowerCase().replace(/ /g, '').replace(/[^a-z0-9]/gi, '') as keyof typeof dashboardDict.status;
+        label = dashboardDict.status[leaveTypeKey] || eventSubType || dashboardDict.eventTypes.leave;
         variant = 'destructive';
         break;
       case 'holiday': variant = 'outline'; className = `${className} border-orange-500 text-orange-600`; break;
       case 'company_event': variant = 'outline'; className = `${className} border-purple-600 text-purple-600`; break;
     }
     return <Badge variant={variant} className={className}>{label}</Badge>;
-  }, [isClient, dashboardDict, getTranslatedStatus]);
+  }, [isClient, dashboardDict]);
 
 
   if (!isClient || isLoadingData || !currentUser) {
@@ -442,7 +446,7 @@ export default function DashboardPage() {
                 modifiersClassNames={{
                   sunday: 'text-destructive',
                   sidang: 'text-primary font-bold',
-                  leave: 'text-red-500 font-bold',
+                  leave: 'text-destructive font-bold',
                   survey: 'text-green-600 font-bold',
                   holiday: 'text-orange-500 font-semibold',
                   company_event: 'text-purple-600 font-semibold',
@@ -608,5 +612,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-
