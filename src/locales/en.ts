@@ -14,6 +14,7 @@ const en = {
     redirecting: 'Redirecting to dashboard...',
     fail: 'Login Failed',
     invalidCredentials: 'Invalid username or password.',
+    googleSignInButton: "Sign in with Google",
     validation: {
         usernameRequired: 'Username is required.',
         passwordRequired: 'Password is required.',
@@ -38,12 +39,13 @@ const en = {
     toggleMenu: 'Toggle Menu Panel',
     roles: {
         owner: 'Owner',
-        generaladmin: 'Admin/Accountant', // Changed for display
+        adminakuntan: 'Admin/Accountant',
         adminproyek: 'Admin Proyek',
         arsitek: 'Arsitek',
         struktur: 'Struktur',
-        mep: 'MEP', 
+        mep: 'MEP',
         admindev: 'Developer',
+        generaladmin: 'Admin/Accountant', // Keep for internal consistency if needed, but UI uses adminakuntan
     },
   },
   // Dashboard Page
@@ -82,16 +84,17 @@ const en = {
       pendingsurveydetails: 'Pending Survey Details',
       pendingarchitectfiles: 'Pending Architect Files',
       pendingstructurefiles: 'Pending Structure Files',
-      pendingmepfiles: 'Pending MEP Files', 
+      pendingmepfiles: 'Pending MEP Files',
       pendingfinalcheck: 'Pending Final Check',
       pendingscheduling: 'Pending Scheduling',
       owner: 'Owner',
-      generaladmin: 'Admin/Accountant', // Changed for display
+      adminakuntan: 'Admin/Accountant',
       adminproyek: 'Admin Proyek',
       arsitek: 'Arsitek',
       struktur: 'Struktur',
-      mep: 'MEP', 
+      mep: 'MEP',
       admindev: 'Developer',
+      generaladmin: 'Admin/Accountant',
       notassigned: 'Not Assigned',
       sakit: "Sick Leave",
       cutitahunan: "Annual Leave",
@@ -147,8 +150,7 @@ const en = {
     ownerActionTitle: 'Owner Action Required',
     ownerActionDesc: 'Review the submitted documents and decide whether to proceed.',
     approveButton: 'Approve',
-    cancelProjectButton: 'Cancel Project', 
-    requestOfferRevisionButton: "Request Offer Revision", // New
+    cancelProjectButton: 'Cancel Project',
     scheduleSidangTitle: 'Schedule Sidang ({role})',
     dateLabel: 'Date',
     timeLabel: 'Time',
@@ -203,7 +205,7 @@ const en = {
     cancelButton: 'Cancel',
     cancelDialogTitle: "Confirm Project Cancellation",
     cancelDialogDesc: "Are you sure you want to cancel project \"{projectName}\"? This action cannot be undone.",
-    confirmCancelButton: "Yes, Cancel Project", 
+    confirmCancelButton: "Yes, Cancel Project",
     revisionNotePrefix: 'Note:',
     invalidDate: 'Invalid Date',
     notApplicable: 'N/A',
@@ -227,17 +229,16 @@ const en = {
         inputSurveyDetails: "Input Survey Details & Upload Report",
         uploadArchitectFiles: "Upload Architect Files",
         uploadStructureFiles: "Upload Structure Files",
-        performFinalCheck: "Perform Final Check", 
+        performFinalCheck: "Perform Final Check",
         scheduleSidang: "Schedule Sidang",
         declareSidangOutcome: "Declare Sidang Outcome",
-        reviseOfferDocument: "Revise & Re-submit Offer Document",
+        reviseOfferDocument: "Revise & Re-submit Offer Document based on Owner feedback.",
         reviseDPInvoice: "Revise and Re-upload DP Invoice",
         performPostSidangRevisions: "Perform Post-Sidang Revisions on Admin Files",
         uploadPostSidangRevisions: "Upload post-sidang revisions, notify relevant parties if needed, then confirm project completion.",
         uploadMEPFilesByAdmin: "Upload MEP Files (Admin Proyek)",
-        reviseAndResubmitOfferWithOwnerFeedback: "Revise and Re-submit Offer Document based on Owner feedback.",
     },
-    workflowActions: {
+    workflowActions: { // Used in WorkflowHistoryEntry.action
         approveOffer: "Approved Offer Document",
         uploadedOffer: "Uploaded Offer Document",
         uploadArchitectFiles: "Upload Architect Files",
@@ -272,7 +273,7 @@ const en = {
         adminProyekCompletedPostSidangRevision: "Admin Proyek completed post-sidang revisions and finalized the project.",
         adminProyekUploadedMEPFiles: "Admin Proyek uploaded MEP files.",
         offerCanceledByOwner: "Project offer was canceled by the Owner.",
-        offerRevisedByOwner: "Project offer revision requested by Owner." // New
+        offerRevisedByOwner: "Project offer revision requested by Owner."
     },
     toast: {
       permissionDenied: 'Permission Denied',
@@ -291,9 +292,7 @@ const en = {
       projectMarkedCanceled: "Project Canceled",
       projectCanceledSuccessfully: "Project \"{title}\" has been successfully canceled.",
       revisionRequested: "Revision Requested",
-      projectSentForRevision: "Project \"{title}\" sent back to {division} for revision.",
-      offerRevisionRequestedTitle: "Offer Revision Requested", // New
-      offerRevisionRequestedDesc: "Project \"{projectName}\" has been sent back to {division} for offer revision.", // New
+      projectSentForRevision: "Project \"{projectName}\" sent back to {division} for revision.",
       sidangOutcomeSuccessTitle: "Sidang Outcome: Success",
       sidangOutcomeSuccessDesc: "Project \"{title}\" has been marked as completed based on sidang outcome.",
       sidangOutcomeRevisionTitle: "Sidang Outcome: Revision Needed",
@@ -414,14 +413,15 @@ const en = {
     deleteDialogCancel: 'Cancel',
     deleteDialogConfirm: 'Delete User',
     cannotChangeLastAdminRoleHint: 'Cannot change the role of the last Admin/Accountant.',
-    roles: { // Used for dropdowns and general display if specific context not available
+    roles: {
        owner: 'Owner',
-       generaladmin: 'Admin/Accountant', // Display name for "General Admin"
+       adminakuntan: 'Admin/Accountant',
        adminproyek: 'Admin Proyek',
        arsitek: 'Arsitek',
        struktur: 'Struktur',
        mep: 'MEP',
        admindev: 'Developer',
+       generaladmin: 'Admin/Accountant',
      },
     toast: {
         userAdded: 'User Added',

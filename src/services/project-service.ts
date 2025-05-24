@@ -1,11 +1,10 @@
-
 // src/services/project-service.ts
 'use server';
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { notifyUsersByRole } from './notification-service';
-import { sanitizeForPath } from '@/lib/path-utils'; 
+import { sanitizeForPath } from '@/lib/path-utils';
 import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants';
 import type { Workflow, WorkflowStep, WorkflowStepTransition } from './workflow-service';
 import { getWorkflowById, getFirstStep, getTransitionInfo } from './workflow-service';
@@ -14,24 +13,24 @@ import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
 
 // Define the structure of a Workflow History entry
 export interface WorkflowHistoryEntry {
-    division: string; 
-    action: string; 
-    timestamp: string; 
-    note?: string; 
+    division: string;
+    action: string;
+    timestamp: string;
+    note?: string;
 }
 
 // Define the structure of an uploaded file entry
 export interface FileEntry {
-    name: string; 
-    uploadedBy: string; 
-    timestamp: string; 
-    path: string; 
+    name: string;
+    uploadedBy: string;
+    timestamp: string;
+    path: string;
 }
 
 // Define the structure for project schedule details
 export interface ScheduleDetails {
-    date: string; 
-    time: string; 
+    date: string;
+    time: string;
     location: string;
 }
 
@@ -55,7 +54,7 @@ export interface Project {
     files: FileEntry[];
     createdAt: string;
     createdBy: string;
-    workflowId: string; 
+    workflowId: string;
     scheduleDetails?: ScheduleDetails;
     surveyDetails?: SurveyDetails;
 }
@@ -63,9 +62,9 @@ export interface Project {
 // Define the structure for adding a new project
 export interface AddProjectData {
     title: string;
-    workflowId: string; 
-    initialFiles: FileEntry[]; 
-    createdBy: string; 
+    workflowId: string;
+    initialFiles: FileEntry[];
+    createdBy: string;
 }
 
 // Structure for updating project (used by client-side actions)
@@ -73,8 +72,8 @@ export interface UpdateProjectParams {
     projectId: string;
     updaterRole: string;
     updaterUsername: string;
-    actionTaken: string; 
-    files?: FileEntry[]; 
+    actionTaken: string;
+    files?: Omit<FileEntry, 'timestamp'>[]; // Timestamps will be added by the service
     note?: string;
     scheduleDetails?: ScheduleDetails;
     surveyDetails?: SurveyDetails;
@@ -144,17 +143,16 @@ export async function ensureProjectFilesBaseDirExists(): Promise<void> {
 // --- Main Service Functions ---
 
 export async function addProject(projectData: AddProjectData): Promise<Project> {
-    console.log(`[ProjectService/JSON] Attempting to add project: "${projectData.title}", by: ${projectData.createdBy}, Workflow ID: "${projectData.workflowId}"`);
-    
-    await ensureProjectFilesBaseDirExists(); 
+    const effectiveWorkflowId = projectData.workflowId || DEFAULT_WORKFLOW_ID;
+    console.log(`[ProjectService/JSON] Attempting to add project: "${projectData.title}", by: ${projectData.createdBy}, Workflow ID: "${effectiveWorkflowId}"`);
+
+    await ensureProjectFilesBaseDirExists();
 
     const projects = await readProjects();
     const now = new Date().toISOString();
     const projectId = `project_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    
-    const effectiveWorkflowId = projectData.workflowId || DEFAULT_WORKFLOW_ID;
-    console.log(`[ProjectService/JSON] Effective workflowId for "${projectData.title}": "${effectiveWorkflowId}"`);
 
+    console.log(`[ProjectService/JSON] Effective workflowId for "${projectData.title}": "${effectiveWorkflowId}"`);
     const firstStep = await getFirstStep(effectiveWorkflowId);
 
     if (!firstStep) {
@@ -173,7 +171,7 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
         workflowHistory: [
             { division: projectData.createdBy, action: 'Created Project', timestamp: now },
             ...projectData.initialFiles.map(file => ({
-                 division: file.uploadedBy,
+                 division: file.uploadedBy, // Should be projectData.createdBy if uploaded during creation
                  action: `Uploaded initial file: ${file.name}`,
                  timestamp: file.timestamp || now,
             })),
@@ -188,16 +186,20 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
     await writeProjects(projects);
     console.log(`[ProjectService/JSON] Project "${newProject.title}" (ID: ${newProject.id}) added. Assigned to ${firstStep.assignedDivision} for "${firstStep.nextActionDescription}". Workflow: ${effectiveWorkflowId}`);
 
-    if (firstStep.assignedDivision) { 
-        const initialNotificationMessage = `Proyek baru '{projectName}' telah dibuat oleh {actorUsername} dan ditugaskan kepada Anda untuk: ${firstStep.nextActionDescription || 'tindakan awal'}.`
-            .replace('{projectName}', newProject.title)
-            .replace('{actorUsername}', projectData.createdBy);
-        await notifyUsersByRole(
-            firstStep.assignedDivision,
-            initialNotificationMessage,
-            newProject.id
-        );
-        console.log(`[ProjectService/JSON] Initial notification sent to ${firstStep.assignedDivision} for project ${newProject.id}`);
+    if (firstStep.assignedDivision && firstStep.transitions?.submitted?.notification) {
+        const notificationConfig = firstStep.transitions.submitted.notification;
+        if (notificationConfig.division) {
+            let message = notificationConfig.message
+                .replace('{projectName}', newProject.title)
+                .replace('{actorUsername}', projectData.createdBy)
+                .replace('{newStatus}', firstStep.status); // Or a more generic "new project" message
+            await notifyUsersByRole(
+                notificationConfig.division,
+                message,
+                newProject.id
+            );
+            console.log(`[ProjectService/JSON] Initial notification sent to ${notificationConfig.division} for project ${newProject.id}`);
+        }
     }
     return newProject;
 }
@@ -227,7 +229,7 @@ export async function getAllProjects(): Promise<Project[]> {
 export async function getProjectById(projectId: string): Promise<Project | null> {
     let projects = await readProjects();
     const projectIndex = projects.findIndex(p => p.id === projectId);
-    
+
     if (projectIndex === -1) {
         console.warn(`[ProjectService/JSON] Project with ID "${projectId}" not found.`);
         return null;
@@ -250,7 +252,7 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
         updaterRole,
         updaterUsername,
         actionTaken,
-        files: newFilesData = [], 
+        files: newFilesData = [],
         note,
         scheduleDetails,
         surveyDetails
@@ -273,7 +275,9 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
 
     const now = new Date().toISOString();
     const transitionInfo = await getTransitionInfo(projectWorkflowId, currentProject.status, currentProject.progress, actionTaken);
-    
+    console.log(`[ProjectService/JSON] Update for P_ID ${projectId}, Current Status: ${currentProject.status}, Progress: ${currentProject.progress}, Action: ${actionTaken}, TransitionInfo:`, transitionInfo);
+
+
     let historyAction = `${updaterUsername} (${updaterRole}) ${actionTaken} for "${currentProject.nextAction || 'progress'}"`;
     if (actionTaken === 'scheduled' && scheduleDetails) {
         historyAction = `${updaterUsername} (${updaterRole}) scheduled Sidang on ${scheduleDetails.date} at ${scheduleDetails.time}`;
@@ -281,8 +285,10 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
         historyAction = `${updaterUsername} (${updaterRole}) submitted Survey Details for ${surveyDetails.date} at ${surveyDetails.time}`;
     } else if (actionTaken === 'approved') {
         historyAction = `${updaterUsername} (${updaterRole}) approved: ${currentProject.nextAction || 'current step'}`;
-    } else if (actionTaken === 'rejected') { // General rejection/cancellation from Owner
-        historyAction = `${updaterUsername} (${updaterRole}) membatalkan proyek pada tahap: ${currentProject.nextAction || 'penawaran'}`;
+    } else if (actionTaken === 'rejected' && currentProject.status === 'Pending Approval' && currentProject.progress === 20) {
+        historyAction = `${updaterUsername} (${updaterRole}) canceled project at offer stage: ${currentProject.nextAction || 'penawaran'}`;
+    } else if (actionTaken === 'rejected') {
+        historyAction = `${updaterUsername} (${updaterRole}) rejected: ${currentProject.nextAction || 'current step'}`;
     } else if (['completed', 'revise_after_sidang', 'canceled_after_sidang'].includes(actionTaken)) {
          historyAction = `${updaterUsername} (${updaterRole}) declared Sidang outcome as: ${actionTaken.replace('_after_sidang', '').replace('_', ' ')}`;
     } else if (actionTaken === 'architect_uploaded_initial_images_for_struktur') {
@@ -304,20 +310,19 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
          newWorkflowHistoryEntry.note = `Survey Description: ${surveyDetails.description}. ${note ? `Note: ${note}` : ''}`.trim();
     }
 
+    const filesWithTimestamp = newFilesData.map(file => ({ ...file, timestamp: now }));
 
     let updatedProject: Project = {
         ...currentProject,
         workflowId: projectWorkflowId,
-        files: [...(currentProject.files || []), ...newFilesData.map(file => ({...file, timestamp: file.timestamp || now}))],
+        files: [...(currentProject.files || []), ...filesWithTimestamp],
         workflowHistory: [...(currentProject.workflowHistory || []), newWorkflowHistoryEntry],
     };
 
     if (actionTaken === 'architect_uploaded_initial_images_for_struktur') {
-        // Special case: only update files and history, do not change status/assignment
         projects[projectIndex] = updatedProject;
         await writeProjects(projects);
         console.log(`[ProjectService/JSON] Project ${projectId} updated with initial architect images by ${updaterUsername}. Status remains ${currentProject.status}.`);
-        // Send specific notification for this action
         await notifyUsersByRole("Struktur", `Gambar referensi awal dari Arsitek ({actorUsername}) untuk proyek '{projectName}' telah diunggah. Anda bisa mulai merencanakan struktur.`
             .replace('{projectName}', updatedProject.title)
             .replace('{actorUsername}', updaterUsername), projectId);
@@ -330,19 +335,28 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
         updatedProject.assignedDivision = transitionInfo.targetAssignedDivision;
         updatedProject.nextAction = transitionInfo.targetNextActionDescription;
         updatedProject.progress = transitionInfo.targetProgress;
-    } else if (!['Completed', 'Canceled'].includes(currentProject.status) && !['completed', 'canceled', 'revise_after_sidang', 'canceled_after_sidang', 'revision_completed_and_finish'].includes(actionTaken) ) {
+
+        if (transitionInfo.notification && transitionInfo.notification.division) {
+            const notificationConfig = transitionInfo.notification;
+            let message = notificationConfig.message
+                .replace('{projectName}', updatedProject.title)
+                .replace('{newStatus}', updatedProject.status) // Use the new status for the notification
+                .replace('{actorUsername}', updaterUsername);
+            await notifyUsersByRole(notificationConfig.division, message, projectId);
+            console.log(`[ProjectService/JSON] Notification sent to ${notificationConfig.division} for project ${projectId} (Action: ${actionTaken}, New Status: ${updatedProject.status})`);
+        }
+
+    } else if (!['Completed', 'Canceled'].includes(currentProject.status) && !['completed', 'canceled', 'revise_offer', 'revise_after_sidang', 'canceled_after_sidang', 'revision_completed_and_finish'].includes(actionTaken) ) {
          console.warn(`[ProjectService/JSON] No specific transition info for project ${projectId}, action "${actionTaken}" from status "${currentProject.status}". Updating files/notes if any, but status remains.`);
-         // If no transition and not a terminal action, it might be an error or just a file/note update without status change.
-         // For now, we'll allow the file/history update but return null to indicate no formal status transition occurred.
-         projects[projectIndex] = updatedProject; // Save files & history
+         projects[projectIndex] = updatedProject;
          await writeProjects(projects);
-         return null; // Indicate no formal workflow transition occurred from this action
+         return null;
     }
-    
+
     if (actionTaken === 'scheduled' && scheduleDetails) {
         updatedProject.scheduleDetails = scheduleDetails;
     }
-    if (actionTaken === 'submitted' && surveyDetails && currentProject.status === 'Pending Survey Details') { // Ensure this only updates if it's the correct step
+    if (actionTaken === 'submitted' && surveyDetails && currentProject.status === 'Pending Survey Details') {
         updatedProject.surveyDetails = surveyDetails;
     }
 
@@ -351,31 +365,12 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
     await writeProjects(projects);
     console.log(`[ProjectService/JSON] Project ${projectId} updated. New status: ${updatedProject.status}, Assigned to: ${updatedProject.assignedDivision}`);
 
-    if (transitionInfo && transitionInfo.notification && transitionInfo.notification.division) {
-        const notificationConfig = transitionInfo.notification;
-        let message = notificationConfig.message
-            .replace('{projectName}', updatedProject.title)
-            .replace('{newStatus}', updatedProject.status)
-            .replace('{actorUsername}', updaterUsername);
-        await notifyUsersByRole(notificationConfig.division, message, projectId);
-        console.log(`[ProjectService/JSON] Notification sent to ${notificationConfig.division} for project ${projectId} (Action: ${actionTaken})`);
-    } else if (transitionInfo && transitionInfo.targetAssignedDivision) {
-        // Fallback notification if not defined in workflow but there's a new assignment
-        const message = `Proyek '{projectName}' telah diperbarui oleh {actorUsername}. Status baru: {newStatus}. Tugas berikutnya untuk Anda: ${updatedProject.nextAction || 'Tinjau proyek'}.`
-            .replace('{projectName}', updatedProject.title)
-            .replace('{newStatus}', updatedProject.status)
-            .replace('{actorUsername}', updaterUsername);
-        await notifyUsersByRole(transitionInfo.targetAssignedDivision, message, projectId);
-        console.log(`[ProjectService/JSON] Fallback notification sent to ${transitionInfo.targetAssignedDivision} for project ${projectId} (Action: ${actionTaken})`);
-    }
-
-
     return updatedProject;
 }
 
 export async function updateProjectTitle(projectId: string, newTitle: string): Promise<void> {
     console.log(`[ProjectService/JSON] Updating title for project ID: ${projectId} to "${newTitle}"`);
-    await ensureProjectFilesBaseDirExists(); 
+    await ensureProjectFilesBaseDirExists();
     let projects = await readProjects();
     const projectIndex = projects.findIndex(p => p.id === projectId);
 
@@ -383,7 +378,7 @@ export async function updateProjectTitle(projectId: string, newTitle: string): P
         console.error(`[ProjectService/JSON] Project with ID "${projectId}" not found for title update.`);
         throw new Error('PROJECT_NOT_FOUND');
     }
-    
+
     const originalProject = projects[projectIndex];
     const oldSanitizedTitle = sanitizeForPath(originalProject.title);
     const newSanitizedTitle = sanitizeForPath(newTitle);
@@ -411,8 +406,8 @@ export async function updateProjectTitle(projectId: string, newTitle: string): P
              }
 
             projects[projectIndex].files = (originalProject.files || []).map(file => {
-                const sanitizedFileName = sanitizeForPath(file.name);
-                const updatedRelativePath = `${newProjectRelativeFolderPath}/${sanitizedFileName}`;
+                // const sanitizedFileName = sanitizeForPath(file.name); // Filename should not be re-sanitized here if already done on upload
+                const updatedRelativePath = `${newProjectRelativeFolderPath}/${file.name}`; // Use original file name
                 return { ...file, path: updatedRelativePath };
             });
         } catch (error) {
@@ -429,9 +424,10 @@ export async function reviseProject(
     projectId: string,
     reviserUsername: string,
     reviserRole: string,
-    revisionNote?: string
+    revisionNote?: string,
+    actionTaken: string = 'revise' // Default action, can be overridden e.g., 'revise_offer'
 ): Promise<Project | null> {
-    console.log(`[ProjectService/JSON] Revising project ID: ${projectId} by ${reviserRole} (${reviserUsername}). Note: "${revisionNote || 'N/A'}"`);
+    console.log(`[ProjectService/JSON] Revising project ID: ${projectId} by ${reviserRole} (${reviserUsername}) with action "${actionTaken}". Note: "${revisionNote || 'N/A'}"`);
     let projects = await readProjects();
     const projectIndex = projects.findIndex(p => p.id === projectId);
 
@@ -441,7 +437,7 @@ export async function reviseProject(
     }
 
     const currentProject = projects[projectIndex];
-    const projectWorkflowId = currentProject.workflowId || DEFAULT_WORKFLOW_ID; 
+    const projectWorkflowId = currentProject.workflowId || DEFAULT_WORKFLOW_ID;
 
     const workflow = await getWorkflowById(projectWorkflowId);
     if (!workflow) {
@@ -449,12 +445,14 @@ export async function reviseProject(
         throw new Error('WORKFLOW_NOT_FOUND');
     }
 
-    const revisionTransition = await getTransitionInfo(projectWorkflowId, currentProject.status, currentProject.progress, 'revise');
+    const revisionTransition = await getTransitionInfo(projectWorkflowId, currentProject.status, currentProject.progress, actionTaken);
 
     if (revisionTransition) {
+        const historyAction = `${reviserUsername} (${reviserRole}) requested revision (${actionTaken}). Project sent to ${revisionTransition.targetAssignedDivision} for ${revisionTransition.targetNextActionDescription || 'revision'}.`;
+
         const historyEntry: WorkflowHistoryEntry = {
             division: reviserRole,
-            action: `${reviserUsername} (${reviserRole}) requested revision. Project sent to ${revisionTransition.targetAssignedDivision} for ${revisionTransition.targetNextActionDescription || 'revision'}.`,
+            action: historyAction,
             timestamp: new Date().toISOString(),
             note: revisionNote,
         };
@@ -469,7 +467,7 @@ export async function reviseProject(
         };
 
         await writeProjects(projects);
-        console.log(`[ProjectService/JSON] Project ${projectId} revised via workflow. New status: ${projects[projectIndex].status}, Assigned to: ${projects[projectIndex].assignedDivision}`);
+        console.log(`[ProjectService/JSON] Project ${projectId} revised via workflow (${actionTaken}). New status: ${projects[projectIndex].status}, Assigned to: ${projects[projectIndex].assignedDivision}`);
 
         if (revisionTransition.notification && revisionTransition.notification.division) {
             const notificationConfig = revisionTransition.notification;
@@ -477,13 +475,13 @@ export async function reviseProject(
                 .replace('{projectName}', projects[projectIndex].title)
                 .replace('{newStatus}', projects[projectIndex].status)
                 .replace('{actorUsername}', reviserUsername)
-                .replace('{reasonNote}', revisionNote || 'N/A');
+                .replace('{reasonNote}', revisionNote || 'N/A'); // Add reasonNote if available
             await notifyUsersByRole(notificationConfig.division, message, projectId);
         }
         return projects[projectIndex];
     } else {
-        console.warn(`No explicit 'revise' transition found for project ${projectId} status ${currentProject.status}. Fallback revision logic might be needed or this action is not allowed.`);
-        return null; // Indicate revision not supported for this step via workflow
+        console.warn(`No explicit '${actionTaken}' transition found for project ${projectId} status ${currentProject.status}. Fallback revision logic might be needed or this action is not allowed.`);
+        throw new Error('REVISION_NOT_SUPPORTED_FOR_CURRENT_STEP');
     }
 }
 
@@ -517,7 +515,7 @@ export async function manuallyUpdateProjectStatusAndAssignment({
     const projectWorkflowId = currentProject.workflowId || DEFAULT_WORKFLOW_ID;
 
     const historyEntry: WorkflowHistoryEntry = {
-        division: adminUsername, 
+        division: adminUsername,
         action: `Manually changed status to "${newStatus}" and assigned to "${newAssignedDivision}".`,
         timestamp: new Date().toISOString(),
         note: `Reason: ${reasonNote}`,
@@ -559,7 +557,7 @@ export async function deleteProject(projectId: string, deleterUsername: string):
 
     const projectToDelete = projects[projectIndex];
 
-    projects.splice(projectIndex, 1); 
+    projects.splice(projectIndex, 1);
     await writeProjects(projects);
     console.log(`[ProjectService/JSON] Project "${projectToDelete.title}" (ID: ${projectId}) removed from projects.json.`);
 
@@ -568,7 +566,7 @@ export async function deleteProject(projectId: string, deleterUsername: string):
     const projectSpecificDirAbsolute = path.join(PROJECT_FILES_BASE_DIR, projectSpecificDirRelative);
 
     try {
-        await fs.access(projectSpecificDirAbsolute); 
+        await fs.access(projectSpecificDirAbsolute);
         await fs.rm(projectSpecificDirAbsolute, { recursive: true, force: true });
         console.log(`[ProjectService/JSON] Successfully deleted project folder: ${projectSpecificDirAbsolute}`);
     } catch (error: any) {

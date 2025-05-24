@@ -14,6 +14,7 @@ const id = {
     redirecting: 'Mengalihkan ke dasbor...',
     fail: 'Login Gagal',
     invalidCredentials: 'Nama pengguna atau kata sandi salah.',
+    googleSignInButton: "Masuk dengan Google",
      validation: {
         usernameRequired: 'Nama pengguna wajib diisi.',
         passwordRequired: 'Kata sandi wajib diisi.',
@@ -36,14 +37,15 @@ const id = {
     appTitle: 'Msarch App',
     appTitleShort: 'Msarch',
     toggleMenu: 'Buka/Tutup Panel Menu',
-    roles: {
+    roles: { // Label tampilan untuk peran
         owner: 'Pemilik',
-        generaladmin: 'Admin/Akuntan', // Nama tampilan untuk "General Admin"
+        adminakuntan: 'Admin/Akuntan',
         adminproyek: 'Admin Proyek',
         arsitek: 'Arsitek',
         struktur: 'Struktur',
-        mep: 'MEP', 
+        mep: 'MEP',
         admindev: 'Developer',
+        generaladmin: 'Admin/Akuntan', // Kunci internal tetap, tampilan diubah
     },
   },
   // Dashboard Page
@@ -86,12 +88,13 @@ const id = {
       pendingfinalcheck: 'Menunggu Pemeriksaan Akhir',
       pendingscheduling: 'Menunggu Penjadwalan',
       owner: 'Pemilik',
-      generaladmin: 'Admin/Akuntan', // Nama tampilan
+      adminakuntan: 'Admin/Akuntan',
       adminproyek: 'Admin Proyek',
       arsitek: 'Arsitek',
       struktur: 'Struktur',
       mep: 'MEP',
       admindev: 'Developer',
+      generaladmin: 'Admin/Akuntan', // Kunci internal tetap, tampilan diubah
       notassigned: 'Belum Ditugaskan',
       sakit: "Sakit",
       cutitahunan: "Cuti Tahunan",
@@ -147,8 +150,7 @@ const id = {
     ownerActionTitle: 'Tindakan Pemilik Diperlukan',
     ownerActionDesc: 'Tinjau dokumen yang dikirim dan putuskan apakah akan melanjutkan.',
     approveButton: 'Setujui',
-    cancelProjectButton: 'Batalkan Proyek', 
-    requestOfferRevisionButton: "Minta Revisi Penawaran", // New
+    cancelProjectButton: 'Batalkan Proyek', // Menggantikan rejectButton
     scheduleSidangTitle: 'Jadwalkan Sidang ({role})',
     dateLabel: 'Tanggal',
     timeLabel: 'Waktu',
@@ -164,8 +166,8 @@ const id = {
     markRevisionNeededButton: 'Minta Revisi Pasca Sidang',
     markFailButton: 'Tandai sebagai Gagal (Batalkan Proyek)',
     postSidangRevisionActionsSectionTitle: "Tindakan Revisi Pasca-Sidang",
-    notifyArchitectForRevisionButton: "Notifikasi Arsitek untuk Masukan Revisi",
-    notifyStructureForRevisionButton: "Notifikasi Struktur untuk Masukan Revisi",
+    notifyArchitectForRevisionButton: "Notifikasi Arsitek untuk Kontribusi Revisi",
+    notifyStructureForRevisionButton: "Notifikasi Struktur untuk Kontribusi Revisi",
     revisionFilesDescriptionLabel: "Catatan / Deskripsi Revisi",
     revisionFilesDescriptionPlaceholder: "Jelaskan revisi yang dibuat atau diperlukan...",
     attachRevisionFilesLabel: "Lampirkan File Revisi",
@@ -203,7 +205,7 @@ const id = {
     cancelButton: 'Batal',
     cancelDialogTitle: "Konfirmasi Pembatalan Proyek",
     cancelDialogDesc: "Apakah Anda yakin ingin membatalkan proyek \"{projectName}\"? Tindakan ini tidak dapat dibatalkan.",
-    confirmCancelButton: "Ya, Batalkan Proyek", 
+    confirmCancelButton: "Ya, Batalkan Proyek",
     revisionNotePrefix: 'Catatan:',
     invalidDate: 'Tanggal Tidak Valid',
     notApplicable: 'N/A',
@@ -227,17 +229,16 @@ const id = {
         inputSurveyDetails: "Input Jadwal Survei & Unggah Hasil",
         uploadArchitectFiles: "Unggah Berkas Arsitektur",
         uploadStructureFiles: "Unggah Berkas Struktur",
-        performFinalCheck: "Lakukan Pemeriksaan Akhir", 
+        performFinalCheck: "Lakukan Pemeriksaan Akhir",
         scheduleSidang: "Jadwalkan Sidang",
         declareSidangOutcome: "Nyatakan Hasil Sidang",
-        reviseOfferDocument: "Revisi & Kirim Ulang Dokumen Penawaran",
+        reviseOfferDocument: "Revisi & Kirim Ulang Dokumen Penawaran berdasarkan masukan Pemilik.",
         reviseDPInvoice: "Revisi dan Unggah Ulang Faktur DP",
         performPostSidangRevisions: "Lakukan Revisi Pasca Sidang pada Berkas Administrasi",
         uploadPostSidangRevisions: "Unggah revisi pasca-sidang, notifikasi pihak terkait jika perlu, lalu konfirmasi penyelesaian proyek.",
         uploadMEPFilesByAdmin: "Unggah Berkas MEP (Admin Proyek)",
-        reviseAndResubmitOfferWithOwnerFeedback: "Revisi dan Unggah Ulang Dokumen Penawaran berdasarkan masukan Owner.",
     },
-    workflowActions: {
+    workflowActions: { // Used in WorkflowHistoryEntry.action
         approveOffer: "Menyetujui Dokumen Penawaran",
         uploadedOffer: "Mengunggah Dokumen Penawaran",
         uploadArchitectFiles: "Unggah Berkas Arsitektur",
@@ -251,7 +252,7 @@ const id = {
         uploadedArchitectFiles: "Mengunggah Berkas Arsitektur",
         uploadedStructureFiles: "Mengunggah Berkas Struktur",
         submittedProgressFor: "Mengirim Progres untuk",
-        canceledProject: "Membatalkan Proyek", 
+        canceledProject: "Membatalkan Proyek",
         generateDPInvoice: "Membuat Faktur DP",
         approvedOfferTransition: "Menyetujui Penawaran",
         approvedDPInvoiceTransition: "Menyetujui Faktur DP",
@@ -272,7 +273,7 @@ const id = {
         adminProyekCompletedPostSidangRevision: "Admin Proyek menyelesaikan revisi pasca-sidang dan menyelesaikan proyek.",
         adminProyekUploadedMEPFiles: "Admin Proyek mengunggah berkas MEP.",
         offerCanceledByOwner: "Proyek dibatalkan oleh Pemilik pada tahap penawaran.",
-        offerRevisedByOwner: "Permintaan revisi penawaran proyek oleh Pemilik." // New
+        offerRevisedByOwner: "Permintaan revisi penawaran proyek oleh Pemilik."
     },
     toast: {
       permissionDenied: 'Izin Ditolak',
@@ -291,9 +292,7 @@ const id = {
       projectMarkedCanceled: "Proyek Dibatalkan",
       projectCanceledSuccessfully: "Proyek \"{title}\" telah berhasil dibatalkan.",
       revisionRequested: "Permintaan Revisi",
-      projectSentForRevision: "Proyek \"{title}\" dikirim kembali ke {division} untuk direvisi.",
-      offerRevisionRequestedTitle: "Permintaan Revisi Penawaran", // New
-      offerRevisionRequestedDesc: "Proyek \"{projectName}\" telah dikembalikan ke {division} untuk revisi penawaran.", // New
+      projectSentForRevision: "Proyek \"{projectName}\" dikirim kembali ke {division} untuk revisi.",
       sidangOutcomeSuccessTitle: "Hasil Sidang: Berhasil",
       sidangOutcomeSuccessDesc: "Proyek \"{title}\" telah ditandai selesai berdasarkan hasil sidang.",
       sidangOutcomeRevisionTitle: "Hasil Sidang: Perlu Revisi",
@@ -326,7 +325,7 @@ const id = {
       downloadErrorDesc: 'Gagal mengunduh file.',
       revisionPermissionDenied: 'Anda tidak memiliki izin untuk meminta revisi untuk proyek ini pada tahap saat ini.',
       revisionSuccess: 'Permintaan Revisi Berhasil',
-      revisionSuccessDesc: 'Proyek dikirim kembali ke {division} untuk direvisi.',
+      revisionSuccessDesc: 'Proyek dikirim kembali ke {division} untuk revisi.',
       revisionError: 'Kesalahan Revisi',
       revisionNoteRequired: 'Catatan diperlukan untuk meminta revisi.',
       schedulingPermissionDenied: 'Anda tidak memiliki izin untuk menjadwalkan proyek ini.',
@@ -414,14 +413,15 @@ const id = {
     deleteDialogCancel: 'Batal',
     deleteDialogConfirm: 'Hapus Pengguna',
     cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin/Akuntan terakhir.',
-    roles: { // Digunakan untuk dropdown dan tampilan umum jika konteks spesifik tidak tersedia
+    roles: {
        owner: 'Pemilik',
-       generaladmin: 'Admin/Akuntan', // Nama tampilan untuk "General Admin"
+       adminakuntan: 'Admin/Akuntan',
        adminproyek: 'Admin Proyek',
        arsitek: 'Arsitek',
        struktur: 'Struktur',
        mep: 'MEP',
        admindev: 'Developer',
+       generaladmin: 'Admin/Akuntan',
      },
     toast: {
         userAdded: 'Pengguna Ditambahkan',
@@ -508,7 +508,7 @@ const id = {
   // Manage Workflows Page
   manageWorkflowsPage: {
     title: 'Kelola Alur Kerja',
-    description: 'Definisikan dan kelola alur kerja proyek. Hanya Admin Developer yang dapat melakukan tindakan ini.',
+    description: 'Definisikan dan kelola alur kerja proyek. Hanya Admin Developers yang dapat melakukan tindakan ini.',
     addWorkflowButton: 'Tambah Alur Kerja Baru',
     tableHeaderName: 'Nama Alur Kerja',
     tableHeaderDescription: 'Deskripsi',

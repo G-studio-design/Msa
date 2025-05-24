@@ -33,9 +33,9 @@ import {
   RefreshCw,
   Search,
   Replace,
-  Briefcase, 
-  MapPin,    
-  Plane,     
+  Briefcase,
+  MapPin,
+  Plane,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -93,7 +93,6 @@ const defaultDict = getDictionary('en');
 const projectStatuses = [
     'Pending Offer', 'Pending Approval', 'Pending DP Invoice',
     'Pending Admin Files', 'Pending Survey Details', 'Pending Architect Files', 'Pending Structure Files',
-    // 'Pending MEP Files', // Removed as Admin Proyek handles this
     'Pending Scheduling', 'Scheduled', 'Pending Post-Sidang Revision',
     'In Progress', 'Completed', 'Canceled', 'Pending Consultation Docs', 'Pending Review'
 ];
@@ -218,7 +217,7 @@ export default function ProjectsPage() {
   }, [isClient, language, projectsDict]);
 
    const formatDateOnly = React.useCallback((timestamp: string | undefined | null): string => {
-      if (!isClient) return projectsDict?.notApplicable || "N/A";
+      if (!isClient || !projectsDict?.notApplicable) return "N/A";
       if (!timestamp) return projectsDict?.notApplicable || "N/A";
       const locale = language === 'id' ? 'id-ID' : 'en-US';
       try {
@@ -269,17 +268,19 @@ export default function ProjectsPage() {
     setInitialImageFiles(initialImageFiles.filter((_, i) => i !== index));
   };
 
-
   const canPerformSelectedProjectAction = React.useMemo(() => {
     if (!currentUser || !selectedProject) return false;
     if (currentUser.role === 'Admin Developer') return true;
-    if (currentUser.role === 'Owner') { 
-        return selectedProject.assignedDivision === 'Owner' || 
-               selectedProject.status === 'Pending Approval' || 
-               selectedProject.status === 'Scheduled' || 
-               selectedProject.status === 'Pending Scheduling'; 
+    if (currentUser.role === 'Owner') {
+        return selectedProject.assignedDivision === 'Owner' ||
+               selectedProject.status === 'Pending Approval' ||
+               selectedProject.status === 'Scheduled' ||
+               selectedProject.status === 'Pending Scheduling';
     }
-    return currentUser.role === selectedProject.assignedDivision;
+    // Ensure role comparison is case-insensitive by trimming and converting to lower case
+    const currentUserRoleCleaned = currentUser.role.trim().toLowerCase();
+    const assignedDivisionCleaned = selectedProject.assignedDivision?.trim().toLowerCase();
+    return currentUserRoleCleaned === assignedDivisionCleaned;
   }, [currentUser, selectedProject]);
 
   const getTranslatedStatus = React.useCallback((statusKey: string): string => {
@@ -302,7 +303,7 @@ export default function ProjectsPage() {
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = Clock; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginput': case 'menunggu input': case 'pendingoffer': case 'menunggu penawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Clock; break;
-        case 'pendingdpinvoice': case 'menunggu faktur dp': case 'pendingadminfiles': case 'menunggu berkas administrasi': case 'pendingarchitectfiles': case 'menunggu berkas arsitektur': case 'pendingstructurefiles': case 'menunggu berkas struktur':  case 'pendingfinalcheck': case 'menunggu pemeriksaan akhir': case 'pendingscheduling': case 'menunggu penjadwalan': case 'pendingconsultationdocs': case 'menunggu dok. konsultasi': case 'pendingreview': case 'menunggu tinjauan': case 'pendingsurveydetails': case 'menunggu detail survei': case 'pendingpostsidangrevision': case 'menunggu revisi pasca sidang': variant = 'secondary'; Icon = Clock; break;
+        case 'pendingdpinvoice': case 'menunggu faktur dp': case 'pendingadminfiles': case 'menunggu berkas administrasi': case 'pendingarchitectfiles': case 'menunggu berkas arsitektur': case 'pendingstructurefiles': case 'menunggu berkas struktur': case 'pendingmepfiles': case 'menunggu berkas mep': case 'pendingfinalcheck': case 'menunggu pemeriksaan akhir': case 'pendingscheduling': case 'menunggu penjadwalan': case 'pendingconsultationdocs': case 'menunggu dok. konsultasi': case 'pendingreview': case 'menunggu tinjauan': case 'pendingsurveydetails': case 'menunggu detail survei': case 'pendingpostsidangrevision': case 'menunggu revisi pasca sidang': variant = 'secondary'; Icon = Clock; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = Clock; break;
         default: variant = 'secondary'; Icon = Clock;
     }
@@ -395,9 +396,9 @@ export default function ProjectsPage() {
 
             if (actionTaken === 'revise_offer') {
                 toast({
-                  title: projectsDict.toast.offerRevisionRequestedTitle,
-                  description: projectsDict.toast.offerRevisionRequestedDesc
-                    .replace('{projectName}', newlyUpdatedProject.title)
+                  title: projectsDict.toast.revisionRequested,
+                  description: projectsDict.toast.projectSentForRevision
+                    .replace('{projectName}', newlyUpdatedProject.title) // Use projectName for consistency
                     .replace('{division}', getTranslatedStatus(newlyUpdatedProject.assignedDivision)),
                 });
             } else if (actionTaken === 'completed') {
@@ -410,22 +411,22 @@ export default function ProjectsPage() {
                 toast({ title: projectsDict.toast.initialImagesUploadedTitle, description: projectsDict.toast.initialImagesUploadedDesc.replace('{projectName}', newlyUpdatedProject.title) });
             } else if (actionTaken === 'revision_completed_and_finish') {
                  toast({ title: projectsDict.toast.revisionCompletedTitle, description: projectsDict.toast.revisionCompletedDesc.replace('{title}', newlyUpdatedProject.title) });
-            } else if (newlyUpdatedProject.status === 'Completed') { 
+            } else if (newlyUpdatedProject.status === 'Completed') {
                 toast({ title: projectsDict.toast.projectMarkedCompleted, description: projectsDict.toast.projectCompletedSuccessfully.replace('{title}', newlyUpdatedProject.title) });
-            } else if (newlyUpdatedProject.status === 'Canceled') { 
+            } else if (newlyUpdatedProject.status === 'Canceled') {
                 toast({ title: projectsDict.toast.projectMarkedCanceled, description: projectsDict.toast.projectCanceledSuccessfully.replace('{title}', newlyUpdatedProject.title) });
             } else if (actionTaken === 'scheduled') {
                 toast({ title: projectsDict.toast.sidangScheduled, description: projectsDict.toast.sidangScheduledDesc });
-            } else if (newlyUpdatedProject.assignedDivision) { 
+            } else if (newlyUpdatedProject.assignedDivision) {
                 toast({ title: projectsDict.toast.progressSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', getTranslatedStatus(newlyUpdatedProject.assignedDivision)) });
-            } else { 
+            } else {
                 toast({ title: projectsDict.toast.progressSubmitted, description: `Project "${newlyUpdatedProject.title}" has been updated.` });
             }
         } else {
              toast({
-                variant: 'default', 
+                variant: 'default',
                 title: projectsDict.toast.actionDidNotChangeStatusTitle,
-                description: projectsDict.toast.actionDidNotChangeStatusDesc 
+                description: projectsDict.toast.actionDidNotChangeStatusDesc
              });
         }
 
@@ -433,7 +434,7 @@ export default function ProjectsPage() {
             setDescription('');
             setUploadedFiles([]);
         }
-        if (actionTaken.includes('revise')) {
+        if (actionTaken.includes('revise')) { // Clear revision note for any revision action
             setRevisionNote('');
         }
         if (isArchitectInitialImageUpload) {
@@ -451,12 +452,12 @@ export default function ProjectsPage() {
       }
   }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus, initialImageFiles, initialImageDescription, router]);
 
-  const handleDecision = React.useCallback((decision: 'approved' | 'rejected' | 'canceled' | 'completed' | 'revise_after_sidang' | 'canceled_after_sidang' | 'revision_completed_and_finish' | 'revise_offer') => {
+  const handleDecision = React.useCallback((decision: 'approved' | 'rejected' | 'canceled' | 'completed' | 'revise_after_sidang' | 'canceled_after_sidang' | 'revision_completed_and_finish') => {
     if (!currentUser || !selectedProject ) {
       toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.onlyOwnerDecision });
       return;
     }
-    const isOwnerAction = ['approved', 'rejected', 'canceled', 'completed', 'revise_after_sidang', 'canceled_after_sidang', 'revise_offer'].includes(decision);
+    const isOwnerAction = ['approved', 'rejected', 'canceled', 'completed', 'revise_after_sidang', 'canceled_after_sidang'].includes(decision);
     if (isOwnerAction && currentUser.role !== 'Owner') {
         toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.onlyOwnerDecision });
         return;
@@ -505,7 +506,7 @@ export default function ProjectsPage() {
             toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: "Please provide survey date, time, and description." });
             return;
         }
-        handleProgressSubmit('submitted'); 
+        handleProgressSubmit('submitted');
     }, [currentUser, selectedProject, surveyDate, surveyTime, surveyDescription, canPerformSelectedProjectAction, projectsDict, toast, handleProgressSubmit]);
 
     const handleAddToCalendar = React.useCallback(async () => {
@@ -525,7 +526,7 @@ export default function ProjectsPage() {
       }
 
       const scheduledDateTime = new Date(`${selectedProject.scheduleDetails.date}T${selectedProject.scheduleDetails.time}`);
-      const endTime = new Date(scheduledDateTime.getTime() + 60 * 60 * 1000); 
+      const endTime = new Date(scheduledDateTime.getTime() + 60 * 60 * 1000);
 
       const eventDetails = {
         title: `${projectsDict.sidangEventTitlePrefix}: ${selectedProject.title}`,
@@ -579,11 +580,12 @@ export default function ProjectsPage() {
 
     const roleFilteredProjects = React.useMemo(() => {
         if (!currentUser || !isClient || isLoadingProjects) return [];
-        if (['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'].includes(currentUser.role)) {
+        if (['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'].includes(currentUser.role.trim())) {
             return allProjects;
         }
+        const userRoleLower = currentUser.role.trim().toLowerCase();
         return allProjects.filter(project =>
-            project.assignedDivision?.toLowerCase() === currentUser.role.toLowerCase()
+            project.assignedDivision?.trim().toLowerCase() === userRoleLower
         );
     }, [currentUser, allProjects, isClient, isLoadingProjects]);
 
@@ -611,11 +613,8 @@ export default function ProjectsPage() {
             'Pending Architect Files', 'Pending Structure Files',
             'Pending Consultation Docs',
         ];
-        if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Final Check') {
+        if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Final Check') { // Obsolete with new workflow
             return false;
-        }
-        if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending MEP Files') {
-             return true; // Admin Proyek handles MEP files now
         }
         return statusesExpectingUpload.includes(selectedProject.status);
    }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
@@ -630,7 +629,7 @@ export default function ProjectsPage() {
 
    const showOwnerDecisionSection = React.useMemo(() =>
         selectedProject &&
-        selectedProject.status === 'Pending Approval' && 
+        selectedProject.status === 'Pending Approval' &&
         currentUser?.role === 'Owner' &&
         canPerformSelectedProjectAction,
     [selectedProject, currentUser, canPerformSelectedProjectAction]);
@@ -640,7 +639,7 @@ export default function ProjectsPage() {
     return selectedProject.status === 'Pending Scheduling' &&
            (
              (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === 'Admin Proyek') ||
-             currentUser.role === 'Owner' 
+             currentUser.role === 'Owner'
            ) && canPerformSelectedProjectAction;
     },[selectedProject, currentUser, canPerformSelectedProjectAction]);
 
@@ -671,7 +670,7 @@ export default function ProjectsPage() {
 
             if (!response.ok) {
                  try {
-                    responseText = await response.text(); 
+                    responseText = await response.text();
                     if (responseText.trim().startsWith('{') && responseText.trim().endsWith('}')) {
                         const errorData = JSON.parse(responseText);
                         errorDetails = errorData.message || errorData.error || errorDetails;
@@ -702,53 +701,62 @@ export default function ProjectsPage() {
         }
     }, [isClient, toast, projectsDict]);
 
-   const handleReviseSubmit = React.useCallback(async () => {
-       if (!currentUser || !selectedProject ) {
-           toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.revisionPermissionDenied });
-           return;
-       }
-        if (!['Owner', 'Admin/Akuntan', 'Admin Developer', 'Admin Proyek'].includes(currentUser.role)) {
-            toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.revisionPermissionDenied });
-            return;
+    const handleReviseSubmit = React.useCallback(async () => {
+      if (!currentUser || !selectedProject) {
+        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.revisionPermissionDenied });
+        return;
+      }
+      if (!['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'].includes(currentUser.role.trim())) {
+        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.revisionPermissionDenied });
+        return;
+      }
+      if (!revisionNote.trim()) {
+        toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: projectsDict.toast.revisionNoteRequired });
+        return;
+      }
+
+      setIsRevising(true);
+
+      // Determine the specific revision action based on context
+      let actionForRevision = 'revise'; // Default general revision action
+      if (currentUser.role === 'Owner' && selectedProject.status === 'Pending Approval' && selectedProject.progress === 20) {
+        actionForRevision = 'revise_offer';
+      }
+
+      try {
+        const revisedProjectResult = await reviseProject(selectedProject.id, currentUser.username, currentUser.role, revisionNote, actionForRevision);
+        if (revisedProjectResult) {
+          setAllProjects(prev => prev.map(p => (p.id === revisedProjectResult.id ? revisedProjectResult : p)));
+          setSelectedProject(revisedProjectResult);
+          setRevisionNote('');
+          toast({ title: projectsDict.toast.revisionSuccess, description: projectsDict.toast.revisionSuccessDesc.replace('{division}', getTranslatedStatus(revisedProjectResult.assignedDivision)) });
+        } else {
+          toast({ variant: 'default', title: projectsDict.toast.revisionNotApplicableShort, description: projectsDict.toast.revisionNotApplicable });
         }
-       if (!revisionNote.trim()) {
-           toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: projectsDict.toast.revisionNoteRequired });
-           return;
-       }
-       setIsRevising(true);
-       try {
-           const revisedProjectResult = await reviseProject(selectedProject.id, currentUser.username, currentUser.role, revisionNote);
-           if(revisedProjectResult) {
-            setAllProjects(prev => prev.map(p => (p.id === revisedProjectResult.id ? revisedProjectResult : p)));
-            setSelectedProject(revisedProjectResult);
-            setRevisionNote('');
-            toast({ title: projectsDict.toast.revisionSuccess, description: projectsDict.toast.revisionSuccessDesc.replace('{division}', getTranslatedStatus(revisedProjectResult.assignedDivision)) });
-           } else {
-            toast({ variant: 'default', title: projectsDict.toast.revisionNotApplicableShort, description: projectsDict.toast.revisionNotApplicable });
-           }
-       } catch (error: any) {
-           console.error("Error revising project:", error);
-           let desc = projectsDict.toast.failedToRevise;
-            if (error.message === 'WORKFLOW_NOT_FOUND') {
-                desc = "Workflow definition not found for this project. Cannot process revision.";
-            } else if (error.message === 'PROJECT_NOT_FOUND') {
-                desc = "Project not found for revision.";
-            } else if (error.message === 'REVISION_NOT_SUPPORTED_FOR_CURRENT_STEP') {
-                desc = projectsDict.toast.revisionNotApplicable;
-            } else {
-                desc = error.message || desc;
-            }
-           toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: desc });
-       } finally {
-           setIsRevising(false);
-       }
-   }, [currentUser, selectedProject, revisionNote, projectsDict, toast, getTranslatedStatus]);
+      } catch (error: any) {
+        console.error("Error revising project:", error);
+        let desc = projectsDict.toast.failedToRevise;
+        if (error.message === 'WORKFLOW_NOT_FOUND') {
+          desc = "Workflow definition not found for this project. Cannot process revision.";
+        } else if (error.message === 'PROJECT_NOT_FOUND') {
+          desc = "Project not found for revision.";
+        } else if (error.message === 'REVISION_NOT_SUPPORTED_FOR_CURRENT_STEP') {
+          desc = projectsDict.toast.revisionNotApplicable;
+        } else {
+          desc = error.message || desc;
+        }
+        toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: desc });
+      } finally {
+        setIsRevising(false);
+      }
+    }, [currentUser, selectedProject, revisionNote, projectsDict, toast, getTranslatedStatus]);
+
 
     const canReviseSelectedProject = React.useMemo(() => {
         if (!currentUser || !selectedProject) return false;
-        const allowedRoles = ['Owner', 'Admin/Akuntan', 'Admin Developer', 'Admin Proyek'];
-        const nonRevisableStatuses = ['Completed', 'Canceled']; 
-        return allowedRoles.includes(currentUser.role) && !nonRevisableStatuses.includes(selectedProject.status);
+        const allowedRoles = ['Owner', 'General Admin', 'Admin Developer', 'Admin Proyek'];
+        const nonRevisableStatuses = ['Completed', 'Canceled'];
+        return allowedRoles.includes(currentUser.role.trim()) && !nonRevisableStatuses.includes(selectedProject.status);
     }, [currentUser, selectedProject]);
 
 
@@ -769,12 +777,12 @@ export default function ProjectsPage() {
 
     const handleNotifyDivisionForRevision = React.useCallback(async (targetDivision: 'Arsitek' | 'Struktur') => {
         if (!selectedProject || !currentUser) return;
-        setIsSubmitting(true); 
+        setIsSubmitting(true);
         try {
             const message = projectsDict.toast.revisionNotificationSentDesc
                 .replace('{division}', getTranslatedStatus(targetDivision))
                 .replace('{projectName}', selectedProject.title);
-            
+
             await notifyUsersByRole(targetDivision, message, selectedProject.id);
             toast({ title: projectsDict.toast.revisionNotificationSentTitle, description: message });
         } catch (error:any) {
@@ -785,7 +793,6 @@ export default function ProjectsPage() {
         }
 
     }, [selectedProject, currentUser, projectsDict, toast, getTranslatedStatus]);
-
 
 
     if (!isClient || !currentUser || (isLoadingProjects && !selectedProject && !searchParams.get('projectId'))) {
@@ -991,9 +998,9 @@ export default function ProjectsPage() {
                                         </div>
                                         <DialogFooter className="pt-2">
                                             <Button type="button" variant="outline" onClick={() => setIsInitialImageUploadDialogOpen(false)} disabled={isSubmittingInitialImages}>{projectsDict.cancelButton}</Button>
-                                            <Button 
-                                                type="button" 
-                                                onClick={() => handleProgressSubmit('architect_uploaded_initial_images_for_struktur', initialImageFiles, initialImageDescription)} 
+                                            <Button
+                                                type="button"
+                                                onClick={() => handleProgressSubmit('architect_uploaded_initial_images_for_struktur', initialImageFiles, initialImageDescription)}
                                                 disabled={isSubmittingInitialImages || initialImageFiles.length === 0}
                                                 className="accent-teal"
                                             >
@@ -1013,13 +1020,6 @@ export default function ProjectsPage() {
                               <AlertDialog><AlertDialogTrigger asChild><Button variant="destructive" disabled={isSubmitting} className="w-full sm:w-auto"><XCircle className="mr-2 h-4 w-4" /> {projectsDict.cancelProjectButton}</Button></AlertDialogTrigger>
                                 <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{projectsDict.cancelDialogTitle}</AlertDialogTitle><AlertDialogDescription>{projectsDict.cancelDialogDesc.replace('{projectName}', project.title)}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={isSubmitting}>{projectsDict.cancelButton}</AlertDialogCancel><AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleDecision('rejected')} disabled={isSubmitting}>{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}{projectsDict.confirmCancelButton}</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
                               </AlertDialog>
-                              {/* Only show Request Offer Revision button if it's for offer approval (e.g., progress is 20) */}
-                              {project.status === 'Pending Approval' && project.progress === 20 && (
-                                <Button variant="outline" onClick={() => handleDecision('revise_offer')} disabled={isSubmitting} className="w-full sm:w-auto border-orange-500 text-orange-600 hover:bg-orange-500/10">
-                                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-                                    {projectsDict.requestOfferRevisionButton}
-                                </Button>
-                              )}
                               <Button onClick={() => handleDecision('approved')} disabled={isSubmitting} className="accent-teal w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}{projectsDict.approveButton}</Button>
                             </div>
                         </div>
@@ -1157,7 +1157,7 @@ export default function ProjectsPage() {
                                 <div className={`mt-1 h-3 w-3 rounded-full flex-shrink-0 ${index === project.workflowHistory.length - 1 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
                                 <div>
                                     <p className="text-sm font-medium">{entry.action}</p>
-                                    <p className="text-xs text-muted-foreground">{formatTimestamp(entry.timestamp)} - oleh {getTranslatedStatus(entry.division) || entry.division}</p>
+                                    <p className="text-xs text-muted-foreground">{isClient ? formatTimestamp(entry.timestamp) : '...'}</p>
                                     {entry.note && <p className="text-xs text-muted-foreground italic mt-1">{projectsDict.revisionNotePrefix} {entry.note}</p>}
                                 </div>
                             </li>
@@ -1175,3 +1175,4 @@ export default function ProjectsPage() {
     </div>
   );
 }
+
