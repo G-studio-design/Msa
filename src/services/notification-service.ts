@@ -1,3 +1,4 @@
+
 // src/services/notification-service.ts
 'use server';
 
@@ -62,7 +63,6 @@ async function readNotifications(): Promise<Notification[]> {
 async function writeNotifications(notifications: Notification[]): Promise<void> {
     try {
         await fs.writeFile(DB_PATH, JSON.stringify(notifications, null, 2), 'utf8');
-        // console.log("Notification data written to DB_PATH successfully."); // Reduce verbosity
     } catch (error) {
         console.error("[NotificationService/JSON] Error writing notification database:", error);
         throw new Error('Failed to save notification data.');
@@ -72,45 +72,60 @@ async function writeNotifications(notifications: Notification[]): Promise<void> 
 
 async function findUsersByRole(role: string): Promise<User[]> {
     const allUsersForDisplay = await getAllUsersForDisplay();
-    return allUsersForDisplay.filter(user => user.role === role);
+    const usersInRole = allUsersForDisplay.filter(user => user.role === role);
+    console.log(`[NotificationService/findUsersByRole] Found ${usersInRole.length} user(s) with role "${role}" for notification.`);
+    return usersInRole;
 }
 
 // --- Notification Service Functions ---
 
-export async function notifyUsersByRole(role: string, message: string, projectId?: string): Promise<void> {
-    console.log(`[NotificationService/JSON] Sending notification to role "${role}": ${message}${projectId ? ` (Project: ${projectId})` : ''}`);
+export async function notifyUsersByRole(roleOrRoles: string | string[], message: string, projectId?: string): Promise<void> {
+    const rolesToNotify = Array.isArray(roleOrRoles) ? roleOrRoles : [roleOrRoles];
+    console.log(`[NotificationService/JSON] Attempting to send notification to role(s) "${rolesToNotify.join(', ')}": ${message}${projectId ? ` (Project: ${projectId})` : ''}`);
+    
     try {
-        if (!role) {
-            console.warn(`[NotificationService/JSON] No target role specified for notification: "${message}". Skipping.`);
-            return;
-        }
-        const targetUsers = await findUsersByRole(role);
-        if (targetUsers.length === 0) {
-            console.warn(`[NotificationService/JSON] No users found with role "${role}" to notify for message: "${message}".`);
+        if (rolesToNotify.length === 0 || rolesToNotify.every(r => !r)) {
+            console.warn(`[NotificationService/JSON] No target role(s) specified for notification: "${message}". Skipping.`);
             return;
         }
 
-        const notifications = await readNotifications(); 
+        const notifications = await readNotifications();
         const now = new Date().toISOString();
+        let notificationsAdded = 0;
 
-        targetUsers.forEach(user => {
-            const newNotification: Notification = {
-                id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-                userId: user.id,
-                projectId: projectId,
-                message: message,
-                timestamp: now,
-                isRead: false,
-            };
-            notifications.push(newNotification);
-            console.log(` -> Notification queued for user ${user.username} (${user.id})`);
-        });
+        for (const role of rolesToNotify) {
+            if (!role) continue; // Skip if a role in the array is empty or null
 
-        await writeNotifications(notifications); 
-        // console.log(`Notifications persisted. Total notifications: ${notifications.length}`); // Reduce verbosity
+            const targetUsers = await findUsersByRole(role);
+            if (targetUsers.length === 0) {
+                console.warn(`[NotificationService/JSON] No users found with role "${role}" to notify for message: "${message}".`);
+                continue;
+            }
+
+            targetUsers.forEach(user => {
+                const newNotification: Notification = {
+                    id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${user.id.slice(-3)}`, // Make ID more unique
+                    userId: user.id,
+                    projectId: projectId,
+                    message: message,
+                    timestamp: now,
+                    isRead: false,
+                };
+                notifications.push(newNotification);
+                notificationsAdded++;
+                console.log(` -> Notification queued for user ${user.username} (${user.id}) for role ${role}`);
+            });
+        }
+        
+        if (notificationsAdded > 0) {
+            await writeNotifications(notifications);
+            console.log(`[NotificationService/JSON] ${notificationsAdded} notification(s) successfully written.`);
+        } else {
+            console.log(`[NotificationService/JSON] No notifications were added to be written.`);
+        }
 
     } catch (error) {
-        console.error(`[NotificationService/JSON] Error notifying users by role "${role}":`, error);
+        console.error(`[NotificationService/JSON] Error notifying users by role(s) "${rolesToNotify.join(', ')}":`, error);
     }
 }
 
@@ -137,7 +152,6 @@ export async function notifyUserById(userId: string, message: string, projectId?
         console.log(` -> Notification queued for user ${userId}`);
 
         await writeNotifications(notifications);
-        // console.log(`Notification for user ${userId} persisted. Total notifications: ${notifications.length}`); // Reduce verbosity
 
     } catch (error) {
         console.error(`[NotificationService/JSON] Error notifying user ID "${userId}":`, error);

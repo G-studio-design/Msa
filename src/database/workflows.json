@@ -176,13 +176,32 @@
         "nextActionDescription": "Unggah Berkas Struktur",
         "transitions": {
           "submitted": {
+            "targetStatus": "Pending MEP Files",
+            "targetAssignedDivision": "MEP",
+            "targetNextActionDescription": "Unggah Berkas MEP",
+            "targetProgress": 80,
+            "notification": {
+              "division": "MEP",
+              "message": "Berkas struktur untuk '{projectName}' oleh {actorUsername} lengkap. Mohon unggah berkas MEP."
+            }
+          }
+        }
+      },
+      {
+        "stepName": "MEP Files Submission",
+        "status": "Pending MEP Files",
+        "assignedDivision": "MEP",
+        "progress": 80,
+        "nextActionDescription": "Unggah Berkas MEP",
+        "transitions": {
+          "submitted": {
             "targetStatus": "Pending Scheduling",
             "targetAssignedDivision": "Admin Proyek",
             "targetNextActionDescription": "Jadwalkan Sidang",
             "targetProgress": 90,
             "notification": {
               "division": "Admin Proyek",
-              "message": "Berkas struktur untuk '{projectName}' oleh {actorUsername} lengkap. Mohon jadwalkan sidang."
+              "message": "Semua berkas teknis untuk '{projectName}' oleh {actorUsername} lengkap. Mohon jadwalkan sidang."
             }
           }
         }
@@ -343,5 +362,4 @@
     ]
   }
 ]
-
-    
+```
