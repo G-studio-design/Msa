@@ -2,10 +2,10 @@
   {
     "id": "project_demo_aktif_001",
     "title": "Proyek Renovasi Kantor Pusat",
-    "status": "Pending Admin Files",
-    "progress": 40,
+    "status": "Pending Survey Details",
+    "progress": 45,
     "assignedDivision": "Admin Proyek",
-    "nextAction": "Unggah Berkas Administrasi",
+    "nextAction": "Input Jadwal Survei & Unggah Hasil",
     "workflowHistory": [
       {
         "division": "sudina",
@@ -39,6 +39,12 @@
         "division": "Owner",
         "action": "sudina (Owner) approved: Setujui Faktur DP",
         "timestamp": "2025-05-24T09:48:07.167Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Berkas Administrasi\"",
+        "timestamp": "2025-05-24T10:19:28.505Z",
+        "note": "berkas administrasi proyek"
       }
     ],
     "files": [
@@ -53,6 +59,24 @@
         "uploadedBy": "oksi",
         "path": "project_demo_aktif_001-proyek_renovasi_kantor_pusat/faktur_dptxt",
         "timestamp": "2025-05-24T09:47:42.235Z"
+      },
+      {
+        "name": "pemecahan nangka.pdf",
+        "uploadedBy": "komangmerta",
+        "path": "project_demo_aktif_001-proyek_renovasi_kantor_pusat/pemecahan_nangkapdf",
+        "timestamp": "2025-05-24T10:19:28.505Z"
+      },
+      {
+        "name": "plot.log",
+        "uploadedBy": "komangmerta",
+        "path": "project_demo_aktif_001-proyek_renovasi_kantor_pusat/plotlog",
+        "timestamp": "2025-05-24T10:19:28.505Z"
+      },
+      {
+        "name": "pool warung semana.pdf",
+        "uploadedBy": "komangmerta",
+        "path": "project_demo_aktif_001-proyek_renovasi_kantor_pusat/pool_warung_semanapdf",
+        "timestamp": "2025-05-24T10:19:28.505Z"
       }
     ],
     "createdAt": "2024-05-24T10:00:00.000Z",

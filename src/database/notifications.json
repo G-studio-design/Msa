@@ -278,5 +278,13 @@
     "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'Pembangunan Villa Ubud' telah diunggah. Anda bisa mulai merencanakan struktur.",
     "timestamp": "2025-05-24T09:49:25.055Z",
     "isRead": false
+  },
+  {
+    "id": "notif_1748081968524_dquv8",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_demo_aktif_001",
+    "message": "Berkas administrasi untuk 'Proyek Renovasi Kantor Pusat' oleh komangmerta lengkap. Mohon jadwalkan survei dan unggah hasilnya.",
+    "timestamp": "2025-05-24T10:19:28.523Z",
+    "isRead": true
   }
 ]

@@ -1,5 +1,4 @@
 
-// src/services/workflow-service.ts
 'use server';
 
 import * as fs from 'fs/promises';
@@ -16,7 +15,7 @@ export interface WorkflowStepTransition {
   targetNextActionDescription: string | null;
   targetProgress: number;
   notification?: {
-    division: string | null; 
+    division?: string | string[] | null; // Can be a single role, array of roles, or null
     message: string; 
   };
 }
@@ -42,6 +41,7 @@ export interface Workflow {
 const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
 
 // Master definition of the default standard workflow structure.
+// This is used to initialize or update the default workflow in workflows.json
 const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
     {
       stepName: "Offer Submission",
@@ -162,8 +162,8 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           targetNextActionDescription: "Input Jadwal Survei & Unggah Hasil",
           targetProgress: 45,
           notification: {
-            division: "Admin Proyek",
-            message: "Berkas administrasi untuk '{projectName}' oleh {actorUsername} lengkap. Mohon jadwalkan survei dan unggah hasilnya."
+            division: ["Owner", "Admin Proyek", "Arsitek"], // Notify multiple roles
+            message: "Berkas administrasi untuk proyek '{projectName}' oleh {actorUsername} lengkap. Mohon koordinasikan dan input jadwal survei."
           }
         }
       }
@@ -171,7 +171,7 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
      { 
       stepName: "Survey Details Submission",
       status: "Pending Survey Details",
-      assignedDivision: "Admin Proyek",
+      assignedDivision: "Admin Proyek", // Primary assignee
       progress: 45,
       nextActionDescription: "Input Jadwal Survei & Unggah Laporan Hasil Survei",
       transitions: {
@@ -203,7 +203,8 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
             division: "Struktur",
             message: "Berkas arsitektur untuk '{projectName}' telah diunggah secara lengkap oleh {actorUsername}. Mohon unggah berkas struktur."
           }
-        }
+        },
+        // Note: The architect_uploaded_initial_images_for_struktur is an in-step action, not a formal transition here.
       }
     },
     { 
@@ -214,32 +215,13 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
       nextActionDescription: "Unggah Berkas Struktur",
       transitions: {
         "submitted": {
-          targetStatus: "Pending MEP Files", // Changed: Next is MEP
-          targetAssignedDivision: "MEP",      // Changed: Assigned to MEP
-          targetNextActionDescription: "Unggah Berkas MEP",
-          targetProgress: 80,
-          notification: {
-            division: "MEP",
-            message: "Berkas struktur untuk '{projectName}' oleh {actorUsername} lengkap. Mohon unggah berkas MEP." 
-          }
-        }
-      }
-    },
-    { // New Step for MEP
-      stepName: "MEP Files Submission",
-      status: "Pending MEP Files",
-      assignedDivision: "MEP",
-      progress: 80,
-      nextActionDescription: "Unggah Berkas MEP",
-      transitions: {
-        "submitted": {
           targetStatus: "Pending Scheduling", 
           targetAssignedDivision: "Admin Proyek", 
           targetNextActionDescription: "Jadwalkan Sidang", 
           targetProgress: 90,
           notification: {
             division: "Admin Proyek",
-            message: "Berkas MEP untuk '{projectName}' oleh {actorUsername} lengkap. Mohon jadwalkan sidang." 
+            message: "Berkas struktur untuk '{projectName}' oleh {actorUsername} lengkap. Mohon jadwalkan sidang." 
           }
         }
       }
@@ -392,10 +374,11 @@ export async function getAllWorkflows(): Promise<Workflow[]> {
     workflows.unshift(defaultWorkflow); 
     saveNeeded = true;
   } else {
-     // Optionally, ensure the existing default workflow is up-to-date
      const existingDefaultIndex = workflows.findIndex(wf => wf.id === DEFAULT_WORKFLOW_ID);
      if (existingDefaultIndex !== -1) {
          let defaultNeedsUpdate = false;
+         // Deep comparison of steps can be resource-intensive. A simpler check might be on step count
+         // or a hash if performance becomes an issue. For now, direct stringify comparison.
          if (JSON.stringify(workflows[existingDefaultIndex].steps) !== JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE)) {
              console.log(`[WorkflowService] Default workflow (ID: ${DEFAULT_WORKFLOW_ID}) steps mismatch. Updating to the latest structure.`);
              workflows[existingDefaultIndex].steps = JSON.parse(JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE));
@@ -469,7 +452,6 @@ export async function getCurrentStepDetails(
   const step = workflow.steps.find(s => s.status === currentStatus && s.progress === currentProgress);
   if (!step) {
       console.warn(`[WorkflowService] Step with status "${currentStatus}" and progress ${currentProgress} not found in workflow "${workflowId}". Trying to find by status only as fallback.`);
-      // Fallback: Try to find by status only if progress doesn't match. This can be risky if multiple steps share a status name.
       const stepsWithStatus = workflow.steps.filter(s => s.status === currentStatus);
       if (stepsWithStatus.length === 1) {
           console.warn(`[WorkflowService] Fallback: Found unique step by status "${currentStatus}" but progress mismatch (expected ${currentProgress}, found ${stepsWithStatus[0].progress}). This might indicate inconsistent project data or workflow definition.`);
@@ -552,10 +534,8 @@ export async function updateWorkflow(workflowId: string, updatedWorkflowData: Pa
   };
 
   if (workflowId === DEFAULT_WORKFLOW_ID) {
-    finalUpdatedWorkflow.name = DEFAULT_WORKFLOW_NAME; // Ensure default name isn't accidentally changed to something else
-    finalUpdatedWorkflow.description = DEFAULT_WORKFLOW_DESCRIPTION; // Ensure default description
-    // Optionally re-apply default steps if they weren't part of the update explicitly,
-    // though this might overwrite intentional reordering if steps editor is used.
+    finalUpdatedWorkflow.name = DEFAULT_WORKFLOW_NAME; 
+    finalUpdatedWorkflow.description = DEFAULT_WORKFLOW_DESCRIPTION;
     if (!updatedWorkflowData.steps && JSON.stringify(finalUpdatedWorkflow.steps) !== JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE)) {
         console.log(`[WorkflowService] Resetting steps for default workflow ID ${DEFAULT_WORKFLOW_ID} to master definition during update.`);
         finalUpdatedWorkflow.steps = JSON.parse(JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE));
@@ -587,7 +567,6 @@ export async function deleteWorkflow(workflowId: string): Promise<void> {
     console.log(`[WorkflowService] Workflow with ID ${workflowId} deleted. Remaining workflows: ${workflows.length}`);
   }
   
-  // If all workflows are deleted, ensure the default is re-added on next getAllWorkflows call.
   if (workflows.length === 0) {
     console.log("[WorkflowService] All workflows deleted. The default workflow will be re-initialized on next load by getAllWorkflows.");
   }
@@ -608,3 +587,5 @@ export async function getAllUniqueStatuses(): Promise<string[]> {
     });
     return Array.from(allStatuses);
 }
+
+    
