@@ -1,12 +1,11 @@
-
 [
   {
     "id": "project_demo_aktif_001",
     "title": "Proyek Renovasi Kantor Pusat",
-    "status": "Pending Offer",
-    "progress": 10,
+    "status": "Pending Admin Files",
+    "progress": 40,
     "assignedDivision": "Admin Proyek",
-    "nextAction": "Unggah Dokumen Penawaran",
+    "nextAction": "Unggah Berkas Administrasi",
     "workflowHistory": [
       {
         "division": "sudina",
@@ -18,9 +17,44 @@
         "division": "System",
         "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
         "timestamp": "2024-05-24T10:00:00.000Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
+        "timestamp": "2025-05-24T09:44:40.905Z",
+        "note": "dokumen penawaran"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) approved: Setujui Dokumen Penawaran",
+        "timestamp": "2025-05-24T09:46:31.662Z"
+      },
+      {
+        "division": "Akuntan",
+        "action": "oksi (Akuntan) submitted for \"Buat Faktur DP\"",
+        "timestamp": "2025-05-24T09:47:42.235Z",
+        "note": "faktur dp"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) approved: Setujui Faktur DP",
+        "timestamp": "2025-05-24T09:48:07.167Z"
       }
     ],
-    "files": [],
+    "files": [
+      {
+        "name": "pool warung semana.pdf",
+        "uploadedBy": "komangmerta",
+        "path": "project_demo_aktif_001-proyek_renovasi_kantor_pusat/pool_warung_semanapdf",
+        "timestamp": "2025-05-24T09:44:40.905Z"
+      },
+      {
+        "name": "faktur dp.txt",
+        "uploadedBy": "oksi",
+        "path": "project_demo_aktif_001-proyek_renovasi_kantor_pusat/faktur_dptxt",
+        "timestamp": "2025-05-24T09:47:42.235Z"
+      }
+    ],
     "createdAt": "2024-05-24T10:00:00.000Z",
     "createdBy": "sudina",
     "workflowId": "default_standard_workflow"
@@ -53,10 +87,10 @@
   {
     "id": "project_demo_menunggu_dp_003",
     "title": "Pembangunan Villa Ubud",
-    "status": "Pending DP Invoice",
-    "progress": 25,
-    "assignedDivision": "Akuntan",
-    "nextAction": "Buat Faktur DP",
+    "status": "Pending Architect Files",
+    "progress": 50,
+    "assignedDivision": "Arsitek",
+    "nextAction": "Unggah Berkas Arsitektur",
     "workflowHistory": [
       {
         "division": "sudina",
@@ -78,11 +112,63 @@
         "division": "Owner",
         "action": "sudina (Owner) approved: Setujui Dokumen Penawaran",
         "timestamp": "2024-05-25T11:00:00.000Z"
+      },
+      {
+        "division": "Akuntan",
+        "action": "oksi (Akuntan) submitted for \"Buat Faktur DP\"",
+        "timestamp": "2025-05-24T09:38:23.660Z",
+        "note": "dokumen penawaran"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) approved: Setujui Faktur DP",
+        "timestamp": "2025-05-24T09:41:24.628Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Berkas Administrasi\"",
+        "timestamp": "2025-05-24T09:42:19.160Z",
+        "note": "faktur dp"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted Survey Details for 2025-05-26 at 15:20",
+        "timestamp": "2025-05-24T09:45:45.209Z",
+        "note": "Survey Description: survei  proyek di tabanan."
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) uploaded initial reference images for Structure.",
+        "timestamp": "2025-05-24T09:49:25.034Z"
       }
     ],
-    "files": [],
+    "files": [
+      {
+        "name": "plot.log",
+        "uploadedBy": "oksi",
+        "path": "project_demo_menunggu_dp_003-pembangunan_villa_ubud/plotlog",
+        "timestamp": "2025-05-24T09:38:23.660Z"
+      },
+      {
+        "name": "New Text Document.txt",
+        "uploadedBy": "komangmerta",
+        "path": "project_demo_menunggu_dp_003-pembangunan_villa_ubud/new_text_documenttxt",
+        "timestamp": "2025-05-24T09:42:19.160Z"
+      },
+      {
+        "name": "pool warung semana.pdf",
+        "uploadedBy": "arsitek",
+        "path": "project_demo_menunggu_dp_003-pembangunan_villa_ubud/pool_warung_semanapdf",
+        "timestamp": "2025-05-24T09:49:25.034Z"
+      }
+    ],
     "createdAt": "2024-05-25T09:00:00.000Z",
     "createdBy": "sudina",
-    "workflowId": "default_standard_workflow"
+    "workflowId": "default_standard_workflow",
+    "surveyDetails": {
+      "date": "2025-05-26",
+      "time": "15:20",
+      "description": "survei  proyek di tabanan"
+    }
   }
 ]

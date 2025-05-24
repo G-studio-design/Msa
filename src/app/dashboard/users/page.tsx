@@ -75,9 +75,9 @@ import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Define available roles for selection (internal role names)
-const divisions = ['Owner', 'Akuntan', 'Admin Proyek', 'Arsitek', 'Struktur']; // MEP Coordinator (internal 'MEP') is not directly assignable by most roles, Admin Developer is hidden
+const divisions = ['Owner', 'Akuntan', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP'];
 
-const defaultDict = getDictionary('en');
+const defaultGlobalDict = getDictionary('en');
 
 const getAddUserSchema = (dictValidation: ReturnType<typeof getDictionary>['manageUsersPage']['validation']) => z.object({
     username: z.string().min(3, dictValidation.usernameMin),
@@ -115,7 +115,7 @@ export default function ManageUsersPage() {
       }
       setIsLoading(true);
       try {
-          const fetchedUsers = await getAllUsersForDisplay(); // This already filters out Admin Developer
+          const fetchedUsers = await getAllUsersForDisplay(); 
           setUsers(fetchedUsers);
       } catch (error) {
           console.error("Failed to fetch users:", error);
@@ -185,7 +185,7 @@ export default function ManageUsersPage() {
 
 
      React.useEffect(() => {
-         if(isClient && usersDict?.validation) { // Check if usersDict and its validation property exist
+         if(isClient && usersDict?.validation) { 
              addUserForm.trigger();
              if (isEditUserDialogOpen && editUserForm) { 
                 editUserForm.trigger();
@@ -196,7 +196,7 @@ export default function ManageUsersPage() {
 
   const handleAddUser = async (data: AddUserFormValues) => {
     if (!canManageUsers || !currentUser) return;
-    // Ensure Admin Developer cannot be created through UI by non-Admin Developer
+    
     if (data.role === 'Admin Developer' && currentUser.role !== 'Admin Developer') {
         toast({ variant: 'destructive', title: usersDict.toast.error, description: usersDict.toast.cannotCreateAdminDev });
         return;
@@ -242,17 +242,13 @@ export default function ManageUsersPage() {
         }
 
         let canChangeRole = false;
-        let newRole = editingUser.role; // Default to original role
+        let newRole = editingUser.role; 
 
         if (currentUser.role === 'Owner' || currentUser.role === 'Admin Developer') {
             canChangeRole = true;
         } else if (currentUser.role === 'Akuntan') {
-             // Akuntan can change other roles to Akuntan, or other non-Owner/Dev roles to something else.
-             // Akuntan cannot change an Owner or Admin Developer.
-             // Akuntan cannot change another Akuntan to a non-Akuntan role if they are the last Akuntan.
             if (editingUser.role !== 'Owner' && editingUser.role !== 'Admin Developer') {
                 if (editingUser.role === 'Akuntan') {
-                     // If trying to change an Akuntan's role
                      if (data.role !== 'Akuntan') {
                          const accountantCount = users.filter(u => u.role === 'Akuntan').length;
                          if (accountantCount <= 1) {
@@ -263,13 +259,10 @@ export default function ManageUsersPage() {
                      }
                      canChangeRole = true;
                 } else {
-                    // Changing a non-Owner, non-Dev, non-Akuntan user.
                     canChangeRole = true;
                 }
             }
         } else if (currentUser.role === 'Admin Proyek') {
-            // Admin Proyek can only edit roles that are not Owner, Akuntan, or Admin Developer.
-            // And cannot change a user TO Owner, Akuntan, or Admin Developer.
             if (!['Owner', 'Akuntan', 'Admin Developer'].includes(editingUser.role) &&
                 !['Owner', 'Akuntan', 'Admin Developer'].includes(data.role) ) {
                 canChangeRole = true;
@@ -278,7 +271,7 @@ export default function ManageUsersPage() {
 
         if (canChangeRole) {
             newRole = data.role;
-        } else if (data.role !== editingUser.role) { // If role was changed in form but not allowed
+        } else if (data.role !== editingUser.role) { 
             toast({ variant: 'destructive', title: usersDict.toast.permissionDenied, description: usersDict.toast.editPermissionDenied });
             setIsProcessing(false);
             return;
@@ -289,7 +282,7 @@ export default function ManageUsersPage() {
             const updatePayload: UpdateProfileData = {
                  userId: editingUser.id,
                  username: data.username,
-                 role: newRole, // Use the determined newRole
+                 role: newRole, 
                  email: editingUser.email, 
                  whatsappNumber: editingUser.whatsappNumber, 
                  profilePictureUrl: editingUser.profilePictureUrl, 
@@ -428,16 +421,21 @@ export default function ManageUsersPage() {
       if (roleLower.includes('admin proyek')) return <UserCog className="h-4 w-4 text-orange-600" />;
       if (roleLower.includes('arsitek')) return <User className="h-4 w-4 text-green-600" />;
       if (roleLower.includes('struktur')) return <User className="h-4 w-4 text-yellow-600" />;
-      // MEP icon removed as MEP role is not directly assignable or listed
+      if (roleLower.includes('mep')) return <Wrench className="h-4 w-4 text-teal-600" />;
       if (roleLower.includes('admin developer')) return <Code className="h-4 w-4 text-gray-700" />;
       return <User className="h-4 w-4 text-muted-foreground" />;
   }
   
   const getTranslatedRole = React.useCallback((roleKey: string) => {
-    if (!isClient || !usersDict?.roles || !roleKey) return roleKey;
+    if (!isClient || !usersDict?.roles || !roleKey) {
+      // Fallback if dict or roles not ready
+      const fallbackDict = defaultGlobalDict.manageUsersPage.roles as Record<string, string>;
+      const key = roleKey?.trim().replace(/\s+/g, '').toLowerCase() || "";
+      return fallbackDict[key] || roleKey;
+    }
     const normalizedKey = roleKey?.trim().replace(/\s+/g, '').toLowerCase() as keyof typeof usersDict.roles;
     return usersDict.roles[normalizedKey] || roleKey;
-  }, [isClient, usersDict]);
+  }, [isClient, usersDict, defaultGlobalDict]);
 
 
   if (!isClient || isLoading || !usersDict?.title) { 
@@ -461,10 +459,10 @@ export default function ManageUsersPage() {
            <div className="container mx-auto py-4 px-4 md:px-6">
               <Card className="border-destructive">
                    <CardHeader>
-                       <CardTitle className="text-destructive">{usersDict.accessDeniedTitle}</CardTitle>
+                       <CardTitle className="text-destructive">{isClient ? usersDict.accessDeniedTitle : defaultGlobalDict.manageUsersPage.accessDeniedTitle}</CardTitle>
                    </CardHeader>
                    <CardContent>
-                       <p>{usersDict.accessDeniedDesc}</p>
+                       <p>{isClient ? usersDict.accessDeniedDesc : defaultGlobalDict.manageUsersPage.accessDeniedDesc}</p>
                    </CardContent>
               </Card>
           </div>
@@ -477,20 +475,20 @@ export default function ManageUsersPage() {
       <Card>
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-             <CardTitle className="text-xl md:text-2xl">{usersDict.title}</CardTitle>
-            <CardDescription>{usersDict.description}</CardDescription>
+             <CardTitle className="text-xl md:text-2xl">{isClient ? usersDict.title : defaultGlobalDict.manageUsersPage.title}</CardTitle>
+            <CardDescription>{isClient ? usersDict.description : defaultGlobalDict.manageUsersPage.description}</CardDescription>
           </div>
             <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
               <DialogTrigger asChild>
                  <Button className="accent-teal w-full sm:w-auto" disabled={isProcessing || isLoading || !canManageUsers}>
-                  <PlusCircle className="mr-2 h-4 w-4" /> {usersDict.addUserButton}
+                  <PlusCircle className="mr-2 h-4 w-4" /> {isClient ? usersDict.addUserButton : defaultGlobalDict.manageUsersPage.addUserButton}
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                  <DialogTitle>{usersDict.addUserDialogTitle}</DialogTitle>
+                  <DialogTitle>{isClient ? usersDict.addUserDialogTitle : defaultGlobalDict.manageUsersPage.addUserDialogTitle}</DialogTitle>
                   <DialogDescription>
-                  {usersDict.addUserDialogDesc}
+                  {isClient ? usersDict.addUserDialogDesc : defaultGlobalDict.manageUsersPage.addUserDialogDesc}
                   </DialogDescription>
                 </DialogHeader>
                 <Form {...addUserForm}>
@@ -500,9 +498,9 @@ export default function ManageUsersPage() {
                         name="username"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{usersDict.usernameLabel}</FormLabel>
+                            <FormLabel>{isClient ? usersDict.usernameLabel : defaultGlobalDict.manageUsersPage.usernameLabel}</FormLabel>
                             <FormControl>
-                              <Input placeholder={usersDict.usernamePlaceholder} {...field} autoComplete="off" />
+                              <Input placeholder={isClient ? usersDict.usernamePlaceholder : defaultGlobalDict.manageUsersPage.usernamePlaceholder} {...field} autoComplete="off" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -513,9 +511,9 @@ export default function ManageUsersPage() {
                           name="password"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{usersDict.passwordLabel}</FormLabel>
+                              <FormLabel>{isClient ? usersDict.passwordLabel : defaultGlobalDict.manageUsersPage.passwordLabel}</FormLabel>
                               <FormControl>
-                                <Input type="password" placeholder={usersDict.passwordPlaceholder} {...field} autoComplete="new-password" />
+                                <Input type="password" placeholder={isClient ? usersDict.passwordPlaceholder : defaultGlobalDict.manageUsersPage.passwordPlaceholder} {...field} autoComplete="new-password" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -526,28 +524,24 @@ export default function ManageUsersPage() {
                           name="role"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{usersDict.roleLabel}</FormLabel>
+                              <FormLabel>{isClient ? usersDict.roleLabel : defaultGlobalDict.manageUsersPage.roleLabel}</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value || ""} disabled={isProcessing}>
                                   <FormControl>
                                     <SelectTrigger>
-                                      <SelectValue placeholder={usersDict.rolePlaceholder} />
+                                      <SelectValue placeholder={isClient ? usersDict.rolePlaceholder : defaultGlobalDict.manageUsersPage.rolePlaceholder} />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
                                     {divisions
                                         .filter(division => {
                                             if (!currentUser) return false;
-                                            // Admin Developer can create any role except another Admin Developer
-                                            if (currentUser.role === 'Admin Developer') return true; 
-                                            // Owner can create any role except Admin Developer
-                                            if (currentUser.role === 'Owner') return true; 
-                                            // Akuntan can create Admin Proyek, Arsitek, Struktur
+                                            if (currentUser.role === 'Admin Developer') return division !== 'Admin Developer'; 
+                                            if (currentUser.role === 'Owner') return division !== 'Admin Developer'; 
                                             if (currentUser.role === 'Akuntan') {
-                                                return ['Admin Proyek', 'Arsitek', 'Struktur'].includes(division);
+                                                return ['Admin Proyek', 'Arsitek', 'Struktur', 'MEP'].includes(division);
                                             }
-                                            // Admin Proyek can create Arsitek, Struktur
                                             if (currentUser.role === 'Admin Proyek') {
-                                                 return ['Arsitek', 'Struktur'].includes(division);
+                                                 return ['Arsitek', 'Struktur', 'MEP'].includes(division);
                                             }
                                             return false; 
                                         })
@@ -563,10 +557,10 @@ export default function ManageUsersPage() {
                           )}
                         />
                       <DialogFooter className="pt-2">
-                          <Button type="button" variant="outline" onClick={() => setIsAddUserDialogOpen(false)} disabled={isProcessing}>{usersDict.cancelButton}</Button>
+                          <Button type="button" variant="outline" onClick={() => setIsAddUserDialogOpen(false)} disabled={isProcessing}>{isClient ? usersDict.cancelButton : defaultGlobalDict.manageUsersPage.cancelButton}</Button>
                           <Button type="submit" className="accent-teal" disabled={isProcessing}>
                             {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            {isProcessing ? usersDict.addingUserButton : usersDict.addUserSubmitButton}
+                            {isProcessing ? (isClient ? usersDict.addingUserButton : defaultGlobalDict.manageUsersPage.addingUserButton ) : (isClient ? usersDict.addUserSubmitButton : defaultGlobalDict.manageUsersPage.addUserSubmitButton)}
                           </Button>
                       </DialogFooter>
                     </form>
@@ -579,17 +573,17 @@ export default function ManageUsersPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{usersDict.tableHeaderUsername}</TableHead>
-                     <TableHead className="hidden sm:table-cell">{usersDict.tableHeaderPassword}</TableHead>
-                    <TableHead>{usersDict.tableHeaderRole}</TableHead>
-                    <TableHead className="text-right">{usersDict.tableHeaderActions}</TableHead>
+                    <TableHead>{isClient ? usersDict.tableHeaderUsername : defaultGlobalDict.manageUsersPage.tableHeaderUsername}</TableHead>
+                     <TableHead className="hidden sm:table-cell">{isClient ? usersDict.tableHeaderPassword : defaultGlobalDict.manageUsersPage.tableHeaderPassword}</TableHead>
+                    <TableHead>{isClient ? usersDict.tableHeaderRole : defaultGlobalDict.manageUsersPage.tableHeaderRole}</TableHead>
+                    <TableHead className="text-right">{isClient ? usersDict.tableHeaderActions : defaultGlobalDict.manageUsersPage.tableHeaderActions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {users.length === 0 && !isLoading ? (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                        {usersDict.noUsers}
+                        {isClient ? usersDict.noUsers : defaultGlobalDict.manageUsersPage.noUsers}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -641,11 +635,11 @@ export default function ManageUsersPage() {
                                             </Button>
                                        )}
                                        {!user.password && (
-                                            <span className="text-xs text-muted-foreground italic ml-1">({usersDict.passwordNotSet})</span>
+                                            <span className="text-xs text-muted-foreground italic ml-1">({isClient ? usersDict.passwordNotSet : defaultGlobalDict.manageUsersPage.passwordNotSet})</span>
                                        )}
                                    </div>
                                  ) : (
-                                    <span className="text-xs text-muted-foreground italic">{usersDict.passwordHidden}</span>
+                                    <span className="text-xs text-muted-foreground italic">{isClient ? usersDict.passwordHidden : defaultGlobalDict.manageUsersPage.passwordHidden}</span>
                                  )}
                              </TableCell>
                             <TableCell>
@@ -660,33 +654,33 @@ export default function ManageUsersPage() {
                                         size="icon"
                                         onClick={() => openEditDialog(user)}
                                         disabled={isProcessing || disableEditBasedOnRole || !canManageUsers}
-                                        aria-label={usersDict.editUserButtonLabel}
-                                        title={usersDict.editUserButtonLabel}
+                                        aria-label={isClient ? usersDict.editUserButtonLabel : defaultGlobalDict.manageUsersPage.editUserButtonLabel}
+                                        title={isClient ? usersDict.editUserButtonLabel : defaultGlobalDict.manageUsersPage.editUserButtonLabel}
                                    >
                                        <Edit className={`h-4 w-4 ${(disableEditBasedOnRole || !canManageUsers) ? 'text-muted-foreground' : 'text-blue-500'}`} />
                                    </Button>
 
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
-                                      <Button variant="ghost" size="icon" disabled={isProcessing || disableDeleteBasedOnRole || !canManageUsers} aria-label={usersDict.deleteUserButtonLabel} title={usersDict.deleteUserButtonLabel}>
+                                      <Button variant="ghost" size="icon" disabled={isProcessing || disableDeleteBasedOnRole || !canManageUsers} aria-label={isClient ? usersDict.deleteUserButtonLabel : defaultGlobalDict.manageUsersPage.deleteUserButtonLabel} title={isClient ? usersDict.deleteUserButtonLabel : defaultGlobalDict.manageUsersPage.deleteUserButtonLabel}>
                                          <Trash2 className={`h-4 w-4 ${(disableDeleteBasedOnRole || !canManageUsers) ? 'text-muted-foreground' : 'text-destructive'}`} />
                                       </Button>
                                     </AlertDialogTrigger>
                                     <AlertDialogContent>
                                       <AlertDialogHeader>
-                                        <AlertDialogTitle>{usersDict.deleteDialogTitle}</AlertDialogTitle>
+                                        <AlertDialogTitle>{isClient ? usersDict.deleteDialogTitle : defaultGlobalDict.manageUsersPage.deleteDialogTitle}</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                           {usersDict.deleteDialogDesc.replace('{username}', user.username)}
+                                           {(isClient ? usersDict.deleteDialogDesc : defaultGlobalDict.manageUsersPage.deleteDialogDesc).replace('{username}', user.username)}
                                         </AlertDialogDescription>
                                       </AlertDialogHeader>
                                       <AlertDialogFooter>
-                                        <AlertDialogCancel disabled={isProcessing}>{usersDict.deleteDialogCancel}</AlertDialogCancel>
+                                        <AlertDialogCancel disabled={isProcessing}>{isClient ? usersDict.deleteDialogCancel : defaultGlobalDict.manageUsersPage.deleteDialogCancel}</AlertDialogCancel>
                                         <AlertDialogAction
                                            className="bg-destructive hover:bg-destructive/90"
                                            onClick={() => handleDeleteUser(user.id, user.username)}
                                            disabled={isProcessing}>
                                             {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                          {usersDict.deleteDialogConfirm}
+                                          {isClient ? usersDict.deleteDialogConfirm : defaultGlobalDict.manageUsersPage.deleteDialogConfirm}
                                         </AlertDialogAction>
                                       </AlertDialogFooter>
                                     </AlertDialogContent>
@@ -705,8 +699,8 @@ export default function ManageUsersPage() {
       <Dialog open={isEditUserDialogOpen} onOpenChange={(open) => { setIsEditUserDialogOpen(open); if (!open) setEditingUser(null); }}>
           <DialogContent className="sm:max-w-[425px]">
                <DialogHeader>
-                  <DialogTitle>{usersDict.editUserDialogTitle.replace('{username}', editingUser?.username || '')}</DialogTitle>
-                  <DialogDescription>{usersDict.editUserDialogDesc}</DialogDescription>
+                  <DialogTitle>{(isClient ? usersDict.editUserDialogTitle : defaultGlobalDict.manageUsersPage.editUserDialogTitle).replace('{username}', editingUser?.username || '')}</DialogTitle>
+                  <DialogDescription>{isClient ? usersDict.editUserDialogDesc : defaultGlobalDict.manageUsersPage.editUserDialogDesc}</DialogDescription>
                </DialogHeader>
                <Form {...editUserForm}>
                     <form onSubmit={editUserForm.handleSubmit(onEditSubmit)} className="space-y-4 py-4">
@@ -715,9 +709,9 @@ export default function ManageUsersPage() {
                           name="username"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>{usersDict.usernameLabel}</FormLabel>
+                              <FormLabel>{isClient ? usersDict.usernameLabel : defaultGlobalDict.manageUsersPage.usernameLabel}</FormLabel>
                               <FormControl>
-                                <Input placeholder={usersDict.usernamePlaceholder} {...field} autoComplete="off" />
+                                <Input placeholder={isClient ? usersDict.usernamePlaceholder : defaultGlobalDict.manageUsersPage.usernamePlaceholder} {...field} autoComplete="off" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -728,37 +722,37 @@ export default function ManageUsersPage() {
                             name="role"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>{usersDict.roleLabel}</FormLabel>
+                                <FormLabel>{isClient ? usersDict.roleLabel : defaultGlobalDict.manageUsersPage.roleLabel}</FormLabel>
                                 <Select
                                    onValueChange={field.onChange}
                                    value={field.value || ""}
                                    disabled={
                                        isProcessing ||
                                        !currentUser || 
-                                       (editingUser?.role === 'Admin Developer' && currentUser.role !== 'Admin Developer') || // Only Admin Dev can edit Admin Dev role (to itself)
+                                       (editingUser?.role === 'Admin Developer' && currentUser.role !== 'Admin Developer') || 
                                        (editingUser?.role === 'Owner' && currentUser.role !== 'Owner' && currentUser.role !== 'Admin Developer') ||
-                                       (editingUser?.role === 'Akuntan' && currentUser.role === 'Admin Proyek') || // Admin Proyek cannot edit Akuntan
+                                       (editingUser?.role === 'Akuntan' && currentUser.role === 'Admin Proyek') || 
                                        (currentUser.role === 'Akuntan' && editingUser?.role === 'Akuntan' && users.filter(u => u.role === 'Akuntan').length <= 1 && field.value !== 'Akuntan')
                                     }
                                 >
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder={usersDict.rolePlaceholder} />
+                                            <SelectValue placeholder={isClient ? usersDict.rolePlaceholder : defaultGlobalDict.manageUsersPage.rolePlaceholder} />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {divisions
                                             .filter(division => {
                                                 if (!currentUser || !editingUser) return false;
-                                                if (editingUser.role === 'Admin Developer') return division === 'Admin Developer'; // Cannot change Admin Dev role
-                                                if (currentUser.role === 'Admin Developer') return true; 
-                                                if (currentUser.role === 'Owner') return true; 
+                                                if (editingUser.role === 'Admin Developer') return division === 'Admin Developer'; 
+                                                if (currentUser.role === 'Admin Developer') return division !== 'Admin Developer'; 
+                                                if (currentUser.role === 'Owner') return division !== 'Admin Developer'; 
                                                 if (currentUser.role === 'Akuntan') {
                                                     if (editingUser.role === 'Akuntan') return division === 'Akuntan';
-                                                    return ['Admin Proyek', 'Arsitek', 'Struktur'].includes(division);
+                                                    return ['Admin Proyek', 'Arsitek', 'Struktur', 'MEP'].includes(division);
                                                 }
                                                 if (currentUser.role === 'Admin Proyek') {
-                                                     if (['Admin Proyek', 'Arsitek', 'Struktur'].includes(editingUser.role)) return ['Admin Proyek', 'Arsitek', 'Struktur'].includes(division);
+                                                     if (['Admin Proyek', 'Arsitek', 'Struktur', 'MEP'].includes(editingUser.role)) return ['Admin Proyek', 'Arsitek', 'Struktur', 'MEP'].includes(division);
                                                 }
                                                 return false; 
                                             })
@@ -771,20 +765,20 @@ export default function ManageUsersPage() {
                                 </Select>
                                 <FormMessage />
                                 {(currentUser?.role === 'Akuntan' && editingUser?.role === 'Akuntan' && users.filter(u => u.role === 'Akuntan').length <= 1 && editUserForm.getValues('role') !== 'Akuntan') && (
-                                    <p className="text-xs text-muted-foreground">{usersDict.cannotChangeLastAdminRoleHint}</p>
+                                    <p className="text-xs text-muted-foreground">{isClient ? usersDict.cannotChangeLastAdminRoleHint : defaultGlobalDict.manageUsersPage.cannotChangeLastAdminRoleHint}</p>
                                 )}
                                  {((currentUser?.role === 'Admin Proyek' && (editingUser?.role === 'Owner' || editingUser?.role === 'Akuntan' || editingUser?.role === 'Admin Developer')) ||
                                    (currentUser?.role === 'Akuntan' && (editingUser?.role === 'Owner' || editingUser?.role === 'Admin Developer'))) && (
-                                    <p className="text-xs text-muted-foreground">{(usersDict.toast.editPermissionDenied || "You cannot edit users with this role.").replace('this user', getTranslatedRole(editingUser?.role || ''))}</p>
+                                    <p className="text-xs text-muted-foreground">{(isClient ? usersDict.toast.editPermissionDenied : defaultGlobalDict.manageUsersPage.toast.editPermissionDenied).replace('this user', getTranslatedRole(editingUser?.role || ''))}</p>
                                 )}
                               </FormItem>
                             )}
                         />
                         <DialogFooter className="pt-2">
-                            <Button type="button" variant="outline" onClick={() => {setIsEditUserDialogOpen(false); setEditingUser(null);}} disabled={isProcessing}>{usersDict.cancelButton}</Button>
+                            <Button type="button" variant="outline" onClick={() => {setIsEditUserDialogOpen(false); setEditingUser(null);}} disabled={isProcessing}>{isClient ? usersDict.cancelButton : defaultGlobalDict.manageUsersPage.cancelButton}</Button>
                             <Button type="submit" className="accent-teal" disabled={isProcessing || !editUserForm.formState.isDirty}>
                                 {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                {isProcessing ? usersDict.editingUserButton : usersDict.editUserSubmitButton}
+                                {isProcessing ? (isClient ? usersDict.editingUserButton : defaultGlobalDict.manageUsersPage.editingUserButton ) : (isClient ? usersDict.editUserSubmitButton : defaultGlobalDict.manageUsersPage.editUserSubmitButton)}
                              </Button>
                         </DialogFooter>
                    </form>
@@ -795,4 +789,3 @@ export default function ManageUsersPage() {
     </div>
   );
 }
-

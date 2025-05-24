@@ -89,12 +89,12 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { notifyUsersByRole } from '@/services/notification-service';
 
 
-const defaultDict = getDictionary('en');
+const defaultGlobalDict = getDictionary('en');
 
 const projectStatuses = [
     'Pending Offer', 'Pending Approval', 'Pending DP Invoice',
-    'Pending Admin Files', 'Pending Survey Details', 'Pending Architect Files', 'Pending Structure Files',
-    'Pending MEP Files', 'Pending Scheduling', 'Scheduled', 'Pending Post-Sidang Revision',
+    'Pending Admin Files', 'Pending Survey Details', 'Pending Architect Files', 'Pending Structure Files', 'Pending MEP Files',
+    'Pending Scheduling', 'Scheduled', 'Pending Post-Sidang Revision',
     'In Progress', 'Completed', 'Canceled', 'Pending Consultation Docs', 'Pending Review'
 ];
 
@@ -217,7 +217,7 @@ export default function ProjectsPage() {
   }, [isClient, language, projectsDict]);
 
    const formatDateOnly = React.useCallback((timestamp: string | undefined | null): string => {
-      if (!isClient || !projectsDict?.notApplicable) return "N/A";
+      if (!isClient || !projectsDict?.notApplicable) return "...";
       if (!timestamp) return projectsDict?.notApplicable || "N/A";
       const locale = language === 'id' ? 'id-ID' : 'en-US';
       try {
@@ -285,11 +285,12 @@ export default function ProjectsPage() {
         case 'completed': variant = 'default'; className = `${className} bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-primary-foreground`; Icon = CheckCircle; break;
         case 'inprogress': case 'sedang berjalan': variant = 'secondary'; className = `${className} bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700`; Icon = Clock; break;
         case 'pendingapproval': case 'menunggu persetujuan': variant = 'outline'; className = `${className} border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-500`; Icon = AlertTriangle; break;
+        case 'pendingpostsidangrevision': case 'menunggu revisi pasca sidang': variant = 'outline'; className = `${className} border-orange-400 text-orange-500 dark:border-orange-300 dark:text-orange-400`; Icon = RefreshCw; break;
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = Clock; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginput': case 'menunggu input': case 'pendingoffer': case 'menunggu penawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Clock; break;
-        case 'pendingdpinvoice': case 'menunggu faktur dp': case 'pendingadminfiles': case 'menunggu berkas administrasi': case 'pendingarchitectfiles': case 'menunggu berkas arsitektur': case 'pendingstructurefiles':  case 'menunggu berkas struktur': case 'pendingfinalcheck': case 'menunggu pemeriksaan akhir': case 'pendingscheduling': case 'menunggu penjadwalan': case 'pendingconsultationdocs': case 'menunggu dok. konsultasi': case 'pendingreview': case 'menunggu tinjauan': case 'pendingsurveydetails': case 'menunggu detail survei': case 'pendingpostsidangrevision': case 'menunggu revisi pasca sidang': case 'pendingmepfiles': case 'menunggu berkas mep': variant = 'secondary'; Icon = Clock; break;
-        case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = Clock; break;
+        case 'pendingdpinvoice': case 'menunggu faktur dp': case 'pendingadminfiles': case 'menunggu berkas administrasi': case 'pendingarchitectfiles': case 'menunggu berkas arsitektur': case 'pendingstructurefiles':  case 'menunggu berkas struktur':  case 'pendingmepfiles': case 'menunggu berkas mep': case 'pendingfinalcheck': case 'menunggu pemeriksaan akhir': case 'pendingscheduling': case 'menunggu penjadwalan': case 'pendingconsultationdocs': case 'menunggu dok. konsultasi': case 'pendingreview': case 'menunggu tinjauan': case 'pendingsurveydetails': case 'menunggu detail survei':  variant = 'secondary'; Icon = Clock; break;
+        case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarClock; break;
         default: variant = 'secondary'; Icon = Clock;
     }
     return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
@@ -374,15 +375,14 @@ export default function ProjectsPage() {
         };
 
         const newlyUpdatedProjectResult = await updateProject(updatedProjectData);
+        const updatedProject = await fetchProjectByIdInternal(selectedProject.id); 
+        
+        if (updatedProject) {
+            setAllProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
+            setSelectedProject(updatedProject); 
+        }
         
         if (newlyUpdatedProjectResult) {
-            const updatedProject = await fetchProjectByIdInternal(selectedProject.id); // Re-fetch project to get latest data
-             if(updatedProject){
-                setAllProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
-                setSelectedProject(updatedProject); 
-             }
-
-
             if (actionTaken === 'revise_offer') {
                 toast({ title: projectsDict.toast.revisionRequested, description: projectsDict.toast.projectSentForRevision.replace('{projectName}', updatedProject?.title || '').replace('{division}', getTranslatedStatus(updatedProject?.assignedDivision || ''))});
             } else if (actionTaken === 'completed') {
@@ -412,8 +412,6 @@ export default function ProjectsPage() {
                 title: projectsDict.toast.actionDidNotChangeStatusTitle,
                 description: projectsDict.toast.actionDidNotChangeStatusDesc
              });
-             const currentProj = await fetchProjectByIdInternal(selectedProject.id);
-             if (currentProj) setSelectedProject(currentProj); // Refresh with current server state even if no transition
         }
 
 
@@ -641,12 +639,12 @@ export default function ProjectsPage() {
         return;
       }
       
-      let actionForRevision = 'revise';
+      let actionForRevision = 'revise'; // Default revise action
       if (currentUser.role === 'Owner' && selectedProject.status === 'Pending Approval' && selectedProject.progress === 20) {
         actionForRevision = 'revise_offer';
       }
 
-      if (!revisionNote.trim() && actionForRevision !== 'revise_offer' ) { // Revision note is optional for offer revision by owner
+      if (!revisionNote.trim() && actionForRevision !== 'revise_offer') {
         toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: projectsDict.toast.revisionNoteRequired });
         return;
       }
@@ -655,18 +653,17 @@ export default function ProjectsPage() {
 
       try {
         const revisedProjectResult = await reviseProject(selectedProject.id, currentUser.username, currentUser.role, revisionNote, actionForRevision);
+         const updatedProject = await fetchProjectByIdInternal(selectedProject.id);
+        if (updatedProject) {
+            setAllProjects(prev => prev.map(p => (p.id === updatedProject.id ? updatedProject : p)));
+            setSelectedProject(updatedProject);
+        }
+        
         if (revisedProjectResult) {
-          const updatedProject = await fetchProjectByIdInternal(selectedProject.id);
-          if(updatedProject){
-              setAllProjects(prev => prev.map(p => (p.id === updatedProject.id ? updatedProject : p)));
-              setSelectedProject(updatedProject);
-          }
           setRevisionNote('');
           toast({ title: projectsDict.toast.revisionSuccess, description: projectsDict.toast.revisionSuccessDesc.replace('{division}', getTranslatedStatus(revisedProjectResult.assignedDivision)) });
         } else { 
           toast({ variant: 'default', title: projectsDict.toast.revisionNotApplicableShort, description: projectsDict.toast.revisionNotApplicable });
-           const currentProj = await fetchProjectByIdInternal(selectedProject.id);
-           if (currentProj) setSelectedProject(currentProj);
         }
       } catch (error: any) {
         console.error("Error revising project:", error);
@@ -750,6 +747,7 @@ export default function ProjectsPage() {
         const allowedRoles = ['Owner', 'Akuntan', 'Admin Developer', 'Admin Proyek'];
         const nonRevisableStatuses = ['Completed', 'Canceled'];
         
+        // Specific condition for Owner to revise offer
         if (currentUser.role === 'Owner' && selectedProject.status === 'Pending Approval' && selectedProject.progress === 20) {
             return true; 
         }
@@ -877,7 +875,7 @@ export default function ProjectsPage() {
   const renderSelectedProjectDetail = (project: Project) => {
        if (!isClient || !projectsDict?.backToList || !project) return (
             <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
-                <Button variant="outline" onClick={() => {setSelectedProject(null); router.push('/dashboard/projects', { scroll: false });}} className="mb-4 w-full sm:w-auto"><ArrowLeft className="mr-2 h-4 w-4" />{projectsDict.backToList}</Button>
+                <Button variant="outline" onClick={() => {setSelectedProject(null); router.push('/dashboard/projects', { scroll: false });}} className="mb-4 w-full sm:w-auto"><ArrowLeft className="mr-2 h-4 w-4" />{isClient ? projectsDict.backToList : defaultGlobalDict.projectsPage.backToList}</Button>
                 <Card className="shadow-md animate-pulse">
                     <CardHeader className="p-4 sm:p-6"> <Skeleton className="h-8 w-3/4 mb-2" /><Skeleton className="h-4 w-full" /></CardHeader>
                     <CardContent className="p-4 sm:p-6 pt-0"><Skeleton className="h-64 w-full" /></CardContent>
@@ -887,7 +885,7 @@ export default function ProjectsPage() {
 
        return (
            <>
-                <Button variant="outline" onClick={() => {setSelectedProject(null); router.push('/dashboard/projects', { scroll: false });}} className="mb-4 w-full sm:w-auto"><ArrowLeft className="mr-2 h-4 w-4" />{projectsDict.backToList}</Button>
+                <Button variant="outline" onClick={() => {setSelectedProject(null); router.push('/dashboard/projects', { scroll: false });}} className="mb-4 w-full sm:w-auto"><ArrowLeft className="mr-2 h-4 w-4" />{isClient ? projectsDict.backToList : defaultGlobalDict.projectsPage.backToList}</Button>
                 
                  <Card className="shadow-md mb-6">
                    <CardHeader className="p-4 sm:p-6">
@@ -900,6 +898,7 @@ export default function ProjectsPage() {
                      </div>
                    </CardHeader>
                 </Card>
+
                  <Card className="mb-6 shadow-md">
                     <CardHeader className="p-4 sm:p-6"><CardTitle>{projectsDict.workflowHistoryTitle}</CardTitle><CardDescription>{projectsDict.workflowHistoryDesc}</CardDescription></CardHeader>
                     <CardContent className="p-4 sm:p-6 pt-0">
@@ -932,7 +931,7 @@ export default function ProjectsPage() {
                                       </div>
                                   </div>
                                   <div className="flex flex-shrink-0 items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-                                       <span className="text-xs text-muted-foreground text-left sm:text-right flex-grow">{projectsDict.uploadedByOn.replace('{user}', file.uploadedBy).replace('{date}', isClient ? formatDateOnly(file.timestamp) : '...')}</span>
+                                       <span className="text-xs text-muted-foreground text-left sm:text-right flex-grow">{projectsDict.uploadedByOn.replace('{user}', file.uploadedBy).replace('{date}', formatDateOnly(file.timestamp))}</span>
                                        {canDownloadFiles && (<Button variant="ghost" size="icon" onClick={() => handleDownloadFile(file)} disabled={isDownloading} title={projectsDict.downloadFileTooltip} className="h-7 w-7 flex-shrink-0">{isDownloading ? <Loader2 className="h-4 w-4 animate-spin"/> : <Download className="h-4 w-4 text-primary" />}</Button>)}
                                   </div>
                                </li>

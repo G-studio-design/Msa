@@ -206,5 +206,77 @@
     "message": "Penawaran untuk proyek 'proyek hotel seminyak' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
     "timestamp": "2025-05-24T06:21:41.763Z",
     "isRead": true
+  },
+  {
+    "id": "notif_1748079503672_6u93f",
+    "userId": "usr_owner_default",
+    "projectId": "project_demo_menunggu_dp_003",
+    "message": "Faktur DP untuk proyek 'Pembangunan Villa Ubud' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-24T09:38:23.672Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748079684637_9kx5e",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_demo_menunggu_dp_003",
+    "message": "Faktur DP untuk proyek 'Pembangunan Villa Ubud' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-05-24T09:41:24.637Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748079739184_gsfjq",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_demo_menunggu_dp_003",
+    "message": "Berkas administrasi untuk 'Pembangunan Villa Ubud' oleh komangmerta lengkap. Mohon jadwalkan survei dan unggah hasilnya.",
+    "timestamp": "2025-05-24T09:42:19.183Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1748079880914_6zj86",
+    "userId": "usr_owner_default",
+    "projectId": "project_demo_aktif_001",
+    "message": "Penawaran untuk proyek 'Proyek Renovasi Kantor Pusat' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-24T09:44:40.914Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748079945218_chemy",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_demo_menunggu_dp_003",
+    "message": "Hasil survei untuk 'Pembangunan Villa Ubud' telah diunggah oleh komangmerta. Mohon unggah berkas arsitektur.",
+    "timestamp": "2025-05-24T09:45:45.218Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748079991672_9512n",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_demo_aktif_001",
+    "message": "Penawaran untuk proyek 'Proyek Renovasi Kantor Pusat' telah disetujui oleh sudina. Mohon buat faktur DP.",
+    "timestamp": "2025-05-24T09:46:31.672Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748080062244_9ggvg",
+    "userId": "usr_owner_default",
+    "projectId": "project_demo_aktif_001",
+    "message": "Faktur DP untuk proyek 'Proyek Renovasi Kantor Pusat' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-24T09:47:42.244Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748080087174_jvjo1",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_demo_aktif_001",
+    "message": "Faktur DP untuk proyek 'Proyek Renovasi Kantor Pusat' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-05-24T09:48:07.174Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1748080165055_d5nla",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_demo_menunggu_dp_003",
+    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'Pembangunan Villa Ubud' telah diunggah. Anda bisa mulai merencanakan struktur.",
+    "timestamp": "2025-05-24T09:49:25.055Z",
+    "isRead": false
   }
 ]
