@@ -38,11 +38,11 @@ const en = {
     toggleMenu: 'Toggle Menu Panel',
     roles: {
         owner: 'Owner',
-        generaladmin: 'Admin/Accountant',
+        generaladmin: 'Admin/Accountant', // Changed for display
         adminproyek: 'Admin Proyek',
         arsitek: 'Arsitek',
         struktur: 'Struktur',
-        mep: 'MEP', // Simplified from MEP Coordinator as its tasks are now part of Admin Proyek workflow
+        mep: 'MEP', 
         admindev: 'Developer',
     },
   },
@@ -82,15 +82,15 @@ const en = {
       pendingsurveydetails: 'Pending Survey Details',
       pendingarchitectfiles: 'Pending Architect Files',
       pendingstructurefiles: 'Pending Structure Files',
-      pendingmepfiles: 'Pending MEP Files', // Kept for potential custom workflows
+      pendingmepfiles: 'Pending MEP Files', 
       pendingfinalcheck: 'Pending Final Check',
       pendingscheduling: 'Pending Scheduling',
       owner: 'Owner',
-      generaladmin: 'Admin/Accountant',
+      generaladmin: 'Admin/Accountant', // Changed for display
       adminproyek: 'Admin Proyek',
       arsitek: 'Arsitek',
       struktur: 'Struktur',
-      mep: 'MEP', // Simplified label
+      mep: 'MEP', 
       admindev: 'Developer',
       notassigned: 'Not Assigned',
       sakit: "Sick Leave",
@@ -147,7 +147,8 @@ const en = {
     ownerActionTitle: 'Owner Action Required',
     ownerActionDesc: 'Review the submitted documents and decide whether to proceed.',
     approveButton: 'Approve',
-    cancelProjectButton: 'Cancel Project', // Changed from rejectButton
+    cancelProjectButton: 'Cancel Project', 
+    requestOfferRevisionButton: "Request Offer Revision", // New
     scheduleSidangTitle: 'Schedule Sidang ({role})',
     dateLabel: 'Date',
     timeLabel: 'Time',
@@ -202,7 +203,7 @@ const en = {
     cancelButton: 'Cancel',
     cancelDialogTitle: "Confirm Project Cancellation",
     cancelDialogDesc: "Are you sure you want to cancel project \"{projectName}\"? This action cannot be undone.",
-    confirmCancelButton: "Yes, Cancel Project", // Changed from confirmRejectButton
+    confirmCancelButton: "Yes, Cancel Project", 
     revisionNotePrefix: 'Note:',
     invalidDate: 'Invalid Date',
     notApplicable: 'N/A',
@@ -226,8 +227,7 @@ const en = {
         inputSurveyDetails: "Input Survey Details & Upload Report",
         uploadArchitectFiles: "Upload Architect Files",
         uploadStructureFiles: "Upload Structure Files",
-        // uploadMEPFiles: "Upload MEP Files", // Removed as Admin Proyek handles this
-        performFinalCheck: "Perform Final Check", // This might be obsolete if MEP step by Admin Proyek replaces it
+        performFinalCheck: "Perform Final Check", 
         scheduleSidang: "Schedule Sidang",
         declareSidangOutcome: "Declare Sidang Outcome",
         reviseOfferDocument: "Revise & Re-submit Offer Document",
@@ -235,21 +235,20 @@ const en = {
         performPostSidangRevisions: "Perform Post-Sidang Revisions on Admin Files",
         uploadPostSidangRevisions: "Upload post-sidang revisions, notify relevant parties if needed, then confirm project completion.",
         uploadMEPFilesByAdmin: "Upload MEP Files (Admin Proyek)",
+        reviseAndResubmitOfferWithOwnerFeedback: "Revise and Re-submit Offer Document based on Owner feedback.",
     },
     workflowActions: {
         approveOffer: "Approved Offer Document",
         uploadedOffer: "Uploaded Offer Document",
         uploadArchitectFiles: "Upload Architect Files",
         uploadedAdminFiles: "Uploaded Admin Files",
-        // uploadMepFiles: "Upload MEP Files",
-        uploadedMEPFiles: "Uploaded MEP Files", // Kept for generic logging, or if a custom workflow uses it
+        uploadedMEPFiles: "Uploaded MEP Files",
         scheduleSidang: "Scheduled Sidang",
         completedFinalCheck: "Completed Final Check",
         approveDPInvoice: "Approved DP Invoice",
         uploadedDPInvoice: "Uploaded DP Invoice",
         uploadStructureFiles: "Upload Structure Files",
         uploadedArchitectFiles: "Uploaded Architect Files",
-        // performFinalCheck: "Performed Final Check", // Potentially obsolete
         uploadedStructureFiles: "Uploaded Structure Files",
         submittedProgressFor: "Submitted Progress for",
         canceledProject: "Canceled Project",
@@ -272,6 +271,8 @@ const en = {
         architectUploadedInitialImages: "Architect uploaded initial reference images for Structure.",
         adminProyekCompletedPostSidangRevision: "Admin Proyek completed post-sidang revisions and finalized the project.",
         adminProyekUploadedMEPFiles: "Admin Proyek uploaded MEP files.",
+        offerCanceledByOwner: "Project offer was canceled by the Owner.",
+        offerRevisedByOwner: "Project offer revision requested by Owner." // New
     },
     toast: {
       permissionDenied: 'Permission Denied',
@@ -288,15 +289,19 @@ const en = {
       projectMarkedCompleted: "Project Completed",
       projectCompletedSuccessfully: "Project \"{title}\" has been successfully marked as completed.",
       projectMarkedCanceled: "Project Canceled",
-      projectCanceledSuccessfully: "Project \"{title}\" has been successfully canceled by the Owner.",
+      projectCanceledSuccessfully: "Project \"{title}\" has been successfully canceled.",
       revisionRequested: "Revision Requested",
       projectSentForRevision: "Project \"{title}\" sent back to {division} for revision.",
+      offerRevisionRequestedTitle: "Offer Revision Requested", // New
+      offerRevisionRequestedDesc: "Project \"{projectName}\" has been sent back to {division} for offer revision.", // New
       sidangOutcomeSuccessTitle: "Sidang Outcome: Success",
       sidangOutcomeSuccessDesc: "Project \"{title}\" has been marked as completed based on sidang outcome.",
       sidangOutcomeRevisionTitle: "Sidang Outcome: Revision Needed",
-      sidangOutcomeRevisionDesc: "Project \"{title}\" has been sent back to {division} for post-sidang revisions.",
+      sidangOutcomeRevisionDesc: "Project \"{title}\" has been sent to {division} for post-sidang revisions.",
       sidangOutcomeCanceledTitle: "Sidang Outcome: Canceled",
       sidangOutcomeCanceledDesc: "Project \"{title}\" has been canceled based on sidang outcome.",
+      revisionCompletedTitle: "Revision Completed",
+      revisionCompletedDesc: "Project \"{title}\" has been successfully completed after revisions.",
       offerApproved: 'Offer Approved',
       offerApprovedDesc: '{division} notified for DP Invoice.',
       dpApproved: 'DP Invoice Approved',
@@ -357,12 +362,16 @@ const en = {
       createButton: 'Create Project',
       creatingButton: 'Creating...',
       accessDenied: 'You do not have permission to add new projects.',
+      cancelButton: 'Cancel',
+      selectedFilesLabel: 'Selected Files',
       toast: {
           success: 'Project Created',
           successDesc: 'Project "{title}" added successfully using "{workflowName}" workflow. {division} notified for the first step.',
           error: 'Failed to Create Project',
           fetchWorkflowsError: 'Could not load workflow types.',
-          uploadFailed: "One or more files failed to upload. Project not created."
+          uploadFailed: "One or more files failed to upload. Project not created.",
+          unknownWorkflow: "Unknown Workflow",
+          defaultWorkflowName: "Standard Workflow"
       },
       validation: {
           titleMin: 'Project title must be at least 5 characters.',
@@ -405,13 +414,13 @@ const en = {
     deleteDialogCancel: 'Cancel',
     deleteDialogConfirm: 'Delete User',
     cannotChangeLastAdminRoleHint: 'Cannot change the role of the last Admin/Accountant.',
-    roles: {
+    roles: { // Used for dropdowns and general display if specific context not available
        owner: 'Owner',
-       generaladmin: 'Admin/Accountant',
+       generaladmin: 'Admin/Accountant', // Display name for "General Admin"
        adminproyek: 'Admin Proyek',
        arsitek: 'Arsitek',
        struktur: 'Struktur',
-       mep: 'MEP', // Simplified
+       mep: 'MEP',
        admindev: 'Developer',
      },
     toast: {
@@ -793,4 +802,3 @@ const en = {
 };
 
 export default en;
-

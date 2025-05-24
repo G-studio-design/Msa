@@ -51,5 +51,64 @@
     ],
     "createdAt": "2025-05-21T06:21:20.674Z",
     "createdBy": "sudina"
+  },
+  {
+    "id": "project_1748064025980_k6s3m",
+    "title": "proyek hotel seminyak",
+    "status": "Pending Approval",
+    "progress": 20,
+    "assignedDivision": "Owner",
+    "nextAction": "Setujui Dokumen Penawaran",
+    "workflowId": "default_standard_workflow",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project",
+        "timestamp": "2025-05-24T05:20:25.980Z"
+      },
+      {
+        "division": "sudina",
+        "action": "Uploaded initial file: pool warung semana.pdf",
+        "timestamp": "2025-05-24T05:20:25.855Z"
+      },
+      {
+        "division": "sudina",
+        "action": "Uploaded initial file: POOL.pdf",
+        "timestamp": "2025-05-24T05:20:25.855Z"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
+        "timestamp": "2025-05-24T05:20:25.980Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
+        "timestamp": "2025-05-24T05:21:29.622Z",
+        "note": "berkas penawaran"
+      }
+    ],
+    "files": [
+      {
+        "name": "pool warung semana.pdf",
+        "uploadedBy": "sudina",
+        "path": "temp-id-for-upload-proyek_hotel_seminyak/pool_warung_semanapdf",
+        "timestamp": "2025-05-24T05:20:25.855Z"
+      },
+      {
+        "name": "POOL.pdf",
+        "uploadedBy": "sudina",
+        "path": "temp-id-for-upload-proyek_hotel_seminyak/poolpdf",
+        "timestamp": "2025-05-24T05:20:25.855Z"
+      },
+      {
+        "name": "RAB angkul angkul  warung semana.xlsx",
+        "uploadedBy": "komangmerta",
+        "path": "project_1748064025980_k6s3m-proyek_hotel_seminyak/rab_angkul_angkul_warung_semanaxlsx",
+        "timestamp": "2025-05-24T05:21:29.622Z"
+      }
+    ],
+    "createdAt": "2025-05-24T05:20:25.980Z",
+    "createdBy": "sudina"
   }
 ]

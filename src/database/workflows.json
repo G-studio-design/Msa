@@ -1,4 +1,3 @@
-
 [
   {
     "id": "default_standard_workflow",
@@ -144,7 +143,7 @@
         "status": "Pending Architect Files",
         "assignedDivision": "Arsitek",
         "progress": 50,
-        "nextActionDescription": "Unggah Berkas Arsitektur",
+        "nextActionDescription": "Unggah Berkas Arsitektur (Lengkap)",
         "transitions": {
           "submitted": {
             "targetStatus": "Pending Structure Files",
@@ -153,7 +152,7 @@
             "targetProgress": 70,
             "notification": {
               "division": "Struktur",
-              "message": "Berkas arsitektur untuk '{projectName}' telah diunggah oleh {actorUsername}. Mohon unggah berkas struktur."
+              "message": "Berkas arsitektur untuk '{projectName}' telah diunggah secara lengkap oleh {actorUsername}. Mohon unggah berkas struktur."
             }
           }
         }
@@ -216,7 +215,7 @@
           "revise_after_sidang": {
             "targetStatus": "Pending Post-Sidang Revision",
             "targetAssignedDivision": "Admin Proyek",
-            "targetNextActionDescription": "Lakukan revisi pasca-sidang. Notifikasi Arsitek/Struktur jika perlu, lalu konfirmasi penyelesaian.",
+            "targetNextActionDescription": "Lakukan revisi, notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.",
             "targetProgress": 85,
             "notification": {
               "division": "Admin Proyek",

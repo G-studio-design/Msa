@@ -66,35 +66,45 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
       stepName: "Offer Approval",
       status: "Pending Approval",
       assignedDivision: "Owner",
-      progress: 20,
+      progress: 20, // Indicates initial offer approval stage
       nextActionDescription: "Tinjau dan setujui/tolak penawaran",
       transitions: {
         "approved": {
           targetStatus: "Pending DP Invoice",
-          targetAssignedDivision: "Admin/Akuntan",
+          targetAssignedDivision: "Admin/Akuntan", // Changed from General Admin
           targetNextActionDescription: "Buat Faktur DP",
           targetProgress: 25,
           notification: {
-            division: "Admin/Akuntan",
+            division: "Admin/Akuntan", // Changed from General Admin
             message: "Penawaran untuk proyek '{projectName}' telah disetujui oleh {actorUsername}. Mohon buat faktur DP."
           }
         },
-        "rejected": {
+        "rejected": { // This action now clearly means "Cancel Project" at this stage
           targetStatus: "Canceled",
           targetAssignedDivision: "",
           targetNextActionDescription: null,
           targetProgress: 20, 
           notification: {
             division: "Admin Proyek",
-            message: "Penawaran untuk proyek '{projectName}' telah dibatalkan oleh {actorUsername}."
+            message: "Proyek '{projectName}' telah dibatalkan oleh {actorUsername} pada tahap penawaran."
           }
+        },
+        "revise_offer": { // NEW TRANSITION for requesting offer revision
+            "targetStatus": "Pending Offer",
+            "targetAssignedDivision": "Admin Proyek",
+            "targetNextActionDescription": "Revisi dan Unggah Ulang Dokumen Penawaran berdasarkan masukan Owner.",
+            "targetProgress": 10, // Back to offer submission progress
+            "notification": {
+              "division": "Admin Proyek",
+              "message": "Penawaran untuk proyek '{projectName}' perlu direvisi oleh Anda berdasarkan masukan dari {actorUsername}."
+            }
         }
       }
     },
     {
       stepName: "DP Invoice Submission",
       status: "Pending DP Invoice",
-      assignedDivision: "Admin/Akuntan",
+      assignedDivision: "Admin/Akuntan", // Changed from General Admin
       progress: 25,
       nextActionDescription: "Unggah Faktur DP",
       transitions: {
@@ -102,7 +112,7 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           targetStatus: "Pending Approval", 
           targetAssignedDivision: "Owner",
           targetNextActionDescription: "Setujui Faktur DP",
-          targetProgress: 30,
+          targetProgress: 30, // Different progress to distinguish from offer approval
           notification: {
             division: "Owner",
             message: "Faktur DP untuk proyek '{projectName}' telah diajukan oleh {actorUsername} dan menunggu persetujuan Anda."
@@ -114,7 +124,7 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
       stepName: "DP Invoice Approval",
       status: "Pending Approval", 
       assignedDivision: "Owner",
-      progress: 30, 
+      progress: 30, // Specific progress for DP invoice approval
       nextActionDescription: "Tinjau dan setujui/tolak Faktur DP",
       transitions: {
         "approved": {
@@ -129,11 +139,11 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
         },
         "rejected": { 
           targetStatus: "Pending DP Invoice",
-          targetAssignedDivision: "Admin/Akuntan",
+          targetAssignedDivision: "Admin/Akuntan", // Changed from General Admin
           targetNextActionDescription: "Revisi dan Unggah Ulang Faktur DP",
           targetProgress: 25, 
           notification: {
-            division: "Admin/Akuntan",
+            division: "Admin/Akuntan", // Changed from General Admin
             message: "Faktur DP untuk proyek '{projectName}' ditolak oleh {actorUsername}. Mohon direvisi."
           }
         }
@@ -194,6 +204,7 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
             message: "Berkas arsitektur untuk '{projectName}' telah diunggah secara lengkap oleh {actorUsername}. Mohon unggah berkas struktur."
           }
         }
+        // "architect_uploaded_initial_images_for_struktur" is an ad-hoc action within this step, not a formal transition.
       }
     },
     { 
@@ -210,7 +221,7 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           targetProgress: 90,
           notification: {
             division: "Admin Proyek",
-            message: "Berkas struktur untuk '{projectName}' telah diunggah oleh {actorUsername}. Mohon jadwalkan sidang." 
+            message: "Berkas struktur untuk '{projectName}' oleh {actorUsername} lengkap. Mohon jadwalkan sidang." 
           }
         }
       }
@@ -247,7 +258,7 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           targetNextActionDescription: null,
           targetProgress: 100,
           notification: { 
-            division: "Admin Proyek",
+            division: "Admin Proyek", // Notify relevant parties about completion
             message: "Proyek '{projectName}' telah berhasil diselesaikan oleh {actorUsername}."
           }
         },
@@ -535,8 +546,8 @@ export async function deleteWorkflow(workflowId: string): Promise<void> {
   let workflows = await _readWorkflowsFromFile();
   const initialLength = workflows.length;
 
-  if (workflowId === DEFAULT_WORKFLOW_ID && workflows.length === 1 && workflows[0].id === DEFAULT_WORKFLOW_ID) {
-      console.warn(`[WorkflowService/JSON] Cannot delete the default workflow (ID: ${DEFAULT_WORKFLOW_ID}) as it's the only workflow remaining.`);
+  if (workflowId === DEFAULT_WORKFLOW_ID && workflows.length <= 1 ) { // Check if it's the default AND (the only one OR no others exist)
+      console.warn(`[WorkflowService/JSON] Cannot delete the default workflow (ID: ${DEFAULT_WORKFLOW_ID}) as it's the only workflow remaining or no other workflows exist.`);
       throw new Error('CANNOT_DELETE_LAST_OR_DEFAULT_WORKFLOW');
   }
 
@@ -548,6 +559,7 @@ export async function deleteWorkflow(workflowId: string): Promise<void> {
     console.log(`[WorkflowService/JSON] Workflow with ID ${workflowId} deleted. Remaining workflows: ${workflows.length}`);
   }
   
+  // Ensure default workflow is re-added if all workflows were somehow deleted (including default)
   if (workflows.length === 0) {
     console.log("[WorkflowService/JSON] All workflows deleted. Ensuring default workflow is re-added.");
     const defaultWorkflow: Workflow = {
@@ -575,5 +587,3 @@ export async function getAllUniqueStatuses(): Promise<string[]> {
     });
     return Array.from(allStatuses);
 }
-
-    

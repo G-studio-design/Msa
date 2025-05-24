@@ -158,5 +158,29 @@
     "message": "Penawaran untuk proyek 'proyek villa canggu' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
     "timestamp": "2025-05-21T06:23:16.364Z",
     "isRead": true
+  },
+  {
+    "id": "notif_1748064025991_cbzmb",
+    "userId": "usr_admin_proyek_default",
+    "projectId": "project_1748064025980_k6s3m",
+    "message": "Proyek baru 'proyek hotel seminyak' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-24T05:20:25.991Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1748064025991_leket",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1748064025980_k6s3m",
+    "message": "Proyek baru 'proyek hotel seminyak' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-24T05:20:25.991Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748064089626_eka88",
+    "userId": "usr_owner_default",
+    "projectId": "project_1748064025980_k6s3m",
+    "message": "Penawaran untuk proyek 'proyek hotel seminyak' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-24T05:21:29.626Z",
+    "isRead": true
   }
 ]

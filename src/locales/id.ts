@@ -38,11 +38,11 @@ const id = {
     toggleMenu: 'Buka/Tutup Panel Menu',
     roles: {
         owner: 'Pemilik',
-        generaladmin: 'Admin/Akuntan',
+        generaladmin: 'Admin/Akuntan', // Nama tampilan untuk "General Admin"
         adminproyek: 'Admin Proyek',
         arsitek: 'Arsitek',
         struktur: 'Struktur',
-        mep: 'MEP', // Disederhanakan
+        mep: 'MEP', 
         admindev: 'Developer',
     },
   },
@@ -82,15 +82,15 @@ const id = {
       pendingsurveydetails: 'Menunggu Detail Survei',
       pendingarchitectfiles: 'Menunggu Berkas Arsitektur',
       pendingstructurefiles: 'Menunggu Berkas Struktur',
-      pendingmepfiles: 'Menunggu Berkas MEP', // Disimpan untuk potensi alur kerja kustom
+      pendingmepfiles: 'Menunggu Berkas MEP',
       pendingfinalcheck: 'Menunggu Pemeriksaan Akhir',
       pendingscheduling: 'Menunggu Penjadwalan',
       owner: 'Pemilik',
-      generaladmin: 'Admin/Akuntan',
+      generaladmin: 'Admin/Akuntan', // Nama tampilan
       adminproyek: 'Admin Proyek',
       arsitek: 'Arsitek',
       struktur: 'Struktur',
-      mep: 'MEP', // Label disederhanakan
+      mep: 'MEP',
       admindev: 'Developer',
       notassigned: 'Belum Ditugaskan',
       sakit: "Sakit",
@@ -147,7 +147,8 @@ const id = {
     ownerActionTitle: 'Tindakan Pemilik Diperlukan',
     ownerActionDesc: 'Tinjau dokumen yang dikirim dan putuskan apakah akan melanjutkan.',
     approveButton: 'Setujui',
-    cancelProjectButton: 'Batalkan Proyek', // Diubah dari rejectButton
+    cancelProjectButton: 'Batalkan Proyek', 
+    requestOfferRevisionButton: "Minta Revisi Penawaran", // New
     scheduleSidangTitle: 'Jadwalkan Sidang ({role})',
     dateLabel: 'Tanggal',
     timeLabel: 'Waktu',
@@ -202,7 +203,7 @@ const id = {
     cancelButton: 'Batal',
     cancelDialogTitle: "Konfirmasi Pembatalan Proyek",
     cancelDialogDesc: "Apakah Anda yakin ingin membatalkan proyek \"{projectName}\"? Tindakan ini tidak dapat dibatalkan.",
-    confirmCancelButton: "Ya, Batalkan Proyek", // Diubah dari confirmRejectButton
+    confirmCancelButton: "Ya, Batalkan Proyek", 
     revisionNotePrefix: 'Catatan:',
     invalidDate: 'Tanggal Tidak Valid',
     notApplicable: 'N/A',
@@ -226,8 +227,7 @@ const id = {
         inputSurveyDetails: "Input Jadwal Survei & Unggah Hasil",
         uploadArchitectFiles: "Unggah Berkas Arsitektur",
         uploadStructureFiles: "Unggah Berkas Struktur",
-        // uploadMEPFiles: "Unggah Berkas MEP", // Dihapus karena Admin Proyek yang menangani
-        performFinalCheck: "Lakukan Pemeriksaan Akhir", // Mungkin usang jika langkah MEP oleh Admin Proyek menggantikannya
+        performFinalCheck: "Lakukan Pemeriksaan Akhir", 
         scheduleSidang: "Jadwalkan Sidang",
         declareSidangOutcome: "Nyatakan Hasil Sidang",
         reviseOfferDocument: "Revisi & Kirim Ulang Dokumen Penawaran",
@@ -235,13 +235,13 @@ const id = {
         performPostSidangRevisions: "Lakukan Revisi Pasca Sidang pada Berkas Administrasi",
         uploadPostSidangRevisions: "Unggah revisi pasca-sidang, notifikasi pihak terkait jika perlu, lalu konfirmasi penyelesaian proyek.",
         uploadMEPFilesByAdmin: "Unggah Berkas MEP (Admin Proyek)",
+        reviseAndResubmitOfferWithOwnerFeedback: "Revisi dan Unggah Ulang Dokumen Penawaran berdasarkan masukan Owner.",
     },
     workflowActions: {
         approveOffer: "Menyetujui Dokumen Penawaran",
         uploadedOffer: "Mengunggah Dokumen Penawaran",
         uploadArchitectFiles: "Unggah Berkas Arsitektur",
         uploadedAdminFiles: "Mengunggah Berkas Administrasi",
-        // uploadMepFiles: "Unggah Berkas MEP",
         uploadedMEPFiles: "Mengunggah Berkas MEP",
         scheduleSidang: "Menjadwalkan Sidang",
         completedFinalCheck: "Menyelesaikan Pemeriksaan Akhir",
@@ -249,10 +249,9 @@ const id = {
         uploadedDPInvoice: "Mengunggah Faktur DP",
         uploadStructureFiles: "Unggah Berkas Struktur",
         uploadedArchitectFiles: "Mengunggah Berkas Arsitektur",
-        // performFinalCheck: "Melakukan Pemeriksaan Akhir",
         uploadedStructureFiles: "Mengunggah Berkas Struktur",
         submittedProgressFor: "Mengirim Progres untuk",
-        canceledProject: "Membatalkan Proyek", // Disesuaikan
+        canceledProject: "Membatalkan Proyek", 
         generateDPInvoice: "Membuat Faktur DP",
         approvedOfferTransition: "Menyetujui Penawaran",
         approvedDPInvoiceTransition: "Menyetujui Faktur DP",
@@ -272,7 +271,8 @@ const id = {
         architectUploadedInitialImages: "Arsitek mengunggah gambar referensi awal untuk Struktur.",
         adminProyekCompletedPostSidangRevision: "Admin Proyek menyelesaikan revisi pasca-sidang dan menyelesaikan proyek.",
         adminProyekUploadedMEPFiles: "Admin Proyek mengunggah berkas MEP.",
-        offerCanceledByOwner: "Penawaran proyek dibatalkan oleh Pemilik.", // Pesan baru
+        offerCanceledByOwner: "Proyek dibatalkan oleh Pemilik pada tahap penawaran.",
+        offerRevisedByOwner: "Permintaan revisi penawaran proyek oleh Pemilik." // New
     },
     toast: {
       permissionDenied: 'Izin Ditolak',
@@ -289,15 +289,19 @@ const id = {
       projectMarkedCompleted: "Proyek Selesai",
       projectCompletedSuccessfully: "Proyek \"{title}\" telah berhasil ditandai sebagai selesai.",
       projectMarkedCanceled: "Proyek Dibatalkan",
-      projectCanceledSuccessfully: "Proyek \"{title}\" telah berhasil dibatalkan oleh Pemilik.", // Diperbarui
+      projectCanceledSuccessfully: "Proyek \"{title}\" telah berhasil dibatalkan.",
       revisionRequested: "Permintaan Revisi",
       projectSentForRevision: "Proyek \"{title}\" dikirim kembali ke {division} untuk direvisi.",
+      offerRevisionRequestedTitle: "Permintaan Revisi Penawaran", // New
+      offerRevisionRequestedDesc: "Proyek \"{projectName}\" telah dikembalikan ke {division} untuk revisi penawaran.", // New
       sidangOutcomeSuccessTitle: "Hasil Sidang: Berhasil",
       sidangOutcomeSuccessDesc: "Proyek \"{title}\" telah ditandai selesai berdasarkan hasil sidang.",
       sidangOutcomeRevisionTitle: "Hasil Sidang: Perlu Revisi",
-      sidangOutcomeRevisionDesc: "Proyek \"{title}\" dikirim kembali ke {division} untuk revisi pasca-sidang.",
+      sidangOutcomeRevisionDesc: "Proyek \"{title}\" dikirim ke {division} untuk revisi pasca-sidang.",
       sidangOutcomeCanceledTitle: "Hasil Sidang: Dibatalkan",
       sidangOutcomeCanceledDesc: "Proyek \"{title}\" telah dibatalkan berdasarkan hasil sidang.",
+      revisionCompletedTitle: "Revisi Selesai",
+      revisionCompletedDesc: "Proyek \"{title}\" telah berhasil diselesaikan setelah revisi.",
       offerApproved: 'Penawaran Disetujui',
       offerApprovedDesc: '{division} diberitahu untuk Faktur DP.',
       dpApproved: 'Faktur DP Disetujui',
@@ -358,12 +362,16 @@ const id = {
       createButton: 'Buat Proyek',
       creatingButton: 'Membuat...',
       accessDenied: 'Anda tidak memiliki izin untuk menambahkan proyek baru.',
+      cancelButton: 'Batal',
+      selectedFilesLabel: 'File Terpilih',
       toast: {
           success: 'Proyek Dibuat',
           successDesc: 'Proyek "{title}" berhasil ditambahkan menggunakan alur kerja "{workflowName}". {division} diberitahu untuk langkah pertama.',
           error: 'Gagal Membuat Proyek',
           fetchWorkflowsError: 'Tidak dapat memuat jenis alur kerja.',
-          uploadFailed: "Satu atau lebih file gagal diunggah. Proyek tidak dibuat."
+          uploadFailed: "Satu atau lebih file gagal diunggah. Proyek tidak dibuat.",
+          unknownWorkflow: "Alur Kerja Tidak Dikenal",
+          defaultWorkflowName: "Alur Kerja Standar"
       },
       validation: {
           titleMin: 'Judul proyek minimal 5 karakter.',
@@ -406,13 +414,13 @@ const id = {
     deleteDialogCancel: 'Batal',
     deleteDialogConfirm: 'Hapus Pengguna',
     cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin/Akuntan terakhir.',
-    roles: {
+    roles: { // Digunakan untuk dropdown dan tampilan umum jika konteks spesifik tidak tersedia
        owner: 'Pemilik',
-       generaladmin: 'Admin/Akuntan',
+       generaladmin: 'Admin/Akuntan', // Nama tampilan untuk "General Admin"
        adminproyek: 'Admin Proyek',
        arsitek: 'Arsitek',
        struktur: 'Struktur',
-       mep: 'MEP', // Disederhanakan
+       mep: 'MEP',
        admindev: 'Developer',
      },
     toast: {
@@ -794,4 +802,3 @@ const id = {
 };
 
 export default id;
-
