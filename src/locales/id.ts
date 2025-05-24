@@ -1,3 +1,4 @@
+
 // src/locales/id.ts
 const id = {
   // Login Page
@@ -39,11 +40,11 @@ const id = {
     toggleMenu: 'Buka/Tutup Panel Menu',
     roles: { 
         owner: 'Pemilik',
-        adminakuntan: 'Admin/Akuntan',
+        akuntan: 'Akuntan', // Changed
         adminproyek: 'Admin Proyek',
         arsitek: 'Arsitek',
         struktur: 'Struktur',
-        mep: 'MEP', // Label umum jika diperlukan
+        mep: 'Koordinator MEP', 
         admindev: 'Developer',
     },
   },
@@ -87,11 +88,11 @@ const id = {
       pendingfinalcheck: 'Menunggu Pemeriksaan Akhir',
       pendingscheduling: 'Menunggu Penjadwalan',
       owner: 'Pemilik',
-      adminakuntan: 'Admin/Akuntan',
+      akuntan: 'Akuntan', // Changed
       adminproyek: 'Admin Proyek',
       arsitek: 'Arsitek',
       struktur: 'Struktur',
-      mep: 'MEP',
+      mep: 'Koordinator MEP',
       admindev: 'Developer',
       notassigned: 'Belum Ditugaskan',
       sakit: "Sakit",
@@ -148,7 +149,7 @@ const id = {
     ownerActionTitle: 'Tindakan Pemilik Diperlukan',
     ownerActionDesc: 'Tinjau dokumen yang dikirim dan putuskan apakah akan melanjutkan.',
     approveButton: 'Setujui',
-    cancelProjectButton: 'Batalkan Proyek', 
+    cancelProjectButton: 'Batalkan Proyek',
     scheduleSidangTitle: 'Jadwalkan Sidang ({role})',
     dateLabel: 'Tanggal',
     timeLabel: 'Waktu',
@@ -295,7 +296,7 @@ const id = {
       sidangOutcomeSuccessTitle: "Hasil Sidang: Berhasil",
       sidangOutcomeSuccessDesc: "Proyek \"{title}\" telah ditandai selesai berdasarkan hasil sidang.",
       sidangOutcomeRevisionTitle: "Hasil Sidang: Perlu Revisi",
-      sidangOutcomeRevisionDesc: "Proyek \"{title}\" dikirim ke {division} untuk revisi pasca-sidang.",
+      sidangOutcomeRevisionDesc: "Proyek \"{title}\" telah dikirim ke {division} untuk revisi pasca-sidang.",
       sidangOutcomeCanceledTitle: "Hasil Sidang: Dibatalkan",
       sidangOutcomeCanceledDesc: "Proyek \"{title}\" telah dibatalkan berdasarkan hasil sidang.",
       revisionCompletedTitle: "Revisi Selesai",
@@ -344,7 +345,7 @@ const id = {
       initialImagesUploadedTitle: "Gambar Awal Diunggah",
       initialImagesUploadedDesc: "Gambar referensi awal untuk proyek \"{projectName}\" telah diunggah. Divisi Struktur telah dinotifikasi.",
       revisionNotificationSentTitle: "Notifikasi Terkirim",
-      revisionNotificationSentDesc: "Divisi {division} telah dinotifikasi untuk berkontribusi pada revisi proyek \"{projectName}\"."
+      revisionNotificationSentDesc: "Divisi {division} telah dinotifikasi untuk berkontribusi pada revisi proyek \"{projectName}\" oleh {actorUsername}."
     }
   },
   // Add Project Page
@@ -411,14 +412,14 @@ const id = {
     deleteDialogDesc: 'Apakah Anda yakin ingin menghapus pengguna "{username}"? Tindakan ini tidak dapat dibatalkan.',
     deleteDialogCancel: 'Batal',
     deleteDialogConfirm: 'Hapus Pengguna',
-    cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Admin/Akuntan terakhir.',
+    cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Akuntan terakhir.',
     roles: {
        owner: 'Pemilik',
-       adminakuntan: 'Admin/Akuntan',
+       akuntan: 'Akuntan', // Changed
        adminproyek: 'Admin Proyek',
        arsitek: 'Arsitek',
        struktur: 'Struktur',
-       mep: 'MEP',
+       mep: 'Koordinator MEP',
        admindev: 'Developer',
      },
     toast: {
@@ -431,7 +432,7 @@ const id = {
         error: 'Kesalahan',
         usernameExists: 'Nama pengguna sudah ada.',
         cannotDeleteSelf: 'Anda tidak dapat menghapus akun Anda sendiri.',
-        cannotDeleteLastAdmin: 'Tidak dapat menghapus Admin/Akuntan terakhir.',
+        cannotDeleteLastAdmin: 'Tidak dapat menghapus Akuntan terakhir.',
         permissionDenied: 'Izin Ditolak',
         editPermissionDenied: 'Anda tidak memiliki izin untuk mengubah pengguna ini.',
         cannotEditAdminDev: "Akun 'Developer' tidak dapat diubah melalui antarmuka ini.",
@@ -800,4 +801,3 @@ const id = {
 };
 
 export default id;
-

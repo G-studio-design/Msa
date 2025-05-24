@@ -1,3 +1,4 @@
+
 [
   {
     "id": "usr_dev_iwg",
@@ -55,12 +56,12 @@
     "createdAt": "2025-05-21T03:43:28.584Z"
   },
   {
-    "id": "usr_1747925369552_66ue2",
-    "username": "oksi",
+    "id": "usr_admin_akuntan_default",
+    "username": "adminakuntan",
     "password": "admin123",
-    "role": "General Admin",
-    "email": "oksi@example.com",
-    "displayName": "oksi",
-    "createdAt": "2025-05-22T14:49:29.552Z"
+    "role": "Akuntan",
+    "email": "admin.akuntan@example.com",
+    "displayName": "Admin Akuntan Default",
+    "createdAt": "2025-05-18T00:01:00.000Z"
   }
 ]

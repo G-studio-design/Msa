@@ -1,3 +1,4 @@
+
 [
   {
     "id": "default_standard_workflow",
@@ -32,11 +33,11 @@
         "transitions": {
           "approved": {
             "targetStatus": "Pending DP Invoice",
-            "targetAssignedDivision": "General Admin",
+            "targetAssignedDivision": "Akuntan",
             "targetNextActionDescription": "Buat Faktur DP",
             "targetProgress": 25,
             "notification": {
-              "division": "General Admin",
+              "division": "Akuntan",
               "message": "Penawaran untuk proyek '{projectName}' telah disetujui oleh {actorUsername}. Mohon buat faktur DP."
             }
           },
@@ -65,7 +66,7 @@
       {
         "stepName": "DP Invoice Submission",
         "status": "Pending DP Invoice",
-        "assignedDivision": "General Admin",
+        "assignedDivision": "Akuntan",
         "progress": 25,
         "nextActionDescription": "Unggah Faktur DP",
         "transitions": {
@@ -100,11 +101,11 @@
           },
           "rejected": {
             "targetStatus": "Pending DP Invoice",
-            "targetAssignedDivision": "General Admin",
+            "targetAssignedDivision": "Akuntan",
             "targetNextActionDescription": "Revisi dan Unggah Ulang Faktur DP",
             "targetProgress": 25,
             "notification": {
-              "division": "General Admin",
+              "division": "Akuntan",
               "message": "Faktur DP untuk proyek '{projectName}' ditolak oleh {actorUsername}. Mohon direvisi."
             }
           }

@@ -55,22 +55,20 @@ import { getAllUniqueStatuses, type WorkflowStep } from '@/services/workflow-ser
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 
-// Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
 
-// Map status to default next step details
 const statusWorkflowDetailsMap: Record<string, Partial<WorkflowStep>> = {
   'Pending Offer': { assignedDivision: 'Admin Proyek', nextActionDescription: 'Unggah Dokumen Penawaran', progress: 10 },
-  'Pending Approval': { assignedDivision: 'Owner', nextActionDescription: 'Setujui Dokumen Penawaran/Faktur', progress: 20 }, // General approval, progress might vary
-  'Pending DP Invoice': { assignedDivision: 'Admin/Akuntan', nextActionDescription: 'Buat Faktur DP', progress: 25 },
+  'Pending Approval': { assignedDivision: 'Owner', nextActionDescription: 'Setujui Dokumen Penawaran/Faktur', progress: 20 }, 
+  'Pending DP Invoice': { assignedDivision: 'Akuntan', nextActionDescription: 'Buat Faktur DP', progress: 25 },
   'Pending Admin Files': { assignedDivision: 'Admin Proyek', nextActionDescription: 'Unggah Berkas Administrasi', progress: 40 },
   'Pending Survey Details': { assignedDivision: 'Admin Proyek', nextActionDescription: 'Input Jadwal Survei & Unggah Hasil', progress: 45},
   'Pending Architect Files': { assignedDivision: 'Arsitek', nextActionDescription: 'Unggah Berkas Arsitektur', progress: 50 },
   'Pending Structure Files': { assignedDivision: 'Struktur', nextActionDescription: 'Unggah Berkas Struktur', progress: 70 },
-  // 'Pending MEP Files' removed as it's no longer a default distinct step handled by a separate MEP division in the standard flow.
-  // Admin Proyek now handles MEP file uploads then moves to scheduling.
+  'Pending MEP Files': { assignedDivision: 'Admin Proyek', nextActionDescription: 'Unggah Berkas MEP', progress: 80 },
   'Pending Scheduling': { assignedDivision: 'Admin Proyek', nextActionDescription: 'Jadwalkan Sidang', progress: 90 },
   'Scheduled': { assignedDivision: 'Owner', nextActionDescription: 'Nyatakan Hasil Sidang', progress: 95 },
+  'Pending Post-Sidang Revision': { assignedDivision: 'Admin Proyek', nextActionDescription: 'Lakukan revisi pasca-sidang', progress: 85 },
   'Completed': { assignedDivision: '', nextActionDescription: null, progress: 100 },
   'Canceled': { assignedDivision: '', nextActionDescription: null, progress: 0 },
   'Pending Consultation Docs': { assignedDivision: 'Admin Proyek', nextActionDescription: 'Unggah Ringkasan Konsultasi', progress: 10 },
@@ -95,7 +93,6 @@ export default function AdminActionsPage() {
   const [newTitle, setNewTitle] = React.useState('');
   const [isSaving, setIsSaving] = React.useState(false);
 
-  // State for manual status change dialog
   const [isStatusChangeDialogOpen, setIsStatusChangeDialogOpen] = React.useState(false);
   const [projectForStatusChange, setProjectForStatusChange] = React.useState<Project | null>(null);
   const [newStatus, setNewStatus] = React.useState<string>('');
@@ -104,13 +101,13 @@ export default function AdminActionsPage() {
   const [newProgress, setNewProgress] = React.useState<number | string>('');
   const [reasonNote, setReasonNote] = React.useState('');
   const [availableStatuses, setAvailableStatuses] = React.useState<string[]>([]);
-  const [availableDivisions, setAvailableDivisions] = React.useState<string[]>(['Owner', 'Admin/Akuntan', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP']); // MEP role still exists for users
+  const [availableDivisions, setAvailableDivisions] = React.useState<string[]>(['Owner', 'Akuntan', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP']); 
 
   const [isDeleting, setIsDeleting] = React.useState(false);
 
 
    const fetchProjectsAndStatuses = React.useCallback(async () => {
-        if (currentUser && ['Owner', 'Admin/Akuntan', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role)) {
+        if (currentUser && ['Owner', 'Akuntan', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role.trim())) {
             setIsLoadingProjects(true);
             try {
                 const [fetchedProjects, statuses] = await Promise.all([
@@ -132,7 +129,6 @@ export default function AdminActionsPage() {
 
    React.useEffect(() => {
        setIsClient(true);
-    // Moved fetchProjectsAndStatuses to a separate useEffect that depends on isClient and currentUser
   }, []);
 
   React.useEffect(() => {
@@ -163,11 +159,7 @@ export default function AdminActionsPage() {
 
     try {
         await updateProjectTitle(projectId, newTitle);
-        setProjects(
-            projects.map((project) =>
-            project.id === projectId ? { ...project, title: newTitle } : project
-            )
-        );
+        fetchProjectsAndStatuses(); // Re-fetch to update list
         toast({ title: adminDict.toast.titleUpdated, description: adminDict.toast.titleUpdatedDesc.replace('{id}', projectId) });
         handleCancelEdit();
     } catch (error: any) {
@@ -178,7 +170,6 @@ export default function AdminActionsPage() {
     }
   };
 
-  // Functions for manual status change
   const openStatusChangeDialog = (project: Project) => {
     setProjectForStatusChange(project);
     setNewStatus(project.status);
@@ -193,14 +184,13 @@ export default function AdminActionsPage() {
     if (newStatus && projectForStatusChange) {
         const defaults = statusWorkflowDetailsMap[newStatus];
         if (defaults) {
-            // Only update if the current value matches the project's original value or if the current value is not a valid division
             if (newAssignedDivision === projectForStatusChange.assignedDivision || !availableDivisions.includes(newAssignedDivision)) {
                 setNewAssignedDivision(defaults.assignedDivision || '');
             }
             if (newNextAction === (projectForStatusChange.nextAction || '') || newNextAction === '') {
                  setNewNextAction(defaults.nextActionDescription || '');
             }
-            if (newProgress === projectForStatusChange.progress || newProgress === '') { // Check against project's original progress
+            if (newProgress === projectForStatusChange.progress || newProgress === '') { 
                  setNewProgress(defaults.progress !== undefined ? defaults.progress : '');
             }
         }
@@ -226,8 +216,7 @@ export default function AdminActionsPage() {
             adminUsername: currentUser.username,
             reasonNote
         });
-        const fetchedProjects = await getAllProjects();
-        setProjects(fetchedProjects);
+        fetchProjectsAndStatuses(); // Re-fetch
         toast({ title: adminDict.toast.statusChangeSuccess, description: adminDict.toast.statusChangeSuccessDesc.replace('{title}', projectForStatusChange.title).replace('{status}', getTranslatedStatus(newStatus) || newStatus).replace('{division}', getTranslatedStatus(finalAssignedDivision) || finalAssignedDivision ) });
         setIsStatusChangeDialogOpen(false);
     } catch (error: any) {
@@ -245,7 +234,7 @@ export default function AdminActionsPage() {
         return dashboardDict.status[key] || statusKey;
     }, [isClient, dashboardDict]);
 
-   const canPerformAdminActions = currentUser && ['Owner', 'Admin/Akuntan', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role);
+   const canPerformAdminActions = currentUser && ['Owner', 'Akuntan', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role.trim());
 
     if (!isClient || !currentUser || (isLoadingProjects && projects.length === 0)) {
        return (
@@ -279,14 +268,14 @@ export default function AdminActionsPage() {
    }
 
    const handleDeleteProject = async (projectId: string, projectTitle: string) => {
-       if (!currentUser || !['Owner', 'Admin/Akuntan', 'Admin Developer'].includes(currentUser.role)) {
+       if (!currentUser || !['Owner', 'Akuntan', 'Admin Developer'].includes(currentUser.role.trim())) {
            toast({ variant: 'destructive', title: adminDict.toast.error, description: adminDict.toast.deletePermissionDenied || "You do not have permission to delete projects." });
            return;
        }
        setIsDeleting(true);
        try {
            await deleteProject(projectId, currentUser.username);
-           setProjects(prevProjects => prevProjects.filter(p => p.id !== projectId));
+           fetchProjectsAndStatuses(); // Re-fetch
            toast({ title: adminDict.toast.projectDeletedTitle || "Project Deleted", description: (adminDict.toast.projectDeletedDesc || "Project \"{title}\" has been deleted.").replace('{title}', projectTitle) });
        } catch (error: any) {
            console.error("Error deleting project:", error);
@@ -358,7 +347,7 @@ export default function AdminActionsPage() {
                               <Button variant="ghost" size="icon" onClick={() => openStatusChangeDialog(project)} disabled={isSaving || isDeleting} title={adminDict.changeStatusActionTooltip || "Change Status"}>
                                 <Replace className="h-4 w-4 text-orange-500" />
                               </Button>
-                               { (currentUser && ['Owner', 'Admin/Akuntan', 'Admin Developer'].includes(currentUser.role)) && (
+                               { (currentUser && ['Owner', 'Akuntan', 'Admin Developer'].includes(currentUser.role.trim())) && (
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button variant="ghost" size="icon" disabled={isSaving || isDeleting} title={adminDict.deleteProjectActionTooltip || "Delete Project"}>
@@ -398,7 +387,6 @@ export default function AdminActionsPage() {
         </CardContent>
       </Card>
 
-       {/* Dialog for Manual Status Change */}
        <Dialog open={isStatusChangeDialogOpen} onOpenChange={setIsStatusChangeDialogOpen}>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
@@ -462,4 +450,3 @@ export default function AdminActionsPage() {
     </div>
   );
 }
-

@@ -64,8 +64,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const defaultDict = useMemo(() => getDictionary('en'), []);
   const layoutDict = useMemo(() => getDictionary(language).dashboardLayout, [language]);
-  const [notificationsDict, setNotificationsDict] = React.useState(defaultDict.notifications);
-  const [manageUsersDict, setManageUsersDict] = React.useState(defaultDict.manageUsersPage);
+  const notificationsDict = useMemo(() => getDictionary(language).notifications, [language]);
+  const manageUsersDict = useMemo(() => getDictionary(language).manageUsersPage, [language]);
 
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -74,14 +74,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  useEffect(() => {
-    if (isClient) {
-        const newDict = getDictionary(language);
-        setNotificationsDict(newDict.notifications);
-        setManageUsersDict(newDict.manageUsersPage);
-    }
-  }, [isClient, language]);
 
 
   const fetchNotifications = useCallback(async () => {
@@ -143,21 +135,21 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
 
   const menuItems = useMemo(() => [
-    { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
-    { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
-    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] },
-    { href: "/dashboard/leave-request/new", icon: Plane, labelKey: "requestLeave" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
+    { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
+    { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
+    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Admin Developer"] },
+    { href: "/dashboard/leave-request/new", icon: Plane, labelKey: "requestLeave" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
     { href: "/dashboard/admin-actions/leave-approvals", icon: ShieldCheck, labelKey: "leaveApprovals" as LayoutDictKeys, roles: ["Owner"] },
-    { href: "/dashboard/admin-actions", icon: Replace, labelKey: "adminActions" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] },
+    { href: "/dashboard/admin-actions", icon: Replace, labelKey: "adminActions" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Admin Developer"] },
     { href: "/dashboard/admin-actions/workflows", icon: GitFork, labelKey: "manageWorkflows" as LayoutDictKeys, roles: ["Admin Developer"] },
-    { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Admin Developer"] },
-    { href: "/dashboard/settings", icon: Settings, labelKey: "settings" as LayoutDictKeys, roles: ["Owner", "General Admin", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
+    { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Admin Developer"] },
+    { href: "/dashboard/settings", icon: Settings, labelKey: "settings" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
   ], []);
 
 
  const visibleMenuItems = useMemo(() => {
     if (isClient && currentUser && currentUser.role) {
-      const userRoleCleaned = currentUser.role.trim();
+      const userRoleCleaned = currentUser.role.trim(); // Use original role, translation handled by getTranslatedRole
       return menuItems.filter(item => item.roles.includes(userRoleCleaned));
     }
     return [];
@@ -169,7 +161,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       const roleLower = role.toLowerCase().trim();
       switch(roleLower) {
           case 'owner': return User;
-          case 'general admin': return UserCog;
+          case 'akuntan': return UserCog; 
           case 'admin proyek': return UserCog;
           case 'arsitek': return User;
           case 'struktur': return User;
@@ -194,15 +186,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
    const getTranslatedRole = useCallback((role: string): string => {
        if (!isClient || !manageUsersDict?.roles || !role) {
-            // Fallback if dict or isClient is not ready
             const fallbackRoles = defaultGlobalDict.manageUsersPage.roles as Record<string, string>;
-            const roleKeyFallback = role.trim().replace(/\s+/g, '').toLowerCase();
+            const roleKeyFallback = role?.trim().replace(/\s+/g, '').toLowerCase() || "";
             return fallbackRoles?.[roleKeyFallback] || role;
        }
        const rolesDict = manageUsersDict.roles;
        const roleKey = role.trim().replace(/\s+/g, '').toLowerCase() as keyof NonNullable<typeof rolesDict>;
        return rolesDict?.[roleKey] || role;
-   }, [isClient, manageUsersDict]);
+   }, [isClient, manageUsersDict, defaultGlobalDict.manageUsersPage.roles]);
 
 
    const formatTimestamp = useCallback((timestamp: string): string => {
@@ -301,10 +292,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                            </div>
                          </div>
                        ))
-                   ) : isClient ? ( // Only show empty state if isClient is true
+                   ) : isClient ? ( 
                      <div className="p-4 text-center text-sm text-muted-foreground flex flex-col items-center gap-2">
                        <MessageSquareWarning className="h-6 w-6" />
-                       {notificationsDict.empty}
+                       {isClient ? notificationsDict.empty : defaultDict.notifications.empty}
                      </div>
                    ) : null }
                  </div>

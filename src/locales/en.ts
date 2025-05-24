@@ -1,3 +1,4 @@
+
 // src/locales/en.ts
 const en = {
   // Login Page
@@ -39,11 +40,11 @@ const en = {
     toggleMenu: 'Toggle Menu Panel',
     roles: {
         owner: 'Owner',
-        adminakuntan: 'Admin/Accountant',
-        adminproyek: 'Admin Proyek',
-        arsitek: 'Arsitek',
-        struktur: 'Struktur',
-        mep: 'MEP', // Keep as general MEP label if needed elsewhere
+        akuntan: 'Accountant', // Changed from adminakuntan
+        adminproyek: 'Project Admin',
+        arsitek: 'Architect',
+        struktur: 'Structure',
+        mep: 'MEP Coordinator', 
         admindev: 'Developer',
     },
   },
@@ -87,11 +88,11 @@ const en = {
       pendingfinalcheck: 'Pending Final Check',
       pendingscheduling: 'Pending Scheduling',
       owner: 'Owner',
-      adminakuntan: 'Admin/Accountant',
-      adminproyek: 'Admin Proyek',
-      arsitek: 'Arsitek',
-      struktur: 'Struktur',
-      mep: 'MEP',
+      akuntan: 'Accountant', // Changed
+      adminproyek: 'Project Admin',
+      arsitek: 'Architect',
+      struktur: 'Structure',
+      mep: 'MEP Coordinator',
       admindev: 'Developer',
       notassigned: 'Not Assigned',
       sakit: "Sick Leave",
@@ -235,7 +236,7 @@ const en = {
         reviseDPInvoice: "Revise and Re-upload DP Invoice",
         performPostSidangRevisions: "Perform Post-Sidang Revisions on Admin Files",
         uploadPostSidangRevisions: "Upload post-sidang revisions, notify relevant parties if needed, then confirm project completion.",
-        uploadMEPFilesByAdmin: "Upload MEP Files (Admin Proyek)",
+        uploadMEPFilesByAdmin: "Upload MEP Files (Project Admin)",
     },
     workflowActions: { 
         approveOffer: "Approved Offer Document",
@@ -269,8 +270,8 @@ const en = {
         rescheduleSidang: "Rescheduled Sidang",
         uploadedSurveyResults: "Uploaded Survey Results",
         architectUploadedInitialImages: "Architect uploaded initial reference images for Structure.",
-        adminProyekCompletedPostSidangRevision: "Admin Proyek completed post-sidang revisions and finalized the project.",
-        adminProyekUploadedMEPFiles: "Admin Proyek uploaded MEP files.",
+        adminProyekCompletedPostSidangRevision: "Project Admin completed post-sidang revisions and finalized the project.",
+        adminProyekUploadedMEPFiles: "Project Admin uploaded MEP files.",
         offerCanceledByOwner: "Project offer was canceled by the Owner.",
         offerRevisedByOwner: "Project offer revision requested by Owner."
     },
@@ -344,7 +345,7 @@ const en = {
       initialImagesUploadedTitle: "Initial Images Uploaded",
       initialImagesUploadedDesc: "Initial reference images for project \"{projectName}\" have been uploaded. Division Structure has been notified.",
       revisionNotificationSentTitle: "Notification Sent",
-      revisionNotificationSentDesc: "Division {division} has been notified to contribute to the revision for project \"{projectName}\"."
+      revisionNotificationSentDesc: "Division {division} has been notified to contribute to the revision for project \"{projectName}\" by {actorUsername}."
     }
   },
   // Add Project Page
@@ -411,14 +412,14 @@ const en = {
     deleteDialogDesc: 'Are you sure you want to delete user "{username}"? This action cannot be undone.',
     deleteDialogCancel: 'Cancel',
     deleteDialogConfirm: 'Delete User',
-    cannotChangeLastAdminRoleHint: 'Cannot change the role of the last Admin/Accountant.',
+    cannotChangeLastAdminRoleHint: 'Cannot change the role of the last Accountant.',
     roles: {
        owner: 'Owner',
-       adminakuntan: 'Admin/Accountant',
-       adminproyek: 'Admin Proyek',
-       arsitek: 'Arsitek',
-       struktur: 'Struktur',
-       mep: 'MEP',
+       akuntan: 'Accountant', // Changed
+       adminproyek: 'Project Admin',
+       arsitek: 'Architect',
+       struktur: 'Structure',
+       mep: 'MEP Coordinator',
        admindev: 'Developer',
      },
     toast: {
@@ -431,7 +432,7 @@ const en = {
         error: 'Error',
         usernameExists: 'Username already exists.',
         cannotDeleteSelf: 'You cannot delete your own account.',
-        cannotDeleteLastAdmin: 'Cannot delete the last Admin/Accountant.',
+        cannotDeleteLastAdmin: 'Cannot delete the last Accountant.',
         permissionDenied: 'Permission Denied',
         editPermissionDenied: 'You do not have permission to edit this user.',
         cannotEditAdminDev: "The 'Developer' account cannot be edited through this interface.",
@@ -800,4 +801,3 @@ const en = {
 };
 
 export default en;
-
