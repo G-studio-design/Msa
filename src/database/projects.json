@@ -2,10 +2,10 @@
   {
     "id": "project_demo_aktif_001",
     "title": "Proyek Renovasi Kantor Pusat",
-    "status": "Pending Survey Details",
-    "progress": 45,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Input Jadwal Survei & Unggah Hasil",
+    "status": "Pending Architect Files",
+    "progress": 50,
+    "assignedDivision": "Arsitek",
+    "nextAction": "Unggah Berkas Arsitektur",
     "workflowHistory": [
       {
         "division": "sudina",
@@ -45,6 +45,12 @@
         "action": "komangmerta (Admin Proyek) submitted for \"Unggah Berkas Administrasi\"",
         "timestamp": "2025-05-24T10:19:28.505Z",
         "note": "berkas administrasi proyek"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted Survey Details for 2025-05-29 at 08:50",
+        "timestamp": "2025-05-27T11:54:26.380Z",
+        "note": "Survey Description: survey langsung ke lokasi."
       }
     ],
     "files": [
@@ -81,7 +87,12 @@
     ],
     "createdAt": "2024-05-24T10:00:00.000Z",
     "createdBy": "sudina",
-    "workflowId": "default_standard_workflow"
+    "workflowId": "default_standard_workflow",
+    "surveyDetails": {
+      "date": "2025-05-29",
+      "time": "08:50",
+      "description": "survey langsung ke lokasi"
+    }
   },
   {
     "id": "project_demo_selesai_002",
@@ -253,6 +264,12 @@
         "action": "arsitek (Arsitek) submitted Survey Details for 2025-05-28 at 08:50",
         "timestamp": "2025-05-27T09:59:56.949Z",
         "note": "Survey Description: survey proyek."
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) uploaded initial reference images for Struktur & MEP.",
+        "timestamp": "2025-05-27T10:52:15.567Z",
+        "note": "gambar proyek arsitek"
       }
     ],
     "files": [
@@ -291,6 +308,12 @@
         "uploadedBy": "komangmerta",
         "path": "project_1748335034794_tx1vy-proyek_hotel_ubud/pool_warung_semanapdf",
         "timestamp": "2025-05-27T08:40:48.001Z"
+      },
+      {
+        "name": "pool warung semana.pdf",
+        "uploadedBy": "arsitek",
+        "path": "project_1748335034794_tx1vy-proyek_hotel_ubud/pool_warung_semanapdf",
+        "timestamp": "2025-05-27T10:52:15.567Z"
       }
     ],
     "createdAt": "2025-05-27T08:37:14.794Z",

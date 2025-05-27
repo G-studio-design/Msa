@@ -23,19 +23,25 @@ import {
   ChartTooltipContent,
   type ChartConfig
 } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList } from "recharts"; // Removed Cell as it wasn't used here for BarChart
 import { Calendar } from "@/components/ui/calendar";
-import { parseISO, format, isSameDay, isValid, eachDayOfInterval, startOfMonth } from 'date-fns';
+import { parseISO, format, isSameDay, isValid, eachDayOfInterval, startOfMonth, addDays, isWithinInterval, startOfDay } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 
-// Default dictionary for server render / pre-hydration
 const defaultGlobalDict = getDictionary('en');
 
-// Event type for calendar
 type CalendarDisplayEvent =
   | (Project & { type: 'sidang' | 'survey' })
   | (LeaveRequest & { type: 'leave' })
   | (HolidayEntry & { type: 'holiday' | 'company_event' });
+
+interface UpcomingSurvey {
+  id: string;
+  title: string;
+  date: string; // formatted date
+  time?: string;
+  description?: string;
+}
 
 
 export default function DashboardPage() {
@@ -48,13 +54,13 @@ export default function DashboardPage() {
   const dashboardDict = React.useMemo(() => dict.dashboardPage, [dict]);
   const manageUsersDict = React.useMemo(() => dict.manageUsersPage, [dict]);
 
-
   const [allProjects, setAllProjects] = React.useState<Project[]>([]);
   const [approvedLeaves, setApprovedLeaves] = React.useState<LeaveRequest[]>([]);
   const [holidaysAndEvents, setHolidaysAndEvents] = React.useState<HolidayEntry[]>([]);
   const [isLoadingData, setIsLoadingData] = React.useState(true);
+  const [upcomingSurveys, setUpcomingSurveys] = React.useState<UpcomingSurvey[]>([]);
 
-  // State for Calendar
+
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
   const [displayMonth, setDisplayMonth] = React.useState<Date>(startOfMonth(new Date()));
   const [eventsForSelectedDate, setEventsForSelectedDate] = React.useState<CalendarDisplayEvent[]>([]);
@@ -65,7 +71,7 @@ export default function DashboardPage() {
 
 
   const fetchData = React.useCallback(async () => {
-    if (isClient && currentUser) {
+    if (currentUser) { // Ensure currentUser is available
       setIsLoadingData(true);
       try {
         const [fetchedProjects, fetchedLeaves, fetchedHolidays] = await Promise.all([
@@ -78,34 +84,76 @@ export default function DashboardPage() {
         setHolidaysAndEvents(fetchedHolidays);
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
-        if (dashboardDict?.toast?.fetchError) {
-          toast({ variant: 'destructive', title: dashboardDict.toast.errorTitle, description: dashboardDict.toast.fetchError });
-        } else {
-          toast({ variant: 'destructive', title: 'Error', description: 'Could not load page data.' });
-        }
+        const toastErrorTitle = dashboardDict?.toast?.errorTitle || defaultGlobalDict.dashboardPage.toast.errorTitle;
+        const toastFetchError = dashboardDict?.toast?.fetchError || defaultGlobalDict.dashboardPage.toast.fetchError;
+        toast({ variant: 'destructive', title: toastErrorTitle, description: toastFetchError });
       } finally {
         setIsLoadingData(false);
       }
     } else {
-      setIsLoadingData(false); 
+      setAllProjects([]);
+      setApprovedLeaves([]);
+      setHolidaysAndEvents([]);
+      setIsLoadingData(false);
     }
-  }, [isClient, currentUser, toast, dashboardDict]); 
+  }, [currentUser, toast, dashboardDict, defaultGlobalDict.dashboardPage.toast.errorTitle, defaultGlobalDict.dashboardPage.toast.fetchError]);
 
   React.useEffect(() => {
     if (isClient && currentUser) {
         fetchData();
-    } else if (isClient && !currentUser) { 
+    } else if (isClient && !currentUser) {
         setAllProjects([]);
         setApprovedLeaves([]);
         setHolidaysAndEvents([]);
         setEventsForSelectedDate([]);
+        setUpcomingSurveys([]);
+        setIsLoadingData(false);
     }
   }, [isClient, currentUser, fetchData]);
 
+  const currentLocale = React.useMemo(() => language === 'id' ? IndonesianLocale : EnglishLocale, [language]);
+
+  React.useEffect(() => {
+    if (isClient && currentUser && allProjects.length > 0) {
+      const today = startOfDay(new Date());
+      const threeDaysFromNow = addDays(today, 2); // Today, tomorrow, day after tomorrow
+      const userRoleCleaned = currentUser.role?.trim().toLowerCase();
+      const relevantRolesForSurveyReminder = ['admin proyek', 'arsitek'];
+
+      if (userRoleCleaned && relevantRolesForSurveyReminder.includes(userRoleCleaned)) {
+        const surveys: UpcomingSurvey[] = [];
+        allProjects.forEach(project => {
+          if (project.surveyDetails?.date && project.status !== 'Completed' && project.status !== 'Canceled') {
+            try {
+              const surveyDate = parseISO(project.surveyDetails.date);
+              if (isValid(surveyDate) && isWithinInterval(surveyDate, { start: today, end: threeDaysFromNow })) {
+                surveys.push({
+                  id: project.id,
+                  title: project.title,
+                  date: format(surveyDate, 'PPP', { locale: currentLocale }),
+                  time: project.surveyDetails.time,
+                  description: project.surveyDetails.description,
+                });
+              }
+            } catch (e) {
+              console.error("Error parsing survey date for upcoming reminders:", project.id, e);
+            }
+          }
+        });
+        setUpcomingSurveys(surveys.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+      } else {
+        setUpcomingSurveys([]); // Clear if role not relevant or no user
+      }
+    } else if (isClient) {
+      setUpcomingSurveys([]); // Clear if no projects or no user
+    }
+  }, [isClient, currentUser, allProjects, currentLocale]);
+
 
   const canAddProject = React.useMemo(() => {
-    if (!currentUser) return false;
+    if (!currentUser || !currentUser.role) return false;
     const userRoleCleaned = currentUser.role.trim().toLowerCase();
+    // Akuntan (General Admin) tidak bisa tambah proyek
     return ['owner', 'admin proyek', 'admin developer'].includes(userRoleCleaned);
   }, [currentUser]);
 
@@ -120,10 +168,10 @@ export default function DashboardPage() {
     const statusKey = status.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status;
     const translatedStatus = dashboardDict.status[statusKey] || status;
     let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-    let className = "py-1 px-2 text-xs";
-    let Icon = TrendingUp; 
+    let className = "py-1 px-2 text-xs"; // Tailwind classes for consistent sizing
+    let Icon = TrendingUp;
 
-    switch (statusKey) {
+     switch (statusKey) {
         case 'completed': case 'selesai': variant = 'default'; className = `${className} bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-primary-foreground`; Icon = CheckCircle; break;
         case 'inprogress': case 'sedangberjalan': variant = 'secondary'; className = `${className} bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700`; Icon = TrendingUp; break;
         case 'pendingapproval': case 'menunggupersetujuan': variant = 'outline'; className = `${className} border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-500`; Icon = AlertTriangle; break;
@@ -131,7 +179,7 @@ export default function DashboardPage() {
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = AlertTriangle; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Info; break;
-        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles': case 'menungguberkasstruktur': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
+        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles': case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarDays; break;
         default: variant = 'secondary'; Icon = Info;
     }
@@ -139,23 +187,25 @@ export default function DashboardPage() {
   }, [isClient, dashboardDict]);
 
   const roleFilteredProjects = React.useMemo(() => {
-    if (!currentUser || !isClient || isLoadingData) return [];
+    if (!currentUser || !currentUser.role || !isClient || isLoadingData) return [];
     const userRoleCleaned = currentUser.role.trim().toLowerCase();
     if (['owner', 'akuntan', 'admin proyek', 'admin developer'].includes(userRoleCleaned)) {
       return allProjects;
     }
-    // For Struktur and MEP, show projects if they are assigned OR if it's 'Pending Architect Files' and relevant history exists
-    if (['struktur', 'mep'].includes(userRoleCleaned)) {
-        return allProjects.filter(project =>
-            (project.assignedDivision?.trim().toLowerCase() === userRoleCleaned) ||
-            (project.status === 'Pending Architect Files' &&
-             project.workflowHistory.some(entry => entry.action.toLowerCase().includes('uploaded initial reference images for struktur & mep')))
+    return allProjects.filter(project => {
+        const projectAssignedToCleaned = project.assignedDivision?.trim().toLowerCase();
+        const projectNextActionCleaned = project.nextAction?.toLowerCase();
+        const hasUploadedInitialImages = project.workflowHistory.some(
+            entry => entry.action.toLowerCase().includes('uploaded initial reference images for struktur & mep')
         );
-    }
-    return allProjects.filter(project =>
-      (project.assignedDivision?.trim().toLowerCase() === userRoleCleaned) ||
-      (project.nextAction && project.nextAction.toLowerCase().includes(userRoleCleaned))
-    );
+
+        if (userRoleCleaned === 'struktur' || userRoleCleaned === 'mep') {
+            return (projectAssignedToCleaned === userRoleCleaned) ||
+                   (project.status === 'Pending Architect Files' && hasUploadedInitialImages);
+        }
+        return (projectAssignedToCleaned === userRoleCleaned) ||
+               (projectNextActionCleaned && projectNextActionCleaned.includes(userRoleCleaned));
+    });
   }, [currentUser, allProjects, isClient, isLoadingData]);
 
 
@@ -177,7 +227,7 @@ export default function DashboardPage() {
         id: project.id
       }))
       .sort((a, b) => b.progress - a.progress)
-      .slice(0, 10); 
+      .slice(0, 10);
   }, [activeProjects, language]);
 
   const chartConfig = React.useMemo(() => ({
@@ -263,10 +313,8 @@ export default function DashboardPage() {
     if (isClient && !isLoadingData && selectedDate) {
       handleDateSelect(selectedDate);
     }
-  }, [isClient, isLoadingData, selectedDate, handleDateSelect]);
-
-
-  const currentLocale = React.useMemo(() => language === 'id' ? IndonesianLocale : EnglishLocale, [language]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isClient, isLoadingData, selectedDate]); // handleDateSelect is not included to prevent re-triggering on its own change
 
   const getEventBadge = React.useCallback((eventType: CalendarDisplayEvent['type'], eventSubType?: string) => {
     if (!isClient || !dashboardDict?.eventTypes || !dashboardDict?.status) return <Skeleton className="h-5 w-20" />;
@@ -290,13 +338,20 @@ export default function DashboardPage() {
     return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3"/>{label}</Badge>;
   }, [isClient, dashboardDict]);
 
+  const shouldShowSurveyCard = React.useMemo(() => {
+    if (!isClient || !currentUser || !currentUser.role) return false;
+    const userRoleCleaned = currentUser.role.trim().toLowerCase();
+    const surveyCardVisibleForRoles = ['admin proyek', 'arsitek'];
+    return surveyCardVisibleForRoles.includes(userRoleCleaned) && upcomingSurveys.length > 0;
+  }, [isClient, currentUser, upcomingSurveys]);
 
-  if (!isClient || isLoadingData || !currentUser) {
+
+  if (!isClient || isLoadingData || (!currentUser && isClient) ) { // Added check for !currentUser && isClient
     return (
       <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <Skeleton className="h-8 w-3/5 sm:w-48" />
-          {canAddProject && <Skeleton className="h-10 w-full sm:w-36" />}
+          <Skeleton className="h-10 w-full sm:w-36" />
         </div>
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
           {[...Array(4)].map((_, i) => (
@@ -321,15 +376,27 @@ export default function DashboardPage() {
 
   return (
     <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
+      {/* DEBUG INFO START */}
+      <Card className="mb-4 p-2 bg-yellow-100 border-yellow-300 text-xs">
+        <CardHeader className="p-1"><CardTitle className="text-sm text-yellow-700">DEBUG INFO</CardTitle></CardHeader>
+        <CardContent className="p-1 space-y-0.5">
+          <p>isClient: <span className="font-mono">{isClient.toString()}</span></p>
+          <p>currentUser.role: <span className="font-mono">{currentUser?.role || "N/A"}</span></p>
+          <p>shouldShowSurveyCard: <span className="font-mono">{shouldShowSurveyCard.toString()}</span></p>
+          <p>upcomingSurveys.length: <span className="font-mono">{upcomingSurveys.length}</span></p>
+        </CardContent>
+      </Card>
+      {/* DEBUG INFO END */}
+
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-primary">
-          {dashboardDict.title}
+          {isClient ? dashboardDict.title : defaultGlobalDict.dashboardPage.title}
         </h1>
         {canAddProject && (
           <Link href="/dashboard/add-project" passHref>
             <Button className="w-full sm:w-auto accent-teal">
               <PlusCircle className="mr-2 h-4 w-4" />
-              {dashboardDict.addNewProject}
+              {isClient ? dashboardDict.addNewProject : defaultGlobalDict.dashboardPage.addNewProject}
             </Button>
           </Link>
         )}
@@ -338,51 +405,88 @@ export default function DashboardPage() {
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{dashboardDict.activeProjects}</CardTitle>
+            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.activeProjects : defaultGlobalDict.dashboardPage.activeProjects}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeProjects.length}</div>
-            <p className="text-xs text-muted-foreground">{dashboardDict.activeProjectsDesc}</p>
+            <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.activeProjectsDesc : defaultGlobalDict.dashboardPage.activeProjectsDesc}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{dashboardDict.completedProjects}</CardTitle>
+            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.completedProjects : defaultGlobalDict.dashboardPage.completedProjects}</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{completedProjectsCount}</div>
-            <p className="text-xs text-muted-foreground">{dashboardDict.completedProjectsDesc}</p>
+            <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.completedProjectsDesc : defaultGlobalDict.dashboardPage.completedProjectsDesc}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{dashboardDict.pendingActions}</CardTitle>
+            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.pendingActions : defaultGlobalDict.dashboardPage.pendingActions}</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{pendingProjectsCount}</div>
-            <p className="text-xs text-muted-foreground">{dashboardDict.pendingActionsDesc}</p>
+            <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.pendingActionsDesc : defaultGlobalDict.dashboardPage.pendingActionsDesc}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{dashboardDict.averageProgressTitle}</CardTitle>
+            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.averageProgressTitle : defaultGlobalDict.dashboardPage.averageProgressTitle}</CardTitle>
             <Percent className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeProjects.length > 0 ? averageProgress : 0}%</div>
-            <p className="text-xs text-muted-foreground">{dashboardDict.averageProgressDesc}</p>
+            <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.averageProgressDesc : defaultGlobalDict.dashboardPage.averageProgressDesc}</p>
           </CardContent>
         </Card>
       </div>
       
+      {/* Upcoming Surveys Card - Conditional Rendering */}
+      {shouldShowSurveyCard && (
+          <Card className="mb-6">
+              <CardHeader>
+                  <CardTitle className="text-lg md:text-xl text-green-700 flex items-center">
+                      <MapPin className="mr-2 h-5 w-5" /> 
+                      {isClient ? dashboardDict.upcomingSurveysTitle : defaultGlobalDict.dashboardPage.upcomingSurveysTitle}
+                  </CardTitle>
+                  <CardDescription>
+                      {isClient ? dashboardDict.upcomingSurveysDesc : defaultGlobalDict.dashboardPage.upcomingSurveysDesc}
+                  </CardDescription>
+              </CardHeader>
+              <CardContent>
+                  {upcomingSurveys.length > 0 ? (
+                      <ul className="space-y-3">
+                          {upcomingSurveys.map(survey => (
+                              <li key={survey.id} className="p-3 border rounded-md bg-green-50 hover:bg-green-100 transition-colors shadow-sm">
+                                  <Link href={`/dashboard/projects?projectId=${survey.id}`} className="block hover:underline font-medium text-green-800">
+                                      {survey.title}
+                                  </Link>
+                                  <p className="text-sm text-green-700">
+                                      {survey.date} {survey.time && ` - ${survey.time}`}
+                                  </p>
+                                  {survey.description && <p className="text-xs text-green-600 mt-1">{survey.description}</p>}
+                              </li>
+                          ))}
+                      </ul>
+                  ) : (
+                       <p className="text-sm text-muted-foreground italic text-center py-4">
+                           {isClient ? dashboardDict.noUpcomingSurveys : defaultGlobalDict.dashboardPage.noUpcomingSurveys}
+                       </p>
+                  )}
+              </CardContent>
+          </Card>
+      )}
+
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg md:text-xl">{dashboardDict.projectProgressChartTitle}</CardTitle>
-              <CardDescription>{dashboardDict.projectProgressChartDesc}</CardDescription>
+              <CardTitle className="text-lg md:text-xl">{isClient ? dashboardDict.projectProgressChartTitle : defaultGlobalDict.dashboardPage.projectProgressChartTitle}</CardTitle>
+              <CardDescription>{isClient ? dashboardDict.projectProgressChartDesc : defaultGlobalDict.dashboardPage.projectProgressChartDesc}</CardDescription>
             </CardHeader>
             <CardContent className="pl-2 pr-4 sm:pr-6">
               {activeProjects.length > 0 && chartData.length > 0 ? (
@@ -406,7 +510,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground p-4">
                   <BarChartIcon className="h-12 w-12 mb-2 opacity-50" />
-                  <p>{dashboardDict.noActiveProjectsForChart}</p>
+                  <p>{isClient ? dashboardDict.noActiveProjectsForChart : defaultGlobalDict.dashboardPage.noActiveProjectsForChart}</p>
                 </div>
               )}
             </CardContent>
@@ -414,11 +518,11 @@ export default function DashboardPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg md:text-xl">{dashboardDict.scheduleAgendaTitle}</CardTitle>
-              <CardDescription>{dashboardDict.scheduleAgendaDesc}</CardDescription>
+              <CardTitle className="text-lg md:text-xl">{isClient ? dashboardDict.scheduleAgendaTitle : defaultGlobalDict.dashboardPage.scheduleAgendaTitle}</CardTitle>
+              <CardDescription>{isClient ? dashboardDict.scheduleAgendaDesc : defaultGlobalDict.dashboardPage.scheduleAgendaDesc}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center">
-              <Button
+             <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
@@ -429,7 +533,7 @@ export default function DashboardPage() {
                 }}
                 className="mb-3 self-start"
               >
-                {dashboardDict.todayButtonLabel}
+                {isClient ? dashboardDict.todayButtonLabel : defaultGlobalDict.dashboardPage.todayButtonLabel}
               </Button>
               <Calendar
                 mode="single"
@@ -459,83 +563,79 @@ export default function DashboardPage() {
               />
               <div className="mt-4 w-full space-y-3">
                 <h3 className="text-md font-semibold text-foreground text-center">
-                  {selectedDate ? dashboardDict.eventsForDate.replace('{date}', format(selectedDate, 'PPP', { locale: currentLocale })) : dashboardDict.selectDatePrompt}
+                  {isClient ? (selectedDate ? dashboardDict.eventsForDate.replace('{date}', format(selectedDate, 'PPP', { locale: currentLocale })) : dashboardDict.selectDatePrompt) : defaultGlobalDict.dashboardPage.selectDatePrompt}
                 </h3>
                 {selectedDate && eventsForSelectedDate.length > 0 ? (
                   <ul className="space-y-2 text-sm max-h-48 overflow-y-auto pr-2">
                     {eventsForSelectedDate.map((event, index) => {
-                      const key = `${event.type}-${(event as any).id}-${index}`;
+                      const key = `${event.type}-${(event as any).id || `event-${index}`}-${index}`;
                       return (
                       <li key={key} className="p-3 border rounded-md bg-muted/30 hover:bg-muted/60 transition-colors shadow-sm">
                         {event.type === 'sidang' && (event as Project).scheduleDetails ? (
                           <>
                             <div className="flex items-center justify-between mb-1">
-                              <p className="font-medium text-primary truncate flex items-center gap-1.5">
-                                <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="hover:underline">
+                              <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="font-medium text-primary truncate hover:underline">
                                   {(event as Project).title}
-                                </Link>
-                              </p>
+                              </Link>
                               {getEventBadge('sidang')}
                             </div>
                             {(event as Project).scheduleDetails?.time && (
-                              <p className="text-xs text-muted-foreground pl-6">
-                                {dashboardDict.eventTimeLabel} {(event as Project).scheduleDetails!.time}
+                              <p className="text-xs text-muted-foreground">
+                                {isClient ? dashboardDict.eventTimeLabel : defaultGlobalDict.dashboardPage.eventTimeLabel} {(event as Project).scheduleDetails!.time}
                               </p>
                             )}
                             {(event as Project).scheduleDetails?.location && (
-                              <p className="text-xs text-muted-foreground pl-6">
-                                {dashboardDict.eventLocationLabel} {(event as Project).scheduleDetails!.location}
+                              <p className="text-xs text-muted-foreground">
+                                {isClient ? dashboardDict.eventLocationLabel : defaultGlobalDict.dashboardPage.eventLocationLabel} {(event as Project).scheduleDetails!.location}
                               </p>
                             )}
                           </>
                         ) : event.type === 'leave' ? (
                           <>
                             <div className="flex items-center justify-between mb-1">
-                              <p className="font-medium text-destructive truncate flex items-center gap-1.5">
+                              <p className="font-medium text-destructive truncate">
                                 {(event as LeaveRequest).displayName || (event as LeaveRequest).username}
                               </p>
                                {getEventBadge('leave', (event as LeaveRequest).leaveType)}
                             </div>
-                            <p className="text-xs text-muted-foreground pl-6">
-                              {dashboardDict.leaveDurationLabel} {format(parseISO((event as LeaveRequest).startDate), 'PP', { locale: currentLocale })} - {format(parseISO((event as LeaveRequest).endDate), 'PP', { locale: currentLocale })}
+                            <p className="text-xs text-muted-foreground">
+                              {isClient ? dashboardDict.leaveDurationLabel : defaultGlobalDict.dashboardPage.leaveDurationLabel} {format(parseISO((event as LeaveRequest).startDate), 'PP', { locale: currentLocale })} - {format(parseISO((event as LeaveRequest).endDate), 'PP', { locale: currentLocale })}
                             </p>
                              {(event as LeaveRequest).reason && (
-                                <p className="text-xs text-muted-foreground pl-6 mt-0.5 whitespace-pre-wrap">
-                                  {dashboardDict.reasonLabel}: {(event as LeaveRequest).reason}
+                                <p className="text-xs text-muted-foreground mt-0.5 whitespace-pre-wrap">
+                                  {isClient ? dashboardDict.reasonLabel : defaultGlobalDict.dashboardPage.reasonLabel}: {(event as LeaveRequest).reason}
                                 </p>
                             )}
                           </>
                         ) : event.type === 'survey' && (event as Project).surveyDetails ? (
                           <>
                            <div className="flex items-center justify-between mb-1">
-                              <p className="font-medium text-green-600 truncate flex items-center gap-1.5">
-                                <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="hover:underline">
-                                  {(event as Project).title}
-                                </Link>
-                              </p>
+                             <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="font-medium text-green-600 truncate hover:underline">
+                                {(event as Project).title}
+                              </Link>
                               {getEventBadge('survey')}
                             </div>
                             {(event as Project).surveyDetails?.time && (
-                              <p className="text-xs text-muted-foreground pl-6">
-                                {dashboardDict.eventTimeLabel} {(event as Project).surveyDetails!.time}
+                              <p className="text-xs text-muted-foreground">
+                                {isClient ? dashboardDict.eventTimeLabel : defaultGlobalDict.dashboardPage.eventTimeLabel} {(event as Project).surveyDetails!.time}
                               </p>
                             )}
                             {(event as Project).surveyDetails?.description && (
-                              <p className="text-xs text-muted-foreground pl-6">
-                                {dashboardDict.surveyDescriptionLabel} {(event as Project).surveyDetails!.description}
+                              <p className="text-xs text-muted-foreground">
+                                {isClient ? dashboardDict.surveyDescriptionLabel : defaultGlobalDict.dashboardPage.surveyDescriptionLabel} {(event as Project).surveyDetails!.description}
                               </p>
                             )}
                           </>
                         ) : event.type === 'holiday' ? (
                             <div className="flex items-center justify-between">
-                                <p className="font-medium text-orange-500 truncate flex items-center gap-1.5">
+                                <p className="font-medium text-orange-500 truncate">
                                     {(event as HolidayEntry).name}
                                 </p>
                                 {getEventBadge('holiday')}
                             </div>
                         ) : event.type === 'company_event' ? (
                              <div className="flex items-center justify-between">
-                                <p className="font-medium text-purple-600 truncate flex items-center gap-1.5">
+                                <p className="font-medium text-purple-600 truncate">
                                     {(event as HolidayEntry).name}
                                 </p>
                                 {getEventBadge('company_event')}
@@ -545,8 +645,8 @@ export default function DashboardPage() {
                       );
                     })}
                   </ul>
-                ) : selectedDate ? (
-                  <p className="text-sm text-muted-foreground italic text-center py-4">{dashboardDict.noEventsOnDate}</p>
+                ) : selectedDate && isClient ? ( // Ensure isClient is true to show "no events"
+                  <p className="text-sm text-muted-foreground italic text-center py-4">{isClient ? dashboardDict.noEventsOnDate : defaultGlobalDict.dashboardPage.noEventsOnDate}</p>
                 ) : null}
               </div>
             </CardContent>
@@ -556,51 +656,49 @@ export default function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg md:text-xl">{dashboardDict.projectOverview}</CardTitle>
+          <CardTitle className="text-lg md:text-xl">{isClient ? dashboardDict.projectOverview : defaultGlobalDict.dashboardPage.projectOverview}</CardTitle>
           <CardDescription>
-            {currentUser ? (
+            {isClient && currentUser ? (
               ['owner', 'akuntan', 'admin proyek', 'admin developer'].includes(currentUser.role.trim().toLowerCase())
-              ? dashboardDict.allProjectsDesc
-              : dashboardDict.divisionProjectsDesc.replace('{division}', getTranslatedStatus(currentUser.role))
+              ? (isClient ? dashboardDict.allProjectsDesc : defaultGlobalDict.dashboardPage.allProjectsDesc)
+              : (isClient ? dashboardDict.divisionProjectsDesc.replace('{division}', getTranslatedStatus(currentUser.role)) : defaultGlobalDict.dashboardPage.divisionProjectsDesc.replace('{division}', currentUser.role) )
             ) : defaultGlobalDict.dashboardPage.allProjectsDesc}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {activeProjects.length === 0 && isClient ? (
-              <p className="text-muted-foreground text-center py-4">{dashboardDict.noProjects}</p>
+              <p className="text-muted-foreground text-center py-4">{isClient ? dashboardDict.noProjects : defaultGlobalDict.dashboardPage.noProjects}</p>
             ) : (
               activeProjects.map((project) => (
                 <Link key={project.id} href={`/dashboard/projects?projectId=${project.id}`} passHref>
                   <div className="block hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 cursor-pointer rounded-lg border bg-card text-card-foreground overflow-hidden">
-                    <Card>
-                      <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6">
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-base sm:text-lg truncate hover:text-primary transition-colors">{project.title}</CardTitle>
-                          <CardDescription className="text-xs text-muted-foreground mt-1 truncate">
-                            {dashboardDict.assignedTo}: {getTranslatedStatus(project.assignedDivision) || dashboardDict.status.notassigned} {project.nextAction ? `| ${dashboardDict.nextAction}: ${project.nextAction}` : ''}
-                          </CardDescription>
+                    <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-base sm:text-lg truncate hover:text-primary transition-colors">{project.title}</CardTitle>
+                        <CardDescription className="text-xs text-muted-foreground mt-1 truncate">
+                          {isClient ? dashboardDict.assignedTo : defaultGlobalDict.dashboardPage.assignedTo}: {getTranslatedStatus(project.assignedDivision) || (isClient ? dashboardDict.status.notassigned : defaultGlobalDict.dashboardPage.status.notassigned)} {project.nextAction ? `| ${isClient ? dashboardDict.nextAction : defaultGlobalDict.dashboardPage.nextAction}: ${project.nextAction}` : ''}
+                        </CardDescription>
+                      </div>
+                      <div className="flex-shrink-0 mt-2 sm:mt-0">
+                        {getStatusBadge(project.status)}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4 sm:p-6 pt-0">
+                      {project.status !== 'Canceled' && project.status !== 'Completed' && (
+                        <div className="flex items-center gap-2">
+                          <Progress value={project.progress} className="flex-1 h-2" />
+                          <span className="text-xs text-muted-foreground font-medium">
+                            {project.progress}%
+                          </span>
                         </div>
-                        <div className="flex-shrink-0 mt-2 sm:mt-0">
-                          {getStatusBadge(project.status)}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-4 sm:p-6 pt-0">
-                        {project.status !== 'Canceled' && project.status !== 'Completed' && (
-                          <div className="flex items-center gap-2">
-                            <Progress value={project.progress} className="flex-1 h-2" />
-                            <span className="text-xs text-muted-foreground font-medium">
-                              {project.progress}%
-                            </span>
-                          </div>
-                        )}
-                        {(project.status === 'Canceled' || project.status === 'Completed') && (
-                          <p className={`text-sm font-medium ${project.status === 'Canceled' ? 'text-destructive' : 'text-green-600'}`}>
-                            {getTranslatedStatus(project.status)}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
+                      )}
+                      {(project.status === 'Canceled' || project.status === 'Completed') && (
+                        <p className={`text-sm font-medium ${project.status === 'Canceled' ? 'text-destructive' : 'text-green-600'}`}>
+                          {getTranslatedStatus(project.status)}
+                        </p>
+                      )}
+                    </CardContent>
                   </div>
                 </Link>
               ))
@@ -611,4 +709,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

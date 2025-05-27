@@ -341,7 +341,7 @@
     "projectId": "project_1748335034794_tx1vy",
     "message": "Berkas administrasi untuk proyek 'proyek hotel ubud' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
     "timestamp": "2025-05-27T08:40:48.017Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1748335248029_dfndy_ubw",
@@ -358,5 +358,29 @@
     "message": "Hasil survei untuk 'proyek hotel ubud' telah diunggah oleh arsitek. Mohon unggah berkas arsitektur.",
     "timestamp": "2025-05-27T09:59:56.957Z",
     "isRead": true
+  },
+  {
+    "id": "notif_1748343135595_5k2jx_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'proyek hotel ubud' telah diunggah. Anda bisa mulai merencanakan struktur.",
+    "timestamp": "2025-05-27T10:52:15.582Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1748343135626_1mo24_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'proyek hotel ubud' telah diunggah. Anda bisa mulai melakukan perencanaan MEP awal.",
+    "timestamp": "2025-05-27T10:52:15.621Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1748346866395_nxx1y_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_demo_aktif_001",
+    "message": "Hasil survei untuk 'Proyek Renovasi Kantor Pusat' telah diunggah oleh komangmerta. Mohon unggah berkas arsitektur.",
+    "timestamp": "2025-05-27T11:54:26.391Z",
+    "isRead": false
   }
 ]
