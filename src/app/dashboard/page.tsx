@@ -49,7 +49,7 @@ interface UpcomingAgendaItem {
 
 
 export default function DashboardPage() {
-  const { toast } = useToast(); // Placed before other hooks that might use it in their setup
+  const { toast } = useToast(); 
   const { language } = useLanguage();
   const { currentUser } = useAuth();
   const [isClient, setIsClient] = React.useState(false);
@@ -120,11 +120,11 @@ export default function DashboardPage() {
   React.useEffect(() => {
     if (isClient && currentUser && currentUser.role && allProjects.length > 0) {
         const today = startOfDay(new Date());
-        const threeDaysFromNow = addDays(today, 2);
+        const threeDaysFromNow = addDays(today, 2); // Including today, up to 2 days from now
         const userRoleCleaned = currentUser.role.trim().toLowerCase();
-        const relevantRolesForAgendaReminder = ['admin proyek', 'arsitek'];
+        const agendaCardVisibleForRoles = ['admin proyek', 'arsitek'];
 
-        if (relevantRolesForAgendaReminder.includes(userRoleCleaned)) {
+        if (agendaCardVisibleForRoles.includes(userRoleCleaned)) {
             const agendaItems: UpcomingAgendaItem[] = [];
             allProjects.forEach(project => {
                 // Check for upcoming surveys
@@ -208,7 +208,7 @@ export default function DashboardPage() {
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = AlertTriangle; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Info; break;
-        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles': case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
+        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles':  case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarDays; break;
         default: variant = 'secondary'; Icon = Info;
     }
@@ -223,19 +223,16 @@ export default function DashboardPage() {
     }
     return allProjects.filter(project => {
         const projectAssignedToCleaned = project.assignedDivision?.trim().toLowerCase();
-        const projectNextActionCleaned = project.nextAction?.toLowerCase();
         
-        // For Struktur & MEP, allow viewing if assigned OR if Architect has uploaded initial images
-        if (userRoleCleaned === 'struktur' || userRoleCleaned === 'mep') {
+        if (['struktur', 'mep'].includes(userRoleCleaned)) {
             const hasArchitectUploadedInitialImages = project.workflowHistory.some(
                 entry => entry.action.toLowerCase().includes('uploaded initial reference images for struktur & mep') && 
-                         project.status === 'Pending Architect Files' // Ensure project is still in Architect's hands
+                         project.status === 'Pending Architect Files'
             );
             return (projectAssignedToCleaned === userRoleCleaned) || hasArchitectUploadedInitialImages;
         }
 
-        return (projectAssignedToCleaned === userRoleCleaned) ||
-               (projectNextActionCleaned && projectNextActionCleaned.includes(userRoleCleaned));
+        return (projectAssignedToCleaned === userRoleCleaned);
     });
   }, [currentUser, allProjects, isClient, isLoadingData]);
 
@@ -258,7 +255,7 @@ export default function DashboardPage() {
         id: project.id
       }))
       .sort((a, b) => b.progress - a.progress)
-      .slice(0, 10);
+      .slice(0, 10); // Display top 10 projects by progress
   }, [activeProjects, language]);
 
   const chartConfig = React.useMemo(() => ({
@@ -371,8 +368,8 @@ export default function DashboardPage() {
   const shouldShowUpcomingAgendaCard = React.useMemo(() => {
     if (!isClient || !currentUser || !currentUser.role) return false;
     const userRoleCleaned = currentUser.role.trim().toLowerCase();
-    const surveyCardVisibleForRoles = ['admin proyek', 'arsitek'];
-    return surveyCardVisibleForRoles.includes(userRoleCleaned) && upcomingAgendaItems.length > 0;
+    const agendaCardVisibleForRoles = ['admin proyek', 'arsitek'];
+    return agendaCardVisibleForRoles.includes(userRoleCleaned) && upcomingAgendaItems.length > 0;
   }, [isClient, currentUser, upcomingAgendaItems]);
 
 
@@ -475,15 +472,15 @@ export default function DashboardPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={chartData}
-                      margin={{ top: 5, right: language === 'id' ? 15 : 5, left: language === 'id' ? 5 : -10, bottom: 5 }}
+                      margin={{ top: 5, right: language === 'id' ? 30 : 20, left: language === 'id' ? 20 : 5, bottom: 5 }}
                       layout="vertical"
                     >
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                       <XAxis type="number" domain={[0, 100]} tickFormatter={(value) => `${value}%`} tick={{ fontSize: 10 }} />
-                      <YAxis dataKey="title" type="category" tickLine={false} axisLine={false} width={language === 'id' ? 100 : 80} interval={0} tick={{ fontSize: 10, textAnchor: 'start' }} />
+                      <YAxis dataKey="title" type="category" tickLine={false} axisLine={false} width={language === 'id' ? 110 : 90} interval={0} tick={{ fontSize: 9, textAnchor: 'start' }} />
                       <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" hideLabel />} />
                       <Bar dataKey="progress" fill="hsl(var(--primary))" radius={4} barSize={chartData.length > 5 ? 12 : 16}>
-                        <LabelList dataKey="progress" position="right" offset={8} className="fill-foreground" formatter={(value: number) => `${value}%`} fontSize={10} />
+                        <LabelList dataKey="progress" position="right" offset={8} className="fill-foreground" fontSize={10} formatter={(value: number) => `${value}%`} />
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
@@ -730,4 +727,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
