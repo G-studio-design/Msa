@@ -286,5 +286,69 @@
     "message": "Berkas administrasi untuk 'Proyek Renovasi Kantor Pusat' oleh komangmerta lengkap. Mohon jadwalkan survei dan unggah hasilnya.",
     "timestamp": "2025-05-24T10:19:28.523Z",
     "isRead": true
+  },
+  {
+    "id": "notif_1748335034827_qsunx_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Proyek baru \"proyek hotel ubud\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-27T08:37:14.808Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748335092673_du2c1_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Penawaran untuk proyek 'proyek hotel ubud' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-27T08:38:12.667Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748335115959_8zho7_ue2",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Penawaran untuk proyek 'proyek hotel ubud' telah disetujui oleh sudina. Mohon buat faktur DP.",
+    "timestamp": "2025-05-27T08:38:35.955Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748335158559_v1fvm_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Faktur DP untuk proyek 'proyek hotel ubud' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-27T08:39:18.554Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748335184893_1ucz1_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Faktur DP untuk proyek 'proyek hotel ubud' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-05-27T08:39:44.893Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748335248011_gfbhl_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Berkas administrasi untuk proyek 'proyek hotel ubud' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-05-27T08:40:48.010Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748335248019_uw2ge_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Berkas administrasi untuk proyek 'proyek hotel ubud' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-05-27T08:40:48.017Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1748335248029_dfndy_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Berkas administrasi untuk proyek 'proyek hotel ubud' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-05-27T08:40:48.027Z",
+    "isRead": false
   }
 ]

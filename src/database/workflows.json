@@ -1,4 +1,3 @@
-
 [
   {
     "id": "default_standard_workflow",
@@ -124,7 +123,11 @@
             "targetNextActionDescription": "Input Jadwal Survei & Unggah Hasil",
             "targetProgress": 45,
             "notification": {
-              "division": ["Owner", "Admin Proyek", "Arsitek"],
+              "division": [
+                "Owner",
+                "Admin Proyek",
+                "Arsitek"
+              ],
               "message": "Berkas administrasi untuk proyek '{projectName}' oleh {actorUsername} lengkap. Mohon koordinasikan dan input jadwal survei."
             }
           }
@@ -176,32 +179,13 @@
         "nextActionDescription": "Unggah Berkas Struktur",
         "transitions": {
           "submitted": {
-            "targetStatus": "Pending MEP Files",
-            "targetAssignedDivision": "MEP",
-            "targetNextActionDescription": "Unggah Berkas MEP",
-            "targetProgress": 80,
-            "notification": {
-              "division": "MEP",
-              "message": "Berkas struktur untuk '{projectName}' oleh {actorUsername} lengkap. Mohon unggah berkas MEP."
-            }
-          }
-        }
-      },
-      {
-        "stepName": "MEP Files Submission",
-        "status": "Pending MEP Files",
-        "assignedDivision": "MEP",
-        "progress": 80,
-        "nextActionDescription": "Unggah Berkas MEP",
-        "transitions": {
-          "submitted": {
             "targetStatus": "Pending Scheduling",
             "targetAssignedDivision": "Admin Proyek",
             "targetNextActionDescription": "Jadwalkan Sidang",
             "targetProgress": 90,
             "notification": {
               "division": "Admin Proyek",
-              "message": "Semua berkas teknis untuk '{projectName}' oleh {actorUsername} lengkap. Mohon jadwalkan sidang."
+              "message": "Berkas struktur untuk '{projectName}' oleh {actorUsername} lengkap. Mohon jadwalkan sidang."
             }
           }
         }
@@ -300,66 +284,5 @@
         "transitions": null
       }
     ]
-  },
-  {
-    "id": "simple_consultation_v1",
-    "name": "Simple Consultation Workflow",
-    "description": "A shorter workflow for consultation-only projects.",
-    "steps": [
-      {
-        "stepName": "Consultation Document Upload",
-        "status": "Pending Consultation Docs",
-        "assignedDivision": "Admin Proyek",
-        "progress": 10,
-        "nextActionDescription": "Unggah Ringkasan Konsultasi",
-        "transitions": {
-          "submitted": {
-            "targetStatus": "Pending Review",
-            "targetAssignedDivision": "Owner",
-            "targetNextActionDescription": "Tinjau Ringkasan Konsultasi",
-            "targetProgress": 50,
-            "notification": {
-              "division": "Owner",
-              "message": "Ringkasan konsultasi untuk '{projectName}' telah diajukan."
-            }
-          }
-        }
-      },
-      {
-        "stepName": "Consultation Review",
-        "status": "Pending Review",
-        "assignedDivision": "Owner",
-        "progress": 50,
-        "nextActionDescription": "Tinjau dan Setujui Ringkasan",
-        "transitions": {
-          "approved": {
-            "targetStatus": "Completed",
-            "targetAssignedDivision": "",
-            "targetNextActionDescription": null,
-            "targetProgress": 100,
-            "notification": null
-          },
-          "rejected": {
-            "targetStatus": "Pending Consultation Docs",
-            "targetAssignedDivision": "Admin Proyek",
-            "targetNextActionDescription": "Revisi Ringkasan Konsultasi",
-            "targetProgress": 10,
-            "notification": {
-              "division": "Admin Proyek",
-              "message": "Ringkasan konsultasi untuk '{projectName}' perlu direvisi."
-            }
-          }
-        }
-      },
-      {
-        "stepName": "Consultation Completed",
-        "status": "Completed",
-        "assignedDivision": "",
-        "progress": 100,
-        "nextActionDescription": null,
-        "transitions": null
-      }
-    ]
   }
 ]
-```

@@ -194,5 +194,100 @@
       "time": "15:20",
       "description": "survei  proyek di tabanan"
     }
+  },
+  {
+    "id": "project_1748335034794_tx1vy",
+    "title": "proyek hotel ubud",
+    "status": "Pending Survey Details",
+    "progress": 45,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Input Jadwal Survei & Unggah Hasil",
+    "workflowId": "default_standard_workflow",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project with workflow: default_standard_workflow",
+        "timestamp": "2025-05-27T08:37:14.794Z",
+        "note": "Initial files: 1"
+      },
+      {
+        "division": "sudina",
+        "action": "Uploaded initial file: pool warung semana.pdf",
+        "timestamp": "2025-05-27T08:37:14.460Z"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
+        "timestamp": "2025-05-27T08:37:14.794Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
+        "timestamp": "2025-05-27T08:38:12.660Z",
+        "note": "berkas penawaran"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) approved: Setujui Dokumen Penawaran",
+        "timestamp": "2025-05-27T08:38:35.947Z"
+      },
+      {
+        "division": "Akuntan",
+        "action": "oksi (Akuntan) submitted for \"Buat Faktur DP\"",
+        "timestamp": "2025-05-27T08:39:18.549Z",
+        "note": "dp invoice"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) approved: Setujui Faktur DP",
+        "timestamp": "2025-05-27T08:39:44.891Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Berkas Administrasi\"",
+        "timestamp": "2025-05-27T08:40:48.001Z",
+        "note": "berkas administrasi proyek"
+      }
+    ],
+    "files": [
+      {
+        "name": "pool warung semana.pdf",
+        "uploadedBy": "sudina",
+        "path": "temp-id-for-upload-proyek_hotel_ubud/pool_warung_semanapdf",
+        "timestamp": "2025-05-27T08:37:14.460Z"
+      },
+      {
+        "name": "TEMBOK  WRS.pdf",
+        "uploadedBy": "komangmerta",
+        "path": "project_1748335034794_tx1vy-proyek_hotel_ubud/tembok_wrspdf",
+        "timestamp": "2025-05-27T08:38:12.660Z"
+      },
+      {
+        "name": "faktur dp.txt",
+        "uploadedBy": "oksi",
+        "path": "project_1748335034794_tx1vy-proyek_hotel_ubud/faktur_dptxt",
+        "timestamp": "2025-05-27T08:39:18.549Z"
+      },
+      {
+        "name": "faktur dp.txt",
+        "uploadedBy": "komangmerta",
+        "path": "project_1748335034794_tx1vy-proyek_hotel_ubud/faktur_dptxt",
+        "timestamp": "2025-05-27T08:40:48.001Z"
+      },
+      {
+        "name": "New Text Document.txt",
+        "uploadedBy": "komangmerta",
+        "path": "project_1748335034794_tx1vy-proyek_hotel_ubud/new_text_documenttxt",
+        "timestamp": "2025-05-27T08:40:48.001Z"
+      },
+      {
+        "name": "pool warung semana.pdf",
+        "uploadedBy": "komangmerta",
+        "path": "project_1748335034794_tx1vy-proyek_hotel_ubud/pool_warung_semanapdf",
+        "timestamp": "2025-05-27T08:40:48.001Z"
+      }
+    ],
+    "createdAt": "2025-05-27T08:37:14.794Z",
+    "createdBy": "sudina"
   }
 ]

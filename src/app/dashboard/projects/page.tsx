@@ -281,15 +281,15 @@ export default function ProjectsPage() {
     let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
     let className = "py-1 px-2 text-xs";
     let Icon = Clock;
-     switch (status.toLowerCase()) {
+     switch (statusKey) {
         case 'completed': variant = 'default'; className = `${className} bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-primary-foreground`; Icon = CheckCircle; break;
-        case 'inprogress': case 'sedang berjalan': variant = 'secondary'; className = `${className} bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700`; Icon = Clock; break;
-        case 'pendingapproval': case 'menunggu persetujuan': variant = 'outline'; className = `${className} border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-500`; Icon = AlertTriangle; break;
-        case 'pendingpostsidangrevision': case 'menunggu revisi pasca sidang': variant = 'outline'; className = `${className} border-orange-400 text-orange-500 dark:border-orange-300 dark:text-orange-400`; Icon = RefreshCw; break;
+        case 'inprogress': case 'sedangberjalan': variant = 'secondary'; className = `${className} bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700`; Icon = Clock; break;
+        case 'pendingapproval': case 'menunggupersetujuan': variant = 'outline'; className = `${className} border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-500`; Icon = AlertTriangle; break;
+        case 'pendingpostsidangrevision': case 'menunggurevisipascSidang': variant = 'outline'; className = `${className} border-orange-400 text-orange-500 dark:border-orange-300 dark:text-orange-400`; Icon = RefreshCw; break;
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = Clock; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
-        case 'pending': case 'pendinginput': case 'menunggu input': case 'pendingoffer': case 'menunggu penawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Clock; break;
-        case 'pendingdpinvoice': case 'menunggu faktur dp': case 'pendingadminfiles': case 'menunggu berkas administrasi': case 'pendingarchitectfiles': case 'menunggu berkas arsitektur': case 'pendingstructurefiles':  case 'menunggu berkas struktur':  case 'pendingmepfiles': case 'menunggu berkas mep': case 'pendingfinalcheck': case 'menunggu pemeriksaan akhir': case 'pendingscheduling': case 'menunggu penjadwalan': case 'pendingconsultationdocs': case 'menunggu dok. konsultasi': case 'pendingreview': case 'menunggu tinjauan': case 'pendingsurveydetails': case 'menunggu detail survei':  variant = 'secondary'; Icon = Clock; break;
+        case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Clock; break;
+        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles':  case 'menungguberkasstruktur': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview': case 'menunggutinjauan': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingmepfiles': case 'menungguberkasmep': variant = 'secondary'; Icon = Clock; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarClock; break;
         default: variant = 'secondary'; Icon = Clock;
     }
@@ -309,52 +309,49 @@ export default function ProjectsPage() {
     const isSchedulingAction = actionTaken === 'scheduled';
     const isSurveyAction = selectedProject.status === 'Pending Survey Details' && actionTaken === 'submitted';
     const isArchitectInitialImageUpload = actionTaken === 'architect_uploaded_initial_images_for_struktur';
-
-    if (!isDecisionOrTerminalAction && !isSchedulingAction && !isSurveyAction && !isArchitectInitialImageUpload && !currentDescription && currentFiles.length === 0 ) {
-       toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: projectsDict.toast.provideDescOrFile });
-       return;
-    }
-    if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer' && currentFiles.length === 0 && actionTaken === 'submitted') {
-        toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: projectsDict.toast.provideOfferFile });
-        return;
-    }
-
-
+    
     setIsSubmitting(true);
     if (isArchitectInitialImageUpload) setIsSubmittingInitialImages(true);
 
+    // Wrapped the core logic in a try...finally to ensure setIsSubmitting(false) is always called
+    try {
+        if (!isDecisionOrTerminalAction && !isSchedulingAction && !isSurveyAction && !isArchitectInitialImageUpload && !currentDescription && currentFiles.length === 0 ) {
+          toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: projectsDict.toast.provideDescOrFile });
+          return; // Exit early
+        }
+        if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer' && currentFiles.length === 0 && actionTaken === 'submitted') {
+            toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: projectsDict.toast.provideOfferFile });
+            return; // Exit early
+        }
 
-    const uploadedFileEntries: Omit<FileEntry, 'timestamp'>[] = [];
-    if (currentFiles.length > 0) {
-        for (const file of currentFiles) {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('projectId', selectedProject.id);
-            formData.append('projectTitle', selectedProject.title);
+        const uploadedFileEntries: Omit<FileEntry, 'timestamp'>[] = [];
+        if (currentFiles.length > 0) {
+            for (const file of currentFiles) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('projectId', selectedProject.id);
+                formData.append('projectTitle', selectedProject.title);
 
-            try {
-                const response = await fetch('/api/upload-file', { method: 'POST', body: formData });
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({ message: 'File upload failed with status ' + response.status }));
-                    throw new Error(errorData.message || `Failed to upload ${file.name}`);
+                try {
+                    const response = await fetch('/api/upload-file', { method: 'POST', body: formData });
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ message: 'File upload failed with status ' + response.status }));
+                        throw new Error(errorData.message || `Failed to upload ${file.name}`);
+                    }
+                    const result = await response.json();
+                    uploadedFileEntries.push({
+                        name: result.originalName,
+                        uploadedBy: currentUser.username,
+                        path: result.relativePath,
+                    });
+                } catch (error: any) {
+                    console.error("Error uploading file:", file.name, error);
+                    toast({ variant: 'destructive', title: projectsDict.toast.uploadError, description: error.message || `Failed to upload ${file.name}.` });
+                    return; // Exit early
                 }
-                const result = await response.json();
-                uploadedFileEntries.push({
-                    name: result.originalName,
-                    uploadedBy: currentUser.username,
-                    path: result.relativePath,
-                });
-            } catch (error: any) {
-                console.error("Error uploading file:", file.name, error);
-                toast({ variant: 'destructive', title: projectsDict.toast.uploadError, description: error.message || `Failed to upload ${file.name}.` });
-                setIsSubmitting(false);
-                if (isArchitectInitialImageUpload) setIsSubmittingInitialImages(false);
-                return;
             }
         }
-    }
 
-    try {
         const updatedProjectData: UpdateProjectParams = {
             projectId: selectedProject.id,
             updaterRole: currentUser.role,
@@ -375,36 +372,36 @@ export default function ProjectsPage() {
         };
 
         const newlyUpdatedProjectResult = await updateProject(updatedProjectData);
-        const updatedProject = await fetchProjectByIdInternal(selectedProject.id); 
+        const newlyUpdatedProject = await fetchProjectByIdInternal(selectedProject.id);
         
-        if (updatedProject) {
-            setAllProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
-            setSelectedProject(updatedProject); 
+        if (newlyUpdatedProject) {
+            setAllProjects(prev => prev.map(p => p.id === newlyUpdatedProject.id ? newlyUpdatedProject : p));
+            setSelectedProject(newlyUpdatedProject); 
         }
         
         if (newlyUpdatedProjectResult) {
             if (actionTaken === 'revise_offer') {
-                toast({ title: projectsDict.toast.revisionRequested, description: projectsDict.toast.projectSentForRevision.replace('{projectName}', updatedProject?.title || '').replace('{division}', getTranslatedStatus(updatedProject?.assignedDivision || ''))});
+                toast({ title: projectsDict.toast.revisionRequested, description: projectsDict.toast.projectSentForRevision.replace('{projectName}', newlyUpdatedProjectResult?.title || '').replace('{division}', getTranslatedStatus(newlyUpdatedProjectResult?.assignedDivision || ''))});
             } else if (actionTaken === 'completed') {
-                 toast({ title: projectsDict.toast.sidangOutcomeSuccessTitle, description: projectsDict.toast.sidangOutcomeSuccessDesc.replace('{title}', updatedProject?.title || '') });
+                 toast({ title: projectsDict.toast.sidangOutcomeSuccessTitle, description: projectsDict.toast.sidangOutcomeSuccessDesc.replace('{title}', newlyUpdatedProjectResult?.title || '') });
             } else if (actionTaken === 'canceled_after_sidang') {
-                 toast({ title: projectsDict.toast.sidangOutcomeCanceledTitle, description: projectsDict.toast.sidangOutcomeCanceledDesc.replace('{title}', updatedProject?.title || '') });
+                 toast({ title: projectsDict.toast.sidangOutcomeCanceledTitle, description: projectsDict.toast.sidangOutcomeCanceledDesc.replace('{title}', newlyUpdatedProjectResult?.title || '') });
             } else if (actionTaken === 'revise_after_sidang') {
-                 toast({ title: projectsDict.toast.sidangOutcomeRevisionTitle, description: projectsDict.toast.sidangOutcomeRevisionDesc.replace('{title}', updatedProject?.title || '').replace('{division}', getTranslatedStatus(updatedProject?.assignedDivision || ''))});
+                 toast({ title: projectsDict.toast.sidangOutcomeRevisionTitle, description: projectsDict.toast.sidangOutcomeRevisionDesc.replace('{title}', newlyUpdatedProjectResult?.title || '').replace('{division}', getTranslatedStatus(newlyUpdatedProjectResult?.assignedDivision || ''))});
             } else if (actionTaken === 'architect_uploaded_initial_images_for_struktur') {
-                toast({ title: projectsDict.toast.initialImagesUploadedTitle, description: projectsDict.toast.initialImagesUploadedDesc.replace('{projectName}', updatedProject?.title || '') });
+                toast({ title: projectsDict.toast.initialImagesUploadedTitle, description: projectsDict.toast.initialImagesUploadedDesc.replace('{projectName}', newlyUpdatedProjectResult?.title || '') });
             } else if (actionTaken === 'revision_completed_and_finish') {
-                 toast({ title: projectsDict.toast.revisionCompletedTitle, description: projectsDict.toast.revisionCompletedDesc.replace('{title}', updatedProject?.title || '') });
-            } else if (updatedProject?.status === 'Completed') {
-                toast({ title: projectsDict.toast.projectMarkedCompleted, description: projectsDict.toast.projectCompletedSuccessfully.replace('{title}', updatedProject?.title || '') });
-            } else if (updatedProject?.status === 'Canceled') {
-                toast({ title: projectsDict.toast.projectMarkedCanceled, description: projectsDict.toast.projectCanceledSuccessfully.replace('{title}', updatedProject?.title || '') });
+                 toast({ title: projectsDict.toast.revisionCompletedTitle, description: projectsDict.toast.revisionCompletedDesc.replace('{title}', newlyUpdatedProjectResult?.title || '') });
+            } else if (newlyUpdatedProjectResult?.status === 'Completed') {
+                toast({ title: projectsDict.toast.projectMarkedCompleted, description: projectsDict.toast.projectCompletedSuccessfully.replace('{title}', newlyUpdatedProjectResult?.title || '') });
+            } else if (newlyUpdatedProjectResult?.status === 'Canceled') {
+                toast({ title: projectsDict.toast.projectMarkedCanceled, description: projectsDict.toast.projectCanceledSuccessfully.replace('{title}', newlyUpdatedProjectResult?.title || '') });
             } else if (actionTaken === 'scheduled') {
                 toast({ title: projectsDict.toast.sidangScheduled, description: projectsDict.toast.sidangScheduledDesc });
-            } else if (updatedProject?.assignedDivision) {
-                toast({ title: projectsDict.toast.progressSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', getTranslatedStatus(updatedProject?.assignedDivision || '')) });
+            } else if (newlyUpdatedProjectResult?.assignedDivision) {
+                toast({ title: projectsDict.toast.progressSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', getTranslatedStatus(newlyUpdatedProjectResult?.assignedDivision || '')) });
             } else {
-                 toast({ title: projectsDict.toast.progressSubmitted, description: `Proyek "${updatedProject?.title || ''}" telah diperbarui.` });
+                 toast({ title: projectsDict.toast.progressSubmitted, description: `Proyek "${newlyUpdatedProjectResult?.title || ''}" telah diperbarui.` });
             }
         }  else { 
              toast({
@@ -477,20 +474,28 @@ export default function ProjectsPage() {
      handleProgressSubmit('scheduled');
   }, [currentUser, selectedProject, scheduleDate, scheduleTime, scheduleLocation, projectsDict, toast, handleProgressSubmit]);
 
-   const handleSurveySubmit = React.useCallback(() => {
+   const handleSurveySubmit = React.useCallback(async () => {
         if (!currentUser || !selectedProject ) { 
             toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.notYourTurn });
             return;
         }
-        if (selectedProject.status !== 'Pending Survey Details' || (currentUser.role !== 'Admin Proyek' || selectedProject.assignedDivision !== 'Admin Proyek')) {
-            toast({ variant: 'destructive', title: projectsDict.toast.error, description: "Project is not awaiting survey details from you." });
+        const canSubmitSurvey = selectedProject.status === 'Pending Survey Details' &&
+                            (
+                                (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === currentUser.role) ||
+                                currentUser.role === 'Owner' ||
+                                currentUser.role === 'Arsitek'
+                            );
+
+        if (!canSubmitSurvey) {
+            toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: "You do not have permission to submit survey details for this project at this stage." });
             return;
         }
+
         if (!surveyDate || !surveyTime || !surveyDescription.trim()) {
             toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: "Please provide survey date, time, and description." });
             return;
         }
-        handleProgressSubmit('submitted');
+        await handleProgressSubmit('submitted');
     }, [currentUser, selectedProject, surveyDate, surveyTime, surveyDescription, projectsDict, toast, handleProgressSubmit]);
 
     const handleAddToCalendar = React.useCallback(async () => {
@@ -597,10 +602,9 @@ export default function ProjectsPage() {
         setIsDownloading(true);
         try {
             const response = await fetch(`/api/download-file?filePath=${encodeURIComponent(file.path)}`);
-            let errorDetails = `Failed to download ${file.name}. Status: ${response.status}`;
-            let responseText = "";
-
             if (!response.ok) {
+                let errorDetails = `Failed to download ${file.name}. Status: ${response.status}`;
+                let responseText = "";
                 try {
                     responseText = await response.text();
                     if (responseText.trim().startsWith('{') && responseText.trim().endsWith('}')) {
@@ -610,7 +614,8 @@ export default function ProjectsPage() {
                         errorDetails = responseText.substring(0,200) || errorDetails;
                     }
                 } catch (e) {
-                    console.warn("Could not parse error response for file download, or response text was empty.");
+                     console.warn("Could not parse error response for file download, or response text was empty. Raw response text (if available):", responseText);
+                     errorDetails = responseText || `Failed to download ${file.name}. Status: ${response.status}`;
                 }
                 throw new Error(errorDetails);
             }
@@ -639,12 +644,12 @@ export default function ProjectsPage() {
         return;
       }
       
-      let actionForRevision = 'revise'; // Default revise action
+      let actionForRevision = 'revise'; 
       if (currentUser.role === 'Owner' && selectedProject.status === 'Pending Approval' && selectedProject.progress === 20) {
         actionForRevision = 'revise_offer';
       }
 
-      if (!revisionNote.trim() && actionForRevision !== 'revise_offer') {
+      if (!revisionNote.trim() && actionForRevision !== 'revise_offer') { // Owner can revise offer without a note, as it's a specific action
         toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: projectsDict.toast.revisionNoteRequired });
         return;
       }
@@ -653,17 +658,21 @@ export default function ProjectsPage() {
 
       try {
         const revisedProjectResult = await reviseProject(selectedProject.id, currentUser.username, currentUser.role, revisionNote, actionForRevision);
-         const updatedProject = await fetchProjectByIdInternal(selectedProject.id);
+        const updatedProject = await fetchProjectByIdInternal(selectedProject.id);
         if (updatedProject) {
             setAllProjects(prev => prev.map(p => (p.id === updatedProject.id ? updatedProject : p)));
-            setSelectedProject(updatedProject);
+            setSelectedProject(updatedProject); 
         }
         
         if (revisedProjectResult) {
           setRevisionNote('');
           toast({ title: projectsDict.toast.revisionSuccess, description: projectsDict.toast.revisionSuccessDesc.replace('{division}', getTranslatedStatus(revisedProjectResult.assignedDivision)) });
         } else { 
-          toast({ variant: 'default', title: projectsDict.toast.revisionNotApplicableShort, description: projectsDict.toast.revisionNotApplicable });
+            toast({
+                variant: 'default',
+                title: projectsDict.toast.revisionNotApplicableShort,
+                description: projectsDict.toast.revisionNotApplicable
+            });
         }
       } catch (error: any) {
         console.error("Error revising project:", error);
@@ -688,19 +697,22 @@ export default function ProjectsPage() {
       if (currentUser.role === 'Admin Developer') return true;
       if (currentUser.role === 'Owner') {
           return selectedProject.assignedDivision === 'Owner' ||
-                 ['Pending Approval', 'Scheduled', 'Pending Scheduling'].includes(selectedProject.status);
+                 ['Pending Approval', 'Scheduled', 'Pending Scheduling', 'Pending Survey Details'].includes(selectedProject.status);
+      }
+       if (currentUser.role === 'Arsitek' && selectedProject.status === 'Pending Survey Details') {
+        return true;
       }
       const currentUserRoleCleaned = currentUser.role.trim();
       const assignedDivisionCleaned = selectedProject.assignedDivision?.trim();
       return currentUserRoleCleaned === assignedDivisionCleaned;
     }, [currentUser, selectedProject]);
 
-
     const showUploadSection = React.useMemo(() => {
         if (!selectedProject || !currentUser || !canPerformSelectedProjectAction) return false;
         const statusesExpectingUpload = [
             'Pending Offer', 'Pending DP Invoice', 'Pending Admin Files',
-            'Pending Architect Files', 'Pending Structure Files', 'Pending MEP Files',
+            'Pending Architect Files', 'Pending Structure Files', 
+            'Pending MEP Files', // Added
             'Pending Consultation Docs', 'Pending Post-Sidang Revision'
         ];
         return statusesExpectingUpload.includes(selectedProject.status);
@@ -717,23 +729,43 @@ export default function ProjectsPage() {
    const showOwnerDecisionSection = React.useMemo(() => {
     if (!selectedProject || !currentUser || !canPerformSelectedProjectAction) return false;
     return selectedProject.status === 'Pending Approval' && currentUser.role === 'Owner' && 
-           (selectedProject.progress === 20 || selectedProject.progress === 30);
+           (selectedProject.progress === 20 || selectedProject.progress === 30); // 20 for offer, 30 for DP
    },[selectedProject, currentUser, canPerformSelectedProjectAction]);
-
 
    const showSchedulingSection = React.useMemo(() => {
     if (!selectedProject || !currentUser) return false;
-    const canUserSchedule = (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === 'Admin Proyek') || currentUser.role === 'Owner';
-    return selectedProject.status === 'Pending Scheduling' && canUserSchedule && canPerformSelectedProjectAction;
-    },[selectedProject, currentUser, canPerformSelectedProjectAction]);
+    // Admin Proyek can schedule if it's assigned to them for "Pending Scheduling"
+    // Owner can always schedule if status is "Pending Scheduling"
+    const isAdminProyekAssigned = currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === 'Admin Proyek';
+    const isOwnerPrivileged = currentUser.role === 'Owner';
+
+    return selectedProject.status === 'Pending Scheduling' && (isAdminProyekAssigned || isOwnerPrivileged);
+   },[selectedProject, currentUser]);
 
     const showSurveyDetailsInputSection = React.useMemo(() => {
-        return selectedProject &&
-               currentUser &&
-               selectedProject.status === 'Pending Survey Details' &&
-               currentUser.role === 'Admin Proyek' &&
-               canPerformSelectedProjectAction;
-    }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
+        // console.log("[DEBUG] Evaluating showSurveyDetailsInputSection...");
+        if (!selectedProject || !currentUser) {
+            // console.log(`[DEBUG] selectedProject: ${!!selectedProject}, currentUser: ${!!currentUser}`);
+            return false;
+        }
+        
+        const isCorrectStatus = selectedProject.status === 'Pending Survey Details';
+        // console.log(`[DEBUG] selectedProject.status: "${selectedProject.status}", isCorrectStatus: ${isCorrectStatus}`);
+
+        if (!isCorrectStatus) {
+            return false;
+        }
+
+        const userRoleCleaned = currentUser.role.trim().toLowerCase();
+        // console.log(`[DEBUG] currentUser.role (cleaned): "${userRoleCleaned}"`);
+
+        const allowedRoles = ['admin proyek', 'owner', 'arsitek'];
+        const isRoleAllowed = allowedRoles.includes(userRoleCleaned);
+        // console.log(`[DEBUG] isRoleAllowed: ${isRoleAllowed}`);
+        
+        return isRoleAllowed; // Akan true jika status benar DAN peran diizinkan
+    }, [selectedProject, currentUser]);
+
 
    const showCalendarButton = React.useMemo(() =>
         selectedProject &&
@@ -772,7 +804,7 @@ export default function ProjectsPage() {
 
     const handleNotifyDivisionForRevision = React.useCallback(async (targetDivision: 'Arsitek' | 'Struktur') => {
         if (!selectedProject || !currentUser) return;
-        setIsSubmitting(true);
+        setIsSubmitting(true); // Use general isSubmitting, or create a new one if needed
         try {
             const message = projectsDict.toast.revisionNotificationSentDesc
                 .replace('{division}', getTranslatedStatus(targetDivision))
@@ -947,6 +979,17 @@ export default function ProjectsPage() {
                         <CardDescription>{project.nextAction || projectsDict.none}</CardDescription>
                     </CardHeader>
                    <CardContent className="p-4 sm:p-6 pt-0">
+                       {/* DEBUGGING INFO START */}
+                        <div className="my-4 p-3 border border-dashed border-yellow-500 bg-yellow-50 rounded-md text-xs">
+                            <p className="font-bold text-yellow-700">DEBUG INFO:</p>
+                            <p>Current User Role: <span className="font-mono">{currentUser?.role}</span></p>
+                            <p>Selected Project Status: <span className="font-mono">{selectedProject?.status}</span></p>
+                            <p>showSurveyDetailsInputSection: <span className="font-mono">{showSurveyDetailsInputSection.toString()}</span></p>
+                            <p>showSchedulingSection: <span className="font-mono">{showSchedulingSection.toString()}</span></p>
+                            <p>canPerformSelectedProjectAction: <span className="font-mono">{canPerformSelectedProjectAction.toString()}</span></p>
+                        </div>
+                      {/* DEBUGGING INFO END */}
+
                       {showUploadSection && (
                          <div className="space-y-4 border-t pt-4 mt-4">
                            <h3 className="text-lg font-semibold">{projectsDict.uploadProgressTitle.replace('{role}', getTranslatedStatus(currentUser!.role))}</h3>
@@ -1182,3 +1225,4 @@ export default function ProjectsPage() {
     </div>
   );
 }
+
