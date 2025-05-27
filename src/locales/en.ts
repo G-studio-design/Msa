@@ -39,7 +39,7 @@ const en = {
     toggleMenu: 'Toggle Menu Panel',
     roles: {
         owner: 'Owner',
-        akuntan: 'Accountant', // Changed from generaladmin
+        akuntan: 'Accountant',
         adminproyek: 'Project Admin',
         arsitek: 'Architect',
         struktur: 'Structure',
@@ -87,7 +87,7 @@ const en = {
       pendingfinalcheck: 'Pending Final Check',
       pendingscheduling: 'Pending Scheduling',
       owner: 'Owner',
-      akuntan: 'Accountant', // Changed from generaladmin
+      akuntan: 'Accountant',
       adminproyek: 'Project Admin',
       arsitek: 'Architect',
       struktur: 'Structure',
@@ -125,6 +125,16 @@ const en = {
     holidayLabel: "Holiday",
     companyEventLabel: "Company Event",
     reasonLabel: "Reason",
+    upcomingAgendaTitle: "Upcoming Agenda",
+    upcomingAgendaDesc: "Reminders for your upcoming scheduled activities.",
+    noUpcomingSurveys: "No upcoming surveys in the next 3 days.",
+    eventTypes: {
+        sidang: "Project Sidang",
+        survey: "Project Survey",
+        leave: "Employee Leave",
+        holiday: "Holiday",
+        company_event: "Company Event"
+    },
     toast: {
         errorTitle: 'Error',
         fetchError: 'Could not load page data.',
@@ -148,7 +158,8 @@ const en = {
     ownerActionTitle: 'Owner Action Required',
     ownerActionDesc: 'Review the submitted documents and decide whether to proceed.',
     approveButton: 'Approve',
-    cancelProjectButton: 'Cancel Project', 
+    cancelProjectButton: 'Cancel Project',
+    reviseOfferButton: "Request Offer Revision",
     scheduleSidangTitle: 'Schedule Sidang ({role})',
     dateLabel: 'Date',
     timeLabel: 'Time',
@@ -363,7 +374,7 @@ const en = {
       selectedFilesLabel: 'Selected Files',
       toast: {
           success: 'Project Created',
-          successDesc: 'Project "{title}" added successfully using "{workflowName}" workflow. {division} notified for the first step.',
+          successDesc: 'Project "{title}" added successfully using workflow "{workflowName}". {division} notified for the first step.',
           error: 'Failed to Create Project',
           fetchWorkflowsError: 'Could not load workflow types.',
           uploadFailed: "One or more files failed to upload. Project not created.",
@@ -799,4 +810,3 @@ const en = {
 };
 
 export default en;
-

@@ -23,7 +23,7 @@ import {
   ChartTooltipContent,
   type ChartConfig
 } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList } from "recharts"; // Removed Cell as it wasn't used here for BarChart
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList } from "recharts";
 import { Calendar } from "@/components/ui/calendar";
 import { parseISO, format, isSameDay, isValid, eachDayOfInterval, startOfMonth, addDays, isWithinInterval, startOfDay } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
@@ -71,7 +71,7 @@ export default function DashboardPage() {
 
 
   const fetchData = React.useCallback(async () => {
-    if (currentUser) { // Ensure currentUser is available
+    if (currentUser) {
       setIsLoadingData(true);
       try {
         const [fetchedProjects, fetchedLeaves, fetchedHolidays] = await Promise.all([
@@ -116,7 +116,7 @@ export default function DashboardPage() {
   React.useEffect(() => {
     if (isClient && currentUser && allProjects.length > 0) {
       const today = startOfDay(new Date());
-      const threeDaysFromNow = addDays(today, 2); // Today, tomorrow, day after tomorrow
+      const threeDaysFromNow = addDays(today, 2); 
       const userRoleCleaned = currentUser.role?.trim().toLowerCase();
       const relevantRolesForSurveyReminder = ['admin proyek', 'arsitek'];
 
@@ -142,10 +142,10 @@ export default function DashboardPage() {
         });
         setUpcomingSurveys(surveys.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
       } else {
-        setUpcomingSurveys([]); // Clear if role not relevant or no user
+        setUpcomingSurveys([]); 
       }
     } else if (isClient) {
-      setUpcomingSurveys([]); // Clear if no projects or no user
+      setUpcomingSurveys([]); 
     }
   }, [isClient, currentUser, allProjects, currentLocale]);
 
@@ -153,7 +153,6 @@ export default function DashboardPage() {
   const canAddProject = React.useMemo(() => {
     if (!currentUser || !currentUser.role) return false;
     const userRoleCleaned = currentUser.role.trim().toLowerCase();
-    // Akuntan (General Admin) tidak bisa tambah proyek
     return ['owner', 'admin proyek', 'admin developer'].includes(userRoleCleaned);
   }, [currentUser]);
 
@@ -168,18 +167,18 @@ export default function DashboardPage() {
     const statusKey = status.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status;
     const translatedStatus = dashboardDict.status[statusKey] || status;
     let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-    let className = "py-1 px-2 text-xs"; // Tailwind classes for consistent sizing
+    let className = "py-1 px-2 text-xs"; 
     let Icon = TrendingUp;
 
      switch (statusKey) {
         case 'completed': case 'selesai': variant = 'default'; className = `${className} bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-primary-foreground`; Icon = CheckCircle; break;
         case 'inprogress': case 'sedangberjalan': variant = 'secondary'; className = `${className} bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700`; Icon = TrendingUp; break;
         case 'pendingapproval': case 'menunggupersetujuan': variant = 'outline'; className = `${className} border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-500`; Icon = AlertTriangle; break;
-        case 'pendingpostsidangrevision': case 'menunggurevisipascSidang': variant = 'outline'; className = `${className} border-orange-400 text-orange-500 dark:border-orange-300 dark:text-orange-400`; Icon = TrendingUp; break;
+        case 'pendingpostsidangrevision': case 'menunggurevisipascSidang': case 'pendingpostsidangrevision': case 'menunggurevisipascassidang': variant = 'outline'; className = `${className} border-orange-400 text-orange-500 dark:border-orange-300 dark:text-orange-400`; Icon = TrendingUp; break;
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = AlertTriangle; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Info; break;
-        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles': case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
+        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles':  case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarDays; break;
         default: variant = 'secondary'; Icon = Info;
     }
@@ -187,7 +186,7 @@ export default function DashboardPage() {
   }, [isClient, dashboardDict]);
 
   const roleFilteredProjects = React.useMemo(() => {
-    if (!currentUser || !currentUser.role || !isClient || isLoadingData) return [];
+    if (!currentUser || !isClient || isLoadingData) return [];
     const userRoleCleaned = currentUser.role.trim().toLowerCase();
     if (['owner', 'akuntan', 'admin proyek', 'admin developer'].includes(userRoleCleaned)) {
       return allProjects;
@@ -313,8 +312,7 @@ export default function DashboardPage() {
     if (isClient && !isLoadingData && selectedDate) {
       handleDateSelect(selectedDate);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isClient, isLoadingData, selectedDate]); // handleDateSelect is not included to prevent re-triggering on its own change
+  }, [isClient, isLoadingData, selectedDate, handleDateSelect]);
 
   const getEventBadge = React.useCallback((eventType: CalendarDisplayEvent['type'], eventSubType?: string) => {
     if (!isClient || !dashboardDict?.eventTypes || !dashboardDict?.status) return <Skeleton className="h-5 w-20" />;
@@ -346,7 +344,7 @@ export default function DashboardPage() {
   }, [isClient, currentUser, upcomingSurveys]);
 
 
-  if (!isClient || isLoadingData || (!currentUser && isClient) ) { // Added check for !currentUser && isClient
+  if (!isClient || isLoadingData || (!currentUser && isClient) ) {
     return (
       <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -376,18 +374,6 @@ export default function DashboardPage() {
 
   return (
     <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
-      {/* DEBUG INFO START */}
-      <Card className="mb-4 p-2 bg-yellow-100 border-yellow-300 text-xs">
-        <CardHeader className="p-1"><CardTitle className="text-sm text-yellow-700">DEBUG INFO</CardTitle></CardHeader>
-        <CardContent className="p-1 space-y-0.5">
-          <p>isClient: <span className="font-mono">{isClient.toString()}</span></p>
-          <p>currentUser.role: <span className="font-mono">{currentUser?.role || "N/A"}</span></p>
-          <p>shouldShowSurveyCard: <span className="font-mono">{shouldShowSurveyCard.toString()}</span></p>
-          <p>upcomingSurveys.length: <span className="font-mono">{upcomingSurveys.length}</span></p>
-        </CardContent>
-      </Card>
-      {/* DEBUG INFO END */}
-
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-primary">
           {isClient ? dashboardDict.title : defaultGlobalDict.dashboardPage.title}
@@ -445,43 +431,6 @@ export default function DashboardPage() {
         </Card>
       </div>
       
-      {/* Upcoming Surveys Card - Conditional Rendering */}
-      {shouldShowSurveyCard && (
-          <Card className="mb-6">
-              <CardHeader>
-                  <CardTitle className="text-lg md:text-xl text-green-700 flex items-center">
-                      <MapPin className="mr-2 h-5 w-5" /> 
-                      {isClient ? dashboardDict.upcomingSurveysTitle : defaultGlobalDict.dashboardPage.upcomingSurveysTitle}
-                  </CardTitle>
-                  <CardDescription>
-                      {isClient ? dashboardDict.upcomingSurveysDesc : defaultGlobalDict.dashboardPage.upcomingSurveysDesc}
-                  </CardDescription>
-              </CardHeader>
-              <CardContent>
-                  {upcomingSurveys.length > 0 ? (
-                      <ul className="space-y-3">
-                          {upcomingSurveys.map(survey => (
-                              <li key={survey.id} className="p-3 border rounded-md bg-green-50 hover:bg-green-100 transition-colors shadow-sm">
-                                  <Link href={`/dashboard/projects?projectId=${survey.id}`} className="block hover:underline font-medium text-green-800">
-                                      {survey.title}
-                                  </Link>
-                                  <p className="text-sm text-green-700">
-                                      {survey.date} {survey.time && ` - ${survey.time}`}
-                                  </p>
-                                  {survey.description && <p className="text-xs text-green-600 mt-1">{survey.description}</p>}
-                              </li>
-                          ))}
-                      </ul>
-                  ) : (
-                       <p className="text-sm text-muted-foreground italic text-center py-4">
-                           {isClient ? dashboardDict.noUpcomingSurveys : defaultGlobalDict.dashboardPage.noUpcomingSurveys}
-                       </p>
-                  )}
-              </CardContent>
-          </Card>
-      )}
-
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
@@ -645,7 +594,7 @@ export default function DashboardPage() {
                       );
                     })}
                   </ul>
-                ) : selectedDate && isClient ? ( // Ensure isClient is true to show "no events"
+                ) : selectedDate && isClient ? (
                   <p className="text-sm text-muted-foreground italic text-center py-4">{isClient ? dashboardDict.noEventsOnDate : defaultGlobalDict.dashboardPage.noEventsOnDate}</p>
                 ) : null}
               </div>
@@ -653,6 +602,41 @@ export default function DashboardPage() {
           </Card>
       </div>
 
+      {/* Upcoming Agenda Card - Conditional Rendering and Moved Below Calendar */}
+      {shouldShowSurveyCard && (
+          <Card className="mb-6">
+              <CardHeader>
+                  <CardTitle className="text-lg md:text-xl text-green-700 flex items-center">
+                      <MapPin className="mr-2 h-5 w-5" /> 
+                      {isClient ? dashboardDict.upcomingAgendaTitle : defaultGlobalDict.dashboardPage.upcomingAgendaTitle}
+                  </CardTitle>
+                  <CardDescription>
+                      {isClient ? dashboardDict.upcomingAgendaDesc : defaultGlobalDict.dashboardPage.upcomingAgendaDesc}
+                  </CardDescription>
+              </CardHeader>
+              <CardContent>
+                  {upcomingSurveys.length > 0 ? (
+                      <ul className="space-y-3">
+                          {upcomingSurveys.map(survey => (
+                              <li key={`upcoming-${survey.id}`} className="p-3 border rounded-md bg-green-50 hover:bg-green-100 transition-colors shadow-sm">
+                                  <Link href={`/dashboard/projects?projectId=${survey.id}`} className="block hover:underline font-medium text-green-800">
+                                      {survey.title}
+                                  </Link>
+                                  <p className="text-sm text-green-700">
+                                      {survey.date} {survey.time && ` - ${survey.time}`}
+                                  </p>
+                                  {survey.description && <p className="text-xs text-green-600 mt-1">{survey.description}</p>}
+                              </li>
+                          ))}
+                      </ul>
+                  ) : (
+                       <p className="text-sm text-muted-foreground italic text-center py-4">
+                           {isClient ? dashboardDict.noUpcomingSurveys : defaultGlobalDict.dashboardPage.noUpcomingSurveys}
+                       </p>
+                  )}
+              </CardContent>
+          </Card>
+      )}
 
       <Card>
         <CardHeader>
