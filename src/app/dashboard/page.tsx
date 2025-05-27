@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from '@/components/ui/button';
-import { CheckCircle, XCircle, AlertTriangle, PlusCircle, Loader2, TrendingUp, Percent, BarChartIcon, CalendarDays, Info, Plane, Briefcase, MapPin, PartyPopper, Building as BuildingIcon } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, PlusCircle, Loader2, TrendingUp, Percent, BarChartIcon, CalendarDays, Info, Plane, Briefcase, MapPin, PartyPopper, Building as BuildingIcon, ListChecks } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useToast } from '@/hooks/use-toast';
@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList } from "recharts";
 import { Calendar } from "@/components/ui/calendar";
-import { parseISO, format, isSameDay, isValid, eachDayOfInterval, startOfMonth, addDays, isWithinInterval, startOfDay } from 'date-fns';
+import { parseISO, format, isSameDay, isValid, eachDayOfInterval, startOfMonth, addDays, isWithinInterval, startOfDay, compareAsc } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 
 const defaultGlobalDict = getDictionary('en');
@@ -35,19 +35,23 @@ type CalendarDisplayEvent =
   | (LeaveRequest & { type: 'leave' })
   | (HolidayEntry & { type: 'holiday' | 'company_event' });
 
-interface UpcomingSurvey {
+interface UpcomingAgendaItem {
   id: string;
   title: string;
   date: string; // formatted date
+  rawDate: Date; // for sorting
   time?: string;
-  description?: string;
+  description?: string; // For survey
+  location?: string; // For sidang
+  type: 'survey' | 'sidang';
+  icon: ReactNode;
 }
 
 
 export default function DashboardPage() {
+  const { toast } = useToast(); // Placed before other hooks that might use it in their setup
   const { language } = useLanguage();
   const { currentUser } = useAuth();
-  const { toast } = useToast();
   const [isClient, setIsClient] = React.useState(false);
 
   const dict = React.useMemo(() => getDictionary(language), [language]);
@@ -58,7 +62,7 @@ export default function DashboardPage() {
   const [approvedLeaves, setApprovedLeaves] = React.useState<LeaveRequest[]>([]);
   const [holidaysAndEvents, setHolidaysAndEvents] = React.useState<HolidayEntry[]>([]);
   const [isLoadingData, setIsLoadingData] = React.useState(true);
-  const [upcomingSurveys, setUpcomingSurveys] = React.useState<UpcomingSurvey[]>([]);
+  const [upcomingAgendaItems, setUpcomingAgendaItems] = React.useState<UpcomingAgendaItem[]>([]);
 
 
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
@@ -106,7 +110,7 @@ export default function DashboardPage() {
         setApprovedLeaves([]);
         setHolidaysAndEvents([]);
         setEventsForSelectedDate([]);
-        setUpcomingSurveys([]);
+        setUpcomingAgendaItems([]);
         setIsLoadingData(false);
     }
   }, [isClient, currentUser, fetchData]);
@@ -114,38 +118,64 @@ export default function DashboardPage() {
   const currentLocale = React.useMemo(() => language === 'id' ? IndonesianLocale : EnglishLocale, [language]);
 
   React.useEffect(() => {
-    if (isClient && currentUser && allProjects.length > 0) {
-      const today = startOfDay(new Date());
-      const threeDaysFromNow = addDays(today, 2); 
-      const userRoleCleaned = currentUser.role?.trim().toLowerCase();
-      const relevantRolesForSurveyReminder = ['admin proyek', 'arsitek'];
+    if (isClient && currentUser && currentUser.role && allProjects.length > 0) {
+        const today = startOfDay(new Date());
+        const threeDaysFromNow = addDays(today, 2);
+        const userRoleCleaned = currentUser.role.trim().toLowerCase();
+        const relevantRolesForAgendaReminder = ['admin proyek', 'arsitek'];
 
-      if (userRoleCleaned && relevantRolesForSurveyReminder.includes(userRoleCleaned)) {
-        const surveys: UpcomingSurvey[] = [];
-        allProjects.forEach(project => {
-          if (project.surveyDetails?.date && project.status !== 'Completed' && project.status !== 'Canceled') {
-            try {
-              const surveyDate = parseISO(project.surveyDetails.date);
-              if (isValid(surveyDate) && isWithinInterval(surveyDate, { start: today, end: threeDaysFromNow })) {
-                surveys.push({
-                  id: project.id,
-                  title: project.title,
-                  date: format(surveyDate, 'PPP', { locale: currentLocale }),
-                  time: project.surveyDetails.time,
-                  description: project.surveyDetails.description,
-                });
-              }
-            } catch (e) {
-              console.error("Error parsing survey date for upcoming reminders:", project.id, e);
-            }
-          }
-        });
-        setUpcomingSurveys(surveys.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
-      } else {
-        setUpcomingSurveys([]); 
-      }
+        if (relevantRolesForAgendaReminder.includes(userRoleCleaned)) {
+            const agendaItems: UpcomingAgendaItem[] = [];
+            allProjects.forEach(project => {
+                // Check for upcoming surveys
+                if (project.surveyDetails?.date && project.status !== 'Completed' && project.status !== 'Canceled') {
+                    try {
+                        const surveyRawDate = parseISO(project.surveyDetails.date);
+                        if (isValid(surveyRawDate) && isWithinInterval(surveyRawDate, { start: today, end: threeDaysFromNow })) {
+                            agendaItems.push({
+                                id: `survey-${project.id}`,
+                                title: project.title,
+                                rawDate: surveyRawDate,
+                                date: format(surveyRawDate, 'PPP', { locale: currentLocale }),
+                                time: project.surveyDetails.time,
+                                description: project.surveyDetails.description,
+                                type: 'survey',
+                                icon: <MapPin className="mr-2 h-4 w-4 text-green-600 flex-shrink-0" />
+                            });
+                        }
+                    } catch (e) {
+                        console.error("Error parsing survey date for upcoming reminders:", project.id, e);
+                    }
+                }
+                // Check for upcoming sidangs
+                if (project.status === 'Scheduled' && project.scheduleDetails?.date) {
+                     try {
+                        const sidangRawDate = parseISO(project.scheduleDetails.date);
+                        if (isValid(sidangRawDate) && isWithinInterval(sidangRawDate, { start: today, end: threeDaysFromNow })) {
+                            agendaItems.push({
+                                id: `sidang-${project.id}`,
+                                title: project.title,
+                                rawDate: sidangRawDate,
+                                date: format(sidangRawDate, 'PPP', { locale: currentLocale }),
+                                time: project.scheduleDetails.time,
+                                location: project.scheduleDetails.location,
+                                type: 'sidang',
+                                icon: <Briefcase className="mr-2 h-4 w-4 text-primary flex-shrink-0" />
+                            });
+                        }
+                    } catch (e) {
+                        console.error("Error parsing sidang date for upcoming reminders:", project.id, e);
+                    }
+                }
+            });
+            // Sort by date
+            agendaItems.sort((a, b) => compareAsc(a.rawDate, b.rawDate));
+            setUpcomingAgendaItems(agendaItems);
+        } else {
+            setUpcomingAgendaItems([]);
+        }
     } else if (isClient) {
-      setUpcomingSurveys([]); 
+        setUpcomingAgendaItems([]);
     }
   }, [isClient, currentUser, allProjects, currentLocale]);
 
@@ -174,11 +204,11 @@ export default function DashboardPage() {
         case 'completed': case 'selesai': variant = 'default'; className = `${className} bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-primary-foreground`; Icon = CheckCircle; break;
         case 'inprogress': case 'sedangberjalan': variant = 'secondary'; className = `${className} bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700`; Icon = TrendingUp; break;
         case 'pendingapproval': case 'menunggupersetujuan': variant = 'outline'; className = `${className} border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-500`; Icon = AlertTriangle; break;
-        case 'pendingpostsidangrevision': case 'menunggurevisipascSidang': case 'pendingpostsidangrevision': case 'menunggurevisipascassidang': variant = 'outline'; className = `${className} border-orange-400 text-orange-500 dark:border-orange-300 dark:text-orange-400`; Icon = TrendingUp; break;
+        case 'pendingpostsidangrevision': case 'menunggurevisipascSidang': case 'menunggurevisipascassidang': variant = 'outline'; className = `${className} border-orange-400 text-orange-500 dark:border-orange-300 dark:text-orange-400`; Icon = TrendingUp; break;
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = AlertTriangle; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Info; break;
-        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles':  case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
+        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles': case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarDays; break;
         default: variant = 'secondary'; Icon = Info;
     }
@@ -194,14 +224,16 @@ export default function DashboardPage() {
     return allProjects.filter(project => {
         const projectAssignedToCleaned = project.assignedDivision?.trim().toLowerCase();
         const projectNextActionCleaned = project.nextAction?.toLowerCase();
-        const hasUploadedInitialImages = project.workflowHistory.some(
-            entry => entry.action.toLowerCase().includes('uploaded initial reference images for struktur & mep')
-        );
-
+        
+        // For Struktur & MEP, allow viewing if assigned OR if Architect has uploaded initial images
         if (userRoleCleaned === 'struktur' || userRoleCleaned === 'mep') {
-            return (projectAssignedToCleaned === userRoleCleaned) ||
-                   (project.status === 'Pending Architect Files' && hasUploadedInitialImages);
+            const hasArchitectUploadedInitialImages = project.workflowHistory.some(
+                entry => entry.action.toLowerCase().includes('uploaded initial reference images for struktur & mep') && 
+                         project.status === 'Pending Architect Files' // Ensure project is still in Architect's hands
+            );
+            return (projectAssignedToCleaned === userRoleCleaned) || hasArchitectUploadedInitialImages;
         }
+
         return (projectAssignedToCleaned === userRoleCleaned) ||
                (projectNextActionCleaned && projectNextActionCleaned.includes(userRoleCleaned));
     });
@@ -336,12 +368,12 @@ export default function DashboardPage() {
     return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3"/>{label}</Badge>;
   }, [isClient, dashboardDict]);
 
-  const shouldShowSurveyCard = React.useMemo(() => {
+  const shouldShowUpcomingAgendaCard = React.useMemo(() => {
     if (!isClient || !currentUser || !currentUser.role) return false;
     const userRoleCleaned = currentUser.role.trim().toLowerCase();
     const surveyCardVisibleForRoles = ['admin proyek', 'arsitek'];
-    return surveyCardVisibleForRoles.includes(userRoleCleaned) && upcomingSurveys.length > 0;
-  }, [isClient, currentUser, upcomingSurveys]);
+    return surveyCardVisibleForRoles.includes(userRoleCleaned) && upcomingAgendaItems.length > 0;
+  }, [isClient, currentUser, upcomingAgendaItems]);
 
 
   if (!isClient || isLoadingData || (!currentUser && isClient) ) {
@@ -349,7 +381,7 @@ export default function DashboardPage() {
       <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <Skeleton className="h-8 w-3/5 sm:w-48" />
-          <Skeleton className="h-10 w-full sm:w-36" />
+          {canAddProject && <Skeleton className="h-10 w-full sm:w-36" />}
         </div>
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
           {[...Array(4)].map((_, i) => (
@@ -602,12 +634,11 @@ export default function DashboardPage() {
           </Card>
       </div>
 
-      {/* Upcoming Agenda Card - Conditional Rendering and Moved Below Calendar */}
-      {shouldShowSurveyCard && (
+      {shouldShowUpcomingAgendaCard && (
           <Card className="mb-6">
               <CardHeader>
-                  <CardTitle className="text-lg md:text-xl text-green-700 flex items-center">
-                      <MapPin className="mr-2 h-5 w-5" /> 
+                  <CardTitle className="text-lg md:text-xl text-primary flex items-center">
+                      <ListChecks className="mr-2 h-5 w-5" /> 
                       {isClient ? dashboardDict.upcomingAgendaTitle : defaultGlobalDict.dashboardPage.upcomingAgendaTitle}
                   </CardTitle>
                   <CardDescription>
@@ -615,23 +646,29 @@ export default function DashboardPage() {
                   </CardDescription>
               </CardHeader>
               <CardContent>
-                  {upcomingSurveys.length > 0 ? (
+                  {upcomingAgendaItems.length > 0 ? (
                       <ul className="space-y-3">
-                          {upcomingSurveys.map(survey => (
-                              <li key={`upcoming-${survey.id}`} className="p-3 border rounded-md bg-green-50 hover:bg-green-100 transition-colors shadow-sm">
-                                  <Link href={`/dashboard/projects?projectId=${survey.id}`} className="block hover:underline font-medium text-green-800">
-                                      {survey.title}
-                                  </Link>
-                                  <p className="text-sm text-green-700">
-                                      {survey.date} {survey.time && ` - ${survey.time}`}
-                                  </p>
-                                  {survey.description && <p className="text-xs text-green-600 mt-1">{survey.description}</p>}
+                          {upcomingAgendaItems.map(item => (
+                              <li key={item.id} className="p-3 border rounded-md bg-muted/30 hover:bg-muted/60 transition-colors shadow-sm">
+                                 <div className="flex items-start">
+                                     {item.icon}
+                                     <div className="flex-1">
+                                          <Link href={`/dashboard/projects?projectId=${item.id.replace('survey-', '').replace('sidang-', '')}`} className="block hover:underline font-medium text-foreground">
+                                              {item.title}
+                                          </Link>
+                                          <p className="text-sm text-muted-foreground">
+                                              {item.date} {item.time && ` - ${item.time}`}
+                                          </p>
+                                          {item.type === 'survey' && item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
+                                          {item.type === 'sidang' && item.location && <p className="text-xs text-muted-foreground mt-1">{isClient ? dashboardDict.eventLocationLabel : defaultGlobalDict.dashboardPage.eventLocationLabel} {item.location}</p>}
+                                     </div>
+                                  </div>
                               </li>
                           ))}
                       </ul>
                   ) : (
                        <p className="text-sm text-muted-foreground italic text-center py-4">
-                           {isClient ? dashboardDict.noUpcomingSurveys : defaultGlobalDict.dashboardPage.noUpcomingSurveys}
+                           {isClient ? dashboardDict.noUpcomingAgenda : defaultGlobalDict.dashboardPage.noUpcomingAgenda}
                        </p>
                   )}
               </CardContent>
@@ -642,7 +679,7 @@ export default function DashboardPage() {
         <CardHeader>
           <CardTitle className="text-lg md:text-xl">{isClient ? dashboardDict.projectOverview : defaultGlobalDict.dashboardPage.projectOverview}</CardTitle>
           <CardDescription>
-            {isClient && currentUser ? (
+            {isClient && currentUser && currentUser.role ? (
               ['owner', 'akuntan', 'admin proyek', 'admin developer'].includes(currentUser.role.trim().toLowerCase())
               ? (isClient ? dashboardDict.allProjectsDesc : defaultGlobalDict.dashboardPage.allProjectsDesc)
               : (isClient ? dashboardDict.divisionProjectsDesc.replace('{division}', getTranslatedStatus(currentUser.role)) : defaultGlobalDict.dashboardPage.divisionProjectsDesc.replace('{division}', currentUser.role) )
@@ -693,3 +730,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

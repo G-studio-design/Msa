@@ -39,11 +39,11 @@ const en = {
     toggleMenu: 'Toggle Menu Panel',
     roles: {
         owner: 'Owner',
-        akuntan: 'Accountant',
+        akuntan: 'Accountant', // Changed from General Admin
         adminproyek: 'Project Admin',
         arsitek: 'Architect',
         struktur: 'Structure',
-        mep: 'MEP Engineer', 
+        mep: 'MEP Engineer',
         admindev: 'Developer',
     },
   },
@@ -87,7 +87,7 @@ const en = {
       pendingfinalcheck: 'Pending Final Check',
       pendingscheduling: 'Pending Scheduling',
       owner: 'Owner',
-      akuntan: 'Accountant',
+      akuntan: 'Accountant', // Changed from General Admin
       adminproyek: 'Project Admin',
       arsitek: 'Architect',
       struktur: 'Structure',
@@ -126,8 +126,8 @@ const en = {
     companyEventLabel: "Company Event",
     reasonLabel: "Reason",
     upcomingAgendaTitle: "Upcoming Agenda",
-    upcomingAgendaDesc: "Reminders for your upcoming scheduled activities.",
-    noUpcomingSurveys: "No upcoming surveys in the next 3 days.",
+    upcomingAgendaDesc: "Reminders for your upcoming scheduled activities (surveys, sidangs).",
+    noUpcomingAgenda: "No upcoming surveys or sidangs in the next 3 days.", // Updated
     eventTypes: {
         sidang: "Project Sidang",
         survey: "Project Survey",
@@ -158,8 +158,8 @@ const en = {
     ownerActionTitle: 'Owner Action Required',
     ownerActionDesc: 'Review the submitted documents and decide whether to proceed.',
     approveButton: 'Approve',
-    cancelProjectButton: 'Cancel Project',
-    reviseOfferButton: "Request Offer Revision",
+    cancelProjectButton: 'Cancel Project', // New
+    reviseOfferButton: "Request Offer Revision", // Kept for potential specific use
     scheduleSidangTitle: 'Schedule Sidang ({role})',
     dateLabel: 'Date',
     timeLabel: 'Time',
@@ -212,9 +212,9 @@ const en = {
     confirmRevisionDesc: 'This will send the project back for correction. Are you sure?',
     confirmRevisionButton: 'Yes, Request Revision',
     cancelButton: 'Cancel',
-    cancelDialogTitle: "Confirm Project Cancellation",
-    cancelDialogDesc: "Are you sure you want to cancel project \"{projectName}\"? This action cannot be undone.",
-    confirmCancelButton: "Yes, Cancel Project",
+    cancelDialogTitle: "Confirm Project Cancellation", // Updated
+    cancelDialogDesc: "Are you sure you want to cancel project \"{projectName}\"? This action cannot be undone.", // Updated
+    confirmCancelButton: "Yes, Cancel Project", // Updated
     revisionNotePrefix: 'Note:',
     invalidDate: 'Invalid Date',
     notApplicable: 'N/A',
@@ -225,8 +225,8 @@ const en = {
     optionalReportLabel: "Optional Report",
     optionalNoteLabel: "Optional",
     finalCheckNotePlaceholder: "Add any notes for the final check...",
-    architectUploadInitialImagesTitle: "Upload Initial Reference Images for Structure & MEP",
-    architectUploadInitialImagesButton: "Upload Initial Images & Notify Structure/MEP",
+    architectUploadInitialImagesTitle: "Upload Initial Reference Images for Structure & MEP", // Updated
+    architectUploadInitialImagesButton: "Upload Initial Images & Notify Structure/MEP", // Updated
     architectUploadInitialImagesDialogTitle: "Upload Initial Reference Images",
     architectUploadInitialImagesDialogDesc: "These images will be sent to Structure & MEP divisions for early planning. The project will remain in your court.",
     currentProjectActionsTitle: "Current Project Actions",
@@ -239,7 +239,7 @@ const en = {
         inputSurveyDetails: "Input Survey Details & Upload Report",
         uploadArchitectFiles: "Upload Architect Files",
         uploadStructureFiles: "Upload Structure Files",
-        uploadMEPFiles: "Upload MEP Files", 
+        uploadMEPFiles: "Upload MEP Files",
         performFinalCheck: "Perform Final Check",
         scheduleSidang: "Schedule Sidang",
         declareSidangOutcome: "Declare Sidang Outcome",
@@ -248,12 +248,12 @@ const en = {
         performPostSidangRevisions: "Perform Post-Sidang Revisions",
         uploadPostSidangRevisions: "Upload post-sidang revisions, notify relevant parties if needed, then confirm project completion.",
     },
-    workflowActions: { 
+    workflowActions: {
         approveOffer: "Approved Offer Document",
         uploadedOffer: "Uploaded Offer Document",
         uploadArchitectFiles: "Upload Architect Files",
         uploadedAdminFiles: "Uploaded Admin Files",
-        uploadedMEPFiles: "Uploaded MEP Files", 
+        uploadedMEPFiles: "Uploaded MEP Files",
         scheduleSidang: "Scheduled Sidang",
         completedFinalCheck: "Completed Final Check",
         approveDPInvoice: "Approved DP Invoice",
@@ -262,7 +262,7 @@ const en = {
         uploadedArchitectFiles: "Uploaded Architect Files",
         uploadedStructureFiles: "Upload Structure Files",
         submittedProgressFor: "Submitted Progress for",
-        canceledProject: "Canceled Project",
+        canceledProject: "Canceled Project", // Updated for clarity
         generateDPInvoice: "Generated DP Invoice",
         approvedOfferTransition: "Approved Offer",
         approvedDPInvoiceTransition: "Approved DP Invoice",
@@ -298,7 +298,8 @@ const en = {
       revisionNotApplicable: 'Revision is not applicable for the current project step or your role.',
       noTransitionFound: 'No valid workflow transition found for this action from the current state.',
       onlyOwnerDecision: 'Only Owner can make this decision.',
-      projectCanceled: 'Project Canceled',
+      projectCanceledTitle: 'Project Canceled', // New
+      projectCanceledDesc: 'Project "{projectName}" has been successfully canceled.', // New
       projectMarkedCompleted: "Project Completed",
       projectCompletedSuccessfully: "Project \"{title}\" has been successfully marked as completed.",
       projectMarkedCanceled: "Project Canceled",
@@ -352,7 +353,7 @@ const en = {
       maxFilesExceeded: 'Cannot upload more than {max} files at once.',
       uploadError: 'Upload Error',
       initialImagesUploadedTitle: "Initial Images Uploaded",
-      initialImagesUploadedDesc: "Initial reference images for project \"{projectName}\" have been uploaded by {actorUsername}. Divisions Structure & MEP have been notified.",
+      initialImagesUploadedDesc: "Initial reference images for project \"{projectName}\" have been uploaded by {actorUsername}. Divisions Structure & MEP have been notified.", // Updated
       revisionNotificationSentTitle: "Notification Sent",
       revisionNotificationSentDesc: "Division {division} has been notified to contribute to the revision for project \"{projectName}\" by {actorUsername}."
     }
@@ -369,6 +370,7 @@ const en = {
       filesHint: 'Upload any initial documents or briefs related to the project. Max {max} files.',
       createButton: 'Create Project',
       creatingButton: 'Creating...',
+      accessDeniedTitle: 'Access Denied', // New
       accessDenied: 'You do not have permission to add new projects.',
       cancelButton: 'Cancel',
       selectedFilesLabel: 'Selected Files',
@@ -424,7 +426,7 @@ const en = {
     cannotChangeLastAdminRoleHint: 'Cannot change the role of the last Accountant.',
     roles: {
        owner: 'Owner',
-       akuntan: 'Accountant',
+       akuntan: 'Accountant', // Changed from General Admin
        adminproyek: 'Project Admin',
        arsitek: 'Architect',
        struktur: 'Structure',
@@ -810,3 +812,4 @@ const en = {
 };
 
 export default en;
+
