@@ -349,6 +349,14 @@
     "projectId": "project_1748335034794_tx1vy",
     "message": "Berkas administrasi untuk proyek 'proyek hotel ubud' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
     "timestamp": "2025-05-27T08:40:48.027Z",
-    "isRead": false
+    "isRead": true
+  },
+  {
+    "id": "notif_1748339996963_jnrwg_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Hasil survei untuk 'proyek hotel ubud' telah diunggah oleh arsitek. Mohon unggah berkas arsitektur.",
+    "timestamp": "2025-05-27T09:59:56.957Z",
+    "isRead": true
   }
 ]

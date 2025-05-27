@@ -198,10 +198,10 @@
   {
     "id": "project_1748335034794_tx1vy",
     "title": "proyek hotel ubud",
-    "status": "Pending Survey Details",
-    "progress": 45,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Input Jadwal Survei & Unggah Hasil",
+    "status": "Pending Architect Files",
+    "progress": 50,
+    "assignedDivision": "Arsitek",
+    "nextAction": "Unggah Berkas Arsitektur",
     "workflowId": "default_standard_workflow",
     "workflowHistory": [
       {
@@ -247,6 +247,12 @@
         "action": "komangmerta (Admin Proyek) submitted for \"Unggah Berkas Administrasi\"",
         "timestamp": "2025-05-27T08:40:48.001Z",
         "note": "berkas administrasi proyek"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) submitted Survey Details for 2025-05-28 at 08:50",
+        "timestamp": "2025-05-27T09:59:56.949Z",
+        "note": "Survey Description: survey proyek."
       }
     ],
     "files": [
@@ -288,6 +294,11 @@
       }
     ],
     "createdAt": "2025-05-27T08:37:14.794Z",
-    "createdBy": "sudina"
+    "createdBy": "sudina",
+    "surveyDetails": {
+      "date": "2025-05-28",
+      "time": "08:50",
+      "description": "survey proyek"
+    }
   }
 ]

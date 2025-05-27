@@ -1,10 +1,9 @@
-
 'use server';
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { notifyUsersByRole } from './notification-service';
-import { sanitizeForPath } from '@/lib/path-utils'; 
+import { sanitizeForPath } from '@/lib/path-utils';
 import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants';
 import type { Workflow, WorkflowStep, WorkflowStepTransition } from './workflow-service';
 import { getWorkflowById, getFirstStep, getTransitionInfo } from './workflow-service';
@@ -62,7 +61,7 @@ export interface Project {
 // Define the structure for adding a new project
 export interface AddProjectData {
     title: string;
-    workflowId: string; // Ensure this is always provided
+    workflowId: string;
     initialFiles: FileEntry[];
     createdBy: string;
 }
@@ -75,8 +74,8 @@ export interface UpdateProjectParams {
     actionTaken: string; // e.g., "submitted", "approved", "rejected", "scheduled"
     files?: Omit<FileEntry, 'timestamp'>[]; // Files being uploaded in this action
     note?: string; // Note for this specific action
-    scheduleDetails?: ScheduleDetails; // For scheduling sidang
-    surveyDetails?: SurveyDetails; // For inputting survey details
+    scheduleDetails?: ScheduleDetails;
+    surveyDetails?: SurveyDetails;
 }
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
@@ -104,7 +103,7 @@ async function readProjects(): Promise<Project[]> {
             ...project,
             files: project.files || [],
             workflowHistory: project.workflowHistory || [],
-            workflowId: project.workflowId || DEFAULT_WORKFLOW_ID, 
+            workflowId: project.workflowId || DEFAULT_WORKFLOW_ID,
         }));
     } catch (error: any) {
         console.error("[ProjectService/JSON] Error reading or parsing project database:", error);
@@ -151,6 +150,18 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
     const projects = await readProjects();
     const now = new Date().toISOString();
     const projectId = `project_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+    const projectTitleSanitized = sanitizeForPath(projectData.title);
+    const projectRelativeFolderPath = `${projectId}-${projectTitleSanitized}`;
+    const projectAbsoluteFolderPath = path.join(PROJECT_FILES_BASE_DIR, projectRelativeFolderPath);
+
+    try {
+        await fs.mkdir(projectAbsoluteFolderPath, { recursive: true });
+        console.log(`[ProjectService/JSON] Successfully created project folder: ${projectAbsoluteFolderPath}`);
+    } catch (mkdirError) {
+        console.error(`[ProjectService/JSON] Error creating project folder ${projectAbsoluteFolderPath}:`, mkdirError);
+        throw new Error('Failed to create project directory on server during project creation.');
+    }
 
     const firstStep = await getFirstStep(effectiveWorkflowId);
     console.log(`[ProjectService/JSON] First step for workflow ${effectiveWorkflowId}:`, firstStep);
@@ -201,7 +212,7 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
                 console.log(`[ProjectService] Initial notification sent to role ${role} for project ${newProject.id}`);
             }
         }
-    } else if (firstStep.assignedDivision) { 
+    } else if (firstStep.assignedDivision) {
         const message = `Proyek baru "${newProject.title}" telah dibuat oleh ${projectData.createdBy} dan memerlukan tindakan: ${firstStep.nextActionDescription || 'Langkah awal'}.`;
         await notifyUsersByRole(firstStep.assignedDivision, message, newProject.id);
         console.log(`[ProjectService/JSON] Fallback initial notification sent to ${firstStep.assignedDivision} for project ${newProject.id}`);
@@ -214,12 +225,13 @@ export async function getAllProjects(): Promise<Project[]> {
     let projectsModified = false;
 
     projects = projects.map(project => {
+        let modifiedProject = {...project, files: project.files || [], workflowHistory: project.workflowHistory || []};
         if (!project.workflowId) {
             console.warn(`[ProjectService/JSON] Project ID ${project.id} ("${project.title}") is missing a workflowId. Assigning default workflow: ${DEFAULT_WORKFLOW_ID}`);
+            modifiedProject.workflowId = DEFAULT_WORKFLOW_ID;
             projectsModified = true;
-            return { ...project, workflowId: DEFAULT_WORKFLOW_ID, files: project.files || [], workflowHistory: project.workflowHistory || [] };
         }
-        return { ...project, files: project.files || [], workflowHistory: project.workflowHistory || [] };
+        return modifiedProject;
     });
 
     if (projectsModified) {
@@ -274,23 +286,21 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
         throw new Error('PROJECT_NOT_FOUND');
     }
 
-    const currentProject = { 
+    const currentProject = {
         ...projects[projectIndex],
         files: projects[projectIndex].files || [],
         workflowHistory: projects[projectIndex].workflowHistory || [],
+        workflowId: projects[projectIndex].workflowId || DEFAULT_WORKFLOW_ID,
     };
-    const projectWorkflowId = currentProject.workflowId || DEFAULT_WORKFLOW_ID;
-    if (!currentProject.workflowId) {
-        console.warn(`[ProjectService/JSON] Project ${projectId} missing workflowId during update, using default: ${DEFAULT_WORKFLOW_ID}`);
-    }
+    const projectWorkflowId = currentProject.workflowId;
 
 
     const now = new Date().toISOString();
-    
+    const filesWithTimestamp = newFilesData.map(file => ({ ...file, timestamp: now }));
+
     // Handle special in-step action for architect uploading initial images
     if (actionTaken === 'architect_uploaded_initial_images_for_struktur') {
-        const filesWithTimestamp = newFilesData.map(file => ({ ...file, timestamp: now }));
-        const historyAction = `${updaterUsername} (${updaterRole}) uploaded initial reference images for Structure & MEP.`;
+        const historyAction = `${updaterUsername} (${updaterRole}) uploaded initial reference images for Struktur & MEP.`;
         const newWorkflowHistoryEntry: WorkflowHistoryEntry = {
             division: updaterRole,
             action: historyAction,
@@ -299,7 +309,6 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
         };
         const updatedProject: Project = {
             ...currentProject,
-            workflowId: projectWorkflowId,
             files: [...currentProject.files, ...filesWithTimestamp],
             workflowHistory: [...currentProject.workflowHistory, newWorkflowHistoryEntry],
         };
@@ -307,32 +316,32 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
         await writeProjects(projects);
         console.log(`[ProjectService/JSON] Project ${projectId} updated with initial architect images by ${updaterUsername}. Status remains ${currentProject.status}.`);
 
-        const notificationMessageStruktur = `Gambar referensi awal dari Arsitek ({actorUsername}) untuk proyek '{projectName}' telah diunggah. Anda bisa mulai merencanakan struktur.`
+        const notificationMessageStruktur = `Gambar referensi awal dari Arsitek (${updaterUsername}) untuk proyek '${updatedProject.title}' telah diunggah. Anda bisa mulai merencanakan struktur.`
             .replace('{projectName}', updatedProject.title)
             .replace('{actorUsername}', updaterUsername);
         await notifyUsersByRole("Struktur", notificationMessageStruktur, projectId);
         
-        const notificationMessageMEP = `Gambar referensi awal dari Arsitek ({actorUsername}) untuk proyek '{projectName}' telah diunggah. Anda bisa mulai melakukan perencanaan MEP awal.`
+        const notificationMessageMEP = `Gambar referensi awal dari Arsitek (${updaterUsername}) untuk proyek '${updatedProject.title}' telah diunggah. Anda bisa mulai melakukan perencanaan MEP awal.`
             .replace('{projectName}', updatedProject.title)
             .replace('{actorUsername}', updaterUsername);
-        await notifyUsersByRole("MEP", notificationMessageMEP, projectId);
+        await notifyUsersByRole("MEP", notificationMessageMEP, projectId); // Notify MEP
 
         console.log(`[ProjectService] Notifications sent to Struktur and MEP for project ${projectId} (Initial Architect Images)`);
         return updatedProject;
     }
 
     const transitionInfo = await getTransitionInfo(projectWorkflowId, currentProject.status, currentProject.progress, actionTaken);
-    console.log(`[ProjectService/JSON] Update for P_ID ${projectId}, Current Status: ${currentProject.status}, Progress: ${currentProject.progress}, Action: ${actionTaken}, TransitionInfo found:`, !!transitionInfo, transitionInfo);
+    console.log(`[ProjectService/JSON] Update for P_ID ${projectId}, Current Status: ${currentProject.status}, Progress: ${currentProject.progress}, Action: ${actionTaken}, TransitionInfo found:`, !!transitionInfo, transitionInfo ? `to ${transitionInfo.targetStatus}` : 'No transition');
 
 
     let historyActionText = `${updaterUsername} (${updaterRole}) ${actionTaken} for "${currentProject.nextAction || 'progress'}"`;
     if (actionTaken === 'scheduled' && scheduleDetails) {
         historyActionText = `${updaterUsername} (${updaterRole}) scheduled Sidang on ${scheduleDetails.date} at ${scheduleDetails.time}`;
     } else if (actionTaken === 'submitted' && surveyDetails && currentProject.status === 'Pending Survey Details') {
-        historyActionText = `${updaterUsername} (${updaterRole}) submitted Survey Details for ${surveyDetails.date} at ${surveyDetails.time}`;
+         historyActionText = `${updaterUsername} (${updaterRole}) submitted Survey Details for ${surveyDetails.date} at ${surveyDetails.time}`;
     } else if (actionTaken === 'approved') {
         historyActionText = `${updaterUsername} (${updaterRole}) approved: ${currentProject.nextAction || 'current step'}`;
-    } else if (actionTaken === 'rejected' && currentProject.status === 'Pending Approval' && currentProject.progress === 20) { // Specific case for offer rejection leading to Canceled
+    } else if (actionTaken === 'rejected' && currentProject.status === 'Pending Approval' && currentProject.progress === 20) {
         historyActionText = `${updaterUsername} (${updaterRole}) canceled project at offer stage: ${currentProject.nextAction || 'penawaran'}`;
     } else if (actionTaken === 'rejected') {
         historyActionText = `${updaterUsername} (${updaterRole}) rejected: ${currentProject.nextAction || 'current step'}`;
@@ -357,8 +366,6 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
          newWorkflowHistoryEntry.note = `Survey Description: ${surveyDetails.description}. ${note ? `Note: ${note}` : ''}`.trim();
     }
 
-    const filesWithTimestamp = newFilesData.map(file => ({ ...file, timestamp: now }));
-
     let updatedProject: Project = {
         ...currentProject,
         workflowId: projectWorkflowId,
@@ -381,7 +388,7 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
 
             const targetDivisions = Array.isArray(notificationConfig.division) ? notificationConfig.division : [notificationConfig.division];
             for (const role of targetDivisions) {
-                if (role) { // Ensure role is not null or empty string
+                if (role) {
                     await notifyUsersByRole(role, message, projectId);
                     console.log(`[ProjectService] Notification sent to role ${role} for project ${projectId} (Action: ${actionTaken}, New Status: ${updatedProject.status})`);
                 }
@@ -390,14 +397,27 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
 
     } else {
          console.warn(`[ProjectService/JSON] No specific transition info for project ${projectId}, action "${actionTaken}" from status "${currentProject.status}" (Progress: ${currentProject.progress}). Updating files/notes if any, but status remains unchanged unless it's a terminal action.`);
-         if (!['Completed', 'Canceled'].includes(currentProject.status) && !['completed', 'canceled', 'rejected', 'revise_offer', 'revise_after_sidang', 'canceled_after_sidang', 'revision_completed_and_finish'].includes(actionTaken) ) {
-            projects[projectIndex] = updatedProject; 
+         if (!['Completed', 'Canceled'].includes(currentProject.status) && !['completed', 'rejected', 'revise_offer', 'revise_after_sidang', 'canceled_after_sidang', 'revision_completed_and_finish'].includes(actionTaken) ) {
+            projects[projectIndex] = updatedProject;
             await writeProjects(projects);
-            return null; 
+            return null;
          }
-         if (actionTaken === 'completed') updatedProject.status = 'Completed';
-         if (actionTaken === 'rejected' && currentProject.status === 'Pending Approval' && currentProject.progress === 20) updatedProject.status = 'Canceled'; 
-         if (actionTaken === 'canceled_after_sidang') updatedProject.status = 'Canceled';
+         if (actionTaken === 'completed') {
+            updatedProject.status = 'Completed';
+            updatedProject.progress = 100;
+            updatedProject.nextAction = null;
+            updatedProject.assignedDivision = "";
+         }
+         if (actionTaken === 'rejected' && currentProject.status === 'Pending Approval' && currentProject.progress === 20) { // Offer rejection
+            updatedProject.status = 'Canceled';
+            updatedProject.nextAction = null;
+            updatedProject.assignedDivision = "";
+         }
+         if (actionTaken === 'canceled_after_sidang') {
+            updatedProject.status = 'Canceled';
+            updatedProject.nextAction = null;
+            updatedProject.assignedDivision = "";
+         }
     }
 
     if (actionTaken === 'scheduled' && scheduleDetails) {
@@ -485,13 +505,13 @@ export async function reviseProject(
     const currentProject = {
         ...projects[projectIndex],
         workflowHistory: projects[projectIndex].workflowHistory || [],
-        workflowId: projects[projectIndex].workflowId || DEFAULT_WORKFLOW_ID, // Ensure workflowId
+        workflowId: projects[projectIndex].workflowId || DEFAULT_WORKFLOW_ID,
     };
     
     const projectWorkflowId = currentProject.workflowId;
     const workflow = await getWorkflowById(projectWorkflowId);
     if (!workflow) {
-        console.error(`[ProjectService/JSON] Workflow with ID "${projectWorkflowId}" for project "${projectId}" not found.`);
+        console.error(`Workflow with ID "${currentProject.workflowId}" for project "${projectId}" not found.`);
         throw new Error('WORKFLOW_NOT_FOUND');
     }
 
@@ -536,8 +556,8 @@ export async function reviseProject(
         }
         return projects[projectIndex];
     } else {
-        console.warn(`No explicit '${actionTaken}' transition found for project ${projectId} status ${currentProject.status}, progress ${currentProject.progress}. This revision action is not supported for the current step.`);
-        return null; // Explicitly return null if no transition
+        console.warn(`No explicit '${actionTaken}' transition found for project ${projectId} status ${currentProject.status}. Fallback revision logic might be needed or this action is not allowed.`);
+        return null;
     }
 }
 
@@ -621,5 +641,3 @@ export async function deleteProject(projectId: string, deleterUsername: string):
         }
     }
 }
-
-    

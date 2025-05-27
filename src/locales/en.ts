@@ -1,4 +1,3 @@
-
 // src/locales/en.ts
 const en = {
   // Login Page
@@ -40,7 +39,7 @@ const en = {
     toggleMenu: 'Toggle Menu Panel',
     roles: {
         owner: 'Owner',
-        akuntan: 'Accountant',
+        akuntan: 'Accountant', // Changed from generaladmin
         adminproyek: 'Project Admin',
         arsitek: 'Architect',
         struktur: 'Structure',
@@ -88,7 +87,7 @@ const en = {
       pendingfinalcheck: 'Pending Final Check',
       pendingscheduling: 'Pending Scheduling',
       owner: 'Owner',
-      akuntan: 'Accountant',
+      akuntan: 'Accountant', // Changed from generaladmin
       adminproyek: 'Project Admin',
       arsitek: 'Architect',
       struktur: 'Structure',
@@ -149,7 +148,7 @@ const en = {
     ownerActionTitle: 'Owner Action Required',
     ownerActionDesc: 'Review the submitted documents and decide whether to proceed.',
     approveButton: 'Approve',
-    cancelProjectButton: 'Cancel Project', // Changed from rejectButton
+    cancelProjectButton: 'Cancel Project', 
     scheduleSidangTitle: 'Schedule Sidang ({role})',
     dateLabel: 'Date',
     timeLabel: 'Time',
@@ -215,10 +214,10 @@ const en = {
     optionalReportLabel: "Optional Report",
     optionalNoteLabel: "Optional",
     finalCheckNotePlaceholder: "Add any notes for the final check...",
-    architectUploadInitialImagesTitle: "Upload Initial Reference Images for Structure",
-    architectUploadInitialImagesButton: "Upload Initial Images & Notify Structure",
+    architectUploadInitialImagesTitle: "Upload Initial Reference Images for Structure & MEP",
+    architectUploadInitialImagesButton: "Upload Initial Images & Notify Structure/MEP",
     architectUploadInitialImagesDialogTitle: "Upload Initial Reference Images",
-    architectUploadInitialImagesDialogDesc: "These images will be sent to the Structure division for early planning. The project will remain in your court.",
+    architectUploadInitialImagesDialogDesc: "These images will be sent to Structure & MEP divisions for early planning. The project will remain in your court.",
     currentProjectActionsTitle: "Current Project Actions",
     nextActionDescriptions: {
         uploadOfferDocument: "Upload Offer Document",
@@ -229,7 +228,7 @@ const en = {
         inputSurveyDetails: "Input Survey Details & Upload Report",
         uploadArchitectFiles: "Upload Architect Files",
         uploadStructureFiles: "Upload Structure Files",
-        uploadMEPFiles: "Upload MEP Files", // Added
+        uploadMEPFiles: "Upload MEP Files", 
         performFinalCheck: "Perform Final Check",
         scheduleSidang: "Schedule Sidang",
         declareSidangOutcome: "Declare Sidang Outcome",
@@ -243,14 +242,14 @@ const en = {
         uploadedOffer: "Uploaded Offer Document",
         uploadArchitectFiles: "Upload Architect Files",
         uploadedAdminFiles: "Uploaded Admin Files",
-        uploadedMEPFiles: "Uploaded MEP Files", // Added
+        uploadedMEPFiles: "Uploaded MEP Files", 
         scheduleSidang: "Scheduled Sidang",
         completedFinalCheck: "Completed Final Check",
         approveDPInvoice: "Approved DP Invoice",
         uploadedDPInvoice: "Uploaded DP Invoice",
         uploadStructureFiles: "Upload Structure Files",
         uploadedArchitectFiles: "Uploaded Architect Files",
-        uploadedStructureFiles: "Uploaded Structure Files",
+        uploadedStructureFiles: "Upload Structure Files",
         submittedProgressFor: "Submitted Progress for",
         canceledProject: "Canceled Project",
         generateDPInvoice: "Generated DP Invoice",
@@ -269,7 +268,7 @@ const en = {
         reDoFinalCheck: "Re-did Final Check",
         rescheduleSidang: "Rescheduled Sidang",
         uploadedSurveyResults: "Uploaded Survey Results",
-        architectUploadedInitialImages: "Architect uploaded initial reference images for Structure.",
+        architectUploadedInitialImages: "Architect uploaded initial reference images for Structure & MEP.",
         adminProyekCompletedPostSidangRevision: "Project Admin completed post-sidang revisions and finalized the project.",
         offerCanceledByOwner: "Project offer was canceled by the Owner.",
         offerRevisedByOwner: "Project offer revision requested by Owner."
@@ -342,7 +341,7 @@ const en = {
       maxFilesExceeded: 'Cannot upload more than {max} files at once.',
       uploadError: 'Upload Error',
       initialImagesUploadedTitle: "Initial Images Uploaded",
-      initialImagesUploadedDesc: "Initial reference images for project \"{projectName}\" have been uploaded. Division Structure has been notified.",
+      initialImagesUploadedDesc: "Initial reference images for project \"{projectName}\" have been uploaded by {actorUsername}. Divisions Structure & MEP have been notified.",
       revisionNotificationSentTitle: "Notification Sent",
       revisionNotificationSentDesc: "Division {division} has been notified to contribute to the revision for project \"{projectName}\" by {actorUsername}."
     }
@@ -800,3 +799,4 @@ const en = {
 };
 
 export default en;
+

@@ -1,4 +1,3 @@
-
 // src/app/dashboard/projects/page.tsx
 'use client';
 
@@ -282,14 +281,14 @@ export default function ProjectsPage() {
     let className = "py-1 px-2 text-xs";
     let Icon = Clock;
      switch (statusKey) {
-        case 'completed': variant = 'default'; className = `${className} bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-primary-foreground`; Icon = CheckCircle; break;
+        case 'completed': case 'selesai': variant = 'default'; className = `${className} bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-primary-foreground`; Icon = CheckCircle; break;
         case 'inprogress': case 'sedangberjalan': variant = 'secondary'; className = `${className} bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700`; Icon = Clock; break;
         case 'pendingapproval': case 'menunggupersetujuan': variant = 'outline'; className = `${className} border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-500`; Icon = AlertTriangle; break;
         case 'pendingpostsidangrevision': case 'menunggurevisipascSidang': variant = 'outline'; className = `${className} border-orange-400 text-orange-500 dark:border-orange-300 dark:text-orange-400`; Icon = RefreshCw; break;
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = Clock; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Clock; break;
-        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles':  case 'menungguberkasstruktur': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview': case 'menunggutinjauan': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingmepfiles': case 'menungguberkasmep': variant = 'secondary'; Icon = Clock; break;
+        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles':  case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Clock; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarClock; break;
         default: variant = 'secondary'; Icon = Clock;
     }
@@ -313,15 +312,18 @@ export default function ProjectsPage() {
     setIsSubmitting(true);
     if (isArchitectInitialImageUpload) setIsSubmittingInitialImages(true);
 
-    // Wrapped the core logic in a try...finally to ensure setIsSubmitting(false) is always called
     try {
         if (!isDecisionOrTerminalAction && !isSchedulingAction && !isSurveyAction && !isArchitectInitialImageUpload && !currentDescription && currentFiles.length === 0 ) {
           toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: projectsDict.toast.provideDescOrFile });
-          return; // Exit early
+          setIsSubmitting(false);
+          if (isArchitectInitialImageUpload) setIsSubmittingInitialImages(false);
+          return;
         }
         if (currentUser.role === 'Admin Proyek' && selectedProject.status === 'Pending Offer' && currentFiles.length === 0 && actionTaken === 'submitted') {
             toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: projectsDict.toast.provideOfferFile });
-            return; // Exit early
+            setIsSubmitting(false);
+            if (isArchitectInitialImageUpload) setIsSubmittingInitialImages(false);
+            return;
         }
 
         const uploadedFileEntries: Omit<FileEntry, 'timestamp'>[] = [];
@@ -347,7 +349,9 @@ export default function ProjectsPage() {
                 } catch (error: any) {
                     console.error("Error uploading file:", file.name, error);
                     toast({ variant: 'destructive', title: projectsDict.toast.uploadError, description: error.message || `Failed to upload ${file.name}.` });
-                    return; // Exit early
+                    setIsSubmitting(false);
+                    if (isArchitectInitialImageUpload) setIsSubmittingInitialImages(false);
+                    return;
                 }
             }
         }
@@ -372,7 +376,7 @@ export default function ProjectsPage() {
         };
 
         const newlyUpdatedProjectResult = await updateProject(updatedProjectData);
-        const newlyUpdatedProject = await fetchProjectByIdInternal(selectedProject.id);
+        const newlyUpdatedProject = await fetchProjectByIdInternal(selectedProject.id); // Re-fetch project details
         
         if (newlyUpdatedProject) {
             setAllProjects(prev => prev.map(p => p.id === newlyUpdatedProject.id ? newlyUpdatedProject : p));
@@ -389,7 +393,7 @@ export default function ProjectsPage() {
             } else if (actionTaken === 'revise_after_sidang') {
                  toast({ title: projectsDict.toast.sidangOutcomeRevisionTitle, description: projectsDict.toast.sidangOutcomeRevisionDesc.replace('{title}', newlyUpdatedProjectResult?.title || '').replace('{division}', getTranslatedStatus(newlyUpdatedProjectResult?.assignedDivision || ''))});
             } else if (actionTaken === 'architect_uploaded_initial_images_for_struktur') {
-                toast({ title: projectsDict.toast.initialImagesUploadedTitle, description: projectsDict.toast.initialImagesUploadedDesc.replace('{projectName}', newlyUpdatedProjectResult?.title || '') });
+                toast({ title: projectsDict.toast.initialImagesUploadedTitle, description: projectsDict.toast.initialImagesUploadedDesc.replace('{projectName}', newlyUpdatedProjectResult?.title || '').replace('{actorUsername}', currentUser.username) });
             } else if (actionTaken === 'revision_completed_and_finish') {
                  toast({ title: projectsDict.toast.revisionCompletedTitle, description: projectsDict.toast.revisionCompletedDesc.replace('{title}', newlyUpdatedProjectResult?.title || '') });
             } else if (newlyUpdatedProjectResult?.status === 'Completed') {
@@ -432,7 +436,7 @@ export default function ProjectsPage() {
          setIsSubmitting(false);
          if (isArchitectInitialImageUpload) setIsSubmittingInitialImages(false);
       }
-  }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus, initialImageFiles, initialImageDescription, router]);
+  }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus, initialImageFiles, initialImageDescription, router, fetchProjectByIdInternal]);
 
   const handleDecision = React.useCallback((decision: 'approved' | 'rejected' | 'completed' | 'revise_offer' | 'revise_after_sidang' | 'canceled_after_sidang' | 'revision_completed_and_finish') => {
     if (!currentUser || !selectedProject ) {
@@ -459,7 +463,7 @@ export default function ProjectsPage() {
         return;
     }
     const canSchedule = selectedProject.status === 'Pending Scheduling' &&
-                        ( (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === 'Admin Proyek') ||
+                        ( (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === currentUser.role) ||
                           currentUser.role === 'Owner' );
 
      if (!canSchedule) {
@@ -573,6 +577,13 @@ export default function ProjectsPage() {
         if (['owner', 'akuntan', 'admin proyek', 'admin developer'].includes(userRoleCleaned)) {
             return allProjects;
         }
+        if (['struktur', 'mep'].includes(userRoleCleaned)) {
+            return allProjects.filter(project =>
+                (project.assignedDivision?.trim().toLowerCase() === userRoleCleaned) ||
+                (project.status === 'Pending Architect Files' &&
+                 project.workflowHistory.some(entry => entry.action.toLowerCase().includes('uploaded initial reference images for struktur & mep')))
+            );
+        }
         return allProjects.filter(project =>
             project.assignedDivision?.trim().toLowerCase() === userRoleCleaned
         );
@@ -649,7 +660,7 @@ export default function ProjectsPage() {
         actionForRevision = 'revise_offer';
       }
 
-      if (!revisionNote.trim() && actionForRevision !== 'revise_offer') { // Owner can revise offer without a note, as it's a specific action
+      if (!revisionNote.trim() && actionForRevision !== 'revise_offer') {
         toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: projectsDict.toast.revisionNoteRequired });
         return;
       }
@@ -658,7 +669,7 @@ export default function ProjectsPage() {
 
       try {
         const revisedProjectResult = await reviseProject(selectedProject.id, currentUser.username, currentUser.role, revisionNote, actionForRevision);
-        const updatedProject = await fetchProjectByIdInternal(selectedProject.id);
+        const updatedProject = await fetchProjectByIdInternal(selectedProject.id); 
         if (updatedProject) {
             setAllProjects(prev => prev.map(p => (p.id === updatedProject.id ? updatedProject : p)));
             setSelectedProject(updatedProject); 
@@ -690,7 +701,7 @@ export default function ProjectsPage() {
       } finally {
         setIsRevising(false);
       }
-    }, [currentUser, selectedProject, revisionNote, projectsDict, toast, getTranslatedStatus, router]);
+    }, [currentUser, selectedProject, revisionNote, projectsDict, toast, getTranslatedStatus, router, fetchProjectByIdInternal]);
 
     const canPerformSelectedProjectAction = React.useMemo(() => {
       if (!currentUser || !selectedProject) return false;
@@ -699,7 +710,8 @@ export default function ProjectsPage() {
           return selectedProject.assignedDivision === 'Owner' ||
                  ['Pending Approval', 'Scheduled', 'Pending Scheduling', 'Pending Survey Details'].includes(selectedProject.status);
       }
-       if (currentUser.role === 'Arsitek' && selectedProject.status === 'Pending Survey Details') {
+      // Arsitek can also act on 'Pending Survey Details'
+      if (currentUser.role === 'Arsitek' && selectedProject.status === 'Pending Survey Details') {
         return true;
       }
       const currentUserRoleCleaned = currentUser.role.trim();
@@ -712,7 +724,7 @@ export default function ProjectsPage() {
         const statusesExpectingUpload = [
             'Pending Offer', 'Pending DP Invoice', 'Pending Admin Files',
             'Pending Architect Files', 'Pending Structure Files', 
-            'Pending MEP Files', // Added
+            'Pending MEP Files',
             'Pending Consultation Docs', 'Pending Post-Sidang Revision'
         ];
         return statusesExpectingUpload.includes(selectedProject.status);
@@ -729,41 +741,27 @@ export default function ProjectsPage() {
    const showOwnerDecisionSection = React.useMemo(() => {
     if (!selectedProject || !currentUser || !canPerformSelectedProjectAction) return false;
     return selectedProject.status === 'Pending Approval' && currentUser.role === 'Owner' && 
-           (selectedProject.progress === 20 || selectedProject.progress === 30); // 20 for offer, 30 for DP
+           (selectedProject.progress === 20 || selectedProject.progress === 30); 
    },[selectedProject, currentUser, canPerformSelectedProjectAction]);
 
    const showSchedulingSection = React.useMemo(() => {
-    if (!selectedProject || !currentUser) return false;
-    // Admin Proyek can schedule if it's assigned to them for "Pending Scheduling"
-    // Owner can always schedule if status is "Pending Scheduling"
-    const isAdminProyekAssigned = currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === 'Admin Proyek';
-    const isOwnerPrivileged = currentUser.role === 'Owner';
-
-    return selectedProject.status === 'Pending Scheduling' && (isAdminProyekAssigned || isOwnerPrivileged);
-   },[selectedProject, currentUser]);
+        if (!selectedProject || !currentUser) return false;
+        return selectedProject.status === 'Pending Scheduling' &&
+               (
+                  (currentUser.role === 'Admin Proyek' && canPerformSelectedProjectAction) || // Admin Proyek yang ditugaskan
+                  currentUser.role === 'Owner'
+               );
+    },[selectedProject, currentUser, canPerformSelectedProjectAction]);
 
     const showSurveyDetailsInputSection = React.useMemo(() => {
-        // console.log("[DEBUG] Evaluating showSurveyDetailsInputSection...");
-        if (!selectedProject || !currentUser) {
-            // console.log(`[DEBUG] selectedProject: ${!!selectedProject}, currentUser: ${!!currentUser}`);
-            return false;
-        }
-        
-        const isCorrectStatus = selectedProject.status === 'Pending Survey Details';
-        // console.log(`[DEBUG] selectedProject.status: "${selectedProject.status}", isCorrectStatus: ${isCorrectStatus}`);
-
-        if (!isCorrectStatus) {
-            return false;
-        }
-
+        if (!selectedProject || !currentUser) return false;
         const userRoleCleaned = currentUser.role.trim().toLowerCase();
-        // console.log(`[DEBUG] currentUser.role (cleaned): "${userRoleCleaned}"`);
-
-        const allowedRoles = ['admin proyek', 'owner', 'arsitek'];
-        const isRoleAllowed = allowedRoles.includes(userRoleCleaned);
-        // console.log(`[DEBUG] isRoleAllowed: ${isRoleAllowed}`);
-        
-        return isRoleAllowed; // Akan true jika status benar DAN peran diizinkan
+        return selectedProject.status === 'Pending Survey Details' &&
+               (
+                   userRoleCleaned === 'admin proyek' ||
+                   userRoleCleaned === 'owner' ||
+                   userRoleCleaned === 'arsitek'
+               );
     }, [selectedProject, currentUser]);
 
 
@@ -779,7 +777,6 @@ export default function ProjectsPage() {
         const allowedRoles = ['Owner', 'Akuntan', 'Admin Developer', 'Admin Proyek'];
         const nonRevisableStatuses = ['Completed', 'Canceled'];
         
-        // Specific condition for Owner to revise offer
         if (currentUser.role === 'Owner' && selectedProject.status === 'Pending Approval' && selectedProject.progress === 20) {
             return true; 
         }
@@ -804,7 +801,7 @@ export default function ProjectsPage() {
 
     const handleNotifyDivisionForRevision = React.useCallback(async (targetDivision: 'Arsitek' | 'Struktur') => {
         if (!selectedProject || !currentUser) return;
-        setIsSubmitting(true); // Use general isSubmitting, or create a new one if needed
+        setIsSubmitting(true); 
         try {
             const message = projectsDict.toast.revisionNotificationSentDesc
                 .replace('{division}', getTranslatedStatus(targetDivision))
@@ -917,7 +914,7 @@ export default function ProjectsPage() {
 
        return (
            <>
-                <Button variant="outline" onClick={() => {setSelectedProject(null); router.push('/dashboard/projects', { scroll: false });}} className="mb-4 w-full sm:w-auto"><ArrowLeft className="mr-2 h-4 w-4" />{isClient ? projectsDict.backToList : defaultGlobalDict.projectsPage.backToList}</Button>
+                <Button variant="outline" onClick={() => {setSelectedProject(null); router.push('/dashboard/projects', { scroll: false });}} className="mb-4 w-full sm:w-auto"><ArrowLeft className="mr-2 h-4 w-4" />{projectsDict.backToList}</Button>
                 
                  <Card className="shadow-md mb-6">
                    <CardHeader className="p-4 sm:p-6">
@@ -940,7 +937,7 @@ export default function ProjectsPage() {
                                 <div className={`mt-1 h-3 w-3 rounded-full flex-shrink-0 ${index === project.workflowHistory.length - 1 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
                                 <div>
                                     <p className="text-sm font-medium">{entry.action}</p>
-                                    <p className="text-xs text-muted-foreground">{isClient ? formatTimestamp(entry.timestamp) : '...'}</p>
+                                    <p className="text-xs text-muted-foreground">{formatTimestamp(entry.timestamp)}</p>
                                     {entry.note && <p className="text-xs text-muted-foreground italic mt-1 whitespace-pre-wrap">{projectsDict.revisionNotePrefix} {entry.note}</p>}
                                 </div>
                             </li>
@@ -948,8 +945,8 @@ export default function ProjectsPage() {
                         </ul>
                     </CardContent>
                   </Card>
-                  
-                   <Card className="mb-6 shadow-md">
+
+                  <Card className="mb-6 shadow-md">
                        <CardHeader className="p-4 sm:p-6"><CardTitle>{projectsDict.uploadedFilesTitle}</CardTitle><CardDescription>{projectsDict.uploadedFilesDesc}</CardDescription></CardHeader>
                        <CardContent className="p-4 sm:p-6 pt-0">
                          {(project.files || []).length === 0 ? (<p className="text-sm text-muted-foreground">{projectsDict.noFiles}</p>) : (
@@ -972,6 +969,61 @@ export default function ProjectsPage() {
                          )}
                        </CardContent>
                    </Card>
+                  
+                  {/* Moved Architect's Initial Image Upload Section */}
+                  {showArchitectInitialImageUploadSection && (
+                    <Card className="mb-6 shadow-md">
+                        <CardHeader className="p-4 sm:p-6">
+                            <CardTitle>{projectsDict.architectUploadInitialImagesTitle}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-4 sm:p-6 pt-0">
+                            <Dialog open={isInitialImageUploadDialogOpen} onOpenChange={setIsInitialImageUploadDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" className="w-full sm:w-auto">
+                                        <Upload className="mr-2 h-4 w-4" /> {projectsDict.architectUploadInitialImagesButton}
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-md">
+                                    <DialogHeader>
+                                        <DialogTitle>{projectsDict.architectUploadInitialImagesDialogTitle}</DialogTitle>
+                                        <DialogDescription>{projectsDict.architectUploadInitialImagesDialogDesc}</DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-4 py-2">
+                                        <div className="grid w-full items-center gap-1.5">
+                                            <Label htmlFor="initial-image-description">{projectsDict.descriptionLabel} ({projectsDict.optionalNoteLabel})</Label>
+                                            <Textarea id="initial-image-description" placeholder={projectsDict.revisionFilesDescriptionPlaceholder} value={initialImageDescription} onChange={(e) => setInitialImageDescription(e.target.value)} disabled={isSubmittingInitialImages}/>
+                                        </div>
+                                        <div className="grid w-full items-center gap-1.5">
+                                            <Label htmlFor="initial-image-files">{projectsDict.attachFilesLabel}</Label>
+                                            <Input id="initial-image-files" type="file" multiple onChange={handleInitialImageFileChange} disabled={isSubmittingInitialImages || initialImageFiles.length >= MAX_FILES_UPLOAD}/>
+                                            <p className="text-xs text-muted-foreground">{projectsDict.filesHint.replace('{max}', MAX_FILES_UPLOAD.toString())}</p>
+                                        </div>
+                                        {initialImageFiles.length > 0 && (
+                                            <div className="space-y-2 rounded-md border p-3">
+                                                <Label>{projectsDict.selectedFilesLabel} ({initialImageFiles.length}/{MAX_FILES_UPLOAD})</Label>
+                                                <ul className="list-disc list-inside text-sm space-y-1 max-h-32 overflow-y-auto">
+                                                {initialImageFiles.map((file, index) => ( <li key={`initial-img-${index}`} className="flex items-center justify-between group"><span className="truncate max-w-[calc(100%-4rem)] sm:max-w-xs text-muted-foreground group-hover:text-foreground">{file.name} <span className="text-xs">({(file.size / 1024).toFixed(1)} KB)</span></span><Button variant="ghost" size="sm" type="button" onClick={() => removeInitialImageFile(index)} disabled={isSubmittingInitialImages} className="opacity-50 group-hover:opacity-100 flex-shrink-0"><Trash2 className="h-4 w-4 text-destructive" /></Button></li>))}
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <DialogFooter className="pt-2">
+                                        <Button type="button" variant="outline" onClick={() => setIsInitialImageUploadDialogOpen(false)} disabled={isSubmittingInitialImages}>{projectsDict.cancelButton}</Button>
+                                        <Button
+                                            type="button"
+                                            onClick={() => handleProgressSubmit('architect_uploaded_initial_images_for_struktur', initialImageFiles, initialImageDescription)}
+                                            disabled={isSubmittingInitialImages || initialImageFiles.length === 0}
+                                            className="accent-teal"
+                                        >
+                                            {isSubmittingInitialImages ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                                            {isSubmittingInitialImages ? projectsDict.submittingButton : projectsDict.submitButton}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        </CardContent>
+                    </Card>
+                  )}
 
                 <Card className="shadow-md">
                     <CardHeader className="p-4 sm:p-6">
@@ -979,7 +1031,8 @@ export default function ProjectsPage() {
                         <CardDescription>{project.nextAction || projectsDict.none}</CardDescription>
                     </CardHeader>
                    <CardContent className="p-4 sm:p-6 pt-0">
-                       {/* DEBUGGING INFO START */}
+                    {/* DEBUG INFO START - REMOVE FOR PRODUCTION */}
+                    {/* 
                         <div className="my-4 p-3 border border-dashed border-yellow-500 bg-yellow-50 rounded-md text-xs">
                             <p className="font-bold text-yellow-700">DEBUG INFO:</p>
                             <p>Current User Role: <span className="font-mono">{currentUser?.role}</span></p>
@@ -988,7 +1041,8 @@ export default function ProjectsPage() {
                             <p>showSchedulingSection: <span className="font-mono">{showSchedulingSection.toString()}</span></p>
                             <p>canPerformSelectedProjectAction: <span className="font-mono">{canPerformSelectedProjectAction.toString()}</span></p>
                         </div>
-                      {/* DEBUGGING INFO END */}
+                    */}
+                      {/* DEBUG INFO END */}
 
                       {showUploadSection && (
                          <div className="space-y-4 border-t pt-4 mt-4">
@@ -1049,56 +1103,6 @@ export default function ProjectsPage() {
                                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                                     {isSubmitting ? projectsDict.submittingButton : projectsDict.submitButton}
                                 </Button>
-                            </div>
-                        )}
-
-                         {showArchitectInitialImageUploadSection && (
-                            <div className="space-y-4 border-t pt-4 mt-4">
-                                <h3 className="text-lg font-semibold">{projectsDict.architectUploadInitialImagesTitle}</h3>
-                                <Dialog open={isInitialImageUploadDialogOpen} onOpenChange={setIsInitialImageUploadDialogOpen}>
-                                    <DialogTrigger asChild>
-                                        <Button variant="outline" className="w-full sm:w-auto">
-                                            <Upload className="mr-2 h-4 w-4" /> {projectsDict.architectUploadInitialImagesButton}
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent className="sm:max-w-md">
-                                        <DialogHeader>
-                                            <DialogTitle>{projectsDict.architectUploadInitialImagesDialogTitle}</DialogTitle>
-                                            <DialogDescription>{projectsDict.architectUploadInitialImagesDialogDesc}</DialogDescription>
-                                        </DialogHeader>
-                                        <div className="space-y-4 py-2">
-                                            <div className="grid w-full items-center gap-1.5">
-                                                <Label htmlFor="initial-image-description">{projectsDict.descriptionLabel} ({projectsDict.optionalNoteLabel})</Label>
-                                                <Textarea id="initial-image-description" placeholder={projectsDict.revisionFilesDescriptionPlaceholder} value={initialImageDescription} onChange={(e) => setInitialImageDescription(e.target.value)} disabled={isSubmittingInitialImages}/>
-                                            </div>
-                                            <div className="grid w-full items-center gap-1.5">
-                                                <Label htmlFor="initial-image-files">{projectsDict.attachFilesLabel}</Label>
-                                                <Input id="initial-image-files" type="file" multiple onChange={handleInitialImageFileChange} disabled={isSubmittingInitialImages || initialImageFiles.length >= MAX_FILES_UPLOAD}/>
-                                                <p className="text-xs text-muted-foreground">{projectsDict.filesHint.replace('{max}', MAX_FILES_UPLOAD.toString())}</p>
-                                            </div>
-                                            {initialImageFiles.length > 0 && (
-                                                <div className="space-y-2 rounded-md border p-3">
-                                                    <Label>{projectsDict.selectedFilesLabel} ({initialImageFiles.length}/{MAX_FILES_UPLOAD})</Label>
-                                                    <ul className="list-disc list-inside text-sm space-y-1 max-h-32 overflow-y-auto">
-                                                    {initialImageFiles.map((file, index) => ( <li key={`initial-img-${index}`} className="flex items-center justify-between group"><span className="truncate max-w-[calc(100%-4rem)] sm:max-w-xs text-muted-foreground group-hover:text-foreground">{file.name} <span className="text-xs">({(file.size / 1024).toFixed(1)} KB)</span></span><Button variant="ghost" size="sm" type="button" onClick={() => removeInitialImageFile(index)} disabled={isSubmittingInitialImages} className="opacity-50 group-hover:opacity-100 flex-shrink-0"><Trash2 className="h-4 w-4 text-destructive" /></Button></li>))}
-                                                    </ul>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <DialogFooter className="pt-2">
-                                            <Button type="button" variant="outline" onClick={() => setIsInitialImageUploadDialogOpen(false)} disabled={isSubmittingInitialImages}>{projectsDict.cancelButton}</Button>
-                                            <Button
-                                                type="button"
-                                                onClick={() => handleProgressSubmit('architect_uploaded_initial_images_for_struktur', initialImageFiles, initialImageDescription)}
-                                                disabled={isSubmittingInitialImages || initialImageFiles.length === 0}
-                                                className="accent-teal"
-                                            >
-                                                {isSubmittingInitialImages ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                                                {isSubmittingInitialImages ? projectsDict.submittingButton : projectsDict.submitButton}
-                                            </Button>
-                                        </DialogFooter>
-                                    </DialogContent>
-                                </Dialog>
                             </div>
                         )}
 

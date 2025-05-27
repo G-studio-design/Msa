@@ -1,4 +1,3 @@
-
 // src/app/dashboard/page.tsx
 'use client';
 
@@ -88,14 +87,14 @@ export default function DashboardPage() {
         setIsLoadingData(false);
       }
     } else {
-      setIsLoadingData(false); // Also set loading to false if no user or not client
+      setIsLoadingData(false); 
     }
-  }, [isClient, currentUser, toast, dashboardDict]); // dashboardDict added as it's used in toast
+  }, [isClient, currentUser, toast, dashboardDict]); 
 
   React.useEffect(() => {
     if (isClient && currentUser) {
         fetchData();
-    } else if (isClient && !currentUser) { // Clear data if user logs out
+    } else if (isClient && !currentUser) { 
         setAllProjects([]);
         setApprovedLeaves([]);
         setHolidaysAndEvents([]);
@@ -104,12 +103,9 @@ export default function DashboardPage() {
   }, [isClient, currentUser, fetchData]);
 
 
-  const userRole = currentUser?.role || '';
   const canAddProject = React.useMemo(() => {
     if (!currentUser) return false;
     const userRoleCleaned = currentUser.role.trim().toLowerCase();
-    // Roles that can add projects: Owner, Admin Proyek, Admin Developer
-    // Akuntan (internal role "Akuntan") is removed.
     return ['owner', 'admin proyek', 'admin developer'].includes(userRoleCleaned);
   }, [currentUser]);
 
@@ -135,8 +131,7 @@ export default function DashboardPage() {
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = AlertTriangle; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Info; break;
-        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles': case 'menungguberkasstruktur': case 'pendingsurveydetails': case 'menunggudetailsurvei': variant = 'secondary'; Icon = Info; break;
-        case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs': case 'menungudokkonsultasi': case 'pendingreview': case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
+        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles': case 'menungguberkasstruktur': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarDays; break;
         default: variant = 'secondary'; Icon = Info;
     }
@@ -148,6 +143,14 @@ export default function DashboardPage() {
     const userRoleCleaned = currentUser.role.trim().toLowerCase();
     if (['owner', 'akuntan', 'admin proyek', 'admin developer'].includes(userRoleCleaned)) {
       return allProjects;
+    }
+    // For Struktur and MEP, show projects if they are assigned OR if it's 'Pending Architect Files' and relevant history exists
+    if (['struktur', 'mep'].includes(userRoleCleaned)) {
+        return allProjects.filter(project =>
+            (project.assignedDivision?.trim().toLowerCase() === userRoleCleaned) ||
+            (project.status === 'Pending Architect Files' &&
+             project.workflowHistory.some(entry => entry.action.toLowerCase().includes('uploaded initial reference images for struktur & mep')))
+        );
     }
     return allProjects.filter(project =>
       (project.assignedDivision?.trim().toLowerCase() === userRoleCleaned) ||
@@ -263,27 +266,28 @@ export default function DashboardPage() {
   }, [isClient, isLoadingData, selectedDate, handleDateSelect]);
 
 
-  const currentLocale = language === 'id' ? IndonesianLocale : EnglishLocale;
+  const currentLocale = React.useMemo(() => language === 'id' ? IndonesianLocale : EnglishLocale, [language]);
 
   const getEventBadge = React.useCallback((eventType: CalendarDisplayEvent['type'], eventSubType?: string) => {
-    if (!isClient || !dashboardDict?.eventTypes) return <Skeleton className="h-5 w-20" />;
+    if (!isClient || !dashboardDict?.eventTypes || !dashboardDict?.status) return <Skeleton className="h-5 w-20" />;
     let labelKey = eventType as keyof typeof dashboardDict.eventTypes;
     let label = dashboardDict.eventTypes[labelKey] || eventType.charAt(0).toUpperCase() + eventType.slice(1);
     let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
     let className = "text-xs";
+    let Icon = Info;
 
     switch (eventType) {
-      case 'sidang': variant = 'default'; className = `${className} bg-primary text-primary-foreground`; break;
-      case 'survey': variant = 'default'; className = `${className} bg-green-600 text-white`; break;
+      case 'sidang': variant = 'default'; className = `${className} bg-primary text-primary-foreground`; Icon = Briefcase; break;
+      case 'survey': variant = 'default'; className = `${className} bg-green-600 text-white`; Icon = MapPin; break;
       case 'leave':
         const leaveTypeKey = (eventSubType || "").toLowerCase().replace(/ /g, '').replace(/[^a-z0-9]/gi, '') as keyof typeof dashboardDict.status;
         label = dashboardDict.status[leaveTypeKey] || eventSubType || dashboardDict.eventTypes.leave;
-        variant = 'destructive';
+        variant = 'destructive'; Icon = Plane;
         break;
-      case 'holiday': variant = 'outline'; className = `${className} border-orange-500 text-orange-600`; break;
-      case 'company_event': variant = 'outline'; className = `${className} border-purple-600 text-purple-600`; break;
+      case 'holiday': variant = 'outline'; className = `${className} border-orange-500 text-orange-600`; Icon = PartyPopper; break;
+      case 'company_event': variant = 'outline'; className = `${className} border-purple-600 text-purple-600`; Icon = BuildingIcon; break;
     }
-    return <Badge variant={variant} className={className}>{label}</Badge>;
+    return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3"/>{label}</Badge>;
   }, [isClient, dashboardDict]);
 
 
@@ -309,7 +313,7 @@ export default function DashboardPage() {
           <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
           <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
         </div>
-        <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><div className="space-y-4">{[...Array(3)].map((_, i) => (<Card key={`project-skel-${i}`} className="opacity-50"><CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 p-4 sm:p-6"><div><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div><Skeleton className="h-5 w-20 rounded-full" /></CardHeader><CardContent className="p-4 sm:p-6 pt-0"><Skeleton className="h-2 w-full mb-1" /><Skeleton className="h-3 w-1/4" /></CardContent></Card>))}</div></CardContent></Card>
+        <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><div className="space-y-4">{[...Array(3)].map((_, i) => (<Card key={`project-skel-${i}`} className="opacity-50"><CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6"><div><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div><div className="flex-shrink-0 mt-2 sm:mt-0"><Skeleton className="h-5 w-20 rounded-full" /></div></CardHeader><CardContent className="p-4 sm:p-6 pt-0"><Skeleton className="h-2 w-full mb-1" /><Skeleton className="h-3 w-1/4" /></CardContent></Card>))}</div></CardContent></Card>
       </div>
     );
   }
@@ -319,13 +323,13 @@ export default function DashboardPage() {
     <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-primary">
-          {isClient ? dashboardDict.title : defaultGlobalDict.dashboardPage.title}
+          {dashboardDict.title}
         </h1>
         {canAddProject && (
           <Link href="/dashboard/add-project" passHref>
             <Button className="w-full sm:w-auto accent-teal">
               <PlusCircle className="mr-2 h-4 w-4" />
-              {isClient ? dashboardDict.addNewProject : defaultGlobalDict.dashboardPage.addNewProject}
+              {dashboardDict.addNewProject}
             </Button>
           </Link>
         )}
@@ -334,42 +338,42 @@ export default function DashboardPage() {
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.activeProjects : defaultGlobalDict.dashboardPage.activeProjects}</CardTitle>
+            <CardTitle className="text-sm font-medium">{dashboardDict.activeProjects}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeProjects.length}</div>
-            <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.activeProjectsDesc : defaultGlobalDict.dashboardPage.activeProjectsDesc}</p>
+            <p className="text-xs text-muted-foreground">{dashboardDict.activeProjectsDesc}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.completedProjects : defaultGlobalDict.dashboardPage.completedProjects}</CardTitle>
+            <CardTitle className="text-sm font-medium">{dashboardDict.completedProjects}</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{completedProjectsCount}</div>
-            <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.completedProjectsDesc : defaultGlobalDict.dashboardPage.completedProjectsDesc}</p>
+            <p className="text-xs text-muted-foreground">{dashboardDict.completedProjectsDesc}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.pendingActions : defaultGlobalDict.dashboardPage.pendingActions}</CardTitle>
+            <CardTitle className="text-sm font-medium">{dashboardDict.pendingActions}</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{pendingProjectsCount}</div>
-            <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.pendingActionsDesc : defaultGlobalDict.dashboardPage.pendingActionsDesc}</p>
+            <p className="text-xs text-muted-foreground">{dashboardDict.pendingActionsDesc}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{isClient ? dashboardDict.averageProgressTitle : defaultGlobalDict.dashboardPage.averageProgressTitle}</CardTitle>
+            <CardTitle className="text-sm font-medium">{dashboardDict.averageProgressTitle}</CardTitle>
             <Percent className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeProjects.length > 0 ? averageProgress : 0}%</div>
-            <p className="text-xs text-muted-foreground">{isClient ? dashboardDict.averageProgressDesc : defaultGlobalDict.dashboardPage.averageProgressDesc}</p>
+            <p className="text-xs text-muted-foreground">{dashboardDict.averageProgressDesc}</p>
           </CardContent>
         </Card>
       </div>
@@ -377,8 +381,8 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg md:text-xl">{isClient ? dashboardDict.projectProgressChartTitle : defaultGlobalDict.dashboardPage.projectProgressChartTitle}</CardTitle>
-              <CardDescription>{isClient ? dashboardDict.projectProgressChartDesc : defaultGlobalDict.dashboardPage.projectProgressChartDesc}</CardDescription>
+              <CardTitle className="text-lg md:text-xl">{dashboardDict.projectProgressChartTitle}</CardTitle>
+              <CardDescription>{dashboardDict.projectProgressChartDesc}</CardDescription>
             </CardHeader>
             <CardContent className="pl-2 pr-4 sm:pr-6">
               {activeProjects.length > 0 && chartData.length > 0 ? (
@@ -402,7 +406,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground p-4">
                   <BarChartIcon className="h-12 w-12 mb-2 opacity-50" />
-                  <p>{isClient ? dashboardDict.noActiveProjectsForChart : defaultGlobalDict.dashboardPage.noActiveProjectsForChart}</p>
+                  <p>{dashboardDict.noActiveProjectsForChart}</p>
                 </div>
               )}
             </CardContent>
@@ -410,8 +414,8 @@ export default function DashboardPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg md:text-xl">{isClient ? dashboardDict.scheduleAgendaTitle : defaultGlobalDict.dashboardPage.scheduleAgendaTitle}</CardTitle>
-              <CardDescription>{isClient ? dashboardDict.scheduleAgendaDesc : defaultGlobalDict.dashboardPage.scheduleAgendaDesc}</CardDescription>
+              <CardTitle className="text-lg md:text-xl">{dashboardDict.scheduleAgendaTitle}</CardTitle>
+              <CardDescription>{dashboardDict.scheduleAgendaDesc}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center">
               <Button
@@ -425,7 +429,7 @@ export default function DashboardPage() {
                 }}
                 className="mb-3 self-start"
               >
-                {isClient ? dashboardDict.todayButtonLabel : defaultGlobalDict.dashboardPage.todayButtonLabel}
+                {dashboardDict.todayButtonLabel}
               </Button>
               <Calendar
                 mode="single"
@@ -455,9 +459,9 @@ export default function DashboardPage() {
               />
               <div className="mt-4 w-full space-y-3">
                 <h3 className="text-md font-semibold text-foreground text-center">
-                  {isClient && selectedDate ? dashboardDict.eventsForDate.replace('{date}', format(selectedDate, 'PPP', { locale: currentLocale })) : (isClient ? dashboardDict.selectDatePrompt : defaultGlobalDict.dashboardPage.selectDatePrompt)}
+                  {selectedDate ? dashboardDict.eventsForDate.replace('{date}', format(selectedDate, 'PPP', { locale: currentLocale })) : dashboardDict.selectDatePrompt}
                 </h3>
-                {isClient && selectedDate && eventsForSelectedDate.length > 0 ? (
+                {selectedDate && eventsForSelectedDate.length > 0 ? (
                   <ul className="space-y-2 text-sm max-h-48 overflow-y-auto pr-2">
                     {eventsForSelectedDate.map((event, index) => {
                       const key = `${event.type}-${(event as any).id}-${index}`;
@@ -467,7 +471,6 @@ export default function DashboardPage() {
                           <>
                             <div className="flex items-center justify-between mb-1">
                               <p className="font-medium text-primary truncate flex items-center gap-1.5">
-                                <Briefcase className="h-4 w-4 flex-shrink-0" />
                                 <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="hover:underline">
                                   {(event as Project).title}
                                 </Link>
@@ -476,12 +479,12 @@ export default function DashboardPage() {
                             </div>
                             {(event as Project).scheduleDetails?.time && (
                               <p className="text-xs text-muted-foreground pl-6">
-                                {(isClient ? dashboardDict.eventTimeLabel : defaultGlobalDict.dashboardPage.eventTimeLabel)} {(event as Project).scheduleDetails!.time}
+                                {dashboardDict.eventTimeLabel} {(event as Project).scheduleDetails!.time}
                               </p>
                             )}
                             {(event as Project).scheduleDetails?.location && (
                               <p className="text-xs text-muted-foreground pl-6">
-                                {(isClient ? dashboardDict.eventLocationLabel : defaultGlobalDict.dashboardPage.eventLocationLabel)} {(event as Project).scheduleDetails!.location}
+                                {dashboardDict.eventLocationLabel} {(event as Project).scheduleDetails!.location}
                               </p>
                             )}
                           </>
@@ -489,17 +492,16 @@ export default function DashboardPage() {
                           <>
                             <div className="flex items-center justify-between mb-1">
                               <p className="font-medium text-destructive truncate flex items-center gap-1.5">
-                                <Plane className="h-4 w-4 flex-shrink-0" />
                                 {(event as LeaveRequest).displayName || (event as LeaveRequest).username}
                               </p>
                                {getEventBadge('leave', (event as LeaveRequest).leaveType)}
                             </div>
                             <p className="text-xs text-muted-foreground pl-6">
-                              {(isClient ? dashboardDict.leaveDurationLabel : defaultGlobalDict.dashboardPage.leaveDurationLabel)} {format(parseISO((event as LeaveRequest).startDate), 'PP', { locale: currentLocale })} - {format(parseISO((event as LeaveRequest).endDate), 'PP', { locale: currentLocale })}
+                              {dashboardDict.leaveDurationLabel} {format(parseISO((event as LeaveRequest).startDate), 'PP', { locale: currentLocale })} - {format(parseISO((event as LeaveRequest).endDate), 'PP', { locale: currentLocale })}
                             </p>
                              {(event as LeaveRequest).reason && (
                                 <p className="text-xs text-muted-foreground pl-6 mt-0.5 whitespace-pre-wrap">
-                                  {(isClient ? dashboardDict.reasonLabel : defaultGlobalDict.dashboardPage.reasonLabel)}: {(event as LeaveRequest).reason}
+                                  {dashboardDict.reasonLabel}: {(event as LeaveRequest).reason}
                                 </p>
                             )}
                           </>
@@ -507,7 +509,6 @@ export default function DashboardPage() {
                           <>
                            <div className="flex items-center justify-between mb-1">
                               <p className="font-medium text-green-600 truncate flex items-center gap-1.5">
-                                <MapPin className="h-4 w-4 flex-shrink-0" />
                                 <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="hover:underline">
                                   {(event as Project).title}
                                 </Link>
@@ -516,19 +517,18 @@ export default function DashboardPage() {
                             </div>
                             {(event as Project).surveyDetails?.time && (
                               <p className="text-xs text-muted-foreground pl-6">
-                                {(isClient ? dashboardDict.eventTimeLabel : defaultGlobalDict.dashboardPage.eventTimeLabel)} {(event as Project).surveyDetails!.time}
+                                {dashboardDict.eventTimeLabel} {(event as Project).surveyDetails!.time}
                               </p>
                             )}
                             {(event as Project).surveyDetails?.description && (
                               <p className="text-xs text-muted-foreground pl-6">
-                                {(isClient ? dashboardDict.surveyDescriptionLabel : defaultGlobalDict.dashboardPage.surveyDescriptionLabel)} {(event as Project).surveyDetails!.description}
+                                {dashboardDict.surveyDescriptionLabel} {(event as Project).surveyDetails!.description}
                               </p>
                             )}
                           </>
                         ) : event.type === 'holiday' ? (
                             <div className="flex items-center justify-between">
                                 <p className="font-medium text-orange-500 truncate flex items-center gap-1.5">
-                                    <PartyPopper className="h-4 w-4 flex-shrink-0" />
                                     {(event as HolidayEntry).name}
                                 </p>
                                 {getEventBadge('holiday')}
@@ -536,7 +536,6 @@ export default function DashboardPage() {
                         ) : event.type === 'company_event' ? (
                              <div className="flex items-center justify-between">
                                 <p className="font-medium text-purple-600 truncate flex items-center gap-1.5">
-                                    <BuildingIcon className="h-4 w-4 flex-shrink-0" />
                                     {(event as HolidayEntry).name}
                                 </p>
                                 {getEventBadge('company_event')}
@@ -546,8 +545,8 @@ export default function DashboardPage() {
                       );
                     })}
                   </ul>
-                ) : isClient && selectedDate ? (
-                  <p className="text-sm text-muted-foreground italic text-center py-4">{isClient ? dashboardDict.noEventsOnDate : defaultGlobalDict.dashboardPage.noEventsOnDate}</p>
+                ) : selectedDate ? (
+                  <p className="text-sm text-muted-foreground italic text-center py-4">{dashboardDict.noEventsOnDate}</p>
                 ) : null}
               </div>
             </CardContent>
@@ -557,9 +556,9 @@ export default function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg md:text-xl">{isClient ? dashboardDict.projectOverview : defaultGlobalDict.dashboardPage.projectOverview}</CardTitle>
+          <CardTitle className="text-lg md:text-xl">{dashboardDict.projectOverview}</CardTitle>
           <CardDescription>
-            {isClient && currentUser ? (
+            {currentUser ? (
               ['owner', 'akuntan', 'admin proyek', 'admin developer'].includes(currentUser.role.trim().toLowerCase())
               ? dashboardDict.allProjectsDesc
               : dashboardDict.divisionProjectsDesc.replace('{division}', getTranslatedStatus(currentUser.role))
@@ -569,7 +568,7 @@ export default function DashboardPage() {
         <CardContent>
           <div className="space-y-4">
             {activeProjects.length === 0 && isClient ? (
-              <p className="text-muted-foreground text-center py-4">{isClient ? dashboardDict.noProjects : defaultGlobalDict.dashboardPage.noProjects}</p>
+              <p className="text-muted-foreground text-center py-4">{dashboardDict.noProjects}</p>
             ) : (
               activeProjects.map((project) => (
                 <Link key={project.id} href={`/dashboard/projects?projectId=${project.id}`} passHref>
@@ -579,11 +578,11 @@ export default function DashboardPage() {
                         <div className="flex-1 min-w-0">
                           <CardTitle className="text-base sm:text-lg truncate hover:text-primary transition-colors">{project.title}</CardTitle>
                           <CardDescription className="text-xs text-muted-foreground mt-1 truncate">
-                            {(isClient ? dashboardDict.assignedTo : defaultGlobalDict.dashboardPage.assignedTo)}: {isClient ? getTranslatedStatus(project.assignedDivision) : project.assignedDivision || (defaultGlobalDict.dashboardPage.status.notassigned || 'N/A')} {project.nextAction ? `| ${isClient ? dashboardDict.nextAction : defaultGlobalDict.dashboardPage.nextAction}: ${project.nextAction}` : ''}
+                            {dashboardDict.assignedTo}: {getTranslatedStatus(project.assignedDivision) || dashboardDict.status.notassigned} {project.nextAction ? `| ${dashboardDict.nextAction}: ${project.nextAction}` : ''}
                           </CardDescription>
                         </div>
                         <div className="flex-shrink-0 mt-2 sm:mt-0">
-                          {isClient ? getStatusBadge(project.status) : <Badge variant="secondary">{project.status}</Badge>}
+                          {getStatusBadge(project.status)}
                         </div>
                       </CardHeader>
                       <CardContent className="p-4 sm:p-6 pt-0">
@@ -595,7 +594,7 @@ export default function DashboardPage() {
                             </span>
                           </div>
                         )}
-                        {(project.status === 'Canceled' || project.status === 'Completed') && isClient && (
+                        {(project.status === 'Canceled' || project.status === 'Completed') && (
                           <p className={`text-sm font-medium ${project.status === 'Canceled' ? 'text-destructive' : 'text-green-600'}`}>
                             {getTranslatedStatus(project.status)}
                           </p>
@@ -612,3 +611,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
