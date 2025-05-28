@@ -121,13 +121,13 @@ export default function DashboardPage() {
 
   const getTranslatedStatus = React.useCallback((statusKey: string): string => {
     if (!isClient || !dashboardDict?.status || !statusKey) return statusKey;
-    const key = statusKey.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status;
+    const key = statusKey.trim().toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status;
     return dashboardDict.status[key] || statusKey;
   }, [isClient, dashboardDict]);
 
   const getStatusBadge = React.useCallback((status: string) => {
     if (!isClient || !dashboardDict?.status || !status) return <Skeleton className="h-5 w-20" />;
-    const statusKey = status.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status;
+    const statusKey = status.trim().toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status;
     const translatedStatus = dashboardDict.status[statusKey] || status;
     let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
     let className = "py-1 px-2 text-xs";
@@ -141,7 +141,7 @@ export default function DashboardPage() {
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = AlertTriangle; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Info; break;
-        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles':  case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
+        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles': case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarDays; break;
         default: variant = 'secondary'; Icon = Info;
     }
@@ -183,7 +183,7 @@ export default function DashboardPage() {
   const chartData = React.useMemo(() => {
     return activeProjects
       .map(project => ({
-        title: project.title.length > (language === 'id' ? 15 : 20) ? `${project.title.substring(0, (language === 'id' ? 12 : 17))}...` : project.title,
+        title: project.title.length > (language === 'id' ? 18 : 22) ? `${project.title.substring(0, (language === 'id' ? 15 : 19))}...` : project.title, // Adjusted truncation length
         progress: project.progress,
         id: project.id
       }))
@@ -302,77 +302,71 @@ export default function DashboardPage() {
    React.useEffect(() => {
     if (isClient && currentUser && currentUser.role && (allProjects.length > 0 || holidaysAndEvents.length > 0)) {
         const today = startOfDay(new Date());
-        const threeDaysFromNow = endOfDay(addDays(today, 2)); // Consider end of the 3rd day
-        const agendaCardVisibleForRoles = ['admin proyek', 'arsitek']; // Roles that see the agenda card
-        const userRoleCleaned = currentUser.role.trim().toLowerCase();
+        const threeDaysFromNow = endOfDay(addDays(today, 2)); 
+        
+        const agendaItems: UpcomingAgendaItem[] = [];
 
-        if (agendaCardVisibleForRoles.includes(userRoleCleaned)) {
-            const agendaItems: UpcomingAgendaItem[] = [];
-
-            // Process projects for survey and sidang
-            allProjects.forEach(project => {
-                // Surveys
-                if (project.surveyDetails?.date && project.status !== 'Completed' && project.status !== 'Canceled') {
-                    try {
-                        const surveyRawDate = startOfDay(parseISO(project.surveyDetails.date));
-                        if (isValid(surveyRawDate) && isWithinInterval(surveyRawDate, { start: today, end: threeDaysFromNow })) {
-                            agendaItems.push({
-                                id: `survey-${project.id}`,
-                                title: project.title,
-                                rawDate: surveyRawDate,
-                                date: format(surveyRawDate, 'PPP', { locale: currentLocale }),
-                                time: project.surveyDetails.time,
-                                description: project.surveyDetails.description,
-                                type: 'survey',
-                                icon: <MapPin className="mr-2 h-4 w-4 text-green-600 flex-shrink-0" />
-                            });
-                        }
-                    } catch (e) { console.error("Error parsing survey date for upcoming agenda:", project.id, e); }
-                }
-                // Sidang
-                if (project.status === 'Scheduled' && project.scheduleDetails?.date) {
-                     try {
-                        const sidangRawDate = startOfDay(parseISO(project.scheduleDetails.date));
-                        if (isValid(sidangRawDate) && isWithinInterval(sidangRawDate, { start: today, end: threeDaysFromNow })) {
-                            agendaItems.push({
-                                id: `sidang-${project.id}`,
-                                title: project.title,
-                                rawDate: sidangRawDate,
-                                date: format(sidangRawDate, 'PPP', { locale: currentLocale }),
-                                time: project.scheduleDetails.time,
-                                location: project.scheduleDetails.location,
-                                type: 'sidang',
-                                icon: <Briefcase className="mr-2 h-4 w-4 text-primary flex-shrink-0" />
-                            });
-                        }
-                    } catch (e) { console.error("Error parsing sidang date for upcoming agenda:", project.id, e); }
-                }
-            });
-
-            // Process holidays and company events
-            holidaysAndEvents.forEach(event => {
+        // Process projects for survey and sidang
+        allProjects.forEach(project => {
+            // Surveys
+            if (project.surveyDetails?.date && project.status !== 'Completed' && project.status !== 'Canceled') {
                 try {
-                    const eventRawDate = startOfDay(parseISO(event.date));
-                    if (isValid(eventRawDate) && isWithinInterval(eventRawDate, { start: today, end: threeDaysFromNow })) {
+                    const surveyRawDate = startOfDay(parseISO(project.surveyDetails.date));
+                    if (isValid(surveyRawDate) && isWithinInterval(surveyRawDate, { start: today, end: threeDaysFromNow })) {
                         agendaItems.push({
-                            id: event.id,
-                            title: event.name,
-                            rawDate: eventRawDate,
-                            date: format(eventRawDate, 'PPP', { locale: currentLocale }),
-                            description: event.description,
-                            type: event.type === "Company Event" ? 'company_event' : 'holiday',
-                            icon: event.type === "Company Event" ? <BuildingIcon className="mr-2 h-4 w-4 text-purple-600 flex-shrink-0" /> : <PartyPopper className="mr-2 h-4 w-4 text-orange-600 flex-shrink-0" />
+                            id: `survey-${project.id}`,
+                            title: project.title,
+                            rawDate: surveyRawDate,
+                            date: format(surveyRawDate, 'PPP', { locale: currentLocale }),
+                            time: project.surveyDetails.time,
+                            description: project.surveyDetails.description,
+                            type: 'survey',
+                            icon: <MapPin className="mr-2 h-4 w-4 text-green-600 flex-shrink-0" />
                         });
                     }
-                } catch(e) { console.error("Error parsing holiday/event date for upcoming agenda:", event.id, e); }
-            });
+                } catch (e) { console.error("Error parsing survey date for upcoming agenda:", project.id, e); }
+            }
+            // Sidang
+            if (project.status === 'Scheduled' && project.scheduleDetails?.date) {
+                 try {
+                    const sidangRawDate = startOfDay(parseISO(project.scheduleDetails.date));
+                    if (isValid(sidangRawDate) && isWithinInterval(sidangRawDate, { start: today, end: threeDaysFromNow })) {
+                        agendaItems.push({
+                            id: `sidang-${project.id}`,
+                            title: project.title,
+                            rawDate: sidangRawDate,
+                            date: format(sidangRawDate, 'PPP', { locale: currentLocale }),
+                            time: project.scheduleDetails.time,
+                            location: project.scheduleDetails.location,
+                            type: 'sidang',
+                            icon: <Briefcase className="mr-2 h-4 w-4 text-primary flex-shrink-0" />
+                        });
+                    }
+                } catch (e) { console.error("Error parsing sidang date for upcoming agenda:", project.id, e); }
+            }
+        });
 
-            // Sort all agenda items by date
-            agendaItems.sort((a, b) => compareAsc(a.rawDate, b.rawDate));
-            setUpcomingAgendaItems(agendaItems);
-        } else {
-            setUpcomingAgendaItems([]); // Clear if user role is not eligible
-        }
+        // Process holidays and company events
+        holidaysAndEvents.forEach(event => {
+            try {
+                const eventRawDate = startOfDay(parseISO(event.date));
+                if (isValid(eventRawDate) && isWithinInterval(eventRawDate, { start: today, end: threeDaysFromNow })) {
+                    agendaItems.push({
+                        id: event.id,
+                        title: event.name,
+                        rawDate: eventRawDate,
+                        date: format(eventRawDate, 'PPP', { locale: currentLocale }),
+                        description: event.description,
+                        type: event.type === "Company Event" ? 'company_event' : 'holiday',
+                        icon: event.type === "Company Event" ? <BuildingIcon className="mr-2 h-4 w-4 text-purple-600 flex-shrink-0" /> : <PartyPopper className="mr-2 h-4 w-4 text-orange-600 flex-shrink-0" />
+                    });
+                }
+            } catch(e) { console.error("Error parsing holiday/event date for upcoming agenda:", event.id, e); }
+        });
+
+        // Sort all agenda items by date
+        agendaItems.sort((a, b) => compareAsc(a.rawDate, b.rawDate));
+        setUpcomingAgendaItems(agendaItems);
     } else if (isClient) {
         setUpcomingAgendaItems([]); // Clear if no relevant data or user
     }
@@ -382,16 +376,17 @@ export default function DashboardPage() {
   const canAddProject = React.useMemo(() => {
     if (!currentUser || !currentUser.role) return false;
     const userRoleCleaned = currentUser.role.trim().toLowerCase();
+    // Akuntan (General Admin) tidak bisa menambah proyek
     return ['owner', 'admin proyek', 'admin developer'].includes(userRoleCleaned);
   }, [currentUser]);
 
    const shouldShowUpcomingAgendaCard = React.useMemo(() => {
     if (!isClient || !currentUser || !currentUser.role) return false;
-    const agendaCardVisibleForRoles = ['admin proyek', 'arsitek'];
     const userRoleCleaned = currentUser.role.trim().toLowerCase();
+    // Kartu Agenda Mendatang hanya untuk Admin Proyek dan Arsitek
+    const agendaCardVisibleForRoles = ['admin proyek', 'arsitek'];
     return agendaCardVisibleForRoles.includes(userRoleCleaned) && upcomingAgendaItems.length > 0;
   }, [isClient, currentUser, upcomingAgendaItems]);
-
 
 
   if (!isClient || isLoadingData || (!currentUser && isClient) ) {
@@ -487,13 +482,18 @@ export default function DashboardPage() {
               <CardTitle className="text-lg md:text-xl">{isClient ? dashboardDict.projectProgressChartTitle : defaultGlobalDict.dashboardPage.projectProgressChartTitle}</CardTitle>
               <CardDescription>{isClient ? dashboardDict.projectProgressChartDesc : defaultGlobalDict.dashboardPage.projectProgressChartDesc}</CardDescription>
             </CardHeader>
-            <CardContent className="pl-2 pr-4 sm:pr-6">
+            <CardContent className="p-4 sm:p-6"> {/* Increased padding */}
               {activeProjects.length > 0 && chartData.length > 0 ? (
                 <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={chartData}
-                      margin={{ top: 5, right: (language === 'id' ? 35 : 30), left: (language === 'id' ? 20 : 10) , bottom: 5 }}
+                      margin={{
+                        top: 5,
+                        right: language === 'id' ? 40 : 35,
+                        left: 5, // Small left margin for BarChart itself
+                        bottom: 5,
+                      }}
                       layout="vertical"
                     >
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} />
@@ -503,7 +503,7 @@ export default function DashboardPage() {
                         type="category"
                         tickLine={false}
                         axisLine={false}
-                        width={(language === 'id' ? 150 : 120)} // Adjusted width
+                        width={language === 'id' ? 160 : 140} // Width for Y-axis labels
                         interval={0}
                         tick={{ fontSize: 9, textAnchor: 'end' }}
                       />
@@ -660,7 +660,6 @@ export default function DashboardPage() {
           </Card>
       </div>
 
-
       {shouldShowUpcomingAgendaCard && (
           <Card className="mb-6">
               <CardHeader>
@@ -709,7 +708,7 @@ export default function DashboardPage() {
           <CardTitle className="text-lg md:text-xl">{isClient ? dashboardDict.projectOverview : defaultGlobalDict.dashboardPage.projectOverview}</CardTitle>
           <CardDescription>
             {isClient && currentUser && currentUser.role ? (
-              ['owner', 'akuntan', 'admin proyek', 'admin developer'].includes(currentUser.role.trim().toLowerCase())
+              (['owner', 'akuntan', 'admin proyek', 'admin developer'].includes(currentUser.role.trim().toLowerCase()))
               ? (isClient ? dashboardDict.allProjectsDesc : defaultGlobalDict.dashboardPage.allProjectsDesc)
               : (isClient ? dashboardDict.divisionProjectsDesc.replace('{division}', getTranslatedStatus(currentUser.role)) : defaultGlobalDict.dashboardPage.divisionProjectsDesc.replace('{division}', currentUser.role) )
             ) : (isClient ? defaultGlobalDict.dashboardPage.allProjectsDesc : "")}
@@ -759,3 +758,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
