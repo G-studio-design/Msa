@@ -381,6 +381,22 @@
     "projectId": "project_demo_aktif_001",
     "message": "Hasil survei untuk 'Proyek Renovasi Kantor Pusat' telah diunggah oleh komangmerta. Mohon unggah berkas arsitektur.",
     "timestamp": "2025-05-27T11:54:26.391Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748420949704_y6noh_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_demo_aktif_001",
+    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'Proyek Renovasi Kantor Pusat' telah diunggah. Anda bisa mulai merencanakan struktur.",
+    "timestamp": "2025-05-28T08:29:09.700Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748420949711_9mzm6_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_demo_aktif_001",
+    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'Proyek Renovasi Kantor Pusat' telah diunggah. Anda bisa mulai melakukan perencanaan MEP awal.",
+    "timestamp": "2025-05-28T08:29:09.708Z",
     "isRead": false
   }
 ]

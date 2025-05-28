@@ -51,6 +51,12 @@
         "action": "komangmerta (Admin Proyek) submitted Survey Details for 2025-05-29 at 08:50",
         "timestamp": "2025-05-27T11:54:26.380Z",
         "note": "Survey Description: survey langsung ke lokasi."
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) uploaded initial reference images for Struktur & MEP.",
+        "timestamp": "2025-05-28T08:29:09.664Z",
+        "note": "gambar arsitektur"
       }
     ],
     "files": [
@@ -83,6 +89,12 @@
         "uploadedBy": "komangmerta",
         "path": "project_demo_aktif_001-proyek_renovasi_kantor_pusat/pool_warung_semanapdf",
         "timestamp": "2025-05-24T10:19:28.505Z"
+      },
+      {
+        "name": "pool warung semana.pdf",
+        "uploadedBy": "arsitek",
+        "path": "project_demo_aktif_001-proyek_renovasi_kantor_pusat/pool_warung_semanapdf",
+        "timestamp": "2025-05-28T08:29:09.664Z"
       }
     ],
     "createdAt": "2024-05-24T10:00:00.000Z",
