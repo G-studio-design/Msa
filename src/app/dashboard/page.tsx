@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelList, Cell } from "recharts";
 import { Calendar } from "@/components/ui/calendar";
-import { parseISO, format, isSameDay, isValid, eachDayOfInterval, startOfMonth, addDays, isWithinInterval, startOfDay, compareAsc, endOfDay } from 'date-fns';
+import { parseISO, format, isSameDay, isValid, eachDayOfInterval, startOfMonth, addDays, isWithinInterval, startOfDay, compareAsc, endOfDay, addMonths, subMonths } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 
 const defaultGlobalDict = getDictionary('en');
@@ -53,6 +53,10 @@ export default function DashboardPage() {
   const { language } = useLanguage();
   const { currentUser } = useAuth();
   const [isClient, setIsClient] = React.useState(false);
+  
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const defaultDict = React.useMemo(() => getDictionary('en'), []);
   const dict = React.useMemo(() => getDictionary(language), [language]);
@@ -70,10 +74,6 @@ export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(new Date());
   const [displayMonth, setDisplayMonth] = React.useState<Date>(startOfMonth(new Date()));
   const [eventsForSelectedDate, setEventsForSelectedDate] = React.useState<CalendarDisplayEvent[]>([]);
-
- React.useEffect(() => {
-    setIsClient(true);
-  }, []);
 
 
   const fetchData = React.useCallback(async () => {
@@ -183,7 +183,7 @@ export default function DashboardPage() {
   const chartData = React.useMemo(() => {
     return activeProjects
       .map(project => ({
-        title: project.title.length > (language === 'id' ? 18 : 22) ? `${project.title.substring(0, (language === 'id' ? 15 : 19))}...` : project.title, // Adjusted truncation length
+        title: project.title.length > (language === 'id' ? 18 : 22) ? `${project.title.substring(0, (language === 'id' ? 15 : 19))}...` : project.title,
         progress: project.progress,
         id: project.id
       }))
@@ -304,16 +304,14 @@ export default function DashboardPage() {
         const today = startOfDay(new Date());
         const threeDaysFromNow = endOfDay(addDays(today, 2)); 
         
-        const agendaItems: UpcomingAgendaItem[] = [];
+        const agendaItemsResult: UpcomingAgendaItem[] = [];
 
-        // Process projects for survey and sidang
         allProjects.forEach(project => {
-            // Surveys
             if (project.surveyDetails?.date && project.status !== 'Completed' && project.status !== 'Canceled') {
                 try {
                     const surveyRawDate = startOfDay(parseISO(project.surveyDetails.date));
                     if (isValid(surveyRawDate) && isWithinInterval(surveyRawDate, { start: today, end: threeDaysFromNow })) {
-                        agendaItems.push({
+                        agendaItemsResult.push({
                             id: `survey-${project.id}`,
                             title: project.title,
                             rawDate: surveyRawDate,
@@ -326,12 +324,11 @@ export default function DashboardPage() {
                     }
                 } catch (e) { console.error("Error parsing survey date for upcoming agenda:", project.id, e); }
             }
-            // Sidang
             if (project.status === 'Scheduled' && project.scheduleDetails?.date) {
                  try {
                     const sidangRawDate = startOfDay(parseISO(project.scheduleDetails.date));
                     if (isValid(sidangRawDate) && isWithinInterval(sidangRawDate, { start: today, end: threeDaysFromNow })) {
-                        agendaItems.push({
+                        agendaItemsResult.push({
                             id: `sidang-${project.id}`,
                             title: project.title,
                             rawDate: sidangRawDate,
@@ -346,12 +343,11 @@ export default function DashboardPage() {
             }
         });
 
-        // Process holidays and company events
         holidaysAndEvents.forEach(event => {
             try {
                 const eventRawDate = startOfDay(parseISO(event.date));
                 if (isValid(eventRawDate) && isWithinInterval(eventRawDate, { start: today, end: threeDaysFromNow })) {
-                    agendaItems.push({
+                    agendaItemsResult.push({
                         id: event.id,
                         title: event.name,
                         rawDate: eventRawDate,
@@ -361,14 +357,13 @@ export default function DashboardPage() {
                         icon: event.type === "Company Event" ? <BuildingIcon className="mr-2 h-4 w-4 text-purple-600 flex-shrink-0" /> : <PartyPopper className="mr-2 h-4 w-4 text-orange-600 flex-shrink-0" />
                     });
                 }
-            } catch(e) { console.error("Error parsing holiday/event date for upcoming agenda:", event.id, e); }
+            } catch(e) { console.error("Error processing holiday/event date for upcoming agenda:", event.id, e); }
         });
 
-        // Sort all agenda items by date
-        agendaItems.sort((a, b) => compareAsc(a.rawDate, b.rawDate));
-        setUpcomingAgendaItems(agendaItems);
+        agendaItemsResult.sort((a, b) => compareAsc(a.rawDate, b.rawDate));
+        setUpcomingAgendaItems(agendaItemsResult);
     } else if (isClient) {
-        setUpcomingAgendaItems([]); // Clear if no relevant data or user
+        setUpcomingAgendaItems([]); 
     }
   }, [isClient, currentUser, allProjects, holidaysAndEvents, currentLocale]);
 
@@ -376,14 +371,12 @@ export default function DashboardPage() {
   const canAddProject = React.useMemo(() => {
     if (!currentUser || !currentUser.role) return false;
     const userRoleCleaned = currentUser.role.trim().toLowerCase();
-    // Akuntan (General Admin) tidak bisa menambah proyek
     return ['owner', 'admin proyek', 'admin developer'].includes(userRoleCleaned);
   }, [currentUser]);
 
-   const shouldShowUpcomingAgendaCard = React.useMemo(() => {
+  const shouldShowUpcomingAgendaCard = React.useMemo(() => {
     if (!isClient || !currentUser || !currentUser.role) return false;
     const userRoleCleaned = currentUser.role.trim().toLowerCase();
-    // Kartu Agenda Mendatang hanya untuk Admin Proyek dan Arsitek
     const agendaCardVisibleForRoles = ['admin proyek', 'arsitek'];
     return agendaCardVisibleForRoles.includes(userRoleCleaned) && upcomingAgendaItems.length > 0;
   }, [isClient, currentUser, upcomingAgendaItems]);
@@ -482,7 +475,7 @@ export default function DashboardPage() {
               <CardTitle className="text-lg md:text-xl">{isClient ? dashboardDict.projectProgressChartTitle : defaultGlobalDict.dashboardPage.projectProgressChartTitle}</CardTitle>
               <CardDescription>{isClient ? dashboardDict.projectProgressChartDesc : defaultGlobalDict.dashboardPage.projectProgressChartDesc}</CardDescription>
             </CardHeader>
-            <CardContent className="p-4 sm:p-6"> {/* Increased padding */}
+            <CardContent className="py-4 px-1 sm:px-2">
               {activeProjects.length > 0 && chartData.length > 0 ? (
                 <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -490,8 +483,8 @@ export default function DashboardPage() {
                       data={chartData}
                       margin={{
                         top: 5,
-                        right: language === 'id' ? 40 : 35,
-                        left: 5, // Small left margin for BarChart itself
+                        right: language === 'id' ? 40 : 30, 
+                        left: 5, 
                         bottom: 5,
                       }}
                       layout="vertical"
@@ -503,7 +496,7 @@ export default function DashboardPage() {
                         type="category"
                         tickLine={false}
                         axisLine={false}
-                        width={language === 'id' ? 160 : 140} // Width for Y-axis labels
+                        width={language === 'id' ? 140 : 120} 
                         interval={0}
                         tick={{ fontSize: 9, textAnchor: 'end' }}
                       />
@@ -536,7 +529,7 @@ export default function DashboardPage() {
                   const today = new Date();
                   setSelectedDate(today);
                   setDisplayMonth(startOfMonth(today));
-                  handleDateSelect(today);
+                  handleDateSelect(today); // Make sure this function is called
                 }}
                 className="mb-3 self-start"
               >
@@ -570,9 +563,9 @@ export default function DashboardPage() {
               />
               <div className="mt-4 w-full space-y-3">
                 <h3 className="text-md font-semibold text-foreground text-center">
-                   {isClient ? (selectedDate ? dashboardDict.eventsForDate.replace('{date}', format(selectedDate, 'PPP', { locale: currentLocale })) : dashboardDict.selectDatePrompt) : (defaultGlobalDict.dashboardPage.selectDatePrompt)}
+                   {(isClient && selectedDate) ? dashboardDict.eventsForDate.replace('{date}', format(selectedDate, 'PPP', { locale: currentLocale })) : (isClient ? dashboardDict.selectDatePrompt : defaultGlobalDict.dashboardPage.selectDatePrompt)}
                 </h3>
-                {selectedDate && eventsForSelectedDate.length > 0 ? (
+                {selectedDate && eventsForSelectedDate.length > 0 && isClient ? (
                   <ul className="space-y-2 text-sm max-h-48 overflow-y-auto pr-2">
                     {eventsForSelectedDate.map((event, index) => {
                       const key = `${event.type}-${(event as any).id || `event-${index}`}-${index}`;
@@ -660,6 +653,7 @@ export default function DashboardPage() {
           </Card>
       </div>
 
+      {/* Display Upcoming Agenda Card */}
       {shouldShowUpcomingAgendaCard && (
           <Card className="mb-6">
               <CardHeader>
@@ -726,7 +720,7 @@ export default function DashboardPage() {
                       <div className="flex-1 min-w-0">
                         <CardTitle className="text-base sm:text-lg truncate hover:text-primary transition-colors">{project.title}</CardTitle>
                         <CardDescription className="text-xs text-muted-foreground mt-1 truncate">
-                          {isClient ? dashboardDict.assignedTo : defaultGlobalDict.dashboardPage.assignedTo}: {getTranslatedStatus(project.assignedDivision) || (isClient ? dashboardDict.status.notassigned : defaultGlobalDict.dashboardPage.status.notassigned)} {project.nextAction ? `| ${isClient ? dashboardDict.nextAction : defaultGlobalDict.dashboardPage.nextAction}: ${project.nextAction}` : ''}
+                          {(isClient ? dashboardDict.assignedTo : defaultGlobalDict.dashboardPage.assignedTo) + ": " + (getTranslatedStatus(project.assignedDivision) || (isClient ? dashboardDict.status.notassigned : defaultGlobalDict.dashboardPage.status.notassigned))} {project.nextAction ? `| ${(isClient ? dashboardDict.nextAction : defaultGlobalDict.dashboardPage.nextAction)}: ${project.nextAction}` : ''}
                         </CardDescription>
                       </div>
                       <div className="flex-shrink-0 mt-2 sm:mt-0">
@@ -759,3 +753,4 @@ export default function DashboardPage() {
   );
 }
 
+    
