@@ -143,7 +143,7 @@ export default function DashboardPage() {
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = AlertTriangle; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Info; break;
-        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles': case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
+        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles':  case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarDays; break;
         default: variant = 'secondary'; Icon = Info;
     }
@@ -550,7 +550,7 @@ export default function DashboardPage() {
                       onMonthChange={setDisplayMonth}
                       onSelect={handleDateSelect}
                       locale={currentLocale}
-                      className="rounded-md border shadow-sm bg-card text-card-foreground p-3 w-full"
+                      className="rounded-md border shadow-sm bg-card text-card-foreground p-3"
                       modifiers={{
                         sunday: { dayOfWeek: [0] },
                         sidang: calendarEventsData.dates.filter(d => calendarEventsData.eventsByDate[format(d, 'yyyy-MM-dd')]?.some(e => e.type === 'sidang')),
@@ -569,7 +569,7 @@ export default function DashboardPage() {
                       }}
                       disabled={(date) => date < new Date("1900-01-01") || date > new Date("2999-12-31")}
                     />
-                    <div className="mt-4 w-full space-y-3 max-w-md">
+                    <div className="mt-4 w-full space-y-3">
                       <h3 className="text-md font-semibold text-foreground text-center">
                          {(isClient && selectedDate) ? dashboardDict.eventsForDate.replace('{date}', format(selectedDate, 'PPP', { locale: currentLocale })) : (isClient ? dashboardDict.selectDatePrompt : defaultGlobalDict.dashboardPage.selectDatePrompt)}
                       </h3>
