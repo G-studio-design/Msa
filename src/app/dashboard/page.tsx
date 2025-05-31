@@ -141,7 +141,7 @@ export default function DashboardPage() {
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = AlertTriangle; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Info; break;
-        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles': case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
+        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles':  case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarDays; break;
         default: variant = 'secondary'; Icon = Info;
     }
@@ -369,9 +369,9 @@ export default function DashboardPage() {
 
   const shouldShowUpcomingAgendaCard = React.useMemo(() => {
     if (!isClient || !currentUser || !currentUser.role) return false;
+    const surveyCardVisibleForRoles = ['admin proyek', 'arsitek'];
     const userRoleCleaned = currentUser.role.trim().toLowerCase();
-    const agendaCardVisibleForRoles = ['admin proyek', 'arsitek']; // Roles who see this card
-    return agendaCardVisibleForRoles.includes(userRoleCleaned) && upcomingAgendaItems.length > 0;
+    return surveyCardVisibleForRoles.includes(userRoleCleaned) && upcomingAgendaItems.length > 0;
   }, [isClient, currentUser, upcomingAgendaItems]);
 
   const canAddProject = React.useMemo(() => {
@@ -402,10 +402,6 @@ export default function DashboardPage() {
           <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
           <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
         </div>
-        {/* Placeholder for the Upcoming Agenda card if roles would see it */}
-        {(isClient && currentUser && currentUser.role && ['admin proyek', 'arsitek'].includes(currentUser.role.trim().toLowerCase())) && (
-             <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-40 w-full" /></CardContent></Card>
-        )}
         <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><div className="space-y-4">{[...Array(3)].map((_, i) => (<Card key={`project-skel-${i}`} className="opacity-50"><CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6"><div><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div><div className="flex-shrink-0 mt-2 sm:mt-0"><Skeleton className="h-5 w-20 rounded-full" /></div></CardHeader><CardContent className="p-4 sm:p-6 pt-0"><Skeleton className="h-2 w-full mb-1" /><Skeleton className="h-3 w-1/4" /></CardContent></Card>))}</div></CardContent></Card>
       </div>
     );
@@ -477,7 +473,7 @@ export default function DashboardPage() {
               <CardTitle className="text-lg md:text-xl">{isClient ? dashboardDict.projectProgressChartTitle : defaultGlobalDict.dashboardPage.projectProgressChartTitle}</CardTitle>
               <CardDescription>{isClient ? dashboardDict.projectProgressChartDesc : defaultGlobalDict.dashboardPage.projectProgressChartDesc}</CardDescription>
             </CardHeader>
-            <CardContent className="py-4 px-1 sm:px-2"> {/* Adjusted padding */}
+            <CardContent className="py-4 px-1 sm:px-2">
               {activeProjects.length > 0 && chartData.length > 0 ? (
                 <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -486,7 +482,7 @@ export default function DashboardPage() {
                       margin={{
                         top: 5,
                         right: language === 'id' ? 35 : 30, 
-                        left: language === 'id' ? 10 : 5,
+                        left: language === 'id' ? 10 : 5, 
                         bottom: 5,
                       }}
                       layout="vertical"
@@ -498,7 +494,7 @@ export default function DashboardPage() {
                         type="category"
                         tickLine={false}
                         axisLine={false}
-                        width={language === 'id' ? 130 : 110} // Increased width for Y-axis labels
+                        width={language === 'id' ? 125 : 105} 
                         interval={0}
                         tick={{ fontSize: 9, textAnchor: 'end' }}
                       />
@@ -523,7 +519,7 @@ export default function DashboardPage() {
               <CardTitle className="text-lg md:text-xl">{isClient ? dashboardDict.scheduleAgendaTitle : defaultGlobalDict.dashboardPage.scheduleAgendaTitle}</CardTitle>
               <CardDescription>{isClient ? dashboardDict.scheduleAgendaDesc : defaultGlobalDict.dashboardPage.scheduleAgendaDesc}</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col items-center">
+            <CardContent className="flex flex-col items-center pt-0">
              <Button
                 variant="outline"
                 size="sm"
@@ -653,50 +649,49 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
+
+           {shouldShowUpcomingAgendaCard && (
+              <Card className="mb-6 md:col-span-2"> {/* Make it span 2 columns on medium screens if in grid */}
+                  <CardHeader>
+                      <CardTitle className="text-lg md:text-xl text-primary flex items-center">
+                          <ListChecks className="mr-2 h-5 w-5" />
+                          {isClient ? dashboardDict.upcomingAgendaTitle : defaultGlobalDict.dashboardPage.upcomingAgendaTitle}
+                      </CardTitle>
+                      <CardDescription>
+                          {isClient ? dashboardDict.upcomingAgendaDesc : defaultGlobalDict.dashboardPage.upcomingAgendaDesc}
+                      </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                      {upcomingAgendaItems.length > 0 ? (
+                          <ul className="space-y-3">
+                              {upcomingAgendaItems.map(item => (
+                                  <li key={item.id} className="p-3 border rounded-md bg-muted/30 hover:bg-muted/60 transition-colors shadow-sm">
+                                     <div className="flex items-start">
+                                         {item.icon}
+                                         <div className="flex-1">
+                                              <Link href={(item.type === 'sidang' || item.type === 'survey') && item.id.startsWith('project_') ? `/dashboard/projects?projectId=${item.id}` : (item.type === 'sidang' || item.type === 'survey') ? `/dashboard/projects?projectId=${item.id.replace('survey-', '').replace('sidang-', '')}` : '#'} className="block hover:underline font-medium text-foreground">
+                                                  {item.title}
+                                              </Link>
+                                              <p className="text-sm text-muted-foreground">
+                                                  {item.date} {item.time && ` - ${item.time}`}
+                                              </p>
+                                              {item.type === 'survey' && item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
+                                              {item.type === 'sidang' && item.location && <p className="text-xs text-muted-foreground mt-1">{isClient ? dashboardDict.eventLocationLabel : defaultGlobalDict.dashboardPage.eventLocationLabel} {item.location}</p>}
+                                              {(item.type === 'holiday' || item.type === 'company_event') && item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
+                                         </div>
+                                      </div>
+                                  </li>
+                              ))}
+                          </ul>
+                      ) : (
+                           <p className="text-sm text-muted-foreground italic text-center py-4">
+                               {isClient ? dashboardDict.noUpcomingAgenda : defaultGlobalDict.dashboardPage.noUpcomingAgenda}
+                           </p>
+                      )}
+                  </CardContent>
+              </Card>
+          )}
       </div>
-
-      {shouldShowUpcomingAgendaCard && (
-          <Card className="mb-6">
-              <CardHeader>
-                  <CardTitle className="text-lg md:text-xl text-primary flex items-center">
-                      <ListChecks className="mr-2 h-5 w-5" />
-                      {isClient ? dashboardDict.upcomingAgendaTitle : defaultGlobalDict.dashboardPage.upcomingAgendaTitle}
-                  </CardTitle>
-                  <CardDescription>
-                      {isClient ? dashboardDict.upcomingAgendaDesc : defaultGlobalDict.dashboardPage.upcomingAgendaDesc}
-                  </CardDescription>
-              </CardHeader>
-              <CardContent>
-                  {upcomingAgendaItems.length > 0 ? (
-                      <ul className="space-y-3">
-                          {upcomingAgendaItems.map(item => (
-                              <li key={item.id} className="p-3 border rounded-md bg-muted/30 hover:bg-muted/60 transition-colors shadow-sm">
-                                 <div className="flex items-start">
-                                     {item.icon}
-                                     <div className="flex-1">
-                                          <Link href={(item.type === 'sidang' || item.type === 'survey') && item.id.startsWith('project_') ? `/dashboard/projects?projectId=${item.id}` : (item.type === 'sidang' || item.type === 'survey') ? `/dashboard/projects?projectId=${item.id.replace('survey-', '').replace('sidang-', '')}` : '#'} className="block hover:underline font-medium text-foreground">
-                                              {item.title}
-                                          </Link>
-                                          <p className="text-sm text-muted-foreground">
-                                              {item.date} {item.time && ` - ${item.time}`}
-                                          </p>
-                                          {item.type === 'survey' && item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
-                                          {item.type === 'sidang' && item.location && <p className="text-xs text-muted-foreground mt-1">{isClient ? dashboardDict.eventLocationLabel : defaultGlobalDict.dashboardPage.eventLocationLabel} {item.location}</p>}
-                                          {(item.type === 'holiday' || item.type === 'company_event') && item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
-                                     </div>
-                                  </div>
-                              </li>
-                          ))}
-                      </ul>
-                  ) : (
-                       <p className="text-sm text-muted-foreground italic text-center py-4">
-                           {isClient ? dashboardDict.noUpcomingAgenda : defaultGlobalDict.dashboardPage.noUpcomingAgenda}
-                       </p>
-                  )}
-              </CardContent>
-          </Card>
-      )}
-
 
       <Card>
         <CardHeader>
