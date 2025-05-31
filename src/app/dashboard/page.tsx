@@ -1,3 +1,4 @@
+
 // src/app/dashboard/page.tsx
 'use client';
 
@@ -68,6 +69,7 @@ export default function DashboardPage() {
   const [approvedLeaves, setApprovedLeaves] = React.useState<LeaveRequest[]>([]);
   const [holidaysAndEvents, setHolidaysAndEvents] = React.useState<HolidayEntry[]>([]);
   const [isLoadingData, setIsLoadingData] = React.useState(true);
+  
   const [upcomingAgendaItems, setUpcomingAgendaItems] = React.useState<UpcomingAgendaItem[]>([]);
 
 
@@ -399,8 +401,8 @@ export default function DashboardPage() {
           ))}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
-          <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
+          <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent className="p-1 sm:p-2"><Skeleton className="h-64 w-full" /></CardContent></Card>
+          <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent className="max-w-md mx-auto p-3"><Skeleton className="h-64 w-full" /></CardContent></Card>
         </div>
         <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><div className="space-y-4">{[...Array(3)].map((_, i) => (<Card key={`project-skel-${i}`} className="opacity-50"><CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6"><div><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div><div className="flex-shrink-0 mt-2 sm:mt-0"><Skeleton className="h-5 w-20 rounded-full" /></div></CardHeader><CardContent className="p-4 sm:p-6 pt-0"><Skeleton className="h-2 w-full mb-1" /><Skeleton className="h-3 w-1/4" /></CardContent></Card>))}</div></CardContent></Card>
       </div>
@@ -482,7 +484,7 @@ export default function DashboardPage() {
                       margin={{
                         top: 5,
                         right: language === 'id' ? 35 : 30, 
-                        left: language === 'id' ? 10 : 5, 
+                        left: language === 'id' ? 10 : 5,  
                         bottom: 5,
                       }}
                       layout="vertical"
@@ -494,7 +496,7 @@ export default function DashboardPage() {
                         type="category"
                         tickLine={false}
                         axisLine={false}
-                        width={language === 'id' ? 125 : 105} 
+                        width={language === 'id' ? 130 : 110} 
                         interval={0}
                         tick={{ fontSize: 9, textAnchor: 'end' }}
                       />
@@ -519,7 +521,7 @@ export default function DashboardPage() {
               <CardTitle className="text-lg md:text-xl">{isClient ? dashboardDict.scheduleAgendaTitle : defaultGlobalDict.dashboardPage.scheduleAgendaTitle}</CardTitle>
               <CardDescription>{isClient ? dashboardDict.scheduleAgendaDesc : defaultGlobalDict.dashboardPage.scheduleAgendaDesc}</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col items-center pt-0">
+            <CardContent className="max-w-md mx-auto p-3"> {/* Constrain width and center content */}
              <Button
                 variant="outline"
                 size="sm"
@@ -540,7 +542,7 @@ export default function DashboardPage() {
                 onMonthChange={setDisplayMonth}
                 onSelect={handleDateSelect}
                 locale={currentLocale}
-                className="rounded-md border shadow-sm bg-card text-card-foreground p-3 self-center w-full max-w-md"
+                className="rounded-md border shadow-sm bg-card text-card-foreground p-3 w-full"
                 modifiers={{
                   sunday: { dayOfWeek: [0] },
                   sidang: calendarEventsData.dates.filter(d => calendarEventsData.eventsByDate[format(d, 'yyyy-MM-dd')]?.some(e => e.type === 'sidang')),
@@ -649,49 +651,49 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
-
-           {shouldShowUpcomingAgendaCard && (
-              <Card className="mb-6 md:col-span-2"> {/* Make it span 2 columns on medium screens if in grid */}
-                  <CardHeader>
-                      <CardTitle className="text-lg md:text-xl text-primary flex items-center">
-                          <ListChecks className="mr-2 h-5 w-5" />
-                          {isClient ? dashboardDict.upcomingAgendaTitle : defaultGlobalDict.dashboardPage.upcomingAgendaTitle}
-                      </CardTitle>
-                      <CardDescription>
-                          {isClient ? dashboardDict.upcomingAgendaDesc : defaultGlobalDict.dashboardPage.upcomingAgendaDesc}
-                      </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                      {upcomingAgendaItems.length > 0 ? (
-                          <ul className="space-y-3">
-                              {upcomingAgendaItems.map(item => (
-                                  <li key={item.id} className="p-3 border rounded-md bg-muted/30 hover:bg-muted/60 transition-colors shadow-sm">
-                                     <div className="flex items-start">
-                                         {item.icon}
-                                         <div className="flex-1">
-                                              <Link href={(item.type === 'sidang' || item.type === 'survey') && item.id.startsWith('project_') ? `/dashboard/projects?projectId=${item.id}` : (item.type === 'sidang' || item.type === 'survey') ? `/dashboard/projects?projectId=${item.id.replace('survey-', '').replace('sidang-', '')}` : '#'} className="block hover:underline font-medium text-foreground">
-                                                  {item.title}
-                                              </Link>
-                                              <p className="text-sm text-muted-foreground">
-                                                  {item.date} {item.time && ` - ${item.time}`}
-                                              </p>
-                                              {item.type === 'survey' && item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
-                                              {item.type === 'sidang' && item.location && <p className="text-xs text-muted-foreground mt-1">{isClient ? dashboardDict.eventLocationLabel : defaultGlobalDict.dashboardPage.eventLocationLabel} {item.location}</p>}
-                                              {(item.type === 'holiday' || item.type === 'company_event') && item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
-                                         </div>
-                                      </div>
-                                  </li>
-                              ))}
-                          </ul>
-                      ) : (
-                           <p className="text-sm text-muted-foreground italic text-center py-4">
-                               {isClient ? dashboardDict.noUpcomingAgenda : defaultGlobalDict.dashboardPage.noUpcomingAgenda}
-                           </p>
-                      )}
-                  </CardContent>
-              </Card>
-          )}
       </div>
+      
+      {shouldShowUpcomingAgendaCard && (
+          <Card className="mb-6 md:col-span-2"> 
+              <CardHeader>
+                  <CardTitle className="text-lg md:text-xl text-primary flex items-center">
+                      <ListChecks className="mr-2 h-5 w-5" />
+                      {isClient ? dashboardDict.upcomingAgendaTitle : defaultGlobalDict.dashboardPage.upcomingAgendaTitle}
+                  </CardTitle>
+                  <CardDescription>
+                      {isClient ? dashboardDict.upcomingAgendaDesc : defaultGlobalDict.dashboardPage.upcomingAgendaDesc}
+                  </CardDescription>
+              </CardHeader>
+              <CardContent>
+                  {upcomingAgendaItems.length > 0 ? (
+                      <ul className="space-y-3">
+                          {upcomingAgendaItems.map(item => (
+                              <li key={item.id} className="p-3 border rounded-md bg-muted/30 hover:bg-muted/60 transition-colors shadow-sm">
+                                 <div className="flex items-start">
+                                     {item.icon}
+                                     <div className="flex-1">
+                                          <Link href={(item.type === 'sidang' || item.type === 'survey') && item.id.startsWith('project_') ? `/dashboard/projects?projectId=${item.id}` : (item.type === 'sidang' || item.type === 'survey') ? `/dashboard/projects?projectId=${item.id.replace('survey-', '').replace('sidang-', '')}` : '#'} className="block hover:underline font-medium text-foreground">
+                                              {item.title}
+                                          </Link>
+                                          <p className="text-sm text-muted-foreground">
+                                              {item.date} {item.time && ` - ${item.time}`}
+                                          </p>
+                                          {item.type === 'survey' && item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
+                                          {item.type === 'sidang' && item.location && <p className="text-xs text-muted-foreground mt-1">{isClient ? dashboardDict.eventLocationLabel : defaultGlobalDict.dashboardPage.eventLocationLabel} {item.location}</p>}
+                                          {(item.type === 'holiday' || item.type === 'company_event') && item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
+                                     </div>
+                                  </div>
+                              </li>
+                          ))}
+                      </ul>
+                  ) : (
+                       <p className="text-sm text-muted-foreground italic text-center py-4">
+                           {isClient ? dashboardDict.noUpcomingAgenda : defaultGlobalDict.dashboardPage.noUpcomingAgenda}
+                       </p>
+                  )}
+              </CardContent>
+          </Card>
+      )}
 
       <Card>
         <CardHeader>
