@@ -521,133 +521,135 @@ export default function DashboardPage() {
               <CardTitle className="text-lg md:text-xl">{isClient ? dashboardDict.scheduleAgendaTitle : defaultGlobalDict.dashboardPage.scheduleAgendaTitle}</CardTitle>
               <CardDescription>{isClient ? dashboardDict.scheduleAgendaDesc : defaultGlobalDict.dashboardPage.scheduleAgendaDesc}</CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col items-center p-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const today = new Date();
-                  setSelectedDate(today);
-                  setDisplayMonth(startOfMonth(today));
-                  handleDateSelect(today);
-                }}
-                className="mb-3"
-              >
-                {isClient ? dashboardDict.todayButtonLabel : defaultGlobalDict.dashboardPage.todayButtonLabel}
-              </Button>
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                month={displayMonth}
-                onMonthChange={setDisplayMonth}
-                onSelect={handleDateSelect}
-                locale={currentLocale}
-                className="rounded-md border shadow-sm bg-card text-card-foreground p-3 w-full max-w-md"
-                modifiers={{
-                  sunday: { dayOfWeek: [0] },
-                  sidang: calendarEventsData.dates.filter(d => calendarEventsData.eventsByDate[format(d, 'yyyy-MM-dd')]?.some(e => e.type === 'sidang')),
-                  leave: calendarEventsData.dates.filter(d => calendarEventsData.eventsByDate[format(d, 'yyyy-MM-dd')]?.some(e => e.type === 'leave')),
-                  survey: calendarEventsData.dates.filter(d => calendarEventsData.eventsByDate[format(d, 'yyyy-MM-dd')]?.some(e => e.type === 'survey')),
-                  holiday: calendarEventsData.dates.filter(d => calendarEventsData.eventsByDate[format(d, 'yyyy-MM-dd')]?.some(e => e.type === 'holiday')),
-                  company_event: calendarEventsData.dates.filter(d => calendarEventsData.eventsByDate[format(d, 'yyyy-MM-dd')]?.some(e => e.type === 'company_event')),
-                }}
-                modifiersClassNames={{
-                  sunday: 'text-destructive',
-                  sidang: 'text-primary font-bold',
-                  leave: 'text-destructive font-bold',
-                  survey: 'text-green-600 font-bold',
-                  holiday: 'text-orange-500 font-semibold',
-                  company_event: 'text-purple-600 font-semibold',
-                }}
-                disabled={(date) => date < new Date("1900-01-01") || date > new Date("2999-12-31")}
-              />
-              <div className="mt-4 w-full space-y-3 max-w-md">
-                <h3 className="text-md font-semibold text-foreground text-center">
-                   {(isClient && selectedDate) ? dashboardDict.eventsForDate.replace('{date}', format(selectedDate, 'PPP', { locale: currentLocale })) : (isClient ? dashboardDict.selectDatePrompt : defaultGlobalDict.dashboardPage.selectDatePrompt)}
-                </h3>
-                {selectedDate && eventsForSelectedDate.length > 0 && isClient ? (
-                  <ul className="space-y-2 text-sm max-h-48 overflow-y-auto pr-2">
-                    {eventsForSelectedDate.map((event, index) => {
-                      const key = `${event.type}-${(event as any).id || `event-${index}`}-${index}`;
-                      return (
-                      <li key={key} className="p-3 border rounded-md bg-muted/30 hover:bg-muted/60 transition-colors shadow-sm">
-                        {event.type === 'sidang' && (event as Project).scheduleDetails ? (
-                          <>
-                            <div className="flex items-center justify-between mb-1">
-                              <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="font-medium text-primary truncate hover:underline">
+            <CardContent className="p-3">
+              <div className="flex flex-col items-center w-full max-w-md mx-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const today = new Date();
+                    setSelectedDate(today);
+                    setDisplayMonth(startOfMonth(today));
+                    handleDateSelect(today);
+                  }}
+                  className="mb-3"
+                >
+                  {isClient ? dashboardDict.todayButtonLabel : defaultGlobalDict.dashboardPage.todayButtonLabel}
+                </Button>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  month={displayMonth}
+                  onMonthChange={setDisplayMonth}
+                  onSelect={handleDateSelect}
+                  locale={currentLocale}
+                  className="rounded-md border shadow-sm bg-card text-card-foreground p-3 w-full"
+                  modifiers={{
+                    sunday: { dayOfWeek: [0] },
+                    sidang: calendarEventsData.dates.filter(d => calendarEventsData.eventsByDate[format(d, 'yyyy-MM-dd')]?.some(e => e.type === 'sidang')),
+                    leave: calendarEventsData.dates.filter(d => calendarEventsData.eventsByDate[format(d, 'yyyy-MM-dd')]?.some(e => e.type === 'leave')),
+                    survey: calendarEventsData.dates.filter(d => calendarEventsData.eventsByDate[format(d, 'yyyy-MM-dd')]?.some(e => e.type === 'survey')),
+                    holiday: calendarEventsData.dates.filter(d => calendarEventsData.eventsByDate[format(d, 'yyyy-MM-dd')]?.some(e => e.type === 'holiday')),
+                    company_event: calendarEventsData.dates.filter(d => calendarEventsData.eventsByDate[format(d, 'yyyy-MM-dd')]?.some(e => e.type === 'company_event')),
+                  }}
+                  modifiersClassNames={{
+                    sunday: 'text-destructive',
+                    sidang: 'text-primary font-bold',
+                    leave: 'text-destructive font-bold',
+                    survey: 'text-green-600 font-bold',
+                    holiday: 'text-orange-500 font-semibold',
+                    company_event: 'text-purple-600 font-semibold',
+                  }}
+                  disabled={(date) => date < new Date("1900-01-01") || date > new Date("2999-12-31")}
+                />
+                <div className="mt-4 w-full space-y-3">
+                  <h3 className="text-md font-semibold text-foreground text-center">
+                     {(isClient && selectedDate) ? dashboardDict.eventsForDate.replace('{date}', format(selectedDate, 'PPP', { locale: currentLocale })) : (isClient ? dashboardDict.selectDatePrompt : defaultGlobalDict.dashboardPage.selectDatePrompt)}
+                  </h3>
+                  {selectedDate && eventsForSelectedDate.length > 0 && isClient ? (
+                    <ul className="space-y-2 text-sm max-h-48 overflow-y-auto pr-2">
+                      {eventsForSelectedDate.map((event, index) => {
+                        const key = `${event.type}-${(event as any).id || `event-${index}`}-${index}`;
+                        return (
+                        <li key={key} className="p-3 border rounded-md bg-muted/30 hover:bg-muted/60 transition-colors shadow-sm">
+                          {event.type === 'sidang' && (event as Project).scheduleDetails ? (
+                            <>
+                              <div className="flex items-center justify-between mb-1">
+                                <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="font-medium text-primary truncate hover:underline">
+                                    {(event as Project).title}
+                                </Link>
+                                {getEventBadge('sidang')}
+                              </div>
+                              {(event as Project).scheduleDetails?.time && (
+                                <p className="text-xs text-muted-foreground">
+                                  {isClient ? dashboardDict.eventTimeLabel : defaultGlobalDict.dashboardPage.eventTimeLabel} {(event as Project).scheduleDetails!.time}
+                                </p>
+                              )}
+                              {(event as Project).scheduleDetails?.location && (
+                                <p className="text-xs text-muted-foreground">
+                                  {isClient ? dashboardDict.eventLocationLabel : defaultGlobalDict.dashboardPage.eventLocationLabel} {(event as Project).scheduleDetails!.location}
+                                </p>
+                              )}
+                            </>
+                          ) : event.type === 'leave' ? (
+                            <>
+                              <div className="flex items-center justify-between mb-1">
+                                <p className="font-medium text-destructive truncate">
+                                  {(event as LeaveRequest).displayName || (event as LeaveRequest).username}
+                                </p>
+                                 {getEventBadge('leave', (event as LeaveRequest).leaveType)}
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {isClient ? dashboardDict.leaveDurationLabel : defaultGlobalDict.dashboardPage.leaveDurationLabel} {format(parseISO((event as LeaveRequest).startDate), 'PP', { locale: currentLocale })} - {format(parseISO((event as LeaveRequest).endDate), 'PP', { locale: currentLocale })}
+                              </p>
+                               {(event as LeaveRequest).reason && (
+                                  <p className="text-xs text-muted-foreground mt-0.5 whitespace-pre-wrap">
+                                    {isClient ? dashboardDict.reasonLabel : defaultGlobalDict.dashboardPage.reasonLabel}: {(event as LeaveRequest).reason}
+                                  </p>
+                              )}
+                            </>
+                          ) : event.type === 'survey' && (event as Project).surveyDetails ? (
+                            <>
+                             <div className="flex items-center justify-between mb-1">
+                               <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="font-medium text-green-600 truncate hover:underline">
                                   {(event as Project).title}
-                              </Link>
-                              {getEventBadge('sidang')}
-                            </div>
-                            {(event as Project).scheduleDetails?.time && (
-                              <p className="text-xs text-muted-foreground">
-                                {isClient ? dashboardDict.eventTimeLabel : defaultGlobalDict.dashboardPage.eventTimeLabel} {(event as Project).scheduleDetails!.time}
-                              </p>
-                            )}
-                            {(event as Project).scheduleDetails?.location && (
-                              <p className="text-xs text-muted-foreground">
-                                {isClient ? dashboardDict.eventLocationLabel : defaultGlobalDict.dashboardPage.eventLocationLabel} {(event as Project).scheduleDetails!.location}
-                              </p>
-                            )}
-                          </>
-                        ) : event.type === 'leave' ? (
-                          <>
-                            <div className="flex items-center justify-between mb-1">
-                              <p className="font-medium text-destructive truncate">
-                                {(event as LeaveRequest).displayName || (event as LeaveRequest).username}
-                              </p>
-                               {getEventBadge('leave', (event as LeaveRequest).leaveType)}
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              {isClient ? dashboardDict.leaveDurationLabel : defaultGlobalDict.dashboardPage.leaveDurationLabel} {format(parseISO((event as LeaveRequest).startDate), 'PP', { locale: currentLocale })} - {format(parseISO((event as LeaveRequest).endDate), 'PP', { locale: currentLocale })}
-                            </p>
-                             {(event as LeaveRequest).reason && (
-                                <p className="text-xs text-muted-foreground mt-0.5 whitespace-pre-wrap">
-                                  {isClient ? dashboardDict.reasonLabel : defaultGlobalDict.dashboardPage.reasonLabel}: {(event as LeaveRequest).reason}
+                                </Link>
+                                {getEventBadge('survey')}
+                              </div>
+                              {(event as Project).surveyDetails?.time && (
+                                <p className="text-xs text-muted-foreground">
+                                  {isClient ? dashboardDict.eventTimeLabel : defaultGlobalDict.dashboardPage.eventTimeLabel} {(event as Project).surveyDetails!.time}
                                 </p>
-                            )}
-                          </>
-                        ) : event.type === 'survey' && (event as Project).surveyDetails ? (
-                          <>
-                           <div className="flex items-center justify-between mb-1">
-                             <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="font-medium text-green-600 truncate hover:underline">
-                                {(event as Project).title}
-                              </Link>
-                              {getEventBadge('survey')}
-                            </div>
-                            {(event as Project).surveyDetails?.time && (
-                              <p className="text-xs text-muted-foreground">
-                                {isClient ? dashboardDict.eventTimeLabel : defaultGlobalDict.dashboardPage.eventTimeLabel} {(event as Project).surveyDetails!.time}
-                              </p>
-                            )}
-                            {(event as Project).surveyDetails?.description && (
-                              <p className="text-xs text-muted-foreground">
-                                {isClient ? dashboardDict.surveyDescriptionLabel : defaultGlobalDict.dashboardPage.surveyDescriptionLabel} {(event as Project).surveyDetails!.description}
-                              </p>
-                            )}
-                          </>
-                        ) : event.type === 'holiday' ? (
-                            <div className="flex items-center justify-between">
-                                <p className="font-medium text-orange-500 truncate">
-                                    {(event as HolidayEntry).name}
+                              )}
+                              {(event as Project).surveyDetails?.description && (
+                                <p className="text-xs text-muted-foreground">
+                                  {isClient ? dashboardDict.surveyDescriptionLabel : defaultGlobalDict.dashboardPage.surveyDescriptionLabel} {(event as Project).surveyDetails!.description}
                                 </p>
-                                {getEventBadge('holiday')}
-                            </div>
-                        ) : event.type === 'company_event' ? (
-                             <div className="flex items-center justify-between">
-                                <p className="font-medium text-purple-600 truncate">
-                                    {(event as HolidayEntry).name}
-                                </p>
-                                {getEventBadge('company_event')}
-                            </div>
-                        ) : null}
-                      </li>
-                      );
-                    })}
-                  </ul>
-                ) : selectedDate && isClient ? (
-                  <p className="text-sm text-muted-foreground italic text-center py-4">{isClient ? dashboardDict.noEventsOnDate : defaultGlobalDict.dashboardPage.noEventsOnDate}</p>
-                ) : null}
+                              )}
+                            </>
+                          ) : event.type === 'holiday' ? (
+                              <div className="flex items-center justify-between">
+                                  <p className="font-medium text-orange-500 truncate">
+                                      {(event as HolidayEntry).name}
+                                  </p>
+                                  {getEventBadge('holiday')}
+                              </div>
+                          ) : event.type === 'company_event' ? (
+                               <div className="flex items-center justify-between">
+                                  <p className="font-medium text-purple-600 truncate">
+                                      {(event as HolidayEntry).name}
+                                  </p>
+                                  {getEventBadge('company_event')}
+                              </div>
+                          ) : null}
+                        </li>
+                        );
+                      })}
+                    </ul>
+                  ) : selectedDate && isClient ? (
+                    <p className="text-sm text-muted-foreground italic text-center py-4">{isClient ? dashboardDict.noEventsOnDate : defaultGlobalDict.dashboardPage.noEventsOnDate}</p>
+                  ) : null}
+                </div>
               </div>
             </CardContent>
           </Card>
