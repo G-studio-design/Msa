@@ -4,7 +4,7 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { getAllUsersForDisplay, type User } from './user-service';
+import { getAllUsersForDisplay, findUserByUsername as findUserByUsernameInternal, type User } from './user-service'; // findUserByUsernameInternal to avoid conflict if User type is also User
 import type { Project } from './project-service'; // Import Project type
 
 // Define the structure of a Notification
@@ -70,9 +70,25 @@ async function writeNotifications(notifications: Notification[]): Promise<void> 
 }
 
 
+// Updated findUsersByRole to fetch all users from the primary source in user-service
+// This ensures Admin Developer can be targeted if specified.
 async function findUsersByRole(role: string): Promise<User[]> {
-    const allUsersForDisplay = await getAllUsersForDisplay();
-    const usersInRole = allUsersForDisplay.filter(user => user.role === role);
+    // Temporarily read users.json directly for this function if a more direct "getAllUsersIncludingDev" isn't available.
+    // This is a simplified approach for now. Ideally, user-service would provide this.
+    let allUsers: User[] = [];
+    const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
+    try {
+        const data = await fs.readFile(USERS_DB_PATH, 'utf8');
+        if (data.trim() !== "") {
+            allUsers = JSON.parse(data) as User[];
+        }
+    } catch (e) {
+        console.error("[NotificationService/findUsersByRole] Error reading users.json directly:", e);
+        // Fallback to getAllUsersForDisplay if direct read fails, understanding its limitations
+        allUsers = await getAllUsersForDisplay();
+    }
+    
+    const usersInRole = allUsers.filter(user => user.role === role);
     console.log(`[NotificationService/findUsersByRole] Found ${usersInRole.length} user(s) with role "${role}" for notification.`);
     return usersInRole;
 }
@@ -211,3 +227,4 @@ export async function clearAllNotifications(): Promise<void> {
         throw new Error("Could not clear notification data.");
     }
 }
+
