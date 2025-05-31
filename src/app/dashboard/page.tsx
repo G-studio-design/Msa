@@ -367,20 +367,18 @@ export default function DashboardPage() {
     }
   }, [isClient, currentUser, allProjects, holidaysAndEvents, currentLocale]);
 
+  const shouldShowUpcomingAgendaCard = React.useMemo(() => {
+    if (!isClient || !currentUser || !currentUser.role) return false;
+    const userRoleCleaned = currentUser.role.trim().toLowerCase();
+    const agendaCardVisibleForRoles = ['admin proyek', 'arsitek']; // Roles who see this card
+    return agendaCardVisibleForRoles.includes(userRoleCleaned) && upcomingAgendaItems.length > 0;
+  }, [isClient, currentUser, upcomingAgendaItems]);
 
   const canAddProject = React.useMemo(() => {
     if (!currentUser || !currentUser.role) return false;
     const userRoleCleaned = currentUser.role.trim().toLowerCase();
     return ['owner', 'admin proyek', 'admin developer'].includes(userRoleCleaned);
   }, [currentUser]);
-
-  const shouldShowUpcomingAgendaCard = React.useMemo(() => {
-    if (!isClient || !currentUser || !currentUser.role) return false;
-    const userRoleCleaned = currentUser.role.trim().toLowerCase();
-    const agendaCardVisibleForRoles = ['admin proyek', 'arsitek'];
-    return agendaCardVisibleForRoles.includes(userRoleCleaned) && upcomingAgendaItems.length > 0;
-  }, [isClient, currentUser, upcomingAgendaItems]);
-
 
   if (!isClient || isLoadingData || (!currentUser && isClient) ) {
     return (
@@ -404,6 +402,10 @@ export default function DashboardPage() {
           <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
           <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
         </div>
+        {/* Placeholder for the Upcoming Agenda card if roles would see it */}
+        {(isClient && currentUser && currentUser.role && ['admin proyek', 'arsitek'].includes(currentUser.role.trim().toLowerCase())) && (
+             <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-40 w-full" /></CardContent></Card>
+        )}
         <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><div className="space-y-4">{[...Array(3)].map((_, i) => (<Card key={`project-skel-${i}`} className="opacity-50"><CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6"><div><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div><div className="flex-shrink-0 mt-2 sm:mt-0"><Skeleton className="h-5 w-20 rounded-full" /></div></CardHeader><CardContent className="p-4 sm:p-6 pt-0"><Skeleton className="h-2 w-full mb-1" /><Skeleton className="h-3 w-1/4" /></CardContent></Card>))}</div></CardContent></Card>
       </div>
     );
@@ -475,7 +477,7 @@ export default function DashboardPage() {
               <CardTitle className="text-lg md:text-xl">{isClient ? dashboardDict.projectProgressChartTitle : defaultGlobalDict.dashboardPage.projectProgressChartTitle}</CardTitle>
               <CardDescription>{isClient ? dashboardDict.projectProgressChartDesc : defaultGlobalDict.dashboardPage.projectProgressChartDesc}</CardDescription>
             </CardHeader>
-            <CardContent className="py-4 px-1 sm:px-2">
+            <CardContent className="py-4 px-1 sm:px-2"> {/* Adjusted padding */}
               {activeProjects.length > 0 && chartData.length > 0 ? (
                 <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
@@ -483,8 +485,8 @@ export default function DashboardPage() {
                       data={chartData}
                       margin={{
                         top: 5,
-                        right: language === 'id' ? 40 : 30, 
-                        left: 5, 
+                        right: language === 'id' ? 35 : 30, 
+                        left: language === 'id' ? 10 : 5,
                         bottom: 5,
                       }}
                       layout="vertical"
@@ -496,7 +498,7 @@ export default function DashboardPage() {
                         type="category"
                         tickLine={false}
                         axisLine={false}
-                        width={language === 'id' ? 140 : 120} 
+                        width={language === 'id' ? 130 : 110} // Increased width for Y-axis labels
                         interval={0}
                         tick={{ fontSize: 9, textAnchor: 'end' }}
                       />
@@ -529,7 +531,7 @@ export default function DashboardPage() {
                   const today = new Date();
                   setSelectedDate(today);
                   setDisplayMonth(startOfMonth(today));
-                  handleDateSelect(today); // Make sure this function is called
+                  handleDateSelect(today);
                 }}
                 className="mb-3 self-start"
               >
@@ -653,7 +655,6 @@ export default function DashboardPage() {
           </Card>
       </div>
 
-      {/* Display Upcoming Agenda Card */}
       {shouldShowUpcomingAgendaCard && (
           <Card className="mb-6">
               <CardHeader>
