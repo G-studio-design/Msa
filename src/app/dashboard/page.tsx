@@ -401,8 +401,8 @@ export default function DashboardPage() {
           ))}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent className="p-1 sm:p-2"><Skeleton className="h-64 w-full" /></CardContent></Card>
-          <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent className="max-w-md mx-auto p-3"><Skeleton className="h-64 w-full" /></CardContent></Card>
+          <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent className="py-4 px-1 sm:px-2"><Skeleton className="h-64 w-full" /></CardContent></Card>
+          <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent className="flex flex-col items-center p-3"><Skeleton className="h-10 w-24 mb-3" /><Skeleton className="h-64 w-full max-w-md" /></CardContent></Card>
         </div>
         <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><div className="space-y-4">{[...Array(3)].map((_, i) => (<Card key={`project-skel-${i}`} className="opacity-50"><CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6"><div><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div><div className="flex-shrink-0 mt-2 sm:mt-0"><Skeleton className="h-5 w-20 rounded-full" /></div></CardHeader><CardContent className="p-4 sm:p-6 pt-0"><Skeleton className="h-2 w-full mb-1" /><Skeleton className="h-3 w-1/4" /></CardContent></Card>))}</div></CardContent></Card>
       </div>
@@ -521,8 +521,8 @@ export default function DashboardPage() {
               <CardTitle className="text-lg md:text-xl">{isClient ? dashboardDict.scheduleAgendaTitle : defaultGlobalDict.dashboardPage.scheduleAgendaTitle}</CardTitle>
               <CardDescription>{isClient ? dashboardDict.scheduleAgendaDesc : defaultGlobalDict.dashboardPage.scheduleAgendaDesc}</CardDescription>
             </CardHeader>
-            <CardContent className="max-w-md mx-auto p-3"> {/* Constrain width and center content */}
-             <Button
+            <CardContent className="flex flex-col items-center p-3">
+              <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
@@ -531,7 +531,7 @@ export default function DashboardPage() {
                   setDisplayMonth(startOfMonth(today));
                   handleDateSelect(today);
                 }}
-                className="mb-3 self-start"
+                className="mb-3"
               >
                 {isClient ? dashboardDict.todayButtonLabel : defaultGlobalDict.dashboardPage.todayButtonLabel}
               </Button>
@@ -542,7 +542,7 @@ export default function DashboardPage() {
                 onMonthChange={setDisplayMonth}
                 onSelect={handleDateSelect}
                 locale={currentLocale}
-                className="rounded-md border shadow-sm bg-card text-card-foreground p-3 w-full"
+                className="rounded-md border shadow-sm bg-card text-card-foreground p-3 w-full max-w-md"
                 modifiers={{
                   sunday: { dayOfWeek: [0] },
                   sidang: calendarEventsData.dates.filter(d => calendarEventsData.eventsByDate[format(d, 'yyyy-MM-dd')]?.some(e => e.type === 'sidang')),
@@ -561,7 +561,7 @@ export default function DashboardPage() {
                 }}
                 disabled={(date) => date < new Date("1900-01-01") || date > new Date("2999-12-31")}
               />
-              <div className="mt-4 w-full space-y-3">
+              <div className="mt-4 w-full space-y-3 max-w-md">
                 <h3 className="text-md font-semibold text-foreground text-center">
                    {(isClient && selectedDate) ? dashboardDict.eventsForDate.replace('{date}', format(selectedDate, 'PPP', { locale: currentLocale })) : (isClient ? dashboardDict.selectDatePrompt : defaultGlobalDict.dashboardPage.selectDatePrompt)}
                 </h3>
