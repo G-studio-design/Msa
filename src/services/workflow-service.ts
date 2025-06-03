@@ -3,10 +3,10 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { 
-    DEFAULT_WORKFLOW_ID, 
-    DEFAULT_WORKFLOW_NAME, 
-    DEFAULT_WORKFLOW_DESCRIPTION 
+import {
+    DEFAULT_WORKFLOW_ID,
+    DEFAULT_WORKFLOW_NAME,
+    DEFAULT_WORKFLOW_DESCRIPTION
 } from '@/config/workflow-constants';
 
 export interface WorkflowStepTransition {
@@ -16,19 +16,19 @@ export interface WorkflowStepTransition {
   targetProgress: number;
   notification?: {
     division: string | string[] | null; // Can be a single role, array of roles, or null
-    message: string; 
+    message: string;
   };
 }
 
 export interface WorkflowStep {
   stepName: string;
-  status: string; 
-  assignedDivision: string; 
-  progress: number; 
-  nextActionDescription: string | null; 
+  status: string;
+  assignedDivision: string;
+  progress: number;
+  nextActionDescription: string | null;
   transitions: {
-    [action: string]: WorkflowStepTransition; 
-  } | null; 
+    [action: string]: WorkflowStepTransition;
+  } | null;
 }
 
 export interface Workflow {
@@ -64,34 +64,34 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
       stepName: "Offer Approval",
       status: "Pending Approval",
       assignedDivision: "Owner",
-      progress: 20, 
+      progress: 20,
       nextActionDescription: "Tinjau dan setujui/batalkan penawaran",
       transitions: {
         "approved": {
           targetStatus: "Pending DP Invoice",
-          targetAssignedDivision: "Akuntan", 
+          targetAssignedDivision: "Akuntan",
           targetNextActionDescription: "Buat Faktur DP",
           targetProgress: 25,
           notification: {
-            division: "Akuntan", 
+            division: "Akuntan",
             message: "Penawaran untuk proyek '{projectName}' telah disetujui oleh {actorUsername}. Mohon buat faktur DP."
           }
         },
-        "rejected": { 
+        "rejected": {
           targetStatus: "Canceled",
           targetAssignedDivision: "",
           targetNextActionDescription: null,
-          targetProgress: 20, 
+          targetProgress: 20,
           notification: {
             division: "Admin Proyek",
             message: "Penawaran untuk proyek '{projectName}' telah dibatalkan oleh {actorUsername}."
           }
         },
-        "revise_offer": { 
+        "revise_offer": {
             targetStatus: "Pending Offer",
             targetAssignedDivision: "Admin Proyek",
             targetNextActionDescription: "Revisi dan Unggah Ulang Dokumen Penawaran berdasarkan masukan Owner.",
-            targetProgress: 10, 
+            targetProgress: 10,
             notification: {
               division: "Admin Proyek",
               message: "Penawaran untuk proyek '{projectName}' perlu direvisi oleh Anda berdasarkan masukan dari {actorUsername}."
@@ -102,15 +102,15 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
     {
       stepName: "DP Invoice Submission",
       status: "Pending DP Invoice",
-      assignedDivision: "Akuntan", 
+      assignedDivision: "Akuntan",
       progress: 25,
       nextActionDescription: "Unggah Faktur DP",
       transitions: {
         "submitted": {
-          targetStatus: "Pending Approval", 
+          targetStatus: "Pending Approval",
           targetAssignedDivision: "Owner",
           targetNextActionDescription: "Setujui Faktur DP",
-          targetProgress: 30, 
+          targetProgress: 30,
           notification: {
             division: "Owner",
             message: "Faktur DP untuk proyek '{projectName}' telah diajukan oleh {actorUsername} dan menunggu persetujuan Anda."
@@ -120,9 +120,9 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
     },
     {
       stepName: "DP Invoice Approval",
-      status: "Pending Approval", 
+      status: "Pending Approval",
       assignedDivision: "Owner",
-      progress: 30, 
+      progress: 30,
       nextActionDescription: "Tinjau dan setujui/tolak Faktur DP",
       transitions: {
         "approved": {
@@ -135,13 +135,13 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
             message: "Faktur DP untuk proyek '{projectName}' telah disetujui oleh {actorUsername}. Mohon unggah berkas administrasi."
           }
         },
-        "rejected": { 
+        "rejected": {
           targetStatus: "Pending DP Invoice",
-          targetAssignedDivision: "Akuntan", 
+          targetAssignedDivision: "Akuntan",
           targetNextActionDescription: "Revisi dan Unggah Ulang Faktur DP",
-          targetProgress: 25, 
+          targetProgress: 25,
           notification: {
-            division: "Akuntan", 
+            division: "Akuntan",
             message: "Faktur DP untuk proyek '{projectName}' ditolak oleh {actorUsername}. Mohon direvisi."
           }
         }
@@ -166,14 +166,14 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
         }
       }
     },
-     { 
+     {
       stepName: "Survey Details Submission",
       status: "Pending Survey Details",
-      assignedDivision: "Admin Proyek", 
+      assignedDivision: "Admin Proyek",
       progress: 45,
       nextActionDescription: "Input Jadwal Survei & Unggah Laporan Hasil Survei",
       transitions: {
-        "submitted": { 
+        "submitted": {
           targetStatus: "Pending Architect Files",
           targetAssignedDivision: "Arsitek",
           targetNextActionDescription: "Unggah Berkas Arsitektur",
@@ -192,11 +192,11 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
       progress: 50,
       nextActionDescription: "Unggah Berkas Arsitektur (Lengkap)",
       transitions: {
-        "submitted": { 
+        "submitted": {
           targetStatus: "Pending Structure Files",
           targetAssignedDivision: "Struktur",
           targetNextActionDescription: "Unggah Berkas Struktur",
-          targetProgress: 70,
+          targetProgress: 70, // Struktur completes up to 70%
           notification: {
             division: "Struktur",
             message: "Berkas arsitektur untuk '{projectName}' telah diunggah secara lengkap oleh {actorUsername}. Mohon unggah berkas struktur."
@@ -204,37 +204,56 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
         }
       }
     },
-    { 
+    {
       stepName: "Structure Files Submission",
       status: "Pending Structure Files",
       assignedDivision: "Struktur",
-      progress: 70,
+      progress: 70, // When this step is active, progress is 70%
       nextActionDescription: "Unggah Berkas Struktur",
       transitions: {
         "submitted": {
-          targetStatus: "Pending Scheduling", 
-          targetAssignedDivision: "Admin Proyek", 
-          targetNextActionDescription: "Jadwalkan Sidang", 
-          targetProgress: 90,
+          targetStatus: "Pending MEP Files", // Changed target
+          targetAssignedDivision: "MEP",     // Changed target
+          targetNextActionDescription: "Unggah Berkas MEP", // Changed target
+          targetProgress: 80, // After Struktur, project is 80% (MEP step starts at 80)
           notification: {
-            division: "Admin Proyek", 
-            message: "Berkas struktur untuk '{projectName}' oleh {actorUsername} lengkap. Mohon jadwalkan sidang."
+            division: "MEP", // Notify MEP
+            message: "Berkas struktur untuk '{projectName}' oleh {actorUsername} lengkap. Mohon unggah berkas MEP."
           }
         }
       }
     },
-    { 
+    { // NEW MEP STEP
+      stepName: "MEP Files Submission",
+      status: "Pending MEP Files",
+      assignedDivision: "MEP",
+      progress: 80, // When this step is active, progress is 80%
+      nextActionDescription: "Unggah Berkas MEP",
+      transitions: {
+        "submitted": {
+          targetStatus: "Pending Scheduling",
+          targetAssignedDivision: "Admin Proyek",
+          targetNextActionDescription: "Jadwalkan Sidang",
+          targetProgress: 90, // After MEP, project is 90% (Scheduling step starts at 90)
+          notification: {
+            division: "Admin Proyek",
+            message: "Berkas MEP untuk '{projectName}' oleh {actorUsername} lengkap. Mohon jadwalkan sidang."
+          }
+        }
+      }
+    },
+    {
       stepName: "Sidang Scheduling",
       status: "Pending Scheduling",
-      assignedDivision: "Admin Proyek", 
-      progress: 90, 
+      assignedDivision: "Admin Proyek",
+      progress: 90, // This step now starts when progress is 90%
       nextActionDescription: "Jadwalkan Sidang",
       transitions: {
-        "scheduled": { 
+        "scheduled": {
           targetStatus: "Scheduled",
           targetAssignedDivision: "Owner",
           targetNextActionDescription: "Nyatakan Hasil Sidang",
-          targetProgress: 95,
+          targetProgress: 95, // Scheduling itself makes it 95%
           notification: {
             division: "Owner",
             message: "Sidang untuk proyek '{projectName}' telah dijadwalkan oleh {actorUsername}. Mohon nyatakan hasilnya setelah selesai."
@@ -242,7 +261,7 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
         }
       }
     },
-    { 
+    {
       stepName: "Sidang Outcome Declaration",
       status: "Scheduled",
       assignedDivision: "Owner",
@@ -254,16 +273,16 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           targetAssignedDivision: "",
           targetNextActionDescription: null,
           targetProgress: 100,
-          notification: { 
-            division: "Admin Proyek", 
+          notification: {
+            division: "Admin Proyek",
             message: "Proyek '{projectName}' telah berhasil diselesaikan oleh {actorUsername}."
           }
         },
-        "revise_after_sidang": { 
-          targetStatus: "Pending Post-Sidang Revision", 
+        "revise_after_sidang": {
+          targetStatus: "Pending Post-Sidang Revision",
           targetAssignedDivision: "Admin Proyek",
           targetNextActionDescription: "Lakukan revisi pasca-sidang. Notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.",
-          targetProgress: 85, 
+          targetProgress: 85, // Revisi might bring progress down temporarily
           notification: {
             division: "Admin Proyek",
             message: "Proyek '{projectName}' memerlukan revisi setelah sidang yang dinyatakan oleh {actorUsername}."
@@ -273,7 +292,7 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           targetStatus: "Canceled",
           targetAssignedDivision: "",
           targetNextActionDescription: null,
-          targetProgress: 95, 
+          targetProgress: 95,
           notification: {
             division: "Admin Proyek",
             message: "Proyek '{projectName}' telah dibatalkan oleh {actorUsername} setelah sidang."
@@ -293,28 +312,28 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
               targetAssignedDivision: "",
               targetNextActionDescription: null,
               targetProgress: 100,
-              notification: { 
-                  division: "Owner", 
+              notification: {
+                  division: "Owner",
                   message: "Proyek '{projectName}' telah berhasil diselesaikan setelah revisi oleh {actorUsername}."
               }
           }
       }
     },
-    { 
+    {
       stepName: "Project Completed",
       status: "Completed",
       assignedDivision: "",
       progress: 100,
       nextActionDescription: null,
-      transitions: null 
+      transitions: null
     },
-    { 
+    {
       stepName: "Project Canceled",
       status: "Canceled",
       assignedDivision: "",
-      progress: 0, 
+      progress: 0,
       nextActionDescription: null,
-      transitions: null 
+      transitions: null
     }
 ];
 
@@ -335,15 +354,15 @@ async function _readWorkflowsFromFile(): Promise<Workflow[]> {
         return workflows;
     } catch (parseError) {
         console.error("[WorkflowService/JSON] Error parsing workflows.json, returning empty array. File might be corrupted.", parseError);
-        return []; 
+        return [];
     }
   } catch (error: any) {
     if (error.code === 'ENOENT') {
       console.log("[WorkflowService/JSON] workflows.json not found. Returning empty array for initialization.");
-      return []; 
+      return [];
     }
     console.error("[WorkflowService/JSON] Error reading workflows.json. Returning empty array.", error);
-    return []; 
+    return [];
   }
 }
 
@@ -369,9 +388,9 @@ export async function getAllWorkflows(): Promise<Workflow[]> {
       id: DEFAULT_WORKFLOW_ID,
       name: DEFAULT_WORKFLOW_NAME,
       description: DEFAULT_WORKFLOW_DESCRIPTION,
-      steps: JSON.parse(JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE)), 
+      steps: JSON.parse(JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE)),
     };
-    workflows.unshift(defaultWorkflow); 
+    workflows.unshift(defaultWorkflow);
     saveNeeded = true;
   } else {
      // Ensure the existing default workflow has the latest structure, name, and description
@@ -395,7 +414,7 @@ export async function getAllWorkflows(): Promise<Workflow[]> {
          saveNeeded = true;
      }
   }
-  
+
   // Ensure all other workflows also have steps (e.g., by assigning default steps if empty)
   workflows = workflows.map(wf => {
     if (wf.id !== DEFAULT_WORKFLOW_ID && (!wf.steps || wf.steps.length === 0)) {
@@ -419,7 +438,7 @@ export async function getAllWorkflows(): Promise<Workflow[]> {
 }
 
 export async function getWorkflowById(id: string): Promise<Workflow | null> {
-  const workflows = await getAllWorkflows(); 
+  const workflows = await getAllWorkflows();
   console.log(`[WorkflowService/JSON] Searching for workflow ID: "${id}" among ${workflows.length} workflows.`);
   const workflow = workflows.find(wf => wf.id === id) || null;
   if (!workflow) {
@@ -440,7 +459,7 @@ export async function getFirstStep(workflowId: string): Promise<WorkflowStep | n
 export async function getCurrentStepDetails(
   workflowId: string,
   currentStatus: string,
-  currentProgress: number 
+  currentProgress: number
 ): Promise<WorkflowStep | null> {
   const workflow = await getWorkflowById(workflowId);
   if (!workflow) {
@@ -471,7 +490,7 @@ export async function getTransitionInfo(
   workflowId: string,
   currentStatus: string,
   currentProgress: number,
-  actionTaken: string = 'submitted' 
+  actionTaken: string = 'submitted'
 ): Promise<WorkflowStepTransition | null> {
   const workflow = await getWorkflowById(workflowId);
   if (!workflow) {
@@ -488,7 +507,7 @@ export async function getTransitionInfo(
 
   if (!currentStep.transitions) {
     console.log(`[WorkflowService/JSON] Step "${currentStep.stepName}" in workflow "${workflowId}" is a terminal step (no transitions defined).`);
-    return null; 
+    return null;
   }
 
   const transition = currentStep.transitions[actionTaken];
@@ -501,14 +520,14 @@ export async function getTransitionInfo(
 
 export async function addWorkflow(name: string, description: string): Promise<Workflow> {
   console.log(`[WorkflowService/JSON] Attempting to add workflow: ${name}`);
-  let workflows = await _readWorkflowsFromFile(); 
+  let workflows = await _readWorkflowsFromFile();
 
   const newWorkflowId = `wf_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const newWorkflow: Workflow = {
     id: newWorkflowId,
     name,
     description: description || '',
-    steps: JSON.parse(JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE)), 
+    steps: JSON.parse(JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE)),
   };
 
   workflows.push(newWorkflow);
@@ -519,23 +538,23 @@ export async function addWorkflow(name: string, description: string): Promise<Wo
 
 export async function updateWorkflow(workflowId: string, updatedWorkflowData: Partial<Omit<Workflow, 'id'>>): Promise<Workflow | null> {
   console.log(`[WorkflowService/JSON] Attempting to update workflow ID: ${workflowId}`);
-  let workflows = await _readWorkflowsFromFile(); 
+  let workflows = await _readWorkflowsFromFile();
   const index = workflows.findIndex(wf => wf.id === workflowId);
-  
+
   if (index === -1) {
     console.error(`[WorkflowService/JSON] Workflow with ID ${workflowId} not found for update.`);
     return null;
   }
-  
+
   const finalUpdatedWorkflow: Workflow = {
-    ...workflows[index], 
-    ...updatedWorkflowData, 
-    id: workflows[index].id, 
+    ...workflows[index],
+    ...updatedWorkflowData,
+    id: workflows[index].id,
   };
 
   if (workflowId === DEFAULT_WORKFLOW_ID) {
-    finalUpdatedWorkflow.name = updatedWorkflowData.name || DEFAULT_WORKFLOW_NAME; 
-    finalUpdatedWorkflow.description = updatedWorkflowData.description || DEFAULT_WORKFLOW_DESCRIPTION; 
+    finalUpdatedWorkflow.name = updatedWorkflowData.name || DEFAULT_WORKFLOW_NAME;
+    finalUpdatedWorkflow.description = updatedWorkflowData.description || DEFAULT_WORKFLOW_DESCRIPTION;
     if (!updatedWorkflowData.steps && JSON.stringify(finalUpdatedWorkflow.steps) !== JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE)) {
         console.log(`[WorkflowService/JSON] Resetting steps for default workflow ID ${DEFAULT_WORKFLOW_ID} to master definition during update as no new steps were provided.`);
         finalUpdatedWorkflow.steps = JSON.parse(JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE));
@@ -551,7 +570,7 @@ export async function updateWorkflow(workflowId: string, updatedWorkflowData: Pa
 
 export async function deleteWorkflow(workflowId: string): Promise<void> {
   console.log(`[WorkflowService/JSON] Attempting to delete workflow ID: ${workflowId}`);
-  let workflows = await _readWorkflowsFromFile(); 
+  let workflows = await _readWorkflowsFromFile();
   const initialLength = workflows.length;
 
   if (workflowId === DEFAULT_WORKFLOW_ID && workflows.length <= 1) {
@@ -561,12 +580,12 @@ export async function deleteWorkflow(workflowId: string): Promise<void> {
 
   workflows = workflows.filter(wf => wf.id !== workflowId);
 
-  if (workflows.length === initialLength && workflowId !== DEFAULT_WORKFLOW_ID) { 
+  if (workflows.length === initialLength && workflowId !== DEFAULT_WORKFLOW_ID) {
       console.warn(`[WorkflowService/JSON] Workflow with ID ${workflowId} not found for deletion, or it was the default and no change was made.`);
   } else if (workflows.length < initialLength) {
     console.log(`[WorkflowService/JSON] Workflow with ID ${workflowId} deleted. Remaining workflows: ${workflows.length}`);
   }
-  
+
   if (workflows.length === 0) {
     console.log("[WorkflowService/JSON] All workflows deleted. The default workflow will be re-initialized on next load by getAllWorkflows.");
   }
@@ -588,3 +607,4 @@ export async function getAllUniqueStatuses(): Promise<string[]> {
     });
     return Array.from(allStatuses);
 }
+
