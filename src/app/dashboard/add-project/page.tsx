@@ -12,22 +12,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { addProject, type FileEntry, type AddProjectData } from '@/services/project-service';
-import { getAllWorkflows, type Workflow } from '@/services/workflow-service';
 import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
 import { Loader2, Upload, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const MAX_FILES_UPLOAD = 10;
 
+// Skema diperbarui: workflowId dihapus dari validasi form
 const getAddProjectSchema = (dictValidation: ReturnType<typeof getDictionary>['addProjectPage']['validation']) => z.object({
   title: z.string().min(5, dictValidation.titleMin),
-  workflowId: z.string({ required_error: dictValidation.workflowRequired }),
 });
 
 const defaultDict = getDictionary('en');
@@ -43,39 +41,12 @@ export default function AddProjectPage() {
   const addProjectDict = React.useMemo(() => getDictionary(language).addProjectPage, [language]);
   const dashboardDict = React.useMemo(() => getDictionary(language).dashboardPage, [language]);
 
-
   const [isLoading, setIsLoading] = React.useState(false);
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
-  const [fetchedWorkflows, setFetchedWorkflows] = React.useState<Workflow[]>([]);
-  const [isLoadingWorkflows, setIsLoadingWorkflows] = React.useState(true);
 
   React.useEffect(() => {
     setIsClient(true);
   }, []);
-
-  const fetchWorkflows = React.useCallback(async () => {
-    if (!isClient) return;
-    setIsLoadingWorkflows(true);
-    try {
-      const wfs = await getAllWorkflows();
-      setFetchedWorkflows(wfs);
-    } catch (error) {
-      console.error("Failed to fetch workflows:", error);
-      toast({
-        variant: 'destructive',
-        title: addProjectDict.toast.error,
-        description: addProjectDict.toast.fetchWorkflowsError,
-      });
-    } finally {
-      setIsLoadingWorkflows(false);
-    }
-  }, [isClient, toast, addProjectDict]);
-
-  React.useEffect(() => {
-    if (isClient && currentUser && ['Owner', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role.trim())) {
-      fetchWorkflows();
-    }
-  }, [isClient, currentUser, fetchWorkflows]);
 
   const addProjectSchema = React.useMemo(() => getAddProjectSchema(addProjectDict.validation), [addProjectDict.validation]);
   type AddProjectFormValues = z.infer<typeof addProjectSchema>;
@@ -84,7 +55,6 @@ export default function AddProjectPage() {
     resolver: zodResolver(addProjectSchema),
     defaultValues: {
       title: '',
-      workflowId: undefined, 
     },
   });
   
@@ -92,21 +62,11 @@ export default function AddProjectPage() {
     if (isClient && addProjectDict?.validation) {
       form.trigger();
     }
-    if (fetchedWorkflows.length > 0 && !form.getValues('workflowId')) {
-      const defaultWf = fetchedWorkflows.find(wf => wf.id === DEFAULT_WORKFLOW_ID);
-      if (defaultWf) {
-        form.setValue('workflowId', defaultWf.id);
-      } else if (fetchedWorkflows[0]) {
-        form.setValue('workflowId', fetchedWorkflows[0].id);
-      }
-    }
-  }, [addProjectDict, form, isClient, fetchedWorkflows]);
-
+  }, [addProjectDict, form, isClient]);
 
   const canAddProject = React.useMemo(() => {
     if (!currentUser) return false;
     const userRole = currentUser.role.trim();
-    // Removed "Admin/Akuntan" (internal "Akuntan") from roles that can add projects
     return ['Owner', 'Admin Proyek', 'Admin Developer'].includes(userRole);
   }, [currentUser]);
 
@@ -136,7 +96,6 @@ export default function AddProjectPage() {
     return dictToUse.status[key] || statusKey;
   }, [isClient, dashboardDict]);
 
-
   const onSubmit = async (data: AddProjectFormValues) => {
     if (!canAddProject || !currentUser) return;
 
@@ -163,7 +122,6 @@ export default function AddProjectPage() {
             name: result.originalName,
             uploadedBy: currentUser.username,
             path: result.relativePath,
-            // timestamp will be added by the service
           });
         } catch (error: any) {
           console.error('File upload error:', file.name, error);
@@ -174,47 +132,39 @@ export default function AddProjectPage() {
       }
     }
     
-    const effectiveWorkflowId = data.workflowId || DEFAULT_WORKFLOW_ID;
-    console.log('[AddProjectPage] Submitting with workflowId:', effectiveWorkflowId);
+    const effectiveWorkflowId = DEFAULT_WORKFLOW_ID; // Selalu gunakan workflow default
+    console.log('[AddProjectPage] Submitting with implicit workflowId:', effectiveWorkflowId);
 
     const newProjectData: AddProjectData = {
       title: data.title,
       workflowId: effectiveWorkflowId,
-      initialFiles: actualFileEntriesForService.map(f => ({...f, timestamp: new Date().toISOString()})), // Add timestamp here
+      initialFiles: actualFileEntriesForService.map(f => ({...f, timestamp: new Date().toISOString()})),
       createdBy: currentUser.username,
     };
 
     try {
       const createdProject = await addProject(newProjectData);
       console.log('Project created successfully on server:', createdProject);
-
-      const workflowUsed = fetchedWorkflows.find(wf => wf.id === createdProject.workflowId);
       
-      let workflowName = addProjectDict.toast.unknownWorkflow || 'Selected Workflow';
-      if (workflowUsed) {
-        workflowName = workflowUsed.name;
-      } else if (createdProject.workflowId === DEFAULT_WORKFLOW_ID) {
-        workflowName = addProjectDict.toast.defaultWorkflowName || 'Standard Workflow';
-      }
-            
       const firstStepAssignedDivision = createdProject.assignedDivision;
       const translatedDivision = getTranslatedStatus(firstStepAssignedDivision) || firstStepAssignedDivision;
-
+      
+      // Pesan toast disederhanakan
       toast({
         title: addProjectDict.toast.success,
         description: (addProjectDict.toast.successDesc || defaultDict.addProjectPage.toast.successDesc)
-          .replace('"{title}"', createdProject.title) 
-          .replace('"{workflowName}"', workflowName)
-          .replace('{division}', translatedDivision), // Corrected placeholder
+          .replace('"{title}"', createdProject.title)
+          .replace(' using workflow "{workflowName}"', '') // Menghapus bagian nama workflow
+          .replace('{division}', translatedDivision),
       });
-      form.reset({ title: '', workflowId: DEFAULT_WORKFLOW_ID });
+      form.reset({ title: '' });
       setSelectedFiles([]);
       router.push('/dashboard/projects'); 
     } catch (error: any) {
       console.error('Failed to add project:', error);
       let desc = addProjectDict.toast.error;
       if (error.message === 'WORKFLOW_INVALID') {
-        desc = "Invalid workflow selected or workflow definition is missing steps. Please contact an administrator.";
+        desc = "The default workflow is invalid or missing steps. Please contact an administrator.";
       } else {
         desc = error.message || 'An unexpected error occurred while creating the project.';
       }
@@ -228,7 +178,8 @@ export default function AddProjectPage() {
     }
   };
 
-    if (!isClient || isLoadingWorkflows || (!canAddProject && currentUser) ) {
+    // Kondisi loading disederhanakan
+    if (!isClient || (!canAddProject && currentUser) ) {
         return (
               <div className="container mx-auto py-4 px-4 md:px-6">
                  <Card>
@@ -238,7 +189,6 @@ export default function AddProjectPage() {
                      </CardHeader>
                      <CardContent>
                          <div className="space-y-4">
-                             <Skeleton className="h-10 w-full" />
                              <Skeleton className="h-10 w-full" />
                              <Skeleton className="h-20 w-full" /> 
                              <Skeleton className="h-10 w-32" />
@@ -254,7 +204,7 @@ export default function AddProjectPage() {
           <div className="container mx-auto py-4 px-4 md:px-6">
            <Card className="border-destructive">
              <CardHeader>
-               <CardTitle className="text-destructive">{addProjectDict.accessDenied || defaultDict.manageUsersPage.accessDeniedTitle}</CardTitle>
+               <CardTitle className="text-destructive">{addProjectDict.accessDeniedTitle || defaultDict.manageUsersPage.accessDeniedTitle}</CardTitle>
              </CardHeader>
              <CardContent>
                <p>{addProjectDict.accessDenied || defaultDict.manageUsersPage.accessDeniedDesc}</p>
@@ -263,7 +213,6 @@ export default function AddProjectPage() {
          </div>
        );
     }
-
 
   return (
      <div className="container mx-auto py-4 px-4 md:px-6">
@@ -284,29 +233,6 @@ export default function AddProjectPage() {
                     <FormControl>
                       <Input placeholder={addProjectDict.titlePlaceholder} {...field} disabled={isLoading} />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="workflowId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{addProjectDict.workflowLabel}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ""} disabled={isLoading || isLoadingWorkflows || fetchedWorkflows.length === 0}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={isLoadingWorkflows ? "Loading workflows..." : (fetchedWorkflows.length === 0 ? "No workflows available" : addProjectDict.workflowPlaceholder)} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {fetchedWorkflows.map(wf => (
-                          <SelectItem key={wf.id} value={wf.id}>{wf.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -355,12 +281,11 @@ export default function AddProjectPage() {
                    </div>
                  )}
 
-
                <div className="flex flex-col sm:flex-row justify-end gap-2">
                   <Button type="button" variant="outline" onClick={() => router.back()} disabled={isLoading} className="w-full sm:w-auto">
                     {addProjectDict.cancelButton || defaultDict.manageUsersPage.cancelButton}
                  </Button>
-                  <Button type="submit" className="accent-teal w-full sm:w-auto" disabled={isLoading || isLoadingWorkflows}>
+                  <Button type="submit" className="accent-teal w-full sm:w-auto" disabled={isLoading}>
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     {isLoading ? addProjectDict.creatingButton : addProjectDict.createButton}
                  </Button>
@@ -372,3 +297,4 @@ export default function AddProjectPage() {
     </div>
   );
 }
+    
