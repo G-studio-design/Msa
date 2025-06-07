@@ -26,7 +26,6 @@ const AvatarImage = React.forwardRef<
 >(({ className, ...props }, ref) => ( // Removed key prop from parameters
   <AvatarPrimitive.Image
     ref={ref}
-    // key prop removed from here - React handles it externally
     className={cn("aspect-square h-full w-full", className)}
     {...props}
   />
