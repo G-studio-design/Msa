@@ -1,15 +1,22 @@
+
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { LanguageProvider } from '@/context/LanguageContext'; // Import LanguageProvider
-import { AuthProvider } from '@/context/AuthContext'; // Import AuthProvider
+import { AuthProvider } from '@/context/AuthContext'; // Corrected import path
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
-  title: 'Msarch App', // Updated application title
+  title: 'Msarch App',
   description: 'Employee task management application for various divisions.',
+  manifest: '/manifest.json', // Link to the web app manifest
+  icons: {
+    icon: '/msarch_logo.png', // Favicon (can be .png)
+    apple: '/msarch_logo.png', // Apple Touch Icon
+    // shortcut: '/msarch_logo.png', // For PWA shortcuts, if needed later
+  },
 };
 
 export default function RootLayout({
@@ -31,4 +38,3 @@ export default function RootLayout({
     </html>
   );
 }
-
