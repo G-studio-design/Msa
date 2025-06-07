@@ -24,7 +24,7 @@ import {
   ClipboardList,
   Settings,
   LogOut,
-  Building,
+  // Building, // Removed as it's replaced by Image
   UserCog,
   PanelRightOpen,
   User,
@@ -207,10 +207,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
        const diffHours = Math.round(diffMinutes / 60);
        const diffDays = Math.round(diffHours / 24);
 
-       if (diffSeconds < 60) return `${diffSeconds}s ago`;
-       if (diffMinutes < 60) return `${diffMinutes}m ago`;
-       if (diffHours < 24) return `${diffHours}h ago`;
-       return `${diffDays}d ago`;
+       if (diffSeconds < 60) return \`\${diffSeconds}s ago\`;
+       if (diffMinutes < 60) return \`\${diffMinutes}m ago\`;
+       if (diffHours < 24) return \`\${diffHours}h ago\`;
+       return \`\${diffDays}d ago\`;
    }, [isClient]);
 
 
@@ -227,7 +227,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
        }
 
        if (notification.projectId) {
-           router.push(`/dashboard/projects?projectId=${notification.projectId}`);
+           router.push(\`/dashboard/projects?projectId=\${notification.projectId}\`);
        } else if (notification.message.toLowerCase().includes("izin") || notification.message.toLowerCase().includes("leave")) {
            if (currentUser?.role.trim() === 'Owner') {
                router.push("/dashboard/admin-actions/leave-approvals");
@@ -352,7 +352,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                        <div className="flex items-center gap-3 rounded-md p-2">
                          <Avatar className="h-10 w-10 border-2 border-primary-foreground/30">
                            <AvatarImage
-                                src={currentUser.profilePictureUrl || `https://placehold.co/100x100.png`}
+                                src={currentUser.profilePictureUrl || \`https://placehold.co/100x100.png\`}
                                 data-ai-hint="user avatar placeholder"
                                 alt={currentUser.displayName || currentUser.username}
                             />
