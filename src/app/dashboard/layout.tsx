@@ -3,6 +3,7 @@
 
 import type { ReactNode } from 'react';
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import Image from 'next/image'; // Import Image
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Sheet,
@@ -23,7 +24,7 @@ import {
   ClipboardList,
   Settings,
   LogOut,
-  Building,
+  // Building, // Removed as it's replaced by Image
   UserCog,
   PanelRightOpen,
   User,
@@ -206,10 +207,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
        const diffHours = Math.round(diffMinutes / 60);
        const diffDays = Math.round(diffHours / 24);
 
-       if (diffSeconds < 60) return `${diffSeconds}s ago`;
-       if (diffMinutes < 60) return `${diffMinutes}m ago`;
-       if (diffHours < 24) return `${diffHours}h ago`;
-       return `${diffDays}d ago`;
+       if (diffSeconds < 60) return \`\${diffSeconds}s ago\`;
+       if (diffMinutes < 60) return \`\${diffMinutes}m ago\`;
+       if (diffHours < 24) return \`\${diffHours}h ago\`;
+       return \`\${diffDays}d ago\`;
    }, [isClient]);
 
 
@@ -226,7 +227,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
        }
 
        if (notification.projectId) {
-           router.push(`/dashboard/projects?projectId=${notification.projectId}`);
+           router.push(\`/dashboard/projects?projectId=\${notification.projectId}\`);
        } else if (notification.message.toLowerCase().includes("izin") || notification.message.toLowerCase().includes("leave")) {
            if (currentUser?.role.trim() === 'Owner') {
                router.push("/dashboard/admin-actions/leave-approvals");
@@ -240,7 +241,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <div className="flex-1 flex flex-col">
            <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b bg-background px-4 sm:px-6">
              <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-base sm:text-lg text-primary">
-                <Building className="h-5 w-5 sm:h-6 sm:w-6" />
+                <Image src="/msarch_logo.png" alt="Msarch App Logo" width={24} height={24} className="h-5 w-5 sm:h-6 sm:w-6" />
                  <span className="hidden sm:inline">{isClient ? layoutDict.appTitle : defaultDict.dashboardLayout.appTitle}</span>
                  <span className="sm:hidden">{isClient ? (layoutDict.appTitleShort || layoutDict.appTitle) : (defaultDict.dashboardLayout.appTitleShort || defaultDict.dashboardLayout.appTitle)}</span>
               </Link>
@@ -351,7 +352,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                        <div className="flex items-center gap-3 rounded-md p-2">
                          <Avatar className="h-10 w-10 border-2 border-primary-foreground/30">
                            <AvatarImage
-                                src={currentUser.profilePictureUrl || `https://placehold.co/100x100.png`}
+                                src={currentUser.profilePictureUrl || \`https://placehold.co/100x100.png\`}
                                 data-ai-hint="user avatar placeholder"
                                 alt={currentUser.displayName || currentUser.username}
                             />
@@ -405,3 +406,4 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
