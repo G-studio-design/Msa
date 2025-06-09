@@ -28,6 +28,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelL
 import { Calendar } from "@/components/ui/calendar";
 import { parseISO, format, isSameDay, isValid, eachDayOfInterval, startOfMonth, addDays, isWithinInterval, startOfDay, compareAsc, endOfDay, addMonths, subMonths } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
+import { cn } from '@/lib/utils'; // Import cn utility
 
 const defaultGlobalDict = getDictionary('en');
 
@@ -131,23 +132,70 @@ export default function DashboardPage() {
     if (!isClient || !dashboardDict?.status || !status) return <Skeleton className="h-5 w-20" />;
     const statusKey = status.trim().toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status;
     const translatedStatus = dashboardDict.status[statusKey] || status;
+
     let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-    let className = "py-1 px-2 text-xs";
+    let baseClasses = "py-1 px-2 text-xs"; // Existing base classes
+    let additionalClasses = "";
     let Icon = TrendingUp;
 
      switch (statusKey) {
-        case 'completed': case 'selesai': variant = 'default'; className = \`\${className} bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-primary-foreground\`; Icon = CheckCircle; break;
-        case 'inprogress': case 'sedangberjalan': variant = 'secondary'; className = \`\${className} bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700\`; Icon = TrendingUp; break;
-        case 'pendingapproval': case 'menunggupersetujuan': variant = 'outline'; className = \`\${className} border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-500\`; Icon = AlertTriangle; break;
-        case 'pendingpostsidangrevision': case 'menunggurevisipascSidang': case 'menunggurevisipascassidang': variant = 'outline'; className = \`\${className} border-orange-400 text-orange-500 dark:border-orange-300 dark:text-orange-400\`; Icon = TrendingUp; break;
-        case 'delayed': case 'tertunda': variant = 'destructive'; className = \`\${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600\`; Icon = AlertTriangle; break;
-        case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
-        case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = \`\${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500\`; Icon = Info; break;
-        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles':  case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Info; break;
-        case 'scheduled': case 'terjadwal': variant = 'secondary'; className = \`\${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700\`; Icon = CalendarDays; break;
-        default: variant = 'secondary'; Icon = Info;
+        case 'completed': case 'selesai':
+            variant = 'default';
+            additionalClasses = "bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-primary-foreground";
+            Icon = CheckCircle;
+            break;
+        case 'inprogress': case 'sedangberjalan':
+            variant = 'secondary';
+            additionalClasses = "bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700";
+            Icon = TrendingUp;
+            break;
+        case 'pendingapproval': case 'menunggupersetujuan':
+            variant = 'outline';
+            additionalClasses = "border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-500";
+            Icon = AlertTriangle;
+            break;
+        case 'pendingpostsidangrevision': case 'menunggurevisipascSidang': // Corrected typo 'menunggurevisipascassidang' by removing it
+            variant = 'outline';
+            additionalClasses = "border-orange-400 text-orange-500 dark:border-orange-300 dark:text-orange-400";
+            Icon = TrendingUp;
+            break;
+        case 'delayed': case 'tertunda':
+            variant = 'destructive';
+            additionalClasses = "bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600";
+            Icon = AlertTriangle;
+            break;
+        case 'canceled': case 'dibatalkan':
+            variant = 'destructive';
+            Icon = XCircle;
+            break;
+        case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran':
+            variant = 'outline';
+            additionalClasses = "border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500";
+            Icon = Info;
+            break;
+        case 'pendingdpinvoice': case 'menunggufakturdp':
+        case 'pendingadminfiles': case 'menungguberkasadministrasi':
+        case 'pendingsurveydetails': case 'menunggudetailsurvei':
+        case 'pendingarchitectfiles': case 'menungguberkasarsitektur':
+        case 'pendingstructurefiles':  case 'menungguberkasstruktur':
+        case 'pendingmepfiles': case 'menungguberkasmep':
+        case 'pendingfinalcheck': case 'menunggupemeriksaanakhir':
+        case 'pendingscheduling': case 'menunggupenjadwalan':
+        case 'pendingconsultationdocs':  case 'menungudokkonsultasi':
+        case 'pendingreview':  case 'menunggutinjauan':
+            variant = 'secondary';
+            Icon = Info;
+            break;
+        case 'scheduled': case 'terjadwal':
+            variant = 'secondary';
+            additionalClasses = "bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700";
+            Icon = CalendarDays;
+            break;
+        default:
+            variant = 'secondary';
+            Icon = Info;
     }
-    return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
+    return <Badge variant={variant} className={cn(baseClasses, additionalClasses)}><Icon className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
   }, [isClient, dashboardDict]);
 
   const roleFilteredProjects = React.useMemo(() => {
@@ -185,7 +233,7 @@ export default function DashboardPage() {
   const chartData = React.useMemo(() => {
     return activeProjects
       .map(project => ({
-        title: project.title.length > (language === 'id' ? 18 : 22) ? \`\${project.title.substring(0, (language === 'id' ? 15 : 19))}...\` : project.title,
+        title: project.title.length > (language === 'id' ? 18 : 22) ? `${project.title.substring(0, (language === 'id' ? 15 : 19))}...` : project.title,
         progress: project.progress,
         id: project.id
       }))
@@ -287,15 +335,15 @@ export default function DashboardPage() {
     let Icon = Info;
 
     switch (eventType) {
-      case 'sidang': variant = 'default'; className = \`\${className} bg-primary text-primary-foreground\`; Icon = Briefcase; break;
-      case 'survey': variant = 'default'; className = \`\${className} bg-green-600 text-white\`; Icon = MapPin; break;
+      case 'sidang': variant = 'default'; className = `${className} bg-primary text-primary-foreground`; Icon = Briefcase; break;
+      case 'survey': variant = 'default'; className = `${className} bg-green-600 text-white`; Icon = MapPin; break;
       case 'leave':
         const leaveTypeKey = (eventSubType || "").toLowerCase().replace(/ /g, '').replace(/[^a-z0-9]/gi, '') as keyof typeof dashboardDict.status;
         label = dashboardDict.status[leaveTypeKey] || eventSubType || dashboardDict.eventTypes.leave;
         variant = 'destructive'; Icon = Plane;
         break;
-      case 'holiday': variant = 'outline'; className = \`\${className} border-orange-500 text-orange-600\`; Icon = PartyPopper; break;
-      case 'company_event': variant = 'outline'; className = \`\${className} border-purple-600 text-purple-600\`; Icon = BuildingIcon; break;
+      case 'holiday': variant = 'outline'; className = `${className} border-orange-500 text-orange-600`; Icon = PartyPopper; break;
+      case 'company_event': variant = 'outline'; className = `${className} border-purple-600 text-purple-600`; Icon = BuildingIcon; break;
     }
     return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3"/>{label}</Badge>;
   }, [isClient, dashboardDict]);
@@ -314,7 +362,7 @@ export default function DashboardPage() {
                     const surveyRawDate = startOfDay(parseISO(project.surveyDetails.date));
                     if (isValid(surveyRawDate) && isWithinInterval(surveyRawDate, { start: today, end: threeDaysFromNow })) {
                         agendaItemsResult.push({
-                            id: \`survey-\${project.id}\`,
+                            id: `survey-${project.id}`,
                             title: project.title,
                             rawDate: surveyRawDate,
                             date: format(surveyRawDate, 'PPP', { locale: currentLocale }),
@@ -331,7 +379,7 @@ export default function DashboardPage() {
                     const sidangRawDate = startOfDay(parseISO(project.scheduleDetails.date));
                     if (isValid(sidangRawDate) && isWithinInterval(sidangRawDate, { start: today, end: threeDaysFromNow })) {
                         agendaItemsResult.push({
-                            id: \`sidang-\${project.id}\`,
+                            id: `sidang-${project.id}`,
                             title: project.title,
                             rawDate: sidangRawDate,
                             date: format(sidangRawDate, 'PPP', { locale: currentLocale }),
@@ -389,9 +437,9 @@ export default function DashboardPage() {
           <Skeleton className="h-8 w-3/5 sm:w-48" />
           {canAddProject && <Skeleton className="h-10 w-full sm:w-36" />}
         </div>
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-6">
           {[...Array(4)].map((_, i) => (
-            <Card key={\`summary-skel-\${i}\`}>
+            <Card key={`summary-skel-${i}`}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <Skeleton className="h-4 w-2/4" />
                 <Skeleton className="h-4 w-4 rounded-full" />
@@ -411,14 +459,14 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
-        <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><div className="space-y-4">{[...Array(3)].map((_, i) => (<Card key={\`project-skel-\${i}\`} className="opacity-50"><CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6"><div><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div><div className="flex-shrink-0 mt-2 sm:mt-0"><Skeleton className="h-5 w-20 rounded-full" /></div></CardHeader><CardContent className="p-4 sm:p-6 pt-0"><Skeleton className="h-2 w-full mb-1" /><Skeleton className="h-3 w-1/4" /></CardContent></Card>))}</div></CardContent></Card>
+        <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><div className="space-y-4">{[...Array(3)].map((_, i) => (<Card key={`project-skel-${i}`} className="opacity-50"><CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6"><div><Skeleton className="h-5 w-3/5 mb-1" /><Skeleton className="h-3 w-4/5" /></div><div className="flex-shrink-0 mt-2 sm:mt-0"><Skeleton className="h-5 w-20 rounded-full" /></div></CardHeader><CardContent className="p-4 sm:p-6 pt-0"><Skeleton className="h-2 w-full mb-1" /><Skeleton className="h-3 w-1/4" /></CardContent></Card>))}</div></CardContent></Card>
       </div>
     );
   }
 
 
   return (
-    <div className="container mx-auto py-4 space-y-6"> {/* Removed px-4 md:px-6 */}
+    <div className="container mx-auto py-4 space-y-6"> 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-primary">
           {isClient ? dashboardDict.title : defaultGlobalDict.dashboardPage.title}
@@ -497,7 +545,7 @@ export default function DashboardPage() {
                       layout="vertical"
                     >
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                      <XAxis type="number" domain={[0, 100]} tickFormatter={(value) => \`\${value}%\`} tick={{ fontSize: 10 }} />
+                      <XAxis type="number" domain={[0, 100]} tickFormatter={(value) => `${value}%`} tick={{ fontSize: 10 }} />
                       <YAxis
                         dataKey="title"
                         type="category"
@@ -509,7 +557,7 @@ export default function DashboardPage() {
                       />
                       <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" hideLabel />} />
                       <Bar dataKey="progress" fill="hsl(var(--primary))" radius={4} barSize={chartData.length > 5 ? 12 : 16}>
-                        <LabelList dataKey="progress" position="right" offset={8} className="fill-foreground" fontSize={10} formatter={(value: number) => \`\${value}%\`} />
+                        <LabelList dataKey="progress" position="right" offset={8} className="fill-foreground" fontSize={10} formatter={(value: number) => `${value}%`} />
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
@@ -576,13 +624,13 @@ export default function DashboardPage() {
                       {selectedDate && eventsForSelectedDate.length > 0 && isClient ? (
                         <ul className="space-y-2 text-sm max-h-48 overflow-y-auto pr-2">
                           {eventsForSelectedDate.map((event, index) => {
-                            const key = \`\${event.type}-\${(event as any).id || \`event-\${index}\`}-\${index}\`;
+                            const key = `${event.type}-${(event as any).id || `event-${index}`}-${index}`;
                             return (
                             <li key={key} className="p-3 border rounded-md bg-muted/30 hover:bg-muted/60 transition-colors shadow-sm">
                               {event.type === 'sidang' && (event as Project).scheduleDetails ? (
                                 <>
                                   <div className="flex items-center justify-between mb-1">
-                                    <Link href={\`/dashboard/projects?projectId=\${(event as Project).id}\`} className="font-medium text-primary truncate hover:underline">
+                                    <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="font-medium text-primary truncate hover:underline">
                                         {(event as Project).title}
                                     </Link>
                                     {getEventBadge('sidang')}
@@ -618,7 +666,7 @@ export default function DashboardPage() {
                               ) : event.type === 'survey' && (event as Project).surveyDetails ? (
                                 <>
                                  <div className="flex items-center justify-between mb-1">
-                                   <Link href={\`/dashboard/projects?projectId=\${(event as Project).id}\`} className="font-medium text-green-600 truncate hover:underline">
+                                   <Link href={`/dashboard/projects?projectId=${(event as Project).id}`} className="font-medium text-green-600 truncate hover:underline">
                                       {(event as Project).title}
                                     </Link>
                                     {getEventBadge('survey')}
@@ -663,7 +711,7 @@ export default function DashboardPage() {
       </div>
       
       {shouldShowUpcomingAgendaCard && (
-          <Card className="mb-6"> {/* Removed md:col-span-2 */}
+          <Card className="mb-6">
               <CardHeader>
                   <CardTitle className="text-lg md:text-xl text-primary flex items-center">
                       <ListChecks className="mr-2 h-5 w-5" />
@@ -681,11 +729,11 @@ export default function DashboardPage() {
                                  <div className="flex items-start">
                                      {item.icon}
                                      <div className="flex-1">
-                                          <Link href={(item.type === 'sidang' || item.type === 'survey') && item.id.startsWith('project_') ? \`/dashboard/projects?projectId=\${item.id}\` : (item.type === 'sidang' || item.type === 'survey') ? \`/dashboard/projects?projectId=\${item.id.replace('survey-', '').replace('sidang-', '')}\` : '#'} className="block hover:underline font-medium text-foreground">
+                                          <Link href={(item.type === 'sidang' || item.type === 'survey') && item.id.startsWith('project_') ? `/dashboard/projects?projectId=${item.id}` : (item.type === 'sidang' || item.type === 'survey') ? `/dashboard/projects?projectId=${item.id.replace('survey-', '').replace('sidang-', '')}` : '#'} className="block hover:underline font-medium text-foreground">
                                               {item.title}
                                           </Link>
                                           <p className="text-sm text-muted-foreground">
-                                              {item.date} {item.time && \` - \${item.time}\`}
+                                              {item.date} {item.time && ` - ${item.time}`}
                                           </p>
                                           {item.type === 'survey' && item.description && <p className="text-xs text-muted-foreground mt-1">{item.description}</p>}
                                           {item.type === 'sidang' && item.location && <p className="text-xs text-muted-foreground mt-1">{isClient ? dashboardDict.eventLocationLabel : defaultGlobalDict.dashboardPage.eventLocationLabel} {item.location}</p>}
@@ -721,13 +769,13 @@ export default function DashboardPage() {
               <p className="text-muted-foreground text-center py-4">{isClient ? dashboardDict.noProjects : defaultGlobalDict.dashboardPage.noProjects}</p>
             ) : (
               activeProjects.map((project) => (
-                <Link key={project.id} href={\`/dashboard/projects?projectId=\${project.id}\`} passHref>
+                <Link key={project.id} href={`/dashboard/projects?projectId=${project.id}`} passHref>
                   <div className="block hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 cursor-pointer rounded-lg border bg-card text-card-foreground overflow-hidden">
                     <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6">
                       <div className="flex-1 min-w-0">
                         <CardTitle className="text-base sm:text-lg truncate hover:text-primary transition-colors">{project.title}</CardTitle>
                         <CardDescription className="text-xs text-muted-foreground mt-1 truncate">
-                          {(isClient ? dashboardDict.assignedTo : defaultGlobalDict.dashboardPage.assignedTo) + ": " + (getTranslatedStatus(project.assignedDivision) || (isClient ? dashboardDict.status.notassigned : defaultGlobalDict.dashboardPage.status.notassigned))} {project.nextAction ? \`| \${(isClient ? dashboardDict.nextAction : defaultGlobalDict.dashboardPage.nextAction)}: \${project.nextAction}\` : ''}
+                          {(isClient ? dashboardDict.assignedTo : defaultGlobalDict.dashboardPage.assignedTo) + ": " + (getTranslatedStatus(project.assignedDivision) || (isClient ? dashboardDict.status.notassigned : defaultGlobalDict.dashboardPage.status.notassigned))} {project.nextAction ? `| ${(isClient ? dashboardDict.nextAction : defaultGlobalDict.dashboardPage.nextAction)}: ${project.nextAction}` : ''}
                         </CardDescription>
                       </div>
                       <div className="flex-shrink-0 mt-2 sm:mt-0">
@@ -744,7 +792,7 @@ export default function DashboardPage() {
                         </div>
                       )}
                       {(project.status === 'Canceled' || project.status === 'Completed') && (
-                        <p className={\`text-sm font-medium \${project.status === 'Canceled' ? 'text-destructive' : 'text-green-600'}\`}>
+                        <p className={`text-sm font-medium ${project.status === 'Canceled' ? 'text-destructive' : 'text-green-600'}`}>
                           {getTranslatedStatus(project.status)}
                         </p>
                       )}
@@ -759,5 +807,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
