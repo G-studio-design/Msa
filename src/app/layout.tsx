@@ -13,9 +13,8 @@ export const metadata: Metadata = {
   description: 'Employee task management application for various divisions.',
   manifest: '/manifest.json', // Link to the web app manifest
   icons: {
-    icon: '/msarch_logo.png', // Favicon (can be .png)
-    apple: '/msarch_logo.png', // Apple Touch Icon
-    // shortcut: '/msarch_logo.png', // For PWA shortcuts, if needed later
+    icon: '/msarch-logo.png', // Favicon (can be .png) - UPDATED to hyphen
+    apple: '/msarch-logo.png', // Apple Touch Icon - UPDATED to hyphen
   },
 };
 
