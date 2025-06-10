@@ -39,7 +39,6 @@ export interface Workflow {
 }
 
 // Master definition of the default standard workflow structure.
-// This is used to initialize or update the default workflow in workflows.json
 const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
     {
       stepName: "Offer Submission",
@@ -156,11 +155,11 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
       transitions: {
         "submitted": {
           targetStatus: "Pending Survey Details",
-          targetAssignedDivision: "Admin Proyek", // Ditugaskan ke Admin Proyek untuk menjadwalkan
+          targetAssignedDivision: "Admin Proyek", 
           targetNextActionDescription: "Input Jadwal Survei & Unggah Hasil",
           targetProgress: 45,
           notification: {
-            division: ["Owner", "Admin Proyek", "Arsitek"], // Notifikasi ke beberapa peran
+            division: ["Owner", "Admin Proyek", "Arsitek"], 
             message: "Berkas administrasi untuk proyek '{projectName}' oleh {actorUsername} lengkap. Mohon koordinasikan dan input jadwal survei."
           }
         }
@@ -173,7 +172,7 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
       progress: 45,
       nextActionDescription: "Input Jadwal Survei & Unggah Laporan Hasil Survei",
       transitions: {
-        "submitted": {
+        "submitted": { // This transition will be modified for MSa_workflow
           targetStatus: "Pending Architect Files",
           targetAssignedDivision: "Arsitek",
           targetNextActionDescription: "Unggah Berkas Arsitektur",
@@ -196,7 +195,7 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           targetStatus: "Pending Structure Files",
           targetAssignedDivision: "Struktur",
           targetNextActionDescription: "Unggah Berkas Struktur",
-          targetProgress: 70, // Struktur completes up to 70%
+          targetProgress: 70, 
           notification: {
             division: "Struktur",
             message: "Berkas arsitektur untuk '{projectName}' telah diunggah secara lengkap oleh {actorUsername}. Mohon unggah berkas struktur."
@@ -208,33 +207,33 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
       stepName: "Structure Files Submission",
       status: "Pending Structure Files",
       assignedDivision: "Struktur",
-      progress: 70, // When this step is active, progress is 70%
+      progress: 70, 
       nextActionDescription: "Unggah Berkas Struktur",
       transitions: {
         "submitted": {
-          targetStatus: "Pending MEP Files", // Changed target
-          targetAssignedDivision: "MEP",     // Changed target
-          targetNextActionDescription: "Unggah Berkas MEP", // Changed target
-          targetProgress: 80, // After Struktur, project is 80% (MEP step starts at 80)
+          targetStatus: "Pending MEP Files", 
+          targetAssignedDivision: "MEP",    
+          targetNextActionDescription: "Unggah Berkas MEP", 
+          targetProgress: 80, 
           notification: {
-            division: "MEP", // Notify MEP
+            division: "MEP", 
             message: "Berkas struktur untuk '{projectName}' oleh {actorUsername} lengkap. Mohon unggah berkas MEP."
           }
         }
       }
     },
-    { // NEW MEP STEP
+    { 
       stepName: "MEP Files Submission",
       status: "Pending MEP Files",
       assignedDivision: "MEP",
-      progress: 80, // When this step is active, progress is 80%
+      progress: 80, 
       nextActionDescription: "Unggah Berkas MEP",
       transitions: {
         "submitted": {
           targetStatus: "Pending Scheduling",
           targetAssignedDivision: "Admin Proyek",
           targetNextActionDescription: "Jadwalkan Sidang",
-          targetProgress: 90, // After MEP, project is 90% (Scheduling step starts at 90)
+          targetProgress: 90, 
           notification: {
             division: "Admin Proyek",
             message: "Berkas MEP untuk '{projectName}' oleh {actorUsername} lengkap. Mohon jadwalkan sidang."
@@ -246,14 +245,14 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
       stepName: "Sidang Scheduling",
       status: "Pending Scheduling",
       assignedDivision: "Admin Proyek",
-      progress: 90, // This step now starts when progress is 90%
+      progress: 90, 
       nextActionDescription: "Jadwalkan Sidang",
       transitions: {
         "scheduled": {
           targetStatus: "Scheduled",
           targetAssignedDivision: "Owner",
           targetNextActionDescription: "Nyatakan Hasil Sidang",
-          targetProgress: 95, // Scheduling itself makes it 95%
+          targetProgress: 95, 
           notification: {
             division: "Owner",
             message: "Sidang untuk proyek '{projectName}' telah dijadwalkan oleh {actorUsername}. Mohon nyatakan hasilnya setelah selesai."
@@ -282,7 +281,7 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           targetStatus: "Pending Post-Sidang Revision",
           targetAssignedDivision: "Admin Proyek",
           targetNextActionDescription: "Lakukan revisi pasca-sidang. Notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.",
-          targetProgress: 85, // Revisi might bring progress down temporarily
+          targetProgress: 85, 
           notification: {
             division: "Admin Proyek",
             message: "Proyek '{projectName}' memerlukan revisi setelah sidang yang dinyatakan oleh {actorUsername}."
@@ -335,6 +334,95 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
       nextActionDescription: null,
       transitions: null
     }
+];
+
+const MSA_WORKFLOW_STEPS: WorkflowStep[] = [
+    // Steps from default up to Admin Files Submission
+    {
+      stepName: "Offer Submission", status: "Pending Offer", assignedDivision: "Admin Proyek", progress: 10, nextActionDescription: "Unggah Dokumen Penawaran",
+      transitions: { "submitted": { targetStatus: "Pending Approval", targetAssignedDivision: "Owner", targetNextActionDescription: "Setujui Dokumen Penawaran", targetProgress: 20, notification: { division: "Owner", message: "Penawaran untuk proyek '{projectName}' telah diajukan oleh {actorUsername} dan menunggu persetujuan Anda." } } }
+    },
+    {
+      stepName: "Offer Approval", status: "Pending Approval", assignedDivision: "Owner", progress: 20, nextActionDescription: "Tinjau dan setujui/batalkan penawaran",
+      transitions: {
+        "approved": { targetStatus: "Pending DP Invoice", targetAssignedDivision: "Akuntan", targetNextActionDescription: "Buat Faktur DP", targetProgress: 25, notification: { division: "Akuntan", message: "Penawaran untuk proyek '{projectName}' telah disetujui oleh {actorUsername}. Mohon buat faktur DP." } },
+        "rejected": { targetStatus: "Canceled", targetAssignedDivision: "", targetNextActionDescription: null, targetProgress: 20, notification: { division: "Admin Proyek", message: "Penawaran untuk proyek '{projectName}' telah dibatalkan oleh {actorUsername}." } },
+        "revise_offer": { targetStatus: "Pending Offer", targetAssignedDivision: "Admin Proyek", targetNextActionDescription: "Revisi dan Unggah Ulang Dokumen Penawaran berdasarkan masukan Owner.", targetProgress: 10, notification: { division: "Admin Proyek", message: "Penawaran untuk proyek '{projectName}' perlu direvisi oleh Anda berdasarkan masukan dari {actorUsername}." } }
+      }
+    },
+    {
+      stepName: "DP Invoice Submission", status: "Pending DP Invoice", assignedDivision: "Akuntan", progress: 25, nextActionDescription: "Unggah Faktur DP",
+      transitions: { "submitted": { targetStatus: "Pending Approval", targetAssignedDivision: "Owner", targetNextActionDescription: "Setujui Faktur DP", targetProgress: 30, notification: { division: "Owner", message: "Faktur DP untuk proyek '{projectName}' telah diajukan oleh {actorUsername} dan menunggu persetujuan Anda." } } }
+    },
+    {
+      stepName: "DP Invoice Approval", status: "Pending Approval", assignedDivision: "Owner", progress: 30, nextActionDescription: "Tinjau dan setujui/tolak Faktur DP",
+      transitions: {
+        "approved": { targetStatus: "Pending Admin Files", targetAssignedDivision: "Admin Proyek", targetNextActionDescription: "Unggah Berkas Administrasi", targetProgress: 40, notification: { division: "Admin Proyek", message: "Faktur DP untuk proyek '{projectName}' telah disetujui oleh {actorUsername}. Mohon unggah berkas administrasi." } },
+        "rejected": { targetStatus: "Pending DP Invoice", targetAssignedDivision: "Akuntan", targetNextActionDescription: "Revisi dan Unggah Ulang Faktur DP", targetProgress: 25, notification: { division: "Akuntan", message: "Faktur DP untuk proyek '{projectName}' ditolak oleh {actorUsername}. Mohon direvisi." } }
+      }
+    },
+    {
+      stepName: "Admin Files Submission", status: "Pending Admin Files", assignedDivision: "Admin Proyek", progress: 40, nextActionDescription: "Unggah Berkas Administrasi",
+      transitions: { "submitted": { targetStatus: "Pending Survey Details", targetAssignedDivision: "Admin Proyek", targetNextActionDescription: "Input Jadwal Survei & Unggah Hasil", targetProgress: 45, notification: { division: ["Owner", "Admin Proyek", "Arsitek"], message: "Berkas administrasi untuk proyek '{projectName}' oleh {actorUsername} lengkap. Mohon koordinasikan dan input jadwal survei." } } }
+    },
+    {
+      stepName: "Survey Details Submission", status: "Pending Survey Details", assignedDivision: "Admin Proyek", progress: 45, nextActionDescription: "Input Jadwal Survei & Unggah Laporan Hasil Survei",
+      transitions: {
+        "submitted": { // This transition points to our new parallel step
+          targetStatus: "Pending Parallel Design Uploads",
+          targetAssignedDivision: "Admin Proyek", // Admin Proyek monitors
+          targetNextActionDescription: "Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.",
+          targetProgress: 50, // New progress for this step
+          notification: {
+            division: ["Admin Proyek", "Arsitek", "Struktur", "MEP"], // Notify all relevant parties
+            message: "Hasil survei untuk '{projectName}' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel."
+          }
+        }
+      }
+    },
+    // NEW PARALLEL STEP
+    {
+      stepName: "Tahap Pembuatan Berkas Proyek", // New Step Name
+      status: "Pending Parallel Design Uploads", // Status we defined
+      assignedDivision: "Admin Proyek", // Admin Proyek is the main assignee for monitoring
+      progress: 50,
+      nextActionDescription: "Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.",
+      transitions: {
+        // Individual uploads by Arsitek, Struktur, MEP won't change overall project status directly here.
+        // They will submit files, and Admin Proyek will confirm all are done.
+        // We could add specific transitions for each division's upload if needed for finer tracking later.
+        "all_files_confirmed": { // Action by Admin Proyek
+          targetStatus: "Pending Scheduling",
+          targetAssignedDivision: "Admin Proyek",
+          targetNextActionDescription: "Jadwalkan Sidang",
+          targetProgress: 90,
+          notification: {
+            division: "Admin Proyek", // Notify Admin Proyek to schedule
+            message: "Semua berkas desain untuk proyek '{projectName}' telah dikonfirmasi terunggah oleh {actorUsername}. Mohon jadwalkan sidang."
+          }
+        }
+      }
+    },
+    // Skip individual design steps: Pending Architect Files, Pending Structure Files, Pending MEP Files
+    // Resume with Sidang Scheduling
+    {
+      stepName: "Sidang Scheduling", status: "Pending Scheduling", assignedDivision: "Admin Proyek", progress: 90, nextActionDescription: "Jadwalkan Sidang",
+      transitions: { "scheduled": { targetStatus: "Scheduled", targetAssignedDivision: "Owner", targetNextActionDescription: "Nyatakan Hasil Sidang", targetProgress: 95, notification: { division: "Owner", message: "Sidang untuk proyek '{projectName}' telah dijadwalkan oleh {actorUsername}. Mohon nyatakan hasilnya setelah selesai." } } }
+    },
+    {
+      stepName: "Sidang Outcome Declaration", status: "Scheduled", assignedDivision: "Owner", progress: 95, nextActionDescription: "Nyatakan Hasil Sidang (Sukses/Revisi/Batal)",
+      transitions: {
+        "completed": { targetStatus: "Completed", targetAssignedDivision: "", targetNextActionDescription: null, targetProgress: 100, notification: { division: "Admin Proyek", message: "Proyek '{projectName}' telah berhasil diselesaikan oleh {actorUsername}." } },
+        "revise_after_sidang": { targetStatus: "Pending Post-Sidang Revision", targetAssignedDivision: "Admin Proyek", targetNextActionDescription: "Lakukan revisi pasca-sidang. Notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.", targetProgress: 85, notification: { division: "Admin Proyek", message: "Proyek '{projectName}' memerlukan revisi setelah sidang yang dinyatakan oleh {actorUsername}." } },
+        "canceled_after_sidang": { targetStatus: "Canceled", targetAssignedDivision: "", targetNextActionDescription: null, targetProgress: 95, notification: { division: "Admin Proyek", message: "Proyek '{projectName}' telah dibatalkan oleh {actorUsername} setelah sidang." } }
+      }
+    },
+    {
+      stepName: "Post-Sidang Revision", status: "Pending Post-Sidang Revision", assignedDivision: "Admin Proyek", progress: 85, nextActionDescription: "Lakukan revisi, notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.",
+      transitions: { "revision_completed_and_finish": { targetStatus: "Completed", targetAssignedDivision: "", targetNextActionDescription: null, targetProgress: 100, notification: { division: "Owner", message: "Proyek '{projectName}' telah berhasil diselesaikan setelah revisi oleh {actorUsername}." } } }
+    },
+    { stepName: "Project Completed", status: "Completed", assignedDivision: "", progress: 100, nextActionDescription: null, transitions: null },
+    { stepName: "Project Canceled", status: "Canceled", assignedDivision: "", progress: 0, nextActionDescription: null, transitions: null }
 ];
 
 
@@ -393,7 +481,6 @@ export async function getAllWorkflows(): Promise<Workflow[]> {
     workflows.unshift(defaultWorkflow);
     saveNeeded = true;
   } else {
-     // Ensure the existing default workflow has the latest structure, name, and description
      let defaultNeedsUpdate = false;
      if (JSON.stringify(workflows[defaultWorkflowIndex].steps) !== JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE)) {
          console.log(`[WorkflowService/JSON] Default workflow (ID: ${DEFAULT_WORKFLOW_ID}) steps mismatch. Updating to the latest structure.`);
@@ -415,10 +502,50 @@ export async function getAllWorkflows(): Promise<Workflow[]> {
      }
   }
 
-  // Ensure all other workflows also have steps (e.g., by assigning default steps if empty)
+  // Ensure MSa_workflow exists and is structured correctly
+  const msaWorkflowId = "msa_workflow";
+  const msaWorkflowName = "MSa Workflow"; // Defined name
+  const msaWorkflowDescription = "Workflow with parallel design uploads after survey."; // Defined description
+  let msaWorkflowIndex = workflows.findIndex(wf => wf.id === msaWorkflowId);
+
+  if (msaWorkflowIndex === -1) {
+    console.log(`[WorkflowService/JSON] MSa_workflow (ID: ${msaWorkflowId}) not found. Adding it.`);
+    const newMsaWorkflow: Workflow = {
+      id: msaWorkflowId,
+      name: msaWorkflowName,
+      description: msaWorkflowDescription,
+      steps: JSON.parse(JSON.stringify(MSA_WORKFLOW_STEPS)),
+    };
+    workflows.push(newMsaWorkflow);
+    saveNeeded = true;
+  } else {
+    // Check if existing MSa_workflow needs update (name, description, or steps)
+    let msaNeedsUpdate = false;
+    if (workflows[msaWorkflowIndex].name !== msaWorkflowName) {
+        workflows[msaWorkflowIndex].name = msaWorkflowName;
+        msaNeedsUpdate = true;
+        console.log(`[WorkflowService/JSON] MSa_workflow (ID: ${msaWorkflowId}) name updated.`);
+    }
+    if (workflows[msaWorkflowIndex].description !== msaWorkflowDescription) {
+        workflows[msaWorkflowIndex].description = msaWorkflowDescription;
+        msaNeedsUpdate = true;
+        console.log(`[WorkflowService/JSON] MSa_workflow (ID: ${msaWorkflowId}) description updated.`);
+    }
+    if (JSON.stringify(workflows[msaWorkflowIndex].steps) !== JSON.stringify(MSA_WORKFLOW_STEPS)) {
+        workflows[msaWorkflowIndex].steps = JSON.parse(JSON.stringify(MSA_WORKFLOW_STEPS));
+        msaNeedsUpdate = true;
+        console.log(`[WorkflowService/JSON] MSa_workflow (ID: ${msaWorkflowId}) steps updated to new definition.`);
+    }
+    if (msaNeedsUpdate) {
+        saveNeeded = true;
+    }
+  }
+
+
+  // Ensure all other custom workflows also have steps (e.g., by assigning default steps if empty)
   workflows = workflows.map(wf => {
-    if (wf.id !== DEFAULT_WORKFLOW_ID && (!wf.steps || wf.steps.length === 0)) {
-      console.warn(`[WorkflowService/JSON] Workflow "${wf.name}" (ID: ${wf.id}) has no steps. Assigning default steps from FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE.`);
+    if (wf.id !== DEFAULT_WORKFLOW_ID && wf.id !== msaWorkflowId && (!wf.steps || wf.steps.length === 0)) {
+      console.warn(`[WorkflowService/JSON] Custom Workflow "${wf.name}" (ID: ${wf.id}) has no steps. Assigning default steps from FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE.`);
       wf.steps = JSON.parse(JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE));
       saveNeeded = true;
     }
@@ -429,16 +556,16 @@ export async function getAllWorkflows(): Promise<Workflow[]> {
   if (saveNeeded) {
     try {
       await writeWorkflows(workflows);
-      console.log("[WorkflowService/JSON] workflows.json persisted after ensuring/updating default workflow or fixing empty steps.");
+      console.log("[WorkflowService/JSON] workflows.json persisted after ensuring/updating default and MSa workflows or fixing empty steps.");
     } catch (writeError) {
-      console.error("[WorkflowService/JSON] Failed to persist workflows.json after ensuring/updating default workflow:", writeError);
+      console.error("[WorkflowService/JSON] Failed to persist workflows.json:", writeError);
     }
   }
   return workflows;
 }
 
 export async function getWorkflowById(id: string): Promise<Workflow | null> {
-  const workflows = await getAllWorkflows();
+  const workflows = await getAllWorkflows(); // This ensures workflows are initialized/updated
   console.log(`[WorkflowService/JSON] Searching for workflow ID: "${id}" among ${workflows.length} workflows.`);
   const workflow = workflows.find(wf => wf.id === id) || null;
   if (!workflow) {
@@ -466,11 +593,10 @@ export async function getCurrentStepDetails(
     console.warn(`[WorkflowService/JSON] Workflow with ID ${workflowId} not found when trying to get current step details.`);
     return null;
   }
-  // Find step by matching status AND progress to handle cases where the same status name might appear at different progress points
+  
   const step = workflow.steps.find(s => s.status === currentStatus && s.progress === currentProgress);
   if (!step) {
       console.warn(`[WorkflowService/JSON] Step with status "${currentStatus}" and progress ${currentProgress} not found in workflow "${workflowId}". Trying to find by status only as fallback.`);
-      // Fallback: if no exact match, try finding the first step with the given status.
       const stepsWithStatus = workflow.steps.filter(s => s.status === currentStatus);
       if (stepsWithStatus.length === 1) {
           console.warn(`[WorkflowService/JSON] Fallback: Found unique step by status "${currentStatus}" but progress mismatch (expected ${currentProgress}, found ${stepsWithStatus[0].progress}). This might indicate inconsistent project data or workflow definition.`);
@@ -520,9 +646,11 @@ export async function getTransitionInfo(
 
 export async function addWorkflow(name: string, description: string): Promise<Workflow> {
   console.log(`[WorkflowService/JSON] Attempting to add workflow: ${name}`);
-  let workflows = await _readWorkflowsFromFile();
+  let workflows = await getAllWorkflows(); // Use getAllWorkflows to ensure defaults are handled
 
   const newWorkflowId = `wf_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  // New custom workflows will also get the FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE by default.
+  // They can be customized later via updateWorkflow if needed.
   const newWorkflow: Workflow = {
     id: newWorkflowId,
     name,
@@ -538,7 +666,7 @@ export async function addWorkflow(name: string, description: string): Promise<Wo
 
 export async function updateWorkflow(workflowId: string, updatedWorkflowData: Partial<Omit<Workflow, 'id'>>): Promise<Workflow | null> {
   console.log(`[WorkflowService/JSON] Attempting to update workflow ID: ${workflowId}`);
-  let workflows = await _readWorkflowsFromFile();
+  let workflows = await getAllWorkflows(); // Use getAllWorkflows to ensure defaults are handled
   const index = workflows.findIndex(wf => wf.id === workflowId);
 
   if (index === -1) {
@@ -549,17 +677,31 @@ export async function updateWorkflow(workflowId: string, updatedWorkflowData: Pa
   const finalUpdatedWorkflow: Workflow = {
     ...workflows[index],
     ...updatedWorkflowData,
-    id: workflows[index].id,
+    id: workflows[index].id, // Ensure ID is not changed
   };
-
+  
+  // If updating the default workflow, ensure its core properties (name, desc) and structure are not accidentally broken
+  // unless explicitly provided in updatedWorkflowData.steps
   if (workflowId === DEFAULT_WORKFLOW_ID) {
     finalUpdatedWorkflow.name = updatedWorkflowData.name || DEFAULT_WORKFLOW_NAME;
     finalUpdatedWorkflow.description = updatedWorkflowData.description || DEFAULT_WORKFLOW_DESCRIPTION;
+    // If steps are not part of the update, ensure they are the master default steps
     if (!updatedWorkflowData.steps && JSON.stringify(finalUpdatedWorkflow.steps) !== JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE)) {
         console.log(`[WorkflowService/JSON] Resetting steps for default workflow ID ${DEFAULT_WORKFLOW_ID} to master definition during update as no new steps were provided.`);
         finalUpdatedWorkflow.steps = JSON.parse(JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE));
     }
   }
+  // If updating MSa_workflow, ensure its core properties and structure are not accidentally broken
+  // unless explicitly provided in updatedWorkflowData.steps
+  else if (workflowId === "msa_workflow") {
+    finalUpdatedWorkflow.name = updatedWorkflowData.name || "MSa Workflow";
+    finalUpdatedWorkflow.description = updatedWorkflowData.description || "Workflow with parallel design uploads after survey.";
+    if (!updatedWorkflowData.steps && JSON.stringify(finalUpdatedWorkflow.steps) !== JSON.stringify(MSA_WORKFLOW_STEPS)) {
+        console.log(`[WorkflowService/JSON] Resetting steps for MSa_workflow ID ${workflowId} to its specific definition during update as no new steps were provided.`);
+        finalUpdatedWorkflow.steps = JSON.parse(JSON.stringify(MSA_WORKFLOW_STEPS));
+    }
+  }
+
 
   workflows[index] = finalUpdatedWorkflow;
 
@@ -570,34 +712,47 @@ export async function updateWorkflow(workflowId: string, updatedWorkflowData: Pa
 
 export async function deleteWorkflow(workflowId: string): Promise<void> {
   console.log(`[WorkflowService/JSON] Attempting to delete workflow ID: ${workflowId}`);
-  let workflows = await _readWorkflowsFromFile();
+  let workflows = await getAllWorkflows(); // Use getAllWorkflows to ensure defaults are handled
   const initialLength = workflows.length;
 
   if (workflowId === DEFAULT_WORKFLOW_ID && workflows.length <= 1) {
-      console.warn(`[WorkflowService/JSON] Cannot delete the default workflow (ID: ${DEFAULT_WORKFLOW_ID}) as it's the only one.`);
+      console.warn(`[WorkflowService/JSON] Cannot delete the default workflow (ID: ${DEFAULT_WORKFLOW_ID}) as it's the only one or the MSa_workflow depends on its base structure implicitly.`);
+      throw new Error('CANNOT_DELETE_LAST_OR_DEFAULT_WORKFLOW');
+  }
+  if (workflowId === "msa_workflow" && workflows.length <=1) {
+       console.warn(`[WorkflowService/JSON] Cannot delete the MSa_workflow (ID: msa_workflow) if it's the only one besides the default.`);
       throw new Error('CANNOT_DELETE_LAST_OR_DEFAULT_WORKFLOW');
   }
 
+
   workflows = workflows.filter(wf => wf.id !== workflowId);
 
-  if (workflows.length === initialLength && workflowId !== DEFAULT_WORKFLOW_ID) {
-      console.warn(`[WorkflowService/JSON] Workflow with ID ${workflowId} not found for deletion, or it was the default and no change was made.`);
+  if (workflows.length === initialLength && workflowId !== DEFAULT_WORKFLOW_ID && workflowId !== "msa_workflow") {
+      console.warn(`[WorkflowService/JSON] Workflow with ID ${workflowId} not found for deletion, or it was a protected workflow and no change was made.`);
   } else if (workflows.length < initialLength) {
     console.log(`[WorkflowService/JSON] Workflow with ID ${workflowId} deleted. Remaining workflows: ${workflows.length}`);
   }
 
-  if (workflows.length === 0) {
-    console.log("[WorkflowService/JSON] All workflows deleted. The default workflow will be re-initialized on next load by getAllWorkflows.");
+  // If the default workflow was somehow deleted and only MSa (or others) remain, re-add default.
+  if (!workflows.find(wf => wf.id === DEFAULT_WORKFLOW_ID)) {
+     console.log("[WorkflowService/JSON] Default workflow was deleted. Re-initializing it.");
+     const defaultWorkflow: Workflow = {
+      id: DEFAULT_WORKFLOW_ID,
+      name: DEFAULT_WORKFLOW_NAME,
+      description: DEFAULT_WORKFLOW_DESCRIPTION,
+      steps: JSON.parse(JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE)),
+    };
+    workflows.unshift(defaultWorkflow);
   }
+
   await writeWorkflows(workflows);
 }
 
-// Function to get all unique statuses from all workflows (for manual status change dropdown)
 export async function getAllUniqueStatuses(): Promise<string[]> {
-    const workflows = await getAllWorkflows(); // Ensures default is present
+    const workflows = await getAllWorkflows(); 
     const allStatuses = new Set<string>();
     workflows.forEach(wf => {
-        if (wf.steps && Array.isArray(wf.steps)) { // Ensure steps is an array
+        if (wf.steps && Array.isArray(wf.steps)) { 
             wf.steps.forEach(step => {
                 allStatuses.add(step.status);
             });
