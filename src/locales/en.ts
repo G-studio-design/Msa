@@ -70,6 +70,7 @@ const en = {
       inprogress: 'In Progress',
       pendingapproval: 'Pending Approval',
       pendingpostsidangrevision: "Pending Post-Sidang Revision",
+      pendingparalleldesignuploads: "Pending Parallel Design Uploads", // Added
       delayed: 'Delayed',
       canceled: 'Canceled',
       pending: 'Pending',
@@ -230,6 +231,14 @@ const en = {
     architectUploadInitialImagesDialogTitle: "Upload Initial Reference Images",
     architectUploadInitialImagesDialogDesc: "These images will be sent to Structure & MEP divisions for early planning. The project will remain in your court.",
     currentProjectActionsTitle: "Current Project Actions",
+    parallelUploadsSectionTitle: "Parallel Design File Uploads",
+    adminParallelUploadsGuidance: "Awaiting design file uploads from Architect, Structure, and MEP divisions. You can submit the project to the next stage once all required files are uploaded.",
+    architectParallelUploadTitle: "Architect: Upload Main Design Files",
+    structureParallelUploadTitle: "Structure: Upload Structural Design Files",
+    mepParallelUploadTitle: "MEP: Upload MEP Design Files",
+    parallelUploadDescriptionPlaceholder: "Optional: Add a description for these files...",
+    confirmAllDesignsUploadedButton: "Confirm All Designs Uploaded & Proceed",
+    confirmingAllDesignsButton: "Confirming...",
     nextActionDescriptions: {
         uploadOfferDocument: "Upload Offer Document",
         approveOfferDocument: "Approve Offer Document",
@@ -247,6 +256,8 @@ const en = {
         reviseDPInvoice: "Revise and Re-upload DP Invoice",
         performPostSidangRevisions: "Perform Post-Sidang Revisions",
         uploadPostSidangRevisions: "Upload post-sidang revisions, notify relevant parties if needed, then confirm project completion.",
+        awaitParallelDesignUploads: "Awaiting design file uploads from Architect, Structure, and MEP.", // New
+        confirmAllParallelUploads: "Verify all design files are uploaded and proceed.", // New
     },
     workflowActions: {
         approveOffer: "Approved Offer Document",
@@ -260,7 +271,7 @@ const en = {
         uploadedDPInvoice: "Uploaded DP Invoice",
         uploadStructureFiles: "Upload Structure Files",
         uploadedArchitectFiles: "Uploaded Architect Files",
-        uploadedStructureFiles: "Upload Structure Files",
+        uploadedStructureFiles: "Uploaded Structure Files",
         submittedProgressFor: "Submitted Progress for",
         canceledProject: "Canceled Project", // Updated for clarity
         generateDPInvoice: "Generated DP Invoice",
@@ -282,7 +293,20 @@ const en = {
         architectUploadedInitialImages: "Architect uploaded initial reference images for Structure & MEP.",
         adminProyekCompletedPostSidangRevision: "Project Admin completed post-sidang revisions and finalized the project.",
         offerCanceledByOwner: "Project offer was canceled by the Owner.",
-        offerRevisedByOwner: "Project offer revision requested by Owner."
+        offerRevisedByOwner: "Project offer revision requested by Owner.",
+        architectSubmittedMainDesign: "Architect submitted main design files.", // New
+        structureSubmittedDesign: "Structure submitted design files.", // New
+        mepSubmittedDesign: "MEP submitted design files.", // New
+        adminConfirmedAllDesigns: "Admin Project confirmed all parallel designs uploaded.", // New
+    },
+    fileChecklist: {
+      title: "Design & Engineering File Checklist",
+      architectInitialReferences: "Architect: Initial References",
+      architectMainDesign: "Architect: Main Design Files",
+      structureDesign: "Structure: Design Files",
+      mepDesign: "MEP: Design Files",
+      completed: "Completed",
+      pending: "Pending",
     },
     toast: {
       permissionDenied: 'Permission Denied',
@@ -355,28 +379,32 @@ const en = {
       initialImagesUploadedTitle: "Initial Images Uploaded",
       initialImagesUploadedDesc: "Initial reference images for project \"{projectName}\" have been uploaded by {actorUsername}. Divisions Structure & MEP have been notified.", // Updated
       revisionNotificationSentTitle: "Notification Sent",
-      revisionNotificationSentDesc: "Division {division} has been notified to contribute to the revision for project \"{projectName}\" by {actorUsername}."
+      revisionNotificationSentDesc: "Division {division} has been notified to contribute to the revision for project \"{projectName}\" by {actorUsername}.",
+      parallelUploadSubmittedTitle: "File Submitted",
+      parallelUploadSubmittedDesc: "{uploaderRole} submitted their files for project \"{projectName}\". Admin Proyek has been notified.",
+      allDesignsConfirmedTitle: "All Designs Confirmed",
+      allDesignsConfirmedDesc: "Admin Proyek has confirmed all designs are uploaded for \"{projectName}\". Project proceeding to scheduling.",
     }
   },
   // Add Project Page
   addProjectPage: {
       title: 'Create New Project',
-      description: 'Enter the project title, select a workflow, and upload initial files.',
+      description: 'Enter the project title and upload initial files. The standard workflow will be used.',
       titleLabel: 'Project Title',
       titlePlaceholder: 'Enter the full project title',
-      workflowLabel: 'Select Workflow',
-      workflowPlaceholder: 'Choose a workflow type',
+      workflowLabel: 'Select Workflow', // Kept for consistency, though not selectable by user
+      workflowPlaceholder: 'Choose a workflow type', // Kept
       filesLabel: 'Initial Files (Optional)',
       filesHint: 'Upload any initial documents or briefs related to the project. Max {max} files.',
       createButton: 'Create Project',
       creatingButton: 'Creating...',
-      accessDeniedTitle: 'Access Denied', // New
+      accessDeniedTitle: 'Access Denied', 
       accessDenied: 'You do not have permission to add new projects.',
       cancelButton: 'Cancel',
       selectedFilesLabel: 'Selected Files',
       toast: {
           success: 'Project Created',
-          successDesc: 'Project "{title}" added successfully using workflow "{workflowName}". {division} notified for the first step.',
+          successDesc: 'Project "{title}" added successfully. {division} notified for the first step.',
           error: 'Failed to Create Project',
           fetchWorkflowsError: 'Could not load workflow types.',
           uploadFailed: "One or more files failed to upload. Project not created.",
@@ -812,4 +840,3 @@ const en = {
 };
 
 export default en;
-

@@ -398,5 +398,21 @@
     "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'Proyek Renovasi Kantor Pusat' telah diunggah. Anda bisa mulai melakukan perencanaan MEP awal.",
     "timestamp": "2025-05-28T08:29:09.708Z",
     "isRead": false
+  },
+  {
+    "id": "notif_1749471165963_nklxf_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'proyek hotel ubud' telah diunggah. Anda bisa mulai merencanakan struktur.",
+    "timestamp": "2025-06-09T12:12:45.960Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1749471165973_pdivx_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'proyek hotel ubud' telah diunggah. Anda bisa mulai melakukan perencanaan MEP awal.",
+    "timestamp": "2025-06-09T12:12:45.972Z",
+    "isRead": false
   }
 ]

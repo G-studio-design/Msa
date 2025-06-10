@@ -70,6 +70,7 @@ const id = {
       inprogress: 'Sedang Berjalan',
       pendingapproval: 'Menunggu Persetujuan',
       pendingpostsidangrevision: "Menunggu Revisi Pasca-Sidang",
+      pendingparalleldesignuploads: "Menunggu Unggahan Desain Paralel", // Added
       delayed: 'Tertunda',
       canceled: 'Dibatalkan',
       pending: 'Tertunda',
@@ -230,6 +231,14 @@ const id = {
     architectUploadInitialImagesDialogTitle: "Unggah Gambar Referensi Awal",
     architectUploadInitialImagesDialogDesc: "Gambar-gambar ini akan dikirim ke divisi Struktur & MEP untuk perencanaan awal. Proyek akan tetap menjadi tanggung jawab Anda.",
     currentProjectActionsTitle: "Tindakan Proyek Saat Ini",
+    parallelUploadsSectionTitle: "Unggahan File Desain Paralel",
+    adminParallelUploadsGuidance: "Menunggu unggahan file desain dari divisi Arsitek, Struktur, dan MEP. Anda dapat melanjutkan proyek ke tahap berikutnya setelah semua file yang diperlukan diunggah.",
+    architectParallelUploadTitle: "Arsitek: Unggah File Desain Utama",
+    structureParallelUploadTitle: "Struktur: Unggah File Desain Struktural",
+    mepParallelUploadTitle: "MEP: Unggah File Desain MEP",
+    parallelUploadDescriptionPlaceholder: "Opsional: Tambahkan deskripsi untuk file-file ini...",
+    confirmAllDesignsUploadedButton: "Konfirmasi Semua Desain Telah Diunggah & Lanjutkan",
+    confirmingAllDesignsButton: "Mengonfirmasi...",
     nextActionDescriptions: {
         uploadOfferDocument: "Unggah Dokumen Penawaran",
         approveOfferDocument: "Setujui Dokumen Penawaran",
@@ -247,6 +256,8 @@ const id = {
         reviseDPInvoice: "Revisi dan Unggah Ulang Faktur DP",
         performPostSidangRevisions: "Lakukan Revisi Pasca Sidang",
         uploadPostSidangRevisions: "Unggah revisi pasca-sidang, notifikasi pihak terkait jika perlu, lalu konfirmasi penyelesaian proyek.",
+        awaitParallelDesignUploads: "Menunggu unggahan file desain dari Arsitek, Struktur, dan MEP.", // New
+        confirmAllParallelUploads: "Verifikasi semua file desain telah diunggah dan lanjutkan.", // New
     },
     workflowActions: {
         approveOffer: "Menyetujui Dokumen Penawaran",
@@ -282,7 +293,20 @@ const id = {
         architectUploadedInitialImages: "Arsitek mengunggah gambar referensi awal untuk Struktur & MEP.",
         adminProyekCompletedPostSidangRevision: "Admin Proyek menyelesaikan revisi pasca-sidang dan menyelesaikan proyek.",
         offerCanceledByOwner: "Proyek dibatalkan oleh Pemilik pada tahap penawaran.",
-        offerRevisedByOwner: "Permintaan revisi penawaran proyek oleh Pemilik."
+        offerRevisedByOwner: "Permintaan revisi penawaran proyek oleh Pemilik.",
+        architectSubmittedMainDesign: "Arsitek mengirimkan file desain utama.", // New
+        structureSubmittedDesign: "Struktur mengirimkan file desain.", // New
+        mepSubmittedDesign: "MEP mengirimkan file desain.", // New
+        adminConfirmedAllDesigns: "Admin Proyek mengonfirmasi semua desain paralel telah diunggah.", // New
+    },
+    fileChecklist: {
+      title: "Daftar Periksa Unggahan File Desain & Teknis",
+      architectInitialReferences: "Arsitek: Referensi Awal",
+      architectMainDesign: "Arsitek: File Desain Utama",
+      structureDesign: "Struktur: File Desain",
+      mepDesign: "MEP: File Desain",
+      completed: "Selesai",
+      pending: "Tertunda",
     },
     toast: {
       permissionDenied: 'Izin Ditolak',
@@ -355,28 +379,32 @@ const id = {
       initialImagesUploadedTitle: "Gambar Awal Diunggah",
       initialImagesUploadedDesc: "Gambar referensi awal untuk proyek \"{projectName}\" telah diunggah oleh {actorUsername}. Divisi Struktur & MEP telah dinotifikasi.", // Updated
       revisionNotificationSentTitle: "Notifikasi Terkirim",
-      revisionNotificationSentDesc: "Divisi {division} telah dinotifikasi untuk berkontribusi pada revisi proyek \"{projectName}\" oleh {actorUsername}."
+      revisionNotificationSentDesc: "Divisi {division} telah dinotifikasi untuk berkontribusi pada revisi proyek \"{projectName}\" oleh {actorUsername}.",
+      parallelUploadSubmittedTitle: "File Terkirim",
+      parallelUploadSubmittedDesc: "{uploaderRole} mengirimkan file mereka untuk proyek \"{projectName}\". Admin Proyek telah diberitahu.",
+      allDesignsConfirmedTitle: "Semua Desain Dikonfirmasi",
+      allDesignsConfirmedDesc: "Admin Proyek telah mengonfirmasi semua desain diunggah untuk \"{projectName}\". Proyek berlanjut ke penjadwalan.",
     }
   },
   // Add Project Page
   addProjectPage: {
       title: 'Buat Proyek Baru',
-      description: 'Masukkan judul proyek, pilih alur kerja, dan unggah file awal.',
+      description: 'Masukkan judul proyek dan unggah file awal. Alur kerja standar akan digunakan.',
       titleLabel: 'Judul Proyek',
       titlePlaceholder: 'Masukkan judul lengkap proyek',
-      workflowLabel: 'Pilih Alur Kerja',
-      workflowPlaceholder: 'Pilih jenis alur kerja',
+      workflowLabel: 'Pilih Alur Kerja', // Kept for consistency, though not selectable by user
+      workflowPlaceholder: 'Pilih jenis alur kerja', // Kept
       filesLabel: 'File Awal (Opsional)',
       filesHint: 'Unggah dokumen atau brief awal terkait proyek. Maks {max} file.',
       createButton: 'Buat Proyek',
       creatingButton: 'Membuat...',
-      accessDeniedTitle: 'Akses Ditolak', // New
+      accessDeniedTitle: 'Akses Ditolak', 
       accessDenied: 'Anda tidak memiliki izin untuk menambahkan proyek baru.',
       cancelButton: 'Batal',
       selectedFilesLabel: 'File Terpilih',
       toast: {
           success: 'Proyek Dibuat',
-          successDesc: 'Proyek "{title}" berhasil ditambahkan menggunakan alur kerja "{workflowName}". {division} diberitahu untuk langkah pertama.',
+          successDesc: 'Proyek "{title}" berhasil ditambahkan. {division} diberitahu untuk langkah pertama.',
           error: 'Gagal Membuat Proyek',
           fetchWorkflowsError: 'Tidak dapat memuat jenis alur kerja.',
           uploadFailed: "Satu atau lebih file gagal diunggah. Proyek tidak dibuat.",
@@ -812,4 +840,3 @@ const id = {
 };
 
 export default id;
-

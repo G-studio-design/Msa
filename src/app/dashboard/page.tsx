@@ -1,4 +1,3 @@
-
 // src/app/dashboard/page.tsx
 'use client';
 
@@ -134,7 +133,7 @@ export default function DashboardPage() {
     const translatedStatus = dashboardDict.status[statusKey] || status;
 
     let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-    let baseClasses = "py-1 px-2 text-xs"; // Existing base classes
+    let baseClasses = "py-1 px-2 text-xs"; 
     let additionalClasses = "";
     let Icon = TrendingUp;
 
@@ -149,12 +148,17 @@ export default function DashboardPage() {
             additionalClasses = "bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700";
             Icon = TrendingUp;
             break;
+        case 'pendingparalleldesignuploads': // Added case for new status
+            variant = 'default'; // Use default variant and override colors
+            additionalClasses = "bg-teal-500 text-white dark:bg-teal-600 dark:text-primary-foreground hover:bg-teal-600 dark:hover:bg-teal-700 border-teal-500 dark:border-teal-600";
+            Icon = ListChecks;
+            break;
         case 'pendingapproval': case 'menunggupersetujuan':
             variant = 'outline';
             additionalClasses = "border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-500";
             Icon = AlertTriangle;
             break;
-        case 'pendingpostsidangrevision': case 'menunggurevisipascSidang': // Corrected typo 'menunggurevisipascassidang' by removing it
+        case 'pendingpostsidangrevision': case 'menunggurevisipascSidang': 
             variant = 'outline';
             additionalClasses = "border-orange-400 text-orange-500 dark:border-orange-300 dark:text-orange-400";
             Icon = TrendingUp;
