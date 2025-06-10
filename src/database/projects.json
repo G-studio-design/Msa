@@ -1,3 +1,4 @@
+
 [
   {
     "id": "project_demo_aktif_001",
@@ -347,5 +348,26 @@
       "time": "08:50",
       "description": "survey proyek"
     }
+  },
+  {
+    "id": "project_test_ppdu_001",
+    "title": "Tes Proyek Unggah Desain Paralel",
+    "status": "Pending Parallel Design Uploads",
+    "progress": 55,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Verify all design files are uploaded and proceed.",
+    "workflowHistory": [
+      {
+        "division": "Admin Proyek",
+        "action": "Moved to Parallel Design Uploads",
+        "timestamp": "2024-05-28T10:00:00.000Z",
+        "note": "Awaiting designs from Architect, Structure, MEP."
+      }
+    ],
+    "files": [],
+    "createdAt": "2024-05-28T09:00:00.000Z",
+    "createdBy": "admin_test",
+    "workflowId": "default_standard_workflow"
   }
 ]
+    
