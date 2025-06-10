@@ -12,18 +12,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+// Select components are no longer needed for workflow
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { addProject, type FileEntry, type AddProjectData } from '@/services/project-service';
-import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
+// Workflow related imports are no longer needed here
+// import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants'; // No longer needed for selection
 import { Loader2, Upload, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const MAX_FILES_UPLOAD = 10;
 
-// Skema diperbarui: workflowId dihapus dari validasi form
+// Updated schema: workflowId is removed from form validation
 const getAddProjectSchema = (dictValidation: ReturnType<typeof getDictionary>['addProjectPage']['validation']) => z.object({
   title: z.string().min(5, dictValidation.titleMin),
 });
@@ -41,12 +43,14 @@ export default function AddProjectPage() {
   const addProjectDict = React.useMemo(() => getDictionary(language).addProjectPage, [language]);
   const dashboardDict = React.useMemo(() => getDictionary(language).dashboardPage, [language]);
 
+
   const [isLoading, setIsLoading] = React.useState(false);
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
 
   React.useEffect(() => {
     setIsClient(true);
   }, []);
+
 
   const addProjectSchema = React.useMemo(() => getAddProjectSchema(addProjectDict.validation), [addProjectDict.validation]);
   type AddProjectFormValues = z.infer<typeof addProjectSchema>;
@@ -63,6 +67,7 @@ export default function AddProjectPage() {
       form.trigger();
     }
   }, [addProjectDict, form, isClient]);
+
 
   const canAddProject = React.useMemo(() => {
     if (!currentUser) return false;
@@ -95,6 +100,7 @@ export default function AddProjectPage() {
     const key = statusKey?.toLowerCase().replace(/ /g, '') as keyof typeof dictToUse.status;
     return dictToUse.status[key] || statusKey;
   }, [isClient, dashboardDict]);
+
 
   const onSubmit = async (data: AddProjectFormValues) => {
     if (!canAddProject || !currentUser) return;
@@ -132,39 +138,41 @@ export default function AddProjectPage() {
       }
     }
     
-    const effectiveWorkflowId = DEFAULT_WORKFLOW_ID; // Selalu gunakan workflow default
-    console.log('[AddProjectPage] Submitting with implicit workflowId:', effectiveWorkflowId);
+    // WorkflowId is now hardcoded to "msa_workflow"
+    const effectiveWorkflowId = "msa_workflow"; // MODIFIED HERE
+    console.log('[AddProjectPage] Submitting with fixed workflowId:', effectiveWorkflowId);
 
     const newProjectData: AddProjectData = {
       title: data.title,
-      workflowId: effectiveWorkflowId,
+      workflowId: effectiveWorkflowId, 
       initialFiles: actualFileEntriesForService.map(f => ({...f, timestamp: new Date().toISOString()})),
       createdBy: currentUser.username,
     };
 
     try {
       const createdProject = await addProject(newProjectData);
-      console.log('Project created successfully on server:', createdProject);
+      console.log('Project created successfully on server with MSa_workflow:', createdProject);
       
       const firstStepAssignedDivision = createdProject.assignedDivision;
       const translatedDivision = getTranslatedStatus(firstStepAssignedDivision) || firstStepAssignedDivision;
-      
-      // Pesan toast disederhanakan
+
+      // Updated toast message for MSa_workflow
       toast({
         title: addProjectDict.toast.success,
         description: (addProjectDict.toast.successDesc || defaultDict.addProjectPage.toast.successDesc)
           .replace('"{title}"', createdProject.title)
-          .replace(' using workflow "{workflowName}"', '') // Menghapus bagian nama workflow
+          .replace(' using workflow "{workflowName}"', ' using MSa Workflow') // Indicate MSa Workflow
           .replace('{division}', translatedDivision),
       });
-      form.reset({ title: '' });
+      form.reset({ title: ''}); 
       setSelectedFiles([]);
       router.push('/dashboard/projects'); 
     } catch (error: any) {
       console.error('Failed to add project:', error);
       let desc = addProjectDict.toast.error;
       if (error.message === 'WORKFLOW_INVALID') {
-        desc = "The default workflow is invalid or missing steps. Please contact an administrator.";
+        // This error message should now specify msa_workflow if it's invalid
+        desc = "The MSa_workflow is invalid or missing steps. Please contact an administrator.";
       } else {
         desc = error.message || 'An unexpected error occurred while creating the project.';
       }
@@ -178,7 +186,6 @@ export default function AddProjectPage() {
     }
   };
 
-    // Kondisi loading disederhanakan
     if (!isClient || (!canAddProject && currentUser) ) {
         return (
               <div className="container mx-auto py-4 px-4 md:px-6">
@@ -214,12 +221,13 @@ export default function AddProjectPage() {
        );
     }
 
+
   return (
      <div className="container mx-auto py-4 px-4 md:px-6">
       <Card className="w-full max-w-2xl mx-auto">
         <CardHeader>
            <CardTitle className="text-xl md:text-2xl">{addProjectDict.title}</CardTitle>
-          <CardDescription>{addProjectDict.description}</CardDescription>
+          <CardDescription>{addProjectDict.description.replace('The standard workflow will be used.', 'The MSa workflow will be used.')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -281,6 +289,7 @@ export default function AddProjectPage() {
                    </div>
                  )}
 
+
                <div className="flex flex-col sm:flex-row justify-end gap-2">
                   <Button type="button" variant="outline" onClick={() => router.back()} disabled={isLoading} className="w-full sm:w-auto">
                     {addProjectDict.cancelButton || defaultDict.manageUsersPage.cancelButton}
@@ -297,4 +306,6 @@ export default function AddProjectPage() {
     </div>
   );
 }
+    
+
     
