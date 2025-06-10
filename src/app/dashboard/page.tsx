@@ -7,10 +7,12 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button'; // Added missing import
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -22,7 +24,7 @@ import {
     AlertTriangle,
     CheckCircle,
     Clock,
-    ListChecks, // <<< ICON UNTUK PARALLEL UPLOADS
+    ListChecks,
     Loader2,
     FileText,
     Users,
@@ -78,7 +80,6 @@ export default function DashboardPage() {
   const getTranslatedStatus = useCallback((statusKey: string): string => {
     if (!dashboardDict?.status || !statusKey) return statusKey;
     const key = statusKey?.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
-    // console.log(`[DashboardPage/getTranslatedStatus] Original: "${statusKey}", Key: "${key}", Translated: "${dashboardDict.status[key]}"`);
     return dashboardDict.status[key] || statusKey;
   }, [dashboardDict]);
 
@@ -113,9 +114,9 @@ export default function DashboardPage() {
             className = `${className} border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-500`;
             Icon = AlertTriangle;
             break;
-        case 'pendingparalleldesignuploads': case 'menungguunggahandesainparalel': // <<< CASE UNTUK PARALLEL UPLOADS
-            variant = 'default'; // Atau 'secondary' jika lebih sesuai
-            className = `${className} bg-fuchsia-500 hover:bg-fuchsia-600 text-white dark:bg-fuchsia-600 dark:hover:bg-fuchsia-700`; // Warna fuchsia untuk debug
+        case 'pendingparalleldesignuploads': case 'menungguunggahandesainparalel':
+            variant = 'default';
+            className = `${className} bg-fuchsia-500 hover:bg-fuchsia-600 text-white dark:bg-fuchsia-600 dark:hover:bg-fuchsia-700`;
             Icon = ListChecks;
             break;
         case 'pendingpostsidangrevision': case 'menunggurevisipascSidang':
@@ -153,7 +154,10 @@ export default function DashboardPage() {
     return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
   }, [isClient, dashboardDict, getTranslatedStatus]);
 
-  const activeProjects = useMemo(() => projects.filter(p => p.status !== 'Completed' && p.status !== 'Canceled'), [projects]);
+  const activeProjects = useMemo(() => {
+    console.log('[DashboardPage] Recalculating activeProjects. Total projects:', projects.length);
+    return projects.filter(p => p.status !== 'Completed' && p.status !== 'Canceled');
+  }, [projects]);
 
   if (!isClient || isLoadingProjects) {
     return (
@@ -176,6 +180,8 @@ export default function DashboardPage() {
       </div>
     );
   }
+
+  console.log('[DashboardPage] Rendering main content. Active projects count:', activeProjects.length);
 
   return (
     <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
@@ -208,7 +214,7 @@ export default function DashboardPage() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {activeProjects.map(project => {
-                console.log(`[DashboardPage] Rendering project: "${project.title}", Status: "${project.status}"`);
+                console.log(`[DashboardPage] Rendering project card: "${project.title}", Status: "${project.status}"`);
                 return (
                   <Link href={`/dashboard/projects?projectId=${project.id}`} key={project.id} passHref>
                     <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full flex flex-col">
