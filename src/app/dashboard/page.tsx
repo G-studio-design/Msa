@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button'; // Added missing import
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -24,7 +24,7 @@ import {
     AlertTriangle,
     CheckCircle,
     Clock,
-    ListChecks,
+    ListChecks, // Ensure ListChecks is imported
     Loader2,
     FileText,
     Users,
@@ -46,7 +46,11 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
 
-  const dashboardDict = useMemo(() => getDictionary(language).dashboardPage, [language]);
+  const dashboardDict = useMemo(() => {
+    const dict = getDictionary(language).dashboardPage;
+    console.log('[DashboardPage] dashboardDict.status object:', JSON.stringify(dict.status, null, 2));
+    return dict;
+  }, [language]);
   const projectsDict = useMemo(() => getDictionary(language).projectsPage, [language]);
 
   useEffect(() => {
@@ -60,7 +64,7 @@ export default function DashboardPage() {
       setIsLoadingProjects(true);
       try {
         const fetchedProjects = await getAllProjects();
-        console.log('[DashboardPage] Projects fetched:', fetchedProjects);
+        console.log('[DashboardPage] Projects fetched:', fetchedProjects.length > 0 ? fetchedProjects : 'No projects returned from service.');
         setProjects(fetchedProjects);
       } catch (error) {
         console.error('[DashboardPage] Failed to fetch projects:', error);
@@ -78,8 +82,8 @@ export default function DashboardPage() {
   }, [isClient, currentUser, fetchProjects]);
 
   const getTranslatedStatus = useCallback((statusKey: string): string => {
-    if (!dashboardDict?.status || !statusKey) return statusKey;
     const key = statusKey?.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
+    // console.log(`[DashboardPage/getTranslatedStatus] Input: "${statusKey}", Generated key: "${key}", Translation: "${dashboardDict.status[key] || statusKey}"`);
     return dashboardDict.status[key] || statusKey;
   }, [dashboardDict]);
 
@@ -90,7 +94,7 @@ export default function DashboardPage() {
         return <Skeleton className="h-5 w-20" />;
     }
 
-    const statusKey = status.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
+    const statusKey = status.toLowerCase().replace(/ /g,'');
     console.log(`[DashboardPage/getStatusBadge] Generated statusKey: "${statusKey}" for original status: "${status}"`);
 
     const translatedStatus = getTranslatedStatus(status);
@@ -98,6 +102,7 @@ export default function DashboardPage() {
     let className = "py-1 px-2 text-xs";
     let Icon = Clock;
 
+    console.log(`[DashboardPage/getStatusBadge] Switching on statusKey: "${statusKey}"`);
     switch (statusKey) {
         case 'completed': case 'selesai':
             variant = 'default';
@@ -109,15 +114,16 @@ export default function DashboardPage() {
             className = `${className} bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700`;
             Icon = Activity;
             break;
+        case 'pendingparalleldesignuploads': // Key for "Pending Parallel Design Uploads"
+            console.log(`[DashboardPage/getStatusBadge] MATCHED 'pendingparalleldesignuploads' for status: "${status}"`);
+            variant = 'default'; // Make it default so it stands out if color is the issue
+            className = `${className} bg-fuchsia-500 hover:bg-fuchsia-600 text-white dark:bg-fuchsia-600 dark:hover:bg-fuchsia-700`; // FUCHSIA for debugging
+            Icon = ListChecks;
+            break;
         case 'pendingapproval': case 'menunggupersetujuan':
             variant = 'outline';
             className = `${className} border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-500`;
             Icon = AlertTriangle;
-            break;
-        case 'pendingparalleldesignuploads': case 'menungguunggahandesainparalel':
-            variant = 'default';
-            className = `${className} bg-fuchsia-500 hover:bg-fuchsia-600 text-white dark:bg-fuchsia-600 dark:hover:bg-fuchsia-700`;
-            Icon = ListChecks;
             break;
         case 'pendingpostsidangrevision': case 'menunggurevisipascSidang':
             variant = 'outline';
@@ -155,9 +161,21 @@ export default function DashboardPage() {
   }, [isClient, dashboardDict, getTranslatedStatus]);
 
   const activeProjects = useMemo(() => {
-    console.log('[DashboardPage] Recalculating activeProjects. Total projects:', projects.length);
-    return projects.filter(p => p.status !== 'Completed' && p.status !== 'Canceled');
+    console.log('[DashboardPage] Recalculating activeProjects. Total projects available:', projects.length);
+    // TEMPORARILY REMOVED FILTER TO SHOW ALL PROJECTS FOR DEBUGGING
+    // return projects.filter(p => p.status !== 'Completed' && p.status !== 'Canceled');
+    return projects;
   }, [projects]);
+
+  useEffect(() => {
+    if (projects.length > 0) {
+      console.log('[DashboardPage] `projects` state updated, count:', projects.length);
+    }
+    if (activeProjects.length > 0 || projects.length > 0) { // Log even if activeProjects is empty but projects has data
+        console.log('[DashboardPage] `activeProjects` (or all projects for debug) to be mapped:', JSON.stringify(activeProjects.map(p => ({id: p.id, title: p.title, status: p.status})), null, 2));
+    }
+  }, [projects, activeProjects]);
+
 
   if (!isClient || isLoadingProjects) {
     return (
@@ -181,7 +199,7 @@ export default function DashboardPage() {
     );
   }
 
-  console.log('[DashboardPage] Rendering main content. Active projects count:', activeProjects.length);
+  console.log('[DashboardPage] Rendering main content. Projects to display (debug):', activeProjects.length);
 
   return (
     <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
@@ -201,7 +219,7 @@ export default function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{dashboardDict.activeProjects}</CardTitle>
+          <CardTitle>{dashboardDict.activeProjects} (Debug: Showing All)</CardTitle>
           <CardDescription>
             {currentUser?.role === 'Owner' || currentUser?.role === 'Akuntan' || currentUser?.role === 'Admin Proyek' || currentUser?.role === 'Admin Developer'
               ? dashboardDict.allProjectsDesc
@@ -244,7 +262,6 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
-      {/* Tambahkan section lain jika diperlukan */}
     </div>
   );
 }
