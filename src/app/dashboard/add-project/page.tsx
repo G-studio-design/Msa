@@ -1,4 +1,3 @@
-
 // src/app/dashboard/add-project/page.tsx
 'use client';
 
@@ -59,11 +58,6 @@ export default function AddProjectPage() {
       const workflows = await getAllWorkflows();
       console.log('[AddProjectPage] Fetched workflows:', workflows);
       setFetchedWorkflows(workflows);
-      if (workflows.length > 0 && !form.getValues('workflowId')) {
-         // Optionally set a default workflow if none is pre-selected and workflows exist
-         // For example, to set the first workflow as default:
-         // form.setValue('workflowId', workflows[0].id, { shouldValidate: true });
-      }
     } catch (error) {
       console.error('Failed to fetch workflows:', error);
       toast({
@@ -71,18 +65,18 @@ export default function AddProjectPage() {
         title: addProjectDict.toast.error,
         description: addProjectDict.toast.fetchWorkflowsError,
       });
-      setFetchedWorkflows([]); // Ensure it's an empty array on error
+      setFetchedWorkflows([]);
     } finally {
       setIsLoadingWorkflows(false);
       console.log('[AddProjectPage] Finished fetching workflows. isLoadingWorkflows:', false);
     }
-  }, [toast, addProjectDict.toast.error, addProjectDict.toast.fetchWorkflowsError]); // form removed as setValue should not be here
+  }, [toast, addProjectDict.toast.error, addProjectDict.toast.fetchWorkflowsError]);
 
   React.useEffect(() => {
     if (isClient && currentUser && ['Owner', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role.trim())) {
       fetchWorkflows();
     } else if (isClient) {
-        setIsLoadingWorkflows(false); // If user cannot add, no need to load workflows indefinitely
+        setIsLoadingWorkflows(false);
     }
   }, [isClient, currentUser, fetchWorkflows]);
 
@@ -93,9 +87,8 @@ export default function AddProjectPage() {
     resolver: zodResolver(addProjectSchema),
     defaultValues: {
       title: '',
-      workflowId: undefined, // Or an empty string if your select handles it
+      workflowId: undefined,
     },
-    // context: { dict: addProjectDict.validation } // Pass validation context if schema uses it for messages
   });
   
   React.useEffect(() => {
@@ -172,7 +165,7 @@ export default function AddProjectPage() {
       }
     }
     
-    const effectiveWorkflowId = data.workflowId; // Use selected workflowId
+    const effectiveWorkflowId = data.workflowId;
     const selectedWorkflow = fetchedWorkflows.find(wf => wf.id === effectiveWorkflowId);
     const workflowName = selectedWorkflow ? selectedWorkflow.name : (addProjectDict.toast.unknownWorkflow || defaultDict.addProjectPage.toast.unknownWorkflow);
 
@@ -195,7 +188,7 @@ export default function AddProjectPage() {
       toast({
         title: addProjectDict.toast.success,
         description: (addProjectDict.toast.successDesc || defaultDict.addProjectPage.toast.successDesc)
-          .replace('"{title}"', createdProject.title)
+          .replace('{title}', `"${createdProject.title}"`) // Ensure title is quoted as per original
           .replace('{workflowName}', workflowName) // Use fetched workflow name
           .replace('{division}', translatedDivision),
       });
@@ -263,6 +256,7 @@ export default function AddProjectPage() {
       <Card className="w-full max-w-2xl mx-auto">
         <CardHeader>
            <CardTitle className="text-xl md:text-2xl">{addProjectDict.title}</CardTitle>
+           {/* Updated description to reflect workflow selection */}
           <CardDescription>{addProjectDict.description.replace('The standard workflow will be used.', 'You can select the desired workflow for the project.')}</CardDescription>
         </CardHeader>
         <CardContent>
@@ -290,7 +284,7 @@ export default function AddProjectPage() {
                     <FormLabel>{addProjectDict.workflowLabel}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      value={field.value || ""} // Ensure value is not undefined for Select
+                      value={field.value || ""} 
                       disabled={isLoadingWorkflows || isLoading || fetchedWorkflows.length === 0}
                     >
                       <FormControl>

@@ -414,5 +414,101 @@
     "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'proyek hotel ubud' telah diunggah. Anda bisa mulai melakukan perencanaan MEP awal.",
     "timestamp": "2025-06-09T12:12:45.972Z",
     "isRead": false
+  },
+  {
+    "id": "notif_1749619498452_20jmw_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Proyek baru \"proyek gapura tabanan\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-11T05:24:58.449Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619596672_3plrs_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Penawaran untuk proyek 'proyek gapura tabanan' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-11T05:26:36.671Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619625702_jipdu_ue2",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Penawaran untuk proyek 'proyek gapura tabanan' telah disetujui oleh sudina. Mohon buat faktur DP.",
+    "timestamp": "2025-06-11T05:27:05.701Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619681464_d8a01_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Faktur DP untuk proyek 'proyek gapura tabanan' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-11T05:28:01.463Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619716013_h1udy_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Faktur DP untuk proyek 'proyek gapura tabanan' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-06-11T05:28:36.012Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619814525_jm72h_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Berkas administrasi untuk proyek 'proyek gapura tabanan' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-11T05:30:14.524Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1749619814530_gwnce_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Berkas administrasi untuk proyek 'proyek gapura tabanan' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-11T05:30:14.529Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619814537_4o2r1_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Berkas administrasi untuk proyek 'proyek gapura tabanan' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-11T05:30:14.537Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619971487_3kjzv_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Hasil survei untuk 'proyek gapura tabanan' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-11T05:32:51.486Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619971491_nizq0_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Hasil survei untuk 'proyek gapura tabanan' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-11T05:32:51.491Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619971497_eux8o_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Hasil survei untuk 'proyek gapura tabanan' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-11T05:32:51.495Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1749619971501_eev26_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Hasil survei untuk 'proyek gapura tabanan' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-11T05:32:51.499Z",
+    "isRead": false
   }
 ]
