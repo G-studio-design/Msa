@@ -12,22 +12,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-// Select components are no longer needed for workflow
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Import Select components
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { addProject, type FileEntry, type AddProjectData } from '@/services/project-service';
-// Workflow related imports are no longer needed here
-// import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants'; // No longer needed for selection
+import { getAllWorkflows, type Workflow } from '@/services/workflow-service'; // Import workflow service
 import { Loader2, Upload, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const MAX_FILES_UPLOAD = 10;
 
-// Updated schema: workflowId is removed from form validation
+// Updated schema: workflowId is now required
 const getAddProjectSchema = (dictValidation: ReturnType<typeof getDictionary>['addProjectPage']['validation']) => z.object({
   title: z.string().min(5, dictValidation.titleMin),
+  workflowId: z.string({ required_error: dictValidation.workflowRequired }),
 });
 
 const defaultDict = getDictionary('en');
@@ -43,14 +43,48 @@ export default function AddProjectPage() {
   const addProjectDict = React.useMemo(() => getDictionary(language).addProjectPage, [language]);
   const dashboardDict = React.useMemo(() => getDictionary(language).dashboardPage, [language]);
 
-
   const [isLoading, setIsLoading] = React.useState(false);
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
+  const [fetchedWorkflows, setFetchedWorkflows] = React.useState<Workflow[]>([]);
+  const [isLoadingWorkflows, setIsLoadingWorkflows] = React.useState(true);
 
   React.useEffect(() => {
     setIsClient(true);
   }, []);
 
+  const fetchWorkflows = React.useCallback(async () => {
+    console.log('[AddProjectPage] useEffect triggered: Attempting to fetch workflows...');
+    setIsLoadingWorkflows(true);
+    try {
+      const workflows = await getAllWorkflows();
+      console.log('[AddProjectPage] Fetched workflows:', workflows);
+      setFetchedWorkflows(workflows);
+      if (workflows.length > 0 && !form.getValues('workflowId')) {
+         // Optionally set a default workflow if none is pre-selected and workflows exist
+         // For example, to set the first workflow as default:
+         // form.setValue('workflowId', workflows[0].id, { shouldValidate: true });
+      }
+    } catch (error) {
+      console.error('Failed to fetch workflows:', error);
+      toast({
+        variant: 'destructive',
+        title: addProjectDict.toast.error,
+        description: addProjectDict.toast.fetchWorkflowsError,
+      });
+      setFetchedWorkflows([]); // Ensure it's an empty array on error
+    } finally {
+      setIsLoadingWorkflows(false);
+      console.log('[AddProjectPage] Finished fetching workflows. isLoadingWorkflows:', false);
+    }
+  }, [toast, addProjectDict.toast.error, addProjectDict.toast.fetchWorkflowsError]); // form removed as setValue should not be here
+
+  React.useEffect(() => {
+    if (isClient && currentUser && ['Owner', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role.trim())) {
+      fetchWorkflows();
+    } else if (isClient) {
+        setIsLoadingWorkflows(false); // If user cannot add, no need to load workflows indefinitely
+    }
+  }, [isClient, currentUser, fetchWorkflows]);
 
   const addProjectSchema = React.useMemo(() => getAddProjectSchema(addProjectDict.validation), [addProjectDict.validation]);
   type AddProjectFormValues = z.infer<typeof addProjectSchema>;
@@ -59,7 +93,9 @@ export default function AddProjectPage() {
     resolver: zodResolver(addProjectSchema),
     defaultValues: {
       title: '',
+      workflowId: undefined, // Or an empty string if your select handles it
     },
+    // context: { dict: addProjectDict.validation } // Pass validation context if schema uses it for messages
   });
   
   React.useEffect(() => {
@@ -67,7 +103,6 @@ export default function AddProjectPage() {
       form.trigger();
     }
   }, [addProjectDict, form, isClient]);
-
 
   const canAddProject = React.useMemo(() => {
     if (!currentUser) return false;
@@ -100,7 +135,6 @@ export default function AddProjectPage() {
     const key = statusKey?.toLowerCase().replace(/ /g, '') as keyof typeof dictToUse.status;
     return dictToUse.status[key] || statusKey;
   }, [isClient, dashboardDict]);
-
 
   const onSubmit = async (data: AddProjectFormValues) => {
     if (!canAddProject || !currentUser) return;
@@ -138,41 +172,41 @@ export default function AddProjectPage() {
       }
     }
     
-    // WorkflowId is now hardcoded to "msa_workflow"
-    const effectiveWorkflowId = "msa_workflow"; // MODIFIED HERE
-    console.log('[AddProjectPage] Submitting with fixed workflowId:', effectiveWorkflowId);
+    const effectiveWorkflowId = data.workflowId; // Use selected workflowId
+    const selectedWorkflow = fetchedWorkflows.find(wf => wf.id === effectiveWorkflowId);
+    const workflowName = selectedWorkflow ? selectedWorkflow.name : (addProjectDict.toast.unknownWorkflow || defaultDict.addProjectPage.toast.unknownWorkflow);
+
+    console.log('[AddProjectPage] Submitting with selected workflowId:', effectiveWorkflowId, "Name:", workflowName);
 
     const newProjectData: AddProjectData = {
       title: data.title,
-      workflowId: effectiveWorkflowId, 
+      workflowId: effectiveWorkflowId,
       initialFiles: actualFileEntriesForService.map(f => ({...f, timestamp: new Date().toISOString()})),
       createdBy: currentUser.username,
     };
 
     try {
       const createdProject = await addProject(newProjectData);
-      console.log('Project created successfully on server with MSa_workflow:', createdProject);
+      console.log('Project created successfully on server:', createdProject);
       
       const firstStepAssignedDivision = createdProject.assignedDivision;
       const translatedDivision = getTranslatedStatus(firstStepAssignedDivision) || firstStepAssignedDivision;
 
-      // Updated toast message for MSa_workflow
       toast({
         title: addProjectDict.toast.success,
         description: (addProjectDict.toast.successDesc || defaultDict.addProjectPage.toast.successDesc)
           .replace('"{title}"', createdProject.title)
-          .replace(' using workflow "{workflowName}"', ' using MSa Workflow') // Indicate MSa Workflow
+          .replace('{workflowName}', workflowName) // Use fetched workflow name
           .replace('{division}', translatedDivision),
       });
-      form.reset({ title: ''}); 
+      form.reset({ title: '', workflowId: undefined });
       setSelectedFiles([]);
       router.push('/dashboard/projects'); 
     } catch (error: any) {
       console.error('Failed to add project:', error);
       let desc = addProjectDict.toast.error;
       if (error.message === 'WORKFLOW_INVALID') {
-        // This error message should now specify msa_workflow if it's invalid
-        desc = "The MSa_workflow is invalid or missing steps. Please contact an administrator.";
+        desc = `The selected workflow "${workflowName}" is invalid or missing steps. Please contact an administrator.`;
       } else {
         desc = error.message || 'An unexpected error occurred while creating the project.';
       }
@@ -186,7 +220,7 @@ export default function AddProjectPage() {
     }
   };
 
-    if (!isClient || (!canAddProject && currentUser) ) {
+    if (!isClient || isLoadingWorkflows || (!canAddProject && currentUser) ) {
         return (
               <div className="container mx-auto py-4 px-4 md:px-6">
                  <Card>
@@ -197,6 +231,7 @@ export default function AddProjectPage() {
                      <CardContent>
                          <div className="space-y-4">
                              <Skeleton className="h-10 w-full" />
+                             <Skeleton className="h-10 w-full" /> {/* Skeleton for workflow select */}
                              <Skeleton className="h-20 w-full" /> 
                              <Skeleton className="h-10 w-32" />
                          </div>
@@ -221,13 +256,14 @@ export default function AddProjectPage() {
        );
     }
 
+  console.log('[AddProjectPage] Rendering form. fetchedWorkflows for Select:', fetchedWorkflows);
 
   return (
      <div className="container mx-auto py-4 px-4 md:px-6">
       <Card className="w-full max-w-2xl mx-auto">
         <CardHeader>
            <CardTitle className="text-xl md:text-2xl">{addProjectDict.title}</CardTitle>
-          <CardDescription>{addProjectDict.description.replace('The standard workflow will be used.', 'The MSa workflow will be used.')}</CardDescription>
+          <CardDescription>{addProjectDict.description.replace('The standard workflow will be used.', 'You can select the desired workflow for the project.')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -241,6 +277,41 @@ export default function AddProjectPage() {
                     <FormControl>
                       <Input placeholder={addProjectDict.titlePlaceholder} {...field} disabled={isLoading} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="workflowId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{addProjectDict.workflowLabel}</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value || ""} // Ensure value is not undefined for Select
+                      disabled={isLoadingWorkflows || isLoading || fetchedWorkflows.length === 0}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={addProjectDict.workflowPlaceholder} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {isLoadingWorkflows ? (
+                          <SelectItem value="loading" disabled>Loading workflows...</SelectItem>
+                        ) : fetchedWorkflows.length === 0 ? (
+                           <SelectItem value="no-workflows" disabled>No workflows available.</SelectItem>
+                        ) : (
+                          fetchedWorkflows.map((workflow) => (
+                            <SelectItem key={workflow.id} value={workflow.id}>
+                              {workflow.name}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -289,12 +360,11 @@ export default function AddProjectPage() {
                    </div>
                  )}
 
-
                <div className="flex flex-col sm:flex-row justify-end gap-2">
                   <Button type="button" variant="outline" onClick={() => router.back()} disabled={isLoading} className="w-full sm:w-auto">
                     {addProjectDict.cancelButton || defaultDict.manageUsersPage.cancelButton}
                  </Button>
-                  <Button type="submit" className="accent-teal w-full sm:w-auto" disabled={isLoading}>
+                  <Button type="submit" className="accent-teal w-full sm:w-auto" disabled={isLoadingWorkflows || isLoading}>
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     {isLoading ? addProjectDict.creatingButton : addProjectDict.createButton}
                  </Button>
@@ -306,6 +376,3 @@ export default function AddProjectPage() {
     </div>
   );
 }
-    
-
-    
