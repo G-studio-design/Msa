@@ -1,3 +1,4 @@
+
 // src/app/dashboard/add-project/page.tsx
 'use client';
 
@@ -11,19 +12,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Import Select components
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { addProject, type FileEntry, type AddProjectData } from '@/services/project-service';
-import { getAllWorkflows, type Workflow } from '@/services/workflow-service'; // Import workflow service
+import { getAllWorkflows, type Workflow } from '@/services/workflow-service';
 import { Loader2, Upload, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const MAX_FILES_UPLOAD = 10;
 
-// Updated schema: workflowId is now required
 const getAddProjectSchema = (dictValidation: ReturnType<typeof getDictionary>['addProjectPage']['validation']) => z.object({
   title: z.string().min(5, dictValidation.titleMin),
   workflowId: z.string({ required_error: dictValidation.workflowRequired }),
@@ -188,8 +188,8 @@ export default function AddProjectPage() {
       toast({
         title: addProjectDict.toast.success,
         description: (addProjectDict.toast.successDesc || defaultDict.addProjectPage.toast.successDesc)
-          .replace('{title}', `"${createdProject.title}"`) // Ensure title is quoted as per original
-          .replace('{workflowName}', workflowName) // Use fetched workflow name
+          .replace('{title}', `"${createdProject.title}"`) 
+          .replace('{workflowName}', workflowName) 
           .replace('{division}', translatedDivision),
       });
       form.reset({ title: '', workflowId: undefined });
@@ -224,7 +224,7 @@ export default function AddProjectPage() {
                      <CardContent>
                          <div className="space-y-4">
                              <Skeleton className="h-10 w-full" />
-                             <Skeleton className="h-10 w-full" /> {/* Skeleton for workflow select */}
+                             <Skeleton className="h-10 w-full" />
                              <Skeleton className="h-20 w-full" /> 
                              <Skeleton className="h-10 w-32" />
                          </div>
@@ -256,7 +256,6 @@ export default function AddProjectPage() {
       <Card className="w-full max-w-2xl mx-auto">
         <CardHeader>
            <CardTitle className="text-xl md:text-2xl">{addProjectDict.title}</CardTitle>
-           {/* Updated description to reflect workflow selection */}
           <CardDescription>{addProjectDict.description.replace('The standard workflow will be used.', 'You can select the desired workflow for the project.')}</CardDescription>
         </CardHeader>
         <CardContent>
@@ -370,3 +369,6 @@ export default function AddProjectPage() {
     </div>
   );
 }
+    
+
+    
