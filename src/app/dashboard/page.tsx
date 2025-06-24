@@ -1,4 +1,3 @@
-
 // src/app/dashboard/page.tsx
 'use client';
 
@@ -24,7 +23,7 @@ import {
     AlertTriangle,
     CheckCircle,
     Clock,
-    ListChecks, // Ensure ListChecks is imported
+    ListChecks,
     Loader2,
     FileText,
     Users,
@@ -47,30 +46,24 @@ export default function DashboardPage() {
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
 
   const dashboardDict = useMemo(() => {
-    const dict = getDictionary(language).dashboardPage;
-    console.log('[DashboardPage] dashboardDict.status object:', JSON.stringify(dict.status, null, 2));
-    return dict;
+    return getDictionary(language).dashboardPage;
   }, [language]);
   const projectsDict = useMemo(() => getDictionary(language).projectsPage, [language]);
 
   useEffect(() => {
     setIsClient(true);
-    console.log('[DashboardPage] Component mounted, isClient set to true.');
   }, []);
 
   const fetchProjects = useCallback(async () => {
     if (currentUser) {
-      console.log('[DashboardPage] Fetching projects...');
       setIsLoadingProjects(true);
       try {
         const fetchedProjects = await getAllProjects();
-        console.log('[DashboardPage] Projects fetched:', fetchedProjects.length > 0 ? fetchedProjects : 'No projects returned from service.');
         setProjects(fetchedProjects);
       } catch (error) {
         console.error('[DashboardPage] Failed to fetch projects:', error);
       } finally {
         setIsLoadingProjects(false);
-        console.log('[DashboardPage] Finished fetching projects, isLoadingProjects set to false.');
       }
     }
   }, [currentUser]);
@@ -83,26 +76,20 @@ export default function DashboardPage() {
 
   const getTranslatedStatus = useCallback((statusKey: string): string => {
     const key = statusKey?.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
-    // console.log(`[DashboardPage/getTranslatedStatus] Input: "${statusKey}", Generated key: "${key}", Translation: "${dashboardDict.status[key] || statusKey}"`);
     return dashboardDict.status[key] || statusKey;
   }, [dashboardDict]);
 
   const getStatusBadge = useCallback((status: string | undefined | null) => {
-    console.log(`[DashboardPage/getStatusBadge] CALLED with status: "${status}"`);
     if (!isClient || !status || !dashboardDict?.status) {
-        console.log('[DashboardPage/getStatusBadge] Early exit: not client, no status, or no dashboardDict.status');
         return <Skeleton className="h-5 w-20" />;
     }
 
     const statusKey = status.toLowerCase().replace(/ /g,'');
-    console.log(`[DashboardPage/getStatusBadge] Generated statusKey: "${statusKey}" for original status: "${status}"`);
-
     const translatedStatus = getTranslatedStatus(status);
     let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
     let className = "py-1 px-2 text-xs";
     let Icon = Clock;
 
-    console.log(`[DashboardPage/getStatusBadge] Switching on statusKey: "${statusKey}"`);
     switch (statusKey) {
         case 'completed': case 'selesai':
             variant = 'default';
@@ -114,10 +101,9 @@ export default function DashboardPage() {
             className = `${className} bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700`;
             Icon = Activity;
             break;
-        case 'pendingparalleldesignuploads': // Key for "Pending Parallel Design Uploads"
-            console.log(`[DashboardPage/getStatusBadge] MATCHED 'pendingparalleldesignuploads' for status: "${status}"`);
-            variant = 'default'; // Make it default so it stands out if color is the issue
-            className = `${className} bg-fuchsia-500 hover:bg-fuchsia-600 text-white dark:bg-fuchsia-600 dark:hover:bg-fuchsia-700`; // FUCHSIA for debugging
+        case 'pendingparalleldesignuploads':
+            variant = 'default';
+            className = `${className} bg-fuchsia-500 hover:bg-fuchsia-600 text-white dark:bg-fuchsia-600 dark:hover:bg-fuchsia-700`;
             Icon = ListChecks;
             break;
         case 'pendingapproval': case 'menunggupersetujuan':
@@ -154,28 +140,14 @@ export default function DashboardPage() {
             Icon = CalendarClock;
             break;
         default:
-            console.log(`[DashboardPage/getStatusBadge] Default badge returned for statusKey: "${statusKey}", original status: "${status}"`);
             variant = 'secondary'; Icon = Clock;
     }
     return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
   }, [isClient, dashboardDict, getTranslatedStatus]);
 
   const activeProjects = useMemo(() => {
-    console.log('[DashboardPage] Recalculating activeProjects. Total projects available:', projects.length);
-    // TEMPORARILY REMOVED FILTER TO SHOW ALL PROJECTS FOR DEBUGGING
-    // return projects.filter(p => p.status !== 'Completed' && p.status !== 'Canceled');
-    return projects;
+    return projects.filter(p => p.status !== 'Completed' && p.status !== 'Canceled');
   }, [projects]);
-
-  useEffect(() => {
-    if (projects.length > 0) {
-      console.log('[DashboardPage] `projects` state updated, count:', projects.length);
-    }
-    if (activeProjects.length > 0 || projects.length > 0) { // Log even if activeProjects is empty but projects has data
-        console.log('[DashboardPage] `activeProjects` (or all projects for debug) to be mapped:', JSON.stringify(activeProjects.map(p => ({id: p.id, title: p.title, status: p.status})), null, 2));
-    }
-  }, [projects, activeProjects]);
-
 
   if (!isClient || isLoadingProjects) {
     return (
@@ -199,8 +171,6 @@ export default function DashboardPage() {
     );
   }
 
-  console.log('[DashboardPage] Rendering main content. Projects to display (debug):', activeProjects.length);
-
   return (
     <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -219,7 +189,7 @@ export default function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{dashboardDict.activeProjects} (Debug: Showing All)</CardTitle>
+          <CardTitle>{dashboardDict.activeProjects}</CardTitle>
           <CardDescription>
             {currentUser?.role === 'Owner' || currentUser?.role === 'Akuntan' || currentUser?.role === 'Admin Proyek' || currentUser?.role === 'Admin Developer'
               ? dashboardDict.allProjectsDesc
@@ -232,7 +202,6 @@ export default function DashboardPage() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {activeProjects.map(project => {
-                console.log(`[DashboardPage] Rendering project card: "${project.title}", Status: "${project.status}"`);
                 return (
                   <Link href={`/dashboard/projects?projectId=${project.id}`} key={project.id} passHref>
                     <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full flex flex-col">

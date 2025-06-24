@@ -100,6 +100,17 @@ const projectStatuses = [
 const MAX_FILES_UPLOAD = 10;
 
 export default function ProjectsPage() {
+  // Define types for checklist items and the overall checklist status
+  interface ChecklistItem {
+      name: string;
+      uploaded: boolean;
+      filePath?: string; // Optional: store path if needed
+  }
+  interface ParallelUploadChecklist {
+      Arsitek?: ChecklistItem[];
+      Struktur?: ChecklistItem[];
+      MEP?: ChecklistItem[];
+  }
   const { toast } = useToast();
   const { language } = useLanguage();
   const { currentUser } = useAuth();
@@ -141,6 +152,7 @@ export default function ProjectsPage() {
   const [initialImageDescription, setInitialImageDescription] = React.useState('');
   const [isSubmittingInitialImages, setIsSubmittingInitialImages] = React.useState(false);
 
+  const [parallelUploadChecklistStatus, setParallelUploadChecklistStatus] = React.useState<ParallelUploadChecklist | null>(null);
   React.useEffect(() => {
     setIsClient(true);
   }, []);
@@ -200,6 +212,39 @@ export default function ProjectsPage() {
           }
       }
   }, [searchParams, allProjects, isClient, isLoadingProjects, router, toast, projectsDict]);
+
+  // Effect to initialize the parallel upload checklist status
+    React.useEffect(() => {
+        if (isClient && selectedProject && selectedProject.status === 'Pending Parallel Design Uploads' && currentUser) {
+            const requiredChecklists: ParallelUploadChecklist = {
+                Arsitek: [{ name: 'Gambar', uploaded: false }, { name: 'Daftar Simak', uploaded: false }, { name: 'SpekTek', uploaded: false }, { name: 'RAP', uploaded: false }],
+                Struktur: [{ name: 'Gambar', uploaded: false }, { name: 'Analisa Laporan', uploaded: false }, { name: 'Hammer Test', uploaded: false }, { name: 'SpekTek', uploaded: false }, { name: 'Daftar SImak', uploaded: false }],
+                MEP: [{ name: 'Gambar', uploaded: false }, { name: 'Daftar Simak', uploaded: false }, { name: 'SpekTek', uploaded: false }, { name: 'RAP', uploaded: false }, { name: 'Laporan', uploaded: false }],
+            };
+
+            const currentStatus: ParallelUploadChecklist = {};
+
+            (['Arsitek', 'Struktur', 'MEP'] as (keyof ParallelUploadChecklist)[]).forEach(division => {
+                const checklistItems = requiredChecklists[division];
+                if (checklistItems) {
+                    currentStatus[division] = checklistItems.map(item => {
+                        const uploadedFile = selectedProject.files?.find(file => {
+                            // Simple case-insensitive match ignoring spaces and extensions
+                            const fileNameWithoutExt = file.name.replace(/\.[^/.]+$/, "").replace(/\s/g, '').toLowerCase();
+                            const itemNameClean = item.name.replace(/\s/g, '').toLowerCase();
+                            return fileNameWithoutExt === itemNameClean && file.uploadedBy === division;
+                        });
+                        return {
+                            ...item,
+                            uploaded: !!uploadedFile,
+                            filePath: uploadedFile ? uploadedFile.path : undefined,
+                        };
+                    });
+                }
+            });
+            setParallelUploadChecklistStatus(currentStatus);
+        } else { setParallelUploadChecklistStatus(null); } // Reset when not in parallel upload status
+    }, [isClient, selectedProject, currentUser]); // Depend on selectedProject and currentUser
 
   const formatTimestamp = React.useCallback((timestamp: string): string => {
     if (!isClient || !projectsDict?.invalidDate) return '...';
@@ -707,8 +752,9 @@ export default function ProjectsPage() {
       if (!currentUser || !selectedProject) return false;
       if (currentUser.role === 'Admin Developer') return true;
       if (currentUser.role === 'Owner') {
-          return selectedProject.assignedDivision === 'Owner' ||
-                 ['Pending Approval', 'Scheduled', 'Pending Scheduling', 'Pending Survey Details'].includes(selectedProject.status);
+          return selectedProject.assignedDivision === 'Owner' // Can always act if assigned as Owner
+                 || ['Pending Approval', 'Scheduled', 'Pending Scheduling', 'Pending Survey Details'].includes(selectedProject.status) // Specific Owner-related steps
+                 || (selectedProject.status === 'Pending Parallel Design Uploads' && ['Arsitek', 'Struktur', 'MEP'].includes(currentUser.role)); // Owner can also act on parallel uploads if assigned
       }
       // Arsitek can also act on 'Pending Survey Details'
       if (currentUser.role === 'Arsitek' && selectedProject.status === 'Pending Survey Details') {
@@ -717,7 +763,11 @@ export default function ProjectsPage() {
       const currentUserRoleCleaned = currentUser.role.trim();
       const assignedDivisionCleaned = selectedProject.assignedDivision?.trim();
       return currentUserRoleCleaned === assignedDivisionCleaned;
-    }, [currentUser, selectedProject]);
+    }, [currentUser, selectedProject]); // Removed canPerformSelectedProjectAction from its own dependency array
+
+     // Special check for Parallel Uploads: Allow Arsitek/Struktur/MEP even if assigned_division is 'Admin Proyek' in MSa workflow
+     const canPerformParallelUpload = React.useMemo(() => selectedProject && selectedProject.status === 'Pending Parallel Design Uploads' && ['Arsitek', 'Struktur', 'MEP'].includes(currentUser?.role || ''), [selectedProject, currentUser]);
+
 
     const showUploadSection = React.useMemo(() => {
         if (!selectedProject || !currentUser || !canPerformSelectedProjectAction) return false;
@@ -725,9 +775,10 @@ export default function ProjectsPage() {
             'Pending Offer', 'Pending DP Invoice', 'Pending Admin Files',
             'Pending Architect Files', 'Pending Structure Files', 
             'Pending MEP Files',
-            'Pending Consultation Docs', 'Pending Post-Sidang Revision'
+            'Pending Consultation Docs', 'Pending Post-Sidang Revision',
+            'Pending Parallel Design Uploads' // Added the new status here
         ];
-        return statusesExpectingUpload.includes(selectedProject.status);
+        return statusesExpectingUpload.includes(selectedProject.status) || canPerformParallelUpload;
    }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
    const showArchitectInitialImageUploadSection = React.useMemo(() => {

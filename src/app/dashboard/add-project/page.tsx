@@ -1,4 +1,3 @@
-
 // src/app/dashboard/add-project/page.tsx
 'use client';
 
@@ -73,6 +72,7 @@ export default function AddProjectPage() {
   }, [toast, addProjectDict.toast.error, addProjectDict.toast.fetchWorkflowsError]);
 
   React.useEffect(() => {
+    // Roles allowed to fetch workflows (project creation is tied to workflows)
     if (isClient && currentUser && ['Owner', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role.trim())) {
       fetchWorkflows();
     } else if (isClient) {
@@ -100,7 +100,9 @@ export default function AddProjectPage() {
   const canAddProject = React.useMemo(() => {
     if (!currentUser) return false;
     const userRole = currentUser.role.trim();
-    return ['Owner', 'Admin Proyek', 'Admin Developer'].includes(userRole);
+    // Allow Owner, Admin Proyek, Admin Developer to add projects
+    // Allow Arsitek, Struktur, MEP to proceed with form submission for file upload associated with projects
+    return ['Owner', 'Admin Proyek', 'Admin Developer', 'Arsitek', 'Struktur', 'MEP'].includes(userRole);
   }, [currentUser]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,12 +132,30 @@ export default function AddProjectPage() {
   }, [isClient, dashboardDict]);
 
   const onSubmit = async (data: AddProjectFormValues) => {
-    if (!canAddProject || !currentUser) return;
+    console.log('[AddProjectPage] onSubmit triggered.');
+    if (!canAddProject || !currentUser) {
+        console.log('[AddProjectPage] onSubmit: User not authorized or not logged in.', { canAddProject, currentUser });
+        return;
+    }
+    console.log('[AddProjectPage] Current user ID:', currentUser.id, ', Role:', currentUser.role);
+
+    // Check if workflows are loaded before proceeding to ensure project creation is possible
+    if (isLoadingWorkflows || fetchedWorkflows.length === 0) {
+         console.log('[AddProjectPage] onSubmit: Workflows not loaded.', { isLoadingWorkflows, fetchedWorkflowsLength: fetchedWorkflows.length });
+         toast({
+             variant: 'destructive',
+             title: addProjectDict.toast.error,
+             description: addProjectDict.toast.fetchWorkflowsError || defaultDict.addProjectPage.toast.fetchWorkflowsError,
+         });
+         return;
+     }
 
     setIsLoading(true);
     form.clearErrors();
     
     const actualFileEntriesForService: Omit<FileEntry, 'timestamp'>[] = [];
+
+    console.log('[AddProjectPage] Number of selected files:', selectedFiles.length);
 
     if (selectedFiles.length > 0) {
       for (const file of selectedFiles) {
@@ -143,14 +163,20 @@ export default function AddProjectPage() {
         formData.append('file', file);
         formData.append('projectId', 'temp-id-for-upload'); 
         formData.append('projectTitle', data.title);
+        // Add user ID to the form data
+        formData.append('userId', currentUser.id);
 
         try {
           const response = await fetch('/api/upload-file', { method: 'POST', body: formData });
+          console.log('[AddProjectPage] Upload API response status:', response.status);
+
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({ message: `Failed to upload ${file.name}` }));
+             console.error('[AddProjectPage] Upload API error response:', errorData);
             throw new Error(errorData.message || `Failed to upload ${file.name}`);
           }
           const result = await response.json();
+          console.log('[AddProjectPage] Upload API success response data:', result);
           actualFileEntriesForService.push({
             name: result.originalName,
             uploadedBy: currentUser.username,
@@ -181,6 +207,9 @@ export default function AddProjectPage() {
     try {
       const createdProject = await addProject(newProjectData);
       console.log('Project created successfully on server:', createdProject);
+      // --- ADDED LOG FOR CREATED PROJECT ---
+      console.log('[AddProjectPage] Created Project Object:', createdProject);
+      // --- END ADDED LOG ---
       
       const firstStepAssignedDivision = createdProject.assignedDivision;
       const translatedDivision = getTranslatedStatus(firstStepAssignedDivision) || firstStepAssignedDivision;
@@ -213,7 +242,25 @@ export default function AddProjectPage() {
     }
   };
 
-    if (!isClient || isLoadingWorkflows || (!canAddProject && currentUser) ) {
+    // Render Skeleton if client not ready, workflows loading, or user cannot add project AND is not one of the allowed roles for file upload
+    // The added roles (Arsitek, Struktur, MEP) still see the form but authorization happens on backend
+    if (!isClient || isLoadingWorkflows || (!canAddProject && currentUser && !['Arsitek', 'Struktur', 'MEP'].includes(currentUser.role.trim())) ) {
+        // If the user is NOT allowed to add projects AND is NOT one of the roles allowed for file upload
+         if (isClient && currentUser && !['Owner', 'Admin Proyek', 'Admin Developer', 'Arsitek', 'Struktur', 'MEP'].includes(currentUser.role.trim())) {
+            return (
+                <div className="container mx-auto py-4 px-4 md:px-6">
+                 <Card className="border-destructive">
+                   <CardHeader>
+                     <CardTitle className="text-destructive">{addProjectDict.accessDeniedTitle || defaultDict.manageUsersPage.accessDeniedTitle}</CardTitle>
+                   </CardHeader>
+                   <CardContent>
+                     <p>{addProjectDict.accessDenied || defaultDict.manageUsersPage.accessDeniedDesc}</p>
+                   </CardContent>
+                 </Card>
+               </div>
+            );
+         }
+        // Otherwise, show skeleton (loading workflows for allowed users or initial load)
         return (
               <div className="container mx-auto py-4 px-4 md:px-6">
                  <Card>
@@ -234,20 +281,21 @@ export default function AddProjectPage() {
         );
     }
 
-    if (!canAddProject) {
-       return (
-          <div className="container mx-auto py-4 px-4 md:px-6">
-           <Card className="border-destructive">
-             <CardHeader>
-               <CardTitle className="text-destructive">{addProjectDict.accessDeniedTitle || defaultDict.manageUsersPage.accessDeniedTitle}</CardTitle>
-             </CardHeader>
-             <CardContent>
-               <p>{addProjectDict.accessDenied || defaultDict.manageUsersPage.accessDeniedDesc}</p>
-             </CardContent>
-           </Card>
-         </div>
-       );
-    }
+    // This check is now redundant due to the combined check above, but keeping the explicit denial message separate
+    // if (!canAddProject) {
+    //    return (
+    //       <div className="container mx-auto py-4 px-4 md:px-6">
+    //        <Card className="border-destructive">
+    //          <CardHeader>
+    //            <CardTitle className="text-destructive">{addProjectDict.accessDeniedTitle || defaultDict.manageUsersPage.accessDeniedTitle}</CardTitle>
+    //          </CardHeader>
+    //          <CardContent>
+    //            <p>{addProjectDict.accessDenied || defaultDict.manageUsersPage.accessDeniedDesc}</p>
+    //          </CardContent>
+    //        </Card>
+    //      </div>
+    //    );
+    // }
 
   console.log('[AddProjectPage] Rendering form. fetchedWorkflows for Select:', fetchedWorkflows);
 

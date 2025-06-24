@@ -510,5 +510,13 @@
     "message": "Hasil survei untuk 'proyek gapura tabanan' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
     "timestamp": "2025-06-11T05:32:51.499Z",
     "isRead": false
+  },
+  {
+    "id": "notif_1750738966247_fd59g_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750738966127_dn9n5",
+    "message": "Proyek baru \"proyek kesambi\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-24T04:22:46.241Z",
+    "isRead": false
   }
 ]
