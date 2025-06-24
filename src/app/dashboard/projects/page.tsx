@@ -1,3 +1,4 @@
+
 // src/app/dashboard/projects/page.tsx
 'use client';
 
@@ -378,11 +379,13 @@ export default function ProjectsPage() {
                 formData.append('file', file);
                 formData.append('projectId', selectedProject.id);
                 formData.append('projectTitle', selectedProject.title);
+                // Add user ID to the form data
+                formData.append('userId', currentUser.id);
 
                 try {
                     const response = await fetch('/api/upload-file', { method: 'POST', body: formData });
                     if (!response.ok) {
-                        const errorData = await response.json().catch(() => ({ message: 'File upload failed with status ' + response.status }));
+                        const errorData = await response.json().catch(() => ({ message: `Failed to upload ${file.name}` }));
                         throw new Error(errorData.message || `Failed to upload ${file.name}`);
                     }
                     const result = await response.json();
@@ -763,23 +766,45 @@ export default function ProjectsPage() {
       const currentUserRoleCleaned = currentUser.role.trim();
       const assignedDivisionCleaned = selectedProject.assignedDivision?.trim();
       return currentUserRoleCleaned === assignedDivisionCleaned;
-    }, [currentUser, selectedProject]); // Removed canPerformSelectedProjectAction from its own dependency array
-
-     // Special check for Parallel Uploads: Allow Arsitek/Struktur/MEP even if assigned_division is 'Admin Proyek' in MSa workflow
-     const canPerformParallelUpload = React.useMemo(() => selectedProject && selectedProject.status === 'Pending Parallel Design Uploads' && ['Arsitek', 'Struktur', 'MEP'].includes(currentUser?.role || ''), [selectedProject, currentUser]);
-
+    }, [currentUser, selectedProject]);
 
     const showUploadSection = React.useMemo(() => {
-        if (!selectedProject || !currentUser || !canPerformSelectedProjectAction) return false;
+        if (!selectedProject || !currentUser) {
+            return false;
+        }
+        const userRole = currentUser.role.trim();
+
+        // SPECIAL CASE: Allow parallel uploads for design divisions in msa_workflow
+        if (
+            selectedProject.status === 'Pending Parallel Design Uploads' &&
+            selectedProject.workflowId === 'msa_workflow'
+        ) {
+            // Allow design divisions and admins to see the upload section
+            const allowedRoles = ['Arsitek', 'Struktur', 'MEP', 'Admin Proyek', 'Owner', 'Admin Developer'];
+            if (allowedRoles.includes(userRole)) {
+                return true;
+            }
+        }
+
+        // GENERAL CASE: Check if the user is the assigned division for other upload statuses
+        if (!canPerformSelectedProjectAction) {
+            return false;
+        }
+
         const statusesExpectingUpload = [
-            'Pending Offer', 'Pending DP Invoice', 'Pending Admin Files',
-            'Pending Architect Files', 'Pending Structure Files', 
-            'Pending MEP Files',
-            'Pending Consultation Docs', 'Pending Post-Sidang Revision',
-            'Pending Parallel Design Uploads' // Added the new status here
+            'Pending Offer',
+            'Pending DP Invoice',
+            'Pending Admin Files',
+            'Pending Architect Files', // From default workflow
+            'Pending Structure Files', // From default workflow
+            'Pending MEP Files', // From default workflow
+            'Pending Consultation Docs',
+            'Pending Post-Sidang Revision'
         ];
-        return statusesExpectingUpload.includes(selectedProject.status) || canPerformParallelUpload;
-   }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
+
+        return statusesExpectingUpload.includes(selectedProject.status);
+
+    }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
    const showArchitectInitialImageUploadSection = React.useMemo(() => {
     return selectedProject &&
@@ -1082,19 +1107,6 @@ export default function ProjectsPage() {
                         <CardDescription>{project.nextAction || projectsDict.none}</CardDescription>
                     </CardHeader>
                    <CardContent className="p-4 sm:p-6 pt-0">
-                    {/* DEBUG INFO START - REMOVE FOR PRODUCTION */}
-                    {/* 
-                        <div className="my-4 p-3 border border-dashed border-yellow-500 bg-yellow-50 rounded-md text-xs">
-                            <p className="font-bold text-yellow-700">DEBUG INFO:</p>
-                            <p>Current User Role: <span className="font-mono">{currentUser?.role}</span></p>
-                            <p>Selected Project Status: <span className="font-mono">{selectedProject?.status}</span></p>
-                            <p>showSurveyDetailsInputSection: <span className="font-mono">{showSurveyDetailsInputSection.toString()}</span></p>
-                            <p>showSchedulingSection: <span className="font-mono">{showSchedulingSection.toString()}</span></p>
-                            <p>canPerformSelectedProjectAction: <span className="font-mono">{canPerformSelectedProjectAction.toString()}</span></p>
-                        </div>
-                    */}
-                      {/* DEBUG INFO END */}
-
                       {showUploadSection && (
                          <div className="space-y-4 border-t pt-4 mt-4">
                            <h3 className="text-lg font-semibold">{projectsDict.uploadProgressTitle.replace('{role}', getTranslatedStatus(currentUser!.role))}</h3>
@@ -1280,4 +1292,3 @@ export default function ProjectsPage() {
     </div>
   );
 }
-
