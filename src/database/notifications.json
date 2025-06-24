@@ -518,5 +518,29 @@
     "message": "Proyek baru \"proyek kesambi\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
     "timestamp": "2025-06-24T04:22:46.241Z",
     "isRead": false
+  },
+  {
+    "id": "notif_1750762714236_ymd75_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Proyek baru \"proyek Bali Merdeka\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-24T10:58:34.229Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750762781567_s4hrn_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Penawaran untuk proyek 'proyek Bali Merdeka' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-24T10:59:41.566Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750762823288_kwybh_ue2",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Penawaran untuk proyek 'proyek Bali Merdeka' telah disetujui oleh sudina. Mohon buat faktur DP.",
+    "timestamp": "2025-06-24T11:00:23.287Z",
+    "isRead": true
   }
 ]

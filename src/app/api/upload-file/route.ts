@@ -8,7 +8,7 @@ import { sanitizeForPath } from '@/lib/path-utils';
 import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants';
 
 // Define the allowed roles for file upload
-const ALLOWED_ROLES = ['Owner', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP', 'Admin Developer'];
+const ALLOWED_ROLES = ['Owner', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP', 'Admin Developer', 'Akuntan'];
 
 export async function POST(request: Request) {
   try {

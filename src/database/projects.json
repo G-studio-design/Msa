@@ -486,5 +486,47 @@
     "files": [],
     "createdAt": "2025-06-24T04:22:46.127Z",
     "createdBy": "sudina"
+  },
+  {
+    "id": "project_1750762714162_h35ez",
+    "title": "proyek Bali Merdeka",
+    "status": "Pending DP Invoice",
+    "progress": 25,
+    "assignedDivision": "Akuntan",
+    "nextAction": "Buat Faktur DP",
+    "workflowId": "msa_workflow",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project with workflow: msa_workflow",
+        "timestamp": "2025-06-24T10:58:34.162Z",
+        "note": "Initial files: 0"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
+        "timestamp": "2025-06-24T10:58:34.162Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
+        "timestamp": "2025-06-24T10:59:41.562Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) approved: Setujui Dokumen Penawaran",
+        "timestamp": "2025-06-24T11:00:23.281Z"
+      }
+    ],
+    "files": [
+      {
+        "name": "dokumen penawaran.pdf",
+        "uploadedBy": "komangmerta",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/dokumen_penawaranpdf",
+        "timestamp": "2025-06-24T10:59:41.562Z"
+      }
+    ],
+    "createdAt": "2025-06-24T10:58:34.162Z",
+    "createdBy": "sudina"
   }
 ]
