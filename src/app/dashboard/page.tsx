@@ -1,3 +1,4 @@
+
 // src/app/dashboard/page.tsx
 'use client';
 
@@ -17,23 +18,45 @@ import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { getAllProjects, type Project } from '@/services/project-service';
+import { getApprovedLeaveRequests, type LeaveRequest } from '@/services/leave-request-service';
+import { getAllHolidays, type HolidayEntry } from '@/services/holiday-service';
 import Link from 'next/link';
+import { Calendar } from "@/components/ui/calendar";
+import { format, parseISO, startOfToday, isSameDay, addDays, isWithinInterval } from 'date-fns';
+import { id as idLocale, enUS as enLocale } from 'date-fns/locale';
 import {
     Activity,
     AlertTriangle,
     CheckCircle,
     Clock,
-    ListChecks,
     Loader2,
-    FileText,
-    Users,
+    PlusCircle,
+    ExternalLink,
     Briefcase,
     CalendarClock,
-    RefreshCw,
-    XCircle,
-    PlusCircle,
-    ExternalLink
+    MapPin,
+    Plane,
+    Wrench,
+    Code,
+    User,
+    UserCog,
+    PartyPopper,
+    Building
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+// Unified event type for the calendar
+type CalendarEventType = 'sidang' | 'survey' | 'leave' | 'holiday' | 'company_event';
+interface UnifiedEvent {
+    id: string;
+    type: CalendarEventType;
+    date: Date;
+    title: string;
+    time?: string;
+    location?: string;
+    description?: string;
+    originalData: Project | LeaveRequest | HolidayEntry;
+}
 
 const defaultGlobalDict = getDictionary('en');
 
@@ -42,130 +65,158 @@ export default function DashboardPage() {
   const { language } = useLanguage();
   const [isClient, setIsClient] = useState(false);
 
+  // Data states
   const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoadingProjects, setIsLoadingProjects] = useState(true);
+  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+  const [holidays, setHolidays] = useState<HolidayEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const dashboardDict = useMemo(() => {
-    return getDictionary(language).dashboardPage;
-  }, [language]);
+  // UI states
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  
+  const dashboardDict = useMemo(() => getDictionary(language).dashboardPage, [language]);
   const projectsDict = useMemo(() => getDictionary(language).projectsPage, [language]);
+  const currentLocale = useMemo(() => language === 'id' ? idLocale : enLocale, [language]);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  const fetchProjects = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     if (currentUser) {
-      setIsLoadingProjects(true);
+      setIsLoading(true);
       try {
-        const fetchedProjects = await getAllProjects();
+        const [fetchedProjects, fetchedLeave, fetchedHolidays] = await Promise.all([
+          getAllProjects(),
+          getApprovedLeaveRequests(),
+          getAllHolidays()
+        ]);
         setProjects(fetchedProjects);
+        setLeaveRequests(fetchedLeave);
+        setHolidays(fetchedHolidays);
       } catch (error) {
-        console.error('[DashboardPage] Failed to fetch projects:', error);
+        console.error('[DashboardPage] Failed to fetch page data:', error);
+        // Toast notification for error can be added here
       } finally {
-        setIsLoadingProjects(false);
+        setIsLoading(false);
       }
     }
   }, [currentUser]);
 
   useEffect(() => {
     if (isClient && currentUser) {
-      fetchProjects();
+      fetchData();
     }
-  }, [isClient, currentUser, fetchProjects]);
+  }, [isClient, currentUser, fetchData]);
 
-  const getTranslatedStatus = useCallback((statusKey: string): string => {
-    const key = statusKey?.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
-    return dashboardDict.status[key] || statusKey;
-  }, [dashboardDict]);
+  const { eventsByDate, upcomingEvents } = useMemo(() => {
+    const eventMap: Record<string, UnifiedEvent[]> = {};
+    const upcoming: UnifiedEvent[] = [];
+    const today = startOfToday();
+    const threeDaysFromNow = addDays(today, 3);
 
-  const getStatusBadge = useCallback((status: string | undefined | null) => {
-    if (!isClient || !status || !dashboardDict?.status) {
-        return <Skeleton className="h-5 w-20" />;
-    }
+    // Process Projects for Sidang and Survey events
+    projects.forEach(p => {
+      if (p.scheduleDetails?.date && p.scheduleDetails?.time) {
+        const eventDate = parseISO(`${p.scheduleDetails.date}T${p.scheduleDetails.time}`);
+        const key = format(eventDate, 'yyyy-MM-dd');
+        if (!eventMap[key]) eventMap[key] = [];
+        eventMap[key].push({ id: `sidang-${p.id}`, type: 'sidang', date: eventDate, title: p.title, time: p.scheduleDetails.time, location: p.scheduleDetails.location, originalData: p });
+      }
+      if (p.surveyDetails?.date && p.surveyDetails?.time) {
+        const eventDate = parseISO(`${p.surveyDetails.date}T${p.surveyDetails.time}`);
+        const key = format(eventDate, 'yyyy-MM-dd');
+        if (!eventMap[key]) eventMap[key] = [];
+        eventMap[key].push({ id: `survey-${p.id}`, type: 'survey', date: eventDate, title: p.title, time: p.surveyDetails.time, description: p.surveyDetails.description, originalData: p });
+      }
+    });
 
-    const statusKey = status.toLowerCase().replace(/ /g,'');
-    const translatedStatus = getTranslatedStatus(status);
-    let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-    let className = "py-1 px-2 text-xs";
-    let Icon = Clock;
+    // Process Leave Requests
+    leaveRequests.forEach(l => {
+      const start = parseISO(l.startDate);
+      const end = parseISO(l.endDate);
+      for (let day = start; day <= end; day = addDays(day, 1)) {
+        const key = format(day, 'yyyy-MM-dd');
+        if (!eventMap[key]) eventMap[key] = [];
+        eventMap[key].push({ id: `leave-${l.id}-${key}`, type: 'leave', date: day, title: l.displayName || l.username, description: l.reason, originalData: l });
+      }
+    });
 
-    switch (statusKey) {
-        case 'completed': case 'selesai':
-            variant = 'default';
-            className = `${className} bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700 dark:text-primary-foreground`;
-            Icon = CheckCircle;
-            break;
-        case 'inprogress': case 'sedangberjalan':
-            variant = 'secondary';
-            className = `${className} bg-blue-500 text-white dark:bg-blue-600 dark:text-primary-foreground hover:bg-blue-600 dark:hover:bg-blue-700`;
-            Icon = Activity;
-            break;
-        case 'pendingparalleldesignuploads':
-            variant = 'default';
-            className = `${className} bg-fuchsia-500 hover:bg-fuchsia-600 text-white dark:bg-fuchsia-600 dark:hover:bg-fuchsia-700`;
-            Icon = ListChecks;
-            break;
-        case 'pendingapproval': case 'menunggupersetujuan':
-            variant = 'outline';
-            className = `${className} border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-500`;
-            Icon = AlertTriangle;
-            break;
-        case 'pendingpostsidangrevision': case 'menunggurevisipascSidang':
-            variant = 'outline';
-            className = `${className} border-orange-400 text-orange-500 dark:border-orange-300 dark:text-orange-400`;
-            Icon = RefreshCw;
-            break;
-        case 'delayed': case 'tertunda':
-            variant = 'destructive';
-            className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`;
-            Icon = Clock;
-            break;
-        case 'canceled': case 'dibatalkan':
-            variant = 'destructive';
-            Icon = XCircle;
-            break;
-        case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran':
-            variant = 'outline';
-            className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`;
-            Icon = Briefcase;
-            break;
-        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles':  case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan':
-            variant = 'secondary';
-            Icon = Clock;
-            break;
-        case 'scheduled': case 'terjadwal':
-            variant = 'secondary';
-            className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`;
-            Icon = CalendarClock;
-            break;
-        default:
-            variant = 'secondary'; Icon = Clock;
-    }
-    return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
-  }, [isClient, dashboardDict, getTranslatedStatus]);
+    // Process Holidays
+    holidays.forEach(h => {
+        const eventDate = parseISO(h.date);
+        const key = format(eventDate, 'yyyy-MM-dd');
+        if (!eventMap[key]) eventMap[key] = [];
+        eventMap[key].push({ id: `holiday-${h.id}`, type: 'holiday', date: eventDate, title: h.name, description: h.description, originalData: h });
+    });
+
+    // Sort events within each day by time
+    Object.keys(eventMap).forEach(key => {
+      eventMap[key].sort((a, b) => {
+        if (a.time && b.time) return a.time.localeCompare(b.time);
+        if (a.time) return -1;
+        if (b.time) return 1;
+        return a.type.localeCompare(b.type);
+      });
+      // Populate upcoming events
+      const date = parseISO(key);
+      if (isWithinInterval(date, { start: today, end: threeDaysFromNow })) {
+          upcoming.push(...eventMap[key].filter(e => e.type === 'sidang' || e.type === 'survey'));
+      }
+    });
+
+    upcoming.sort((a,b) => a.date.getTime() - b.date.getTime());
+
+    return { eventsByDate: eventMap, upcomingEvents: upcoming };
+  }, [projects, leaveRequests, holidays]);
 
   const activeProjects = useMemo(() => {
     return projects.filter(p => p.status !== 'Completed' && p.status !== 'Canceled');
   }, [projects]);
+  
+  const getTranslatedStatus = useCallback((statusKey: string): string => {
+    const key = statusKey?.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
+    return dashboardDict.status[key] || statusKey;
+  }, [dashboardDict]);
+  
+  const getRoleIcon = (role: string) => {
+      const roleLower = role.toLowerCase().trim();
+      if (roleLower.includes('owner')) return User;
+      if (roleLower.includes('akuntan')) return UserCog;
+      if (roleLower.includes('admin proyek')) return UserCog;
+      if (roleLower.includes('arsitek')) return User;
+      if (roleLower.includes('struktur')) return User;
+      if (roleLower.includes('mep')) return Wrench;
+      if (roleLower.includes('admin developer')) return Code;
+      return User;
+  }
+  
+  const getEventTypeIcon = (type: CalendarEventType) => {
+      switch(type) {
+          case 'sidang': return <Briefcase className="h-4 w-4 text-primary" />;
+          case 'survey': return <MapPin className="h-4 w-4 text-orange-500" />;
+          case 'leave': return <Plane className="h-4 w-4 text-blue-500" />;
+          case 'holiday': return <PartyPopper className="h-4 w-4 text-fuchsia-500" />;
+          case 'company_event': return <Building className="h-4 w-4 text-teal-500" />;
+          default: return <CheckCircle className="h-4 w-4 text-muted-foreground" />;
+      }
+  }
 
-  if (!isClient || isLoadingProjects) {
+  if (isLoading) {
     return (
       <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
-        <Skeleton className="h-10 w-1/3 mb-4" />
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3].map(i => (
-            <Card key={`skel-${i}`}>
-              <CardHeader>
-                <Skeleton className="h-6 w-3/4 mb-1" />
-                <Skeleton className="h-4 w-1/2" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-5 w-1/4 mb-2" />
-                <Skeleton className="h-4 w-full" />
-              </CardContent>
-            </Card>
-          ))}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <Skeleton className="h-10 w-2/5" />
+          <Skeleton className="h-10 w-44" />
+        </div>
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-6">
+            <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-40 w-full" /></CardContent></Card>
+            <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-1/2" /></CardHeader><CardContent><Skeleton className="h-32 w-full" /></CardContent></Card>
+          </div>
+          <div className="lg:col-span-1 space-y-6">
+            <Card><CardHeader><Skeleton className="h-6 w-1/2 mb-2" /><Skeleton className="h-4 w-full" /></CardHeader><CardContent><Skeleton className="h-80 w-full" /></CardContent></Card>
+          </div>
         </div>
       </div>
     );
@@ -187,50 +238,118 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{dashboardDict.activeProjects}</CardTitle>
-          <CardDescription>
-            {currentUser?.role === 'Owner' || currentUser?.role === 'Akuntan' || currentUser?.role === 'Admin Proyek' || currentUser?.role === 'Admin Developer'
-              ? dashboardDict.allProjectsDesc
-              : dashboardDict.divisionProjectsDesc.replace('{division}', currentUser?.role || '')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {activeProjects.length === 0 ? (
-            <p className="text-muted-foreground">{dashboardDict.noProjects}</p>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {activeProjects.map(project => {
-                return (
-                  <Link href={`/dashboard/projects?projectId=${project.id}`} key={project.id} passHref>
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full flex flex-col">
-                      <CardHeader>
-                        <CardTitle className="text-lg">{project.title}</CardTitle>
-                        {getStatusBadge(project.status)}
-                      </CardHeader>
-                      <CardContent className="flex-grow">
-                        <p className="text-sm text-muted-foreground">
-                          <strong>{projectsDict.nextActionLabel}:</strong> {project.nextAction || projectsDict.none}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          <strong>{projectsDict.assignedLabel}:</strong> {getTranslatedStatus(project.assignedDivision) || projectsDict.none}
-                        </p>
-                      </CardContent>
-                      <CardFooter>
-                          <div className="text-xs text-muted-foreground flex items-center justify-between w-full">
-                            <span>{dashboardDict.progress.replace('{progress}', project.progress.toString())}</span>
-                            <ExternalLink className="h-3 w-3" />
-                          </div>
-                      </CardFooter>
-                    </Card>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 space-y-6">
+            {/* Active Projects Card */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>{dashboardDict.activeProjects}</CardTitle>
+                    <CardDescription>{dashboardDict.allProjectsDesc}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {activeProjects.length === 0 ? (
+                        <p className="text-muted-foreground">{dashboardDict.noProjects}</p>
+                    ) : (
+                        <div className="space-y-4">
+                            {activeProjects.slice(0, 4).map(project => (
+                                <Link href={`/dashboard/projects?projectId=${project.id}`} key={project.id} passHref>
+                                <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
+                                    <CardContent className="p-3 flex items-center justify-between">
+                                        <div className="flex-1 overflow-hidden">
+                                            <p className="font-semibold truncate">{project.title}</p>
+                                            <p className="text-xs text-muted-foreground truncate">{projectsDict.nextActionLabel}: {project.nextAction || projectsDict.none}</p>
+                                        </div>
+                                        <div className="flex-shrink-0 ml-4 flex items-center gap-2">
+                                            <Badge variant="outline">{getTranslatedStatus(project.assignedDivision)}</Badge>
+                                            <Progress value={project.progress} className="w-20 h-2" />
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
+                </CardContent>
+                <CardFooter>
+                    <Link href="/dashboard/projects" passHref className="w-full">
+                        <Button variant="outline" className="w-full">{`View All ${activeProjects.length} Active Projects`}</Button>
+                    </Link>
+                </CardFooter>
+            </Card>
+
+            {/* Upcoming Agenda Card */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>{dashboardDict.upcomingAgendaTitle}</CardTitle>
+                    <CardDescription>{dashboardDict.upcomingAgendaDesc}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {upcomingEvents.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">{dashboardDict.noUpcomingAgenda}</p>
+                    ) : (
+                        <ul className="space-y-3">
+                            {upcomingEvents.slice(0, 5).map(event => (
+                                <li key={event.id} className="flex items-start gap-3">
+                                    <div className="flex-shrink-0 mt-1">{getEventTypeIcon(event.type)}</div>
+                                    <div className="flex-1">
+                                        <p className="text-sm font-medium">{event.title}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {format(event.date, 'eeee, MMM d', { locale: currentLocale })}
+                                            {event.time ? ` @ ${event.time}` : ''}
+                                        </p>
+                                    </div>
+                                    <Badge variant="secondary" className="capitalize">{dashboardDict.eventTypes[event.type]}</Badge>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
+
+        <div className="lg:col-span-1">
+            {/* Calendar Card */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>{dashboardDict.scheduleAgendaTitle}</CardTitle>
+                    <CardDescription>{dashboardDict.scheduleAgendaDesc}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        className="rounded-md border p-0"
+                        locale={currentLocale}
+                        modifiers={{
+                            hasEvent: Object.keys(eventsByDate).map(d => parseISO(d)),
+                        }}
+                        modifiersClassNames={{
+                            hasEvent: "relative !bg-primary/10",
+                        }}
+                    />
+                    <div className="space-y-3 pt-4 border-t h-48 overflow-y-auto pr-2">
+                        <h3 className="text-md font-semibold">{dashboardDict.eventsForDate.replace('{date}', selectedDate ? format(selectedDate, 'PP', { locale: currentLocale }) : '...')}</h3>
+                        {selectedDate && eventsByDate[format(selectedDate, 'yyyy-MM-dd')] ? (
+                            eventsByDate[format(selectedDate, 'yyyy-MM-dd')].map(event => (
+                                <div key={event.id} className="flex gap-3">
+                                    <div className="flex-shrink-0 mt-1">{getEventTypeIcon(event.type)}</div>
+                                    <div>
+                                        <p className="text-sm font-medium leading-tight">{event.title}</p>
+                                        <p className="text-xs text-muted-foreground">{dashboardDict.eventTypes[event.type]}</p>
+                                        {event.time && <p className="text-xs text-muted-foreground">{dashboardDict.eventTimeLabel} {event.time}</p>}
+                                        {event.location && <p className="text-xs text-muted-foreground">{dashboardDict.eventLocationLabel} {event.location}</p>}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-sm text-muted-foreground">{dashboardDict.noEventsOnDate}</p>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+      </div>
     </div>
   );
 }
