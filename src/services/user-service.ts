@@ -48,7 +48,7 @@ export interface UpdatePasswordData {
 export interface UpdateUserGoogleTokensData {
     refreshToken?: string | null;
     accessToken: string | null;
-    accessTokenExpiresAt: number | null;
+    accessTokenExpiresAt: number | null; // Unix timestamp (milliseconds)
 }
 
 
@@ -247,7 +247,7 @@ export async function deleteUser(userId: string): Promise<void> {
     console.log(`[UserService/JSON] User ${userId} deleted successfully.`);
 }
 
-export async function updateUserProfile(updateData: UpdateProfileData): Promise<User | null> {
+export async function updateUserProfile(updateData: UpdateProfileData): Promise<Omit<User, 'password'> | null> {
     console.log(`[UserService/JSON] Attempting to update profile for user ID: ${updateData.userId}`);
     let users = await readUsers();
     const userIndex = users.findIndex(u => u.id === updateData.userId);
@@ -289,7 +289,7 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
     console.log(`[UserService/JSON] User profile for ${updateData.userId} updated successfully.`);
     
     if (currentUserState.role !== 'Admin Developer' && (updateData.username || updateData.role)) {
-      const adminRolesToNotify = ['Owner', 'General Admin'];
+      const adminRolesToNotify = ['Owner', 'Akuntan'];
       adminRolesToNotify.forEach(async (role) => {
           await notifyUsersByRole(role, `User profile for "${updatedUser.username}" (Role: ${updatedUser.role}) has been updated.`);
       });
@@ -324,7 +324,7 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
     console.log(`[UserService/JSON] Password for user ${updateData.userId} updated successfully.`);
         
     if (user.role !== 'Admin Developer') {
-        const adminRolesToNotify = ['Owner', 'General Admin'];
+        const adminRolesToNotify = ['Owner', 'Akuntan'];
         adminRolesToNotify.forEach(async (role) => {
             await notifyUsersByRole(role, `Password for user "${user.username}" (Role: ${user.role}) has been changed.`);
         });
@@ -364,4 +364,34 @@ export async function updateUserGoogleTokens(
     
     await writeUsers(users);
     console.log(`[UserService/JSON] Google tokens for user ${userId} updated successfully.`);
+}
+
+export async function clearUserGoogleTokens(userId: string): Promise<Omit<User, 'password'> | null> {
+    console.log(`[UserService/JSON] Clearing Google tokens for user ID: ${userId}`);
+    let users = await readUsers();
+    const userIndex = users.findIndex(u => u.id === userId);
+
+    if (userIndex === -1) {
+        console.error(`[UserService/JSON] User with ID "${userId}" not found for clearing Google tokens.`);
+        throw new Error('USER_NOT_FOUND');
+    }
+
+    const user = { ...users[userIndex] };
+    
+    // Set fields to null/undefined
+    user.googleRefreshToken = null;
+    user.googleAccessToken = null;
+    user.googleAccessTokenExpiresAt = null;
+
+    users[userIndex] = user;
+
+    // We can also delete the keys if we want to be cleaner
+    delete users[userIndex].googleRefreshToken;
+    delete users[userIndex].googleAccessToken;
+    delete users[userIndex].googleAccessTokenExpiresAt;
+    
+    await writeUsers(users);
+    console.log(`[UserService/JSON] Google tokens for user ${userId} cleared successfully.`);
+    const { password: _p, ...userWithoutPassword } = users[userIndex];
+    return userWithoutPassword;
 }

@@ -1,4 +1,3 @@
-
 // src/app/dashboard/page.tsx
 'use client';
 
@@ -24,6 +23,7 @@ import Link from 'next/link';
 import { Calendar } from "@/components/ui/calendar";
 import { format, parseISO, startOfToday, isSameDay, addDays, isWithinInterval } from 'date-fns';
 import { id as idLocale, enUS as enLocale } from 'date-fns/locale';
+import { Progress } from '@/components/ui/progress';
 import {
     Activity,
     AlertTriangle,
