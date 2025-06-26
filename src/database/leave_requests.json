@@ -26,5 +26,19 @@
     "status": "Approved",
     "approvedRejectedBy": "usr_owner_default",
     "approvedRejectedAt": "2025-06-26T15:51:52.375Z"
+  },
+  {
+    "id": "leave_1750953612439_383af",
+    "userId": "usr_1747633745993_u8h9d",
+    "username": "struktur",
+    "displayName": "Struktur Default",
+    "requestDate": "2025-06-26T16:00:12.439Z",
+    "leaveType": "Keperluan Pribadi",
+    "startDate": "2025-06-27",
+    "endDate": "2025-06-27",
+    "reason": "mau potong rambut",
+    "status": "Approved",
+    "approvedRejectedBy": "usr_owner_default",
+    "approvedRejectedAt": "2025-06-26T16:11:03.899Z"
   }
 ]

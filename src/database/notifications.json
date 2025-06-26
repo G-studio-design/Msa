@@ -1145,6 +1145,20 @@
     "userId": "usr_1747799008584_4r22a",
     "message": "Permintaan izin Anda (Keperluan Pribadi) dari 2025-06-30 hingga 2025-06-30 telah disetujui oleh sudina.",
     "timestamp": "2025-06-26T15:51:52.386Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750953612453_03x9x_ult",
+    "userId": "usr_owner_default",
+    "message": "Permintaan izin baru dari Struktur Default (Keperluan Pribadi) dari tanggal 2025-06-27 hingga 2025-06-27.",
+    "timestamp": "2025-06-26T16:00:12.451Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750954263903_p5ess",
+    "userId": "usr_1747633745993_u8h9d",
+    "message": "Permintaan izin Anda (Keperluan Pribadi) dari 2025-06-27 hingga 2025-06-27 telah disetujui oleh sudina.",
+    "timestamp": "2025-06-26T16:11:03.903Z",
     "isRead": false
   }
 ]
