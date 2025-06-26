@@ -129,7 +129,7 @@ interface GroupedHistoryItem {
     files: FileEntry[];
 }
 
-const finalDocRequirements = ['Berita Acara', 'SKRD', 'Ijin Terbit', 'Susunan Dokumen Final', 'Tanda Terima'];
+const finalDocRequirements = ['Berita Acara', 'SKRD', 'Ijin Terbit', 'Dokumen Final', 'Tanda Terima'];
 
 
 export default function ProjectsPage() {

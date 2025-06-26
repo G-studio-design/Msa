@@ -1560,5 +1560,29 @@
     "message": "MEP baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
     "timestamp": "2025-06-26T17:51:33.041Z",
     "isRead": false
+  },
+  {
+    "id": "notif_1750960410168_99m54_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Divisi Struktur telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek villa di tanah lot\" oleh komangmerta.",
+    "timestamp": "2025-06-26T17:53:30.167Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750960471291_ltj24_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:54:31.289Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750960484990_cespm_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Revisi pasca-sidang untuk proyek 'proyek villa di tanah lot' telah selesai. Mohon unggah dokumen akhir.",
+    "timestamp": "2025-06-26T17:54:44.988Z",
+    "isRead": false
   }
 ]

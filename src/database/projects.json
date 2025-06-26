@@ -745,10 +745,10 @@
   {
     "id": "project_1750950968313_qtcnd",
     "title": "proyek villa di tanah lot",
-    "status": "Pending Post-Sidang Revision",
-    "progress": 85,
+    "status": "Pending Final Documents",
+    "progress": 98,
     "assignedDivision": "Admin Proyek",
-    "nextAction": "Lakukan revisi pasca-sidang. Notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.",
+    "nextAction": "Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -982,6 +982,37 @@
         "division": "komangmerta",
         "action": "Deleted file: \"Gambar  - Struktur.pdf\"",
         "timestamp": "2025-06-26T17:51:54.056Z"
+      },
+      {
+        "division": "Struktur",
+        "action": "struktur (Struktur) uploaded file(s).",
+        "timestamp": "2025-06-26T17:54:31.267Z",
+        "note": "Gambar  - Struktur.pdf"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) completed post-sidang revisions and moved to final documentation.",
+        "timestamp": "2025-06-26T17:54:44.978Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.\"",
+        "timestamp": "2025-06-26T17:55:07.845Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.\"",
+        "timestamp": "2025-06-26T17:55:22.085Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.\"",
+        "timestamp": "2025-06-26T17:56:07.080Z"
+      },
+      {
+        "division": "komangmerta",
+        "action": "Deleted file: \"susunan dokumen final.pdf\"",
+        "timestamp": "2025-06-26T17:56:15.837Z"
       }
     ],
     "files": [
@@ -1080,6 +1111,42 @@
         "uploadedBy": "MEP",
         "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/spektekpdf",
         "timestamp": "2025-06-26T17:51:33.033Z"
+      },
+      {
+        "name": "Gambar  - Struktur.pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/gambar_-_strukturpdf",
+        "timestamp": "2025-06-26T17:54:31.267Z"
+      },
+      {
+        "name": "Berita acara .pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/berita_acara_pdf",
+        "timestamp": "2025-06-26T17:55:07.845Z"
+      },
+      {
+        "name": "ijin terbit .pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/ijin_terbit_pdf",
+        "timestamp": "2025-06-26T17:55:07.845Z"
+      },
+      {
+        "name": "SKRD .pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/skrd_pdf",
+        "timestamp": "2025-06-26T17:55:07.845Z"
+      },
+      {
+        "name": "dokumen final.pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/dokumen_finalpdf",
+        "timestamp": "2025-06-26T17:55:22.085Z"
+      },
+      {
+        "name": "tanda terima.pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/tanda_terimapdf",
+        "timestamp": "2025-06-26T17:55:22.085Z"
       }
     ],
     "createdAt": "2025-06-26T15:16:08.313Z",
