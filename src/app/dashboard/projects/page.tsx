@@ -1,4 +1,3 @@
-
 // src/app/dashboard/projects/page.tsx
 'use client';
 
@@ -101,7 +100,7 @@ const defaultGlobalDict = getDictionary('en');
 
 const projectStatuses = [
     'Pending Offer', 'Pending Approval', 'Pending DP Invoice',
-    'Pending Admin Files', 'Pending Survey Details', 'Pending Architect Files', 'Pending Structure Files', 'Pending MEP Files',
+    'Pending Admin Files', 'Pending Survey Details', 'Survey Scheduled', 'Pending Architect Files', 'Pending Structure Files', 'Pending MEP Files',
     'Pending Scheduling', 'Scheduled', 'Pending Post-Sidang Revision', 'Pending Parallel Design Uploads',
     'In Progress', 'Completed', 'Canceled', 'Pending Consultation Docs', 'Pending Review', 'Pending Final Documents'
 ];
@@ -253,7 +252,7 @@ export default function ProjectsPage() {
               setSelectedProject(null);
           }
       }
-  }, [projectIdFromUrl, allProjects, isClient, isLoadingProjects, router, toast, projectsDict]); // FIX: Use extracted value in dependency array
+  }, [projectIdFromUrl, allProjects, isClient, isLoadingProjects, router, toast, projectsDict]);
 
     const getParallelChecklistStatus = React.useCallback((project: Project | null): ParallelUploadChecklist | null => {
         if (!project) return null;
@@ -410,6 +409,7 @@ export default function ProjectsPage() {
         case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles':  case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': case 'pendingfinaldocuments': variant = 'secondary'; Icon = Clock; break;
         case 'pendingparalleldesignuploads': variant = 'secondary'; className = `${className} bg-indigo-500 text-white dark:bg-indigo-600 dark:text-primary-foreground hover:bg-indigo-600 dark:hover:bg-indigo-700`; Icon = Shield; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarClock; break;
+        case 'surveyscheduled': variant = 'secondary'; className = `${className} bg-cyan-500 text-white dark:bg-cyan-600 dark:text-primary-foreground hover:bg-cyan-600 dark:hover:bg-cyan-700`; Icon = MapPin; break;
         default: variant = 'secondary'; Icon = Clock;
     }
     return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
@@ -424,7 +424,8 @@ export default function ProjectsPage() {
     const isDesignDivision = ['Arsitek', 'Struktur', 'MEP'].includes(userRole);
     
     if (selectedProject.status === 'Pending Post-Sidang Revision' && isDesignDivision) return true;
-    if (selectedProject.status === 'Pending Survey Details' && userRole === 'Arsitek') return true;
+    // Allow Arsitek to act during Survey Scheduled as well
+    if (selectedProject.status === 'Survey Scheduled' && userRole === 'Arsitek') return true;
 
     const assignedDivisionCleaned = selectedProject.assignedDivision?.trim();
     return userRole === assignedDivisionCleaned;
@@ -441,14 +442,14 @@ export default function ProjectsPage() {
 
     const isDecisionOrTerminalAction = ['approved', 'rejected', 'completed', 'revise_offer', 'revise_dp', 'revise_after_sidang', 'canceled_after_sidang', 'revision_completed_and_finish', 'all_files_confirmed'].includes(actionTaken);
     const isSchedulingAction = actionTaken === 'scheduled' || actionTaken === 'reschedule_survey' || actionTaken === 'reschedule_survey_from_parallel';
-    const isSurveyAction = selectedProject.status === 'Pending Survey Details' && actionTaken === 'submitted';
+    const isSurveySchedulingAction = selectedProject.status === 'Pending Survey Details' && actionTaken === 'submitted';
     const isArchitectInitialImageUpload = actionTaken === 'architect_uploaded_initial_images_for_struktur';
     
     setIsSubmitting(true);
     if (isArchitectInitialImageUpload) setIsSubmittingInitialImages(true);
 
     try {
-        if (!isDecisionOrTerminalAction && !isSchedulingAction && !isSurveyAction && !isArchitectInitialImageUpload && !currentDescription && currentFiles.length === 0 ) {
+        if (!isDecisionOrTerminalAction && !isSchedulingAction && !isSurveySchedulingAction && !isArchitectInitialImageUpload && !currentDescription && currentFiles.length === 0 ) {
           toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: projectsDict.toast.provideDescOrFile });
           setIsSubmitting(false);
           if (isArchitectInitialImageUpload) setIsSubmittingInitialImages(false);
@@ -504,7 +505,7 @@ export default function ProjectsPage() {
                 time: scheduleTime,
                 location: scheduleLocation
             } : undefined,
-             surveyDetails: (selectedProject.status === 'Pending Survey Details' && (actionTaken === 'submitted' || actionTaken === 'reschedule_survey')) ? {
+             surveyDetails: (selectedProject.status === 'Pending Survey Details' || selectedProject.status === 'Survey Scheduled') && (actionTaken === 'submitted' || actionTaken === 'reschedule_survey') ? {
                 date: (actionTaken === 'reschedule_survey') ? rescheduleDate : surveyDate,
                 time: (actionTaken === 'reschedule_survey') ? rescheduleTime : surveyTime,
                 description: surveyDescription
@@ -574,14 +575,14 @@ export default function ProjectsPage() {
       }
   }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus, initialImageFiles, initialImageDescription, rescheduleDate, rescheduleTime]);
 
-  const handleSurveySubmit = React.useCallback(async () => {
+  const handleSurveyScheduleSubmit = React.useCallback(async () => {
         if (!currentUser || !selectedProject ) { 
             toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.notYourTurn });
             return;
         }
         const canSubmitSurvey = selectedProject.status === 'Pending Survey Details' &&
                             (
-                                (currentUser.role === 'Admin Proyek' && canPerformSelectedProjectAction) ||
+                                currentUser.role === 'Admin Proyek' ||
                                 currentUser.role === 'Owner' ||
                                 currentUser.role === 'Arsitek'
                             );
@@ -591,12 +592,20 @@ export default function ProjectsPage() {
             return;
         }
 
-        if (!surveyDate || !surveyTime || !surveyDescription.trim()) {
-            toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: "Please provide survey date, time, and description." });
+        if (!surveyDate || !surveyTime) {
+            toast({ variant: 'destructive', title: projectsDict.toast.missingInput, description: "Please provide survey date and time." });
             return;
         }
         await handleProgressSubmit('submitted');
-    }, [currentUser, selectedProject, surveyDate, surveyTime, surveyDescription, projectsDict, toast, handleProgressSubmit, canPerformSelectedProjectAction]);
+    }, [currentUser, selectedProject, surveyDate, surveyTime, surveyDescription, projectsDict, toast, handleProgressSubmit]);
+
+    const handleSurveyCompletionSubmit = React.useCallback(async () => {
+        if (!currentUser || !selectedProject || selectedProject.status !== 'Survey Scheduled') {
+            toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.notYourTurn });
+            return;
+        }
+        await handleProgressSubmit('submitted', uploadedFiles, description);
+    }, [currentUser, selectedProject, uploadedFiles, description, handleProgressSubmit, toast, projectsDict]);
 
     const handleRescheduleSurveySubmit = async () => {
         if (!selectedProject || !currentUser) return;
@@ -1013,6 +1022,17 @@ export default function ProjectsPage() {
         if (!selectedProject || !currentUser) return false;
         const userRoleCleaned = currentUser.role.trim();
         return selectedProject.status === 'Pending Survey Details' &&
+               (
+                   userRoleCleaned === 'Admin Proyek' ||
+                   userRoleCleaned === 'Owner' ||
+                   userRoleCleaned === 'Arsitek'
+               );
+    }, [selectedProject, currentUser]);
+
+    const showSurveyCompletionSection = React.useMemo(() => {
+        if (!selectedProject || !currentUser) return false;
+        const userRoleCleaned = currentUser.role.trim();
+        return selectedProject.status === 'Survey Scheduled' &&
                (
                    userRoleCleaned === 'Admin Proyek' ||
                    userRoleCleaned === 'Owner' ||
@@ -1581,13 +1601,21 @@ export default function ProjectsPage() {
                                     <div className="space-y-1.5"><Label htmlFor="surveyTime">{projectsDict.timeLabel}</Label><Input id="surveyTime" type="time" value={surveyTime} onChange={e => setSurveyTime(e.target.value)} disabled={isSubmitting} /></div>
                                 </div>
                                 <div className="space-y-1.5"><Label htmlFor="surveyDescription">{projectsDict.descriptionLabel}</Label><Textarea id="surveyDescription" placeholder={projectsDict.surveyDescriptionPlaceholder} value={surveyDescription} onChange={e => setSurveyDescription(e.target.value)} disabled={isSubmitting}/></div>
-                                 <div className="grid w-full items-center gap-1.5">
-                                     <Label htmlFor="survey-files">{projectsDict.attachFilesLabel} ({projectsDict.optionalReportLabel})</Label>
-                                     <div className="flex flex-col sm:flex-row items-center gap-2">
-                                         <Input id="survey-files" type="file" multiple onChange={handleFileChange} disabled={isSubmitting || uploadedFiles.length >= MAX_FILES_UPLOAD} className="flex-grow"/>
-                                         <Upload className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                                     </div>
-                                 </div>
+                                
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                  <Button onClick={handleSurveyScheduleSubmit} disabled={isSubmitting || !surveyDate || !surveyTime} className="w-full sm:w-auto accent-teal">
+                                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                                      {isSubmitting ? projectsDict.schedulingButton : projectsDict.confirmScheduleButton}
+                                  </Button>
+                                </div>
+                            </div>
+                        )}
+                        {showSurveyCompletionSection && (
+                            <div className="space-y-4 border-t pt-4 mt-4">
+                                <h3 className="text-lg font-semibold">{projectsDict.surveyCompletion.title}</h3>
+                                {project.surveyDetails?.date && <p className="text-sm text-muted-foreground">{projectsDict.surveyCompletion.scheduledFor}: {formatDateOnly(project.surveyDetails.date)} @ {project.surveyDetails.time}</p>}
+                                <div className="space-y-1.5"><Label htmlFor="surveyReportDescription">{projectsDict.surveyCompletion.reportNotesLabel}</Label><Textarea id="surveyReportDescription" placeholder={projectsDict.surveyCompletion.reportNotesPlaceholder} value={description} onChange={(e) => setDescription(e.target.value)} disabled={isSubmitting}/></div>
+                                <div className="grid w-full items-center gap-1.5"><Label htmlFor="survey-report-files">{projectsDict.attachFilesLabel} ({projectsDict.optionalReportLabel})</Label><div className="flex flex-col sm:flex-row items-center gap-2"><Input id="survey-report-files" type="file" multiple onChange={handleFileChange} disabled={isSubmitting || uploadedFiles.length >= MAX_FILES_UPLOAD} className="flex-grow"/><Upload className="h-5 w-5 text-muted-foreground flex-shrink-0" /></div></div>
                                   {uploadedFiles.length > 0 && (
                                      <div className="space-y-2 rounded-md border p-3">
                                          <Label>{projectsDict.selectedFilesLabel} ({uploadedFiles.length}/{MAX_FILES_UPLOAD})</Label>
@@ -1597,9 +1625,9 @@ export default function ProjectsPage() {
                                      </div>
                                   )}
                                 <div className="flex flex-col sm:flex-row gap-2">
-                                  <Button onClick={handleSurveySubmit} disabled={isSubmitting || !surveyDate || !surveyTime || !surveyDescription.trim()} className="w-full sm:w-auto accent-teal">
-                                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                                      {isSubmitting ? projectsDict.submittingButton : projectsDict.submitButton}
+                                  <Button onClick={handleSurveyCompletionSubmit} disabled={isSubmitting} className="w-full sm:w-auto accent-teal">
+                                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                                      {isSubmitting ? projectsDict.submittingButton : projectsDict.surveyCompletion.confirmButton}
                                   </Button>
                                   <Dialog open={isRescheduleDialogOpen} onOpenChange={setIsRescheduleDialogOpen}>
                                       <DialogTrigger asChild>
@@ -1632,7 +1660,6 @@ export default function ProjectsPage() {
                                 </div>
                             </div>
                         )}
-
                         {showOwnerDecisionSection && (
                             <div className="space-y-4 border-t pt-4 mt-4">
                             {project.progress === 20 && ( // Offer Approval

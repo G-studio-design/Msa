@@ -837,6 +837,62 @@
     "projectId": "project_1750923884164_mtu12",
     "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: survey gagal karena hujan",
     "timestamp": "2025-06-26T13:58:35.080Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750946744286_ua06q_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:05:44.284Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750946744295_jpdj4_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:05:44.290Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750946744303_vy8xh_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:05:44.302Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750946744309_q6rff_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:05:44.309Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750947562235_h56vw_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh sudina untuk dijadwalkan ulang. Alasan: hujan",
+    "timestamp": "2025-06-26T14:19:22.234Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750947562244_0pw35_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh sudina untuk dijadwalkan ulang. Alasan: hujan",
+    "timestamp": "2025-06-26T14:19:22.243Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750947562253_0do19_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh sudina untuk dijadwalkan ulang. Alasan: hujan",
+    "timestamp": "2025-06-26T14:19:22.252Z",
     "isRead": false
   }
 ]
