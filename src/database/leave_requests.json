@@ -9,6 +9,22 @@
     "startDate": "2025-06-27",
     "endDate": "2025-06-28",
     "reason": "sakit panas demam",
-    "status": "Pending"
+    "status": "Approved",
+    "approvedRejectedBy": "usr_owner_default",
+    "approvedRejectedAt": "2025-06-26T15:31:50.012Z"
+  },
+  {
+    "id": "leave_1750952234224_vfws2",
+    "userId": "usr_1747799008584_4r22a",
+    "username": "komangmerta",
+    "displayName": "Komang Merta",
+    "requestDate": "2025-06-26T15:37:14.224Z",
+    "leaveType": "Keperluan Pribadi",
+    "startDate": "2025-06-30",
+    "endDate": "2025-06-30",
+    "reason": "acara keluarga ",
+    "status": "Approved",
+    "approvedRejectedBy": "usr_owner_default",
+    "approvedRejectedAt": "2025-06-26T15:51:52.375Z"
   }
 ]

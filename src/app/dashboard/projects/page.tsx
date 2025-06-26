@@ -295,9 +295,11 @@ export default function ProjectsPage() {
             if (checklistItems) {
                 currentStatus[division] = checklistItems.map(item => {
                     const uploadedFile = projectFiles.find(file => {
-                        const fileNameClean = file.name.replace(/\.[^/.]+$/, "").replace(/ /g, '').toLowerCase();
-                        const itemNameClean = item.name.replace(/ /g, '').toLowerCase();
-                        return fileNameClean.includes(itemNameClean) && file.uploadedBy === division;
+                        const fileNameKeywords = file.name.replace(/\.[^/.]+$/, "").toLowerCase().split(' ');
+                        const allKeywordsMatch = fileNameKeywords.every(keyword => 
+                            item.name.toLowerCase().includes(keyword.toLowerCase())
+                        );
+                        return allKeywordsMatch && file.uploadedBy === division;
                     });
                     return {
                         ...item,
@@ -1035,7 +1037,11 @@ export default function ProjectsPage() {
     const showSurveyCompletionSection = React.useMemo(() => {
         if (!selectedProject || !currentUser) return false;
         const userRoleCleaned = currentUser.role.trim();
+        const now = new Date();
+        const surveyDate = selectedProject.surveyDetails?.date ? new Date(`${selectedProject.surveyDetails.date}T${selectedProject.surveyDetails.time || '00:00:00'}`) : null;
+
         return selectedProject.status === 'Survey Scheduled' &&
+               (surveyDate && now >= surveyDate) && // Only show after survey time has passed
                (
                    userRoleCleaned === 'Admin Proyek' ||
                    userRoleCleaned === 'Owner' ||
@@ -1121,9 +1127,11 @@ export default function ProjectsPage() {
         const projectFiles = selectedProject.files || [];
         return finalDocRequirements.map(reqName => {
             const uploadedFile = projectFiles.find(file => {
-                const fileNameClean = file.name.replace(/\.[^/.]+$/, "").replace(/ /g, '').toLowerCase();
-                const itemNameClean = reqName.replace(/ /g, '').toLowerCase();
-                return fileNameClean.includes(itemNameClean) && file.uploadedBy === 'Admin Proyek';
+                const fileNameKeywords = file.name.replace(/\.[^/.]+$/, "").toLowerCase().split(' ');
+                const allKeywordsMatch = fileNameKeywords.every(keyword => 
+                    reqName.toLowerCase().includes(keyword.toLowerCase())
+                );
+                return allKeywordsMatch && file.uploadedBy === 'Admin Proyek';
             });
             return { name: reqName, uploaded: !!uploadedFile, filePath: uploadedFile?.path, originalFileName: uploadedFile?.name };
         });
@@ -1557,12 +1565,7 @@ export default function ProjectsPage() {
                                     <div>
                                         <h4 className="font-semibold mb-2">{projectsDict.finalDocsChecklistTitle}</h4>
                                         <ul className="space-y-2">
-                                            {finalDocsChecklistStatus?.map(item => (
-                                                <li key={item.name} className="flex items-center gap-3 text-sm">
-                                                    {item.uploaded ? <CheckCircle className="h-5 w-5 text-green-500" /> : <CircleIcon className="h-5 w-5 text-muted-foreground" />}
-                                                    <span className={cn(item.uploaded ? "text-foreground" : "text-muted-foreground")}>{item.name}</span>
-                                                </li>
-                                            ))}
+                                            {finalDocsChecklistStatus?.map(item => renderChecklistItem(item))}
                                         </ul>
                                     </div>
                                     <div className="space-y-4 border-t pt-4">
@@ -1632,34 +1635,36 @@ export default function ProjectsPage() {
                                       {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
                                       {isSubmitting ? projectsDict.submittingButton : projectsDict.surveyCompletion.confirmButton}
                                   </Button>
-                                  <Dialog open={isRescheduleDialogOpen} onOpenChange={setIsRescheduleDialogOpen}>
-                                      <DialogTrigger asChild>
-                                          <Button variant="outline" disabled={isSubmitting}><RefreshCw className="mr-2 h-4 w-4"/>{projectsDict.rescheduleSurveyDialog.buttonText}</Button>
-                                      </DialogTrigger>
-                                      <DialogContent>
-                                          <DialogHeader>
-                                              <DialogTitle>{projectsDict.rescheduleSurveyDialog.title}</DialogTitle>
-                                              <DialogDescription>{projectsDict.rescheduleSurveyDialog.description}</DialogDescription>
-                                          </DialogHeader>
-                                          <div className="grid gap-4 py-4">
-                                              <div className="grid grid-cols-2 gap-4">
-                                                  <div><Label htmlFor="reschedule-date">{projectsDict.dateLabel}</Label><Input id="reschedule-date" type="date" value={rescheduleDate} onChange={(e) => setRescheduleDate(e.target.value)} disabled={isSubmitting}/></div>
-                                                  <div><Label htmlFor="reschedule-time">{projectsDict.timeLabel}</Label><Input id="reschedule-time" type="time" value={rescheduleTime} onChange={(e) => setRescheduleTime(e.target.value)} disabled={isSubmitting}/></div>
-                                              </div>
-                                              <div>
-                                                  <Label htmlFor="reschedule-note">{projectsDict.rescheduleSurveyDialog.reasonLabel}</Label>
-                                                  <Textarea id="reschedule-note" placeholder={projectsDict.rescheduleSurveyDialog.reasonPlaceholder} value={rescheduleNote} onChange={(e) => setRescheduleNote(e.target.value)} disabled={isSubmitting}/>
-                                              </div>
-                                          </div>
-                                          <DialogFooter>
-                                              <Button variant="outline" onClick={() => setIsRescheduleDialogOpen(false)} disabled={isSubmitting}>{projectsDict.cancelButton}</Button>
-                                              <Button onClick={handleRescheduleSurveySubmit} disabled={isSubmitting || !rescheduleDate || !rescheduleTime || !rescheduleNote.trim()} className="accent-teal">
-                                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                                                {projectsDict.rescheduleSurveyDialog.confirmButton}
-                                              </Button>
-                                          </DialogFooter>
-                                      </DialogContent>
-                                  </Dialog>
+                                  {project.status === 'Survey Scheduled' && (
+                                    <Dialog open={isRescheduleDialogOpen} onOpenChange={setIsRescheduleDialogOpen}>
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline" disabled={isSubmitting}><RefreshCw className="mr-2 h-4 w-4"/>{projectsDict.rescheduleSurveyDialog.buttonText}</Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>{projectsDict.rescheduleSurveyDialog.title}</DialogTitle>
+                                                <DialogDescription>{projectsDict.rescheduleSurveyDialog.description}</DialogDescription>
+                                            </DialogHeader>
+                                            <div className="grid gap-4 py-4">
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div><Label htmlFor="reschedule-date">{projectsDict.dateLabel}</Label><Input id="reschedule-date" type="date" value={rescheduleDate} onChange={(e) => setRescheduleDate(e.target.value)} disabled={isSubmitting}/></div>
+                                                    <div><Label htmlFor="reschedule-time">{projectsDict.timeLabel}</Label><Input id="reschedule-time" type="time" value={rescheduleTime} onChange={(e) => setRescheduleTime(e.target.value)} disabled={isSubmitting}/></div>
+                                                </div>
+                                                <div>
+                                                    <Label htmlFor="reschedule-note">{projectsDict.rescheduleSurveyDialog.reasonLabel}</Label>
+                                                    <Textarea id="reschedule-note" placeholder={projectsDict.rescheduleSurveyDialog.reasonPlaceholder} value={rescheduleNote} onChange={(e) => setRescheduleNote(e.target.value)} disabled={isSubmitting}/>
+                                                </div>
+                                            </div>
+                                            <DialogFooter>
+                                                <Button variant="outline" onClick={() => setIsRescheduleDialogOpen(false)} disabled={isSubmitting}>{projectsDict.cancelButton}</Button>
+                                                <Button onClick={handleRescheduleSurveySubmit} disabled={isSubmitting || !rescheduleDate || !rescheduleTime || !rescheduleNote.trim()} className="accent-teal">
+                                                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                                                  {projectsDict.rescheduleSurveyDialog.confirmButton}
+                                                </Button>
+                                            </DialogFooter>
+                                        </DialogContent>
+                                    </Dialog>
+                                  )}
                                 </div>
                             </div>
                         )}

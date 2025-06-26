@@ -1,42 +1,44 @@
 // public/sw.js
+'use strict';
 
+/**
+ * A simple, robust service worker for handling client-side notifications.
+ */
+
+// On install, activate immediately.
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
-  // Force the waiting service worker to become the active service worker.
+  console.log('[SW] Service Worker installing.');
+  // Activate the new service worker as soon as it's installed.
   self.skipWaiting();
 });
 
+// On activation, take control of all open pages.
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
-  // Ensure the new service worker takes control of the page immediately.
-  event.waitUntil(clients.claim());
+  console.log('[SW] Service Worker activated.');
+  // Allows the activated service worker to take control of the page immediately.
+  event.waitUntil(self.clients.claim());
 });
 
+// Handle notification clicks.
 self.addEventListener('notificationclick', (event) => {
-  console.log('Service Worker: Notification clicked.');
+  console.log('[SW] Notification click received.', event);
+  
+  // Close the notification pop-up.
   event.notification.close();
 
-  // This code attempts to focus on an existing window/tab for your app,
-  // or open a new one if none exists.
+  // Focus the existing app window/tab or open a new one.
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // If a window for the app is already open, focus it.
+      // If there's an open window for this app, focus it.
       for (const client of clientList) {
-        if ('focus' in client) {
-          // You could add logic here to check if the client's URL matches
-          // a specific path if you want more control.
+        if (client.url === '/' && 'focus' in client) {
           return client.focus();
         }
       }
-      // If no window is open, open a new one.
+      // Otherwise, open a new window.
       if (clients.openWindow) {
-        // Change '/dashboard' to your app's main page if different
-        return clients.openWindow('/dashboard');
+        return clients.openWindow('/');
       }
     })
   );
 });
-
-// The fetch event listener is commented out as we are not implementing
-// a full offline-first strategy at this moment. It can be added later.
-// self.addEventListener('fetch', (event) => { ... });

@@ -1117,5 +1117,34 @@
     "message": "Permintaan izin baru dari Komang Merta (Sakit) dari tanggal 2025-06-27 hingga 2025-06-28.",
     "timestamp": "2025-06-26T15:21:34.439Z",
     "isRead": true
+  },
+  {
+    "id": "notif_1750951910019_ce5g2",
+    "userId": "usr_1747799008584_4r22a",
+    "message": "Permintaan izin Anda (Sakit) dari 2025-06-27 hingga 2025-06-28 telah disetujui oleh sudina.",
+    "timestamp": "2025-06-26T15:31:50.018Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750951992716_v152p_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Sidang proyek 'proyek mega mendung' telah dinyatakan sukses oleh sudina. Mohon unggah dokumen akhir.",
+    "timestamp": "2025-06-26T15:33:12.713Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750952234228_s2gs3_ult",
+    "userId": "usr_owner_default",
+    "message": "Permintaan izin baru dari Komang Merta (Keperluan Pribadi) dari tanggal 2025-06-30 hingga 2025-06-30.",
+    "timestamp": "2025-06-26T15:37:14.227Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750953112386_2i5wg",
+    "userId": "usr_1747799008584_4r22a",
+    "message": "Permintaan izin Anda (Keperluan Pribadi) dari 2025-06-30 hingga 2025-06-30 telah disetujui oleh sudina.",
+    "timestamp": "2025-06-26T15:51:52.386Z",
+    "isRead": false
   }
 ]

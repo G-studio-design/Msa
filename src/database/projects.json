@@ -794,10 +794,10 @@
   {
     "id": "project_1750923884164_mtu12",
     "title": "proyek mega mendung",
-    "status": "Scheduled",
-    "progress": 95,
-    "assignedDivision": "Owner",
-    "nextAction": "Nyatakan Hasil Sidang",
+    "status": "Pending Final Documents",
+    "progress": 98,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -968,6 +968,21 @@
         "action": "sudina (Owner) scheduled Sidang on 2025-06-26 at 22:58",
         "timestamp": "2025-06-26T14:57:52.995Z",
         "note": "Location: bali."
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) declared Sidang outcome as: completed",
+        "timestamp": "2025-06-26T15:33:12.706Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.\"",
+        "timestamp": "2025-06-26T15:43:55.109Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.\"",
+        "timestamp": "2025-06-26T15:45:14.167Z"
       }
     ],
     "files": [
@@ -1096,6 +1111,30 @@
         "uploadedBy": "MEP",
         "path": "project_1750923884164_mtu12-proyek_mega_mendung/spektekpdf",
         "timestamp": "2025-06-26T14:54:36.370Z"
+      },
+      {
+        "name": "Berita acara .pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/berita_acara_pdf",
+        "timestamp": "2025-06-26T15:43:55.109Z"
+      },
+      {
+        "name": "SKRD .pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/skrd_pdf",
+        "timestamp": "2025-06-26T15:43:55.109Z"
+      },
+      {
+        "name": "ijin terbit .pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/ijin_terbit_pdf",
+        "timestamp": "2025-06-26T15:43:55.109Z"
+      },
+      {
+        "name": "dokumen final.pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/dokumen_finalpdf",
+        "timestamp": "2025-06-26T15:45:14.167Z"
       }
     ],
     "createdAt": "2025-06-26T07:44:44.164Z",
