@@ -891,6 +891,24 @@
         "action": "arsitek (Arsitek) submitted Survey Details for 2025-06-26 at 22:37",
         "timestamp": "2025-06-26T14:37:08.485Z",
         "note": "Survey Description: kantor pertanahan . Note: Survey telah diselesaikan"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) reschedule_survey_from_parallel for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-26T14:39:42.200Z",
+        "note": "masih gagal survey nya"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) submitted Survey Details for 2025-06-26 at 22:42",
+        "timestamp": "2025-06-26T14:41:50.852Z",
+        "note": "Survey Description: kantor pertanahan ."
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) submitted Survey Details for 2025-06-26 at 22:42",
+        "timestamp": "2025-06-26T14:43:31.844Z",
+        "note": "Survey Description: kantor pertanahan . Note: survey berhasil"
       }
     ],
     "files": [
@@ -942,7 +960,7 @@
     "parallelUploadsCompletedBy": [],
     "surveyDetails": {
       "date": "2025-06-26",
-      "time": "22:37",
+      "time": "22:42",
       "description": "kantor pertanahan "
     }
   }
