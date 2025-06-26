@@ -171,6 +171,7 @@ export default function ProjectsPage() {
 
   const [isPostSidangRevisionDialogOpen, setIsPostSidangRevisionDialogOpen] = React.useState(false);
   const [postSidangRevisionNote, setPostSidangRevisionNote] = React.useState('');
+  const [isDeletingFile, setIsDeletingFile] = React.useState<string | null>(null);
 
 
   React.useEffect(() => {
@@ -234,59 +235,67 @@ export default function ProjectsPage() {
       }
   }, [searchParams, allProjects, isClient, isLoadingProjects, router, toast, projectsDict]);
 
-    React.useEffect(() => {
-        if (selectedProject?.status === 'Pending Parallel Design Uploads') {
-            const requiredChecklists: ParallelUploadChecklist = {
-                Arsitek: [
-                    { name: 'Gambar', uploaded: false },
-                    { name: 'Daftar Simak', uploaded: false },
-                    { name: 'SpekTek', uploaded: false },
-                    { name: 'RAP', uploaded: false }
-                ],
-                Struktur: [
-                    { name: 'Gambar', uploaded: false },
-                    { name: 'Analisa Laporan', uploaded: false },
-                    { name: 'Hammer Test', uploaded: false },
-                    { name: 'SpekTek', uploaded: false },
-                    { name: 'Daftar Simak', uploaded: false } // Corrected typo from SImak
-                ],
-                MEP: [
-                    { name: 'Gambar', uploaded: false },
-                    { name: 'Daftar Simak', uploaded: false },
-                    { name: 'SpekTek', uploaded: false },
-                    { name: 'RAP', uploaded: false },
-                    { name: 'Laporan', uploaded: false }
-                ],
-            };
-            
-            const currentStatus: ParallelUploadChecklist = {};
-            const projectFiles = selectedProject.files || [];
+    const getParallelChecklistStatus = React.useCallback((project: Project | null): ParallelUploadChecklist | null => {
+        if (!project) return null;
 
-            (Object.keys(requiredChecklists) as (keyof ParallelUploadChecklist)[]).forEach(division => {
-                const checklistItems = requiredChecklists[division];
-                if (checklistItems) {
-                    currentStatus[division] = checklistItems.map(item => {
-                        const uploadedFile = projectFiles.find(file => {
-                            // Simple case-insensitive match ignoring spaces and extensions for "Gambar" vs "GAmbar Arsitek .pdf"
-                            const fileNameClean = file.name.replace(/\.[^/.]+$/, "").replace(/ /g, '').toLowerCase();
-                            const itemNameClean = item.name.replace(/ /g, '').toLowerCase();
-                            const uploaderRole = file.uploadedBy;
+        const isParallelStatus = project.workflowId === 'msa_workflow' && project.status === 'Pending Parallel Design Uploads';
+        const isRevisionStatus = project.status === 'Pending Post-Sidang Revision';
 
-                            return fileNameClean.includes(itemNameClean) && uploaderRole === division;
-                        });
-                        return {
-                            ...item,
-                            uploaded: !!uploadedFile,
-                            filePath: uploadedFile ? uploadedFile.path : undefined,
-                        };
-                    });
-                }
-            });
-            setParallelUploadChecklist(currentStatus);
-        } else {
-            setParallelUploadChecklist(null);
+        if (!isParallelStatus && !isRevisionStatus) {
+            return null;
         }
-    }, [selectedProject]);
+
+        const requiredChecklists: ParallelUploadChecklist = {
+            Arsitek: [
+                { name: 'Gambar', uploaded: false },
+                { name: 'Daftar Simak', uploaded: false },
+                { name: 'SpekTek', uploaded: false },
+                { name: 'RAP', uploaded: false }
+            ],
+            Struktur: [
+                { name: 'Gambar', uploaded: false },
+                { name: 'Analisa Laporan', uploaded: false },
+                { name: 'Hammer Test', uploaded: false },
+                { name: 'SpekTek', uploaded: false },
+                { name: 'Daftar Simak', uploaded: false }
+            ],
+            MEP: [
+                { name: 'Gambar', uploaded: false },
+                { name: 'Daftar Simak', uploaded: false },
+                { name: 'SpekTek', uploaded: false },
+                { name: 'RAP', uploaded: false },
+                { name: 'Laporan', uploaded: false }
+            ],
+        };
+
+        const currentStatus: ParallelUploadChecklist = {};
+        const projectFiles = project.files || [];
+
+        (Object.keys(requiredChecklists) as (keyof ParallelUploadChecklist)[]).forEach(division => {
+            const checklistItems = requiredChecklists[division];
+            if (checklistItems) {
+                currentStatus[division] = checklistItems.map(item => {
+                    const uploadedFile = projectFiles.find(file => {
+                        const fileNameClean = file.name.replace(/\.[^/.]+$/, "").replace(/ /g, '').toLowerCase();
+                        const itemNameClean = item.name.replace(/ /g, '').toLowerCase();
+                        return fileNameClean.includes(itemNameClean) && file.uploadedBy === division;
+                    });
+                    return {
+                        ...item,
+                        uploaded: !!uploadedFile,
+                        filePath: uploadedFile ? uploadedFile.path : undefined,
+                    };
+                });
+            }
+        });
+
+        return currentStatus;
+    }, []);
+
+    React.useEffect(() => {
+        const checklist = getParallelChecklistStatus(selectedProject);
+        setParallelUploadChecklist(checklist);
+    }, [selectedProject, getParallelChecklistStatus]);
 
 
   const formatTimestamp = React.useCallback((timestamp: string): string => {
@@ -687,6 +696,9 @@ export default function ProjectsPage() {
             if (project.status === 'Pending Parallel Design Uploads') {
                 return ['Arsitek', 'Struktur', 'MEP'].includes(userRoleCleaned);
             }
+            if (project.status === 'Pending Post-Sidang Revision') {
+                 return ['Arsitek', 'Struktur', 'MEP'].includes(userRoleCleaned);
+            }
             return project.assignedDivision?.trim() === userRoleCleaned;
         });
     }, [currentUser, allProjects, isClient, isLoadingProjects]);
@@ -750,6 +762,45 @@ export default function ProjectsPage() {
             setIsDownloading(false);
         }
     }, [isClient, toast, projectsDict]);
+
+    const handleDeleteFile = React.useCallback(async (filePath: string, fileName: string) => {
+        if (!selectedProject || !currentUser) return;
+
+        setIsDeletingFile(filePath);
+        try {
+            const response = await fetch('/api/delete-file', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    projectId: selectedProject.id,
+                    filePath,
+                    userId: currentUser.id
+                })
+            });
+
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.message || projectsDict.toast.fileDeleteError);
+            }
+
+            // Refetch project data to update UI
+            const updatedProject = await fetchProjectByIdInternal(selectedProject.id);
+            if (updatedProject) {
+                setAllProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
+                setSelectedProject(updatedProject);
+            }
+
+            toast({
+                title: projectsDict.toast.fileDeletedTitle,
+                description: projectsDict.toast.fileDeletedDesc.replace('{filename}', fileName),
+            });
+
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: projectsDict.toast.error, description: error.message });
+        } finally {
+            setIsDeletingFile(null);
+        }
+    }, [selectedProject, currentUser, projectsDict.toast, toast]);
 
     const handleReviseSubmit = React.useCallback(async () => {
       if (!currentUser || !selectedProject) {
@@ -833,18 +884,19 @@ export default function ProjectsPage() {
         const statusesExpectingUploadGeneral = [
             'Pending Offer', 'Pending DP Invoice', 'Pending Admin Files',
             'Pending Architect Files', 'Pending Structure Files', 'Pending MEP Files',
-            'Pending Consultation Docs', 'Pending Post-Sidang Revision'
+            'Pending Consultation Docs'
         ];
     
         return statusesExpectingUploadGeneral.includes(selectedProject.status);
     }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
-    const showParallelDesignChecklistSection = React.useMemo(() => {
+    const showSharedDesignChecklistSection = React.useMemo(() => {
         if (!selectedProject || !currentUser) return false;
         const isParallelStatus = selectedProject.workflowId === 'msa_workflow' &&
                                selectedProject.status === 'Pending Parallel Design Uploads';
+        const isRevisionStatus = selectedProject.status === 'Pending Post-Sidang Revision';
         const isAuthorizedRole = ['Admin Proyek', 'Owner', 'Admin Developer', 'Arsitek', 'Struktur', 'MEP'].includes(currentUser.role.trim());
-        return isParallelStatus && isAuthorizedRole;
+        return (isParallelStatus || isRevisionStatus) && isAuthorizedRole;
     }, [selectedProject, currentUser]);
     
    const showArchitectInitialImageUploadSection = React.useMemo(() => {
@@ -909,12 +961,13 @@ export default function ProjectsPage() {
     }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
     const showPostSidangRevisionSection = React.useMemo(() => {
-        return selectedProject &&
-               currentUser &&
-               selectedProject.status === 'Pending Post-Sidang Revision' &&
-               currentUser.role === 'Admin Proyek' &&
-               canPerformSelectedProjectAction;
-    }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
+        if (!selectedProject || !currentUser) return false;
+        const userRole = currentUser.role.trim();
+        const isAdminRole = ['Admin Proyek', 'Owner', 'Admin Developer'].includes(userRole);
+        const isDesignRole = ['Arsitek', 'Struktur', 'MEP'].includes(userRole);
+
+        return selectedProject.status === 'Pending Post-Sidang Revision' && (isAdminRole || isDesignRole);
+    }, [selectedProject, currentUser]);
 
     const handleNotifyDivisionForRevision = React.useCallback(async (targetDivision: 'Arsitek' | 'Struktur' | 'MEP') => {
         if (!selectedProject || !currentUser) return;
@@ -962,7 +1015,7 @@ export default function ProjectsPage() {
         });
         
         return Array.from(grouped.values())
-            .filter(group => group.entries.length > 0) // Only show groups that have a history action
+            .filter(group => group.entries.length > 0 || group.files.length > 0)
             .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     }, [selectedProject]);
@@ -1060,6 +1113,47 @@ export default function ProjectsPage() {
             </div>
        );
 
+       const renderChecklistItem = (item: ChecklistItem, fileName: string) => {
+          const canCurrentUserDelete = currentUser?.role === 'Admin Proyek' || currentUser?.role === 'Owner' || currentUser?.role === 'Admin Developer';
+          return (
+              <li key={item.name} className="flex items-center gap-2 text-sm">
+                  {item.uploaded ? <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" /> : <CircleIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className={cn("truncate", item.uploaded ? "text-foreground" : "text-muted-foreground")}>{item.name}</span>
+                      {item.uploaded && item.filePath && (
+                          <>
+                              <Button variant="ghost" size="icon" onClick={() => handleDownloadFile({ name: fileName, path: item.filePath!, uploadedBy: '', timestamp: '' })} disabled={isDownloading || !!isDeletingFile} title={projectsDict.downloadFileTooltip} className="h-7 w-7 flex-shrink-0">
+                                  {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4 text-primary" />}
+                              </Button>
+                              {canCurrentUserDelete && (
+                                  <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                          <Button variant="ghost" size="icon" disabled={isDownloading || !!isDeletingFile} title={projectsDict.toast.deleteFileTooltip} className="h-7 w-7 flex-shrink-0">
+                                              {isDeletingFile === item.filePath ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 text-destructive" />}
+                                          </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                              <AlertDialogTitle>{projectsDict.toast.confirmFileDeleteTitle}</AlertDialogTitle>
+                                              <AlertDialogDescription>{projectsDict.toast.confirmFileDeleteDesc.replace('{filename}', fileName)}</AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                              <AlertDialogCancel disabled={!!isDeletingFile}>{projectsDict.cancelButton}</AlertDialogCancel>
+                                              <AlertDialogAction onClick={() => handleDeleteFile(item.filePath!, fileName)} className="bg-destructive hover:bg-destructive/90" disabled={!!isDeletingFile}>
+                                                  {isDeletingFile === item.filePath && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                  {projectsDict.deleteDialogConfirm.replace(' User', '')}
+                                              </AlertDialogAction>
+                                          </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                  </AlertDialog>
+                              )}
+                          </>
+                      )}
+                  </div>
+              </li>
+          );
+      };
+
        return (
            <>
                 <Button variant="outline" onClick={() => {setSelectedProject(null); router.push('/dashboard/projects', { scroll: false });}} className="mb-4 w-full sm:w-auto"><ArrowLeft className="mr-2 h-4 w-4" />{projectsDict.backToList}</Button>
@@ -1076,39 +1170,26 @@ export default function ProjectsPage() {
                    </CardHeader>
                 </Card>
 
-                 {showParallelDesignChecklistSection && parallelUploadChecklist && (
+                 {showSharedDesignChecklistSection && parallelUploadChecklist && (
                     <Card className="mb-6 shadow-md">
                         <CardHeader className="p-4 sm:p-6">
-                            <CardTitle>{projectsDict.fileChecklist.title}</CardTitle>
-                            <CardDescription>{projectsDict.adminParallelUploadsGuidance}</CardDescription>
+                             <CardTitle>{project.status === 'Pending Post-Sidang Revision' ? projectsDict.revisionChecklistTitle : projectsDict.fileChecklist.title}</CardTitle>
+                             <CardDescription>{project.status === 'Pending Post-Sidang Revision' ? projectsDict.revisionChecklistDesc : projectsDict.adminParallelUploadsGuidance}</CardDescription>
                         </CardHeader>
                         <CardContent className="p-4 sm:p-6 pt-0 grid grid-cols-1 md:grid-cols-3 gap-6">
                             {Object.entries(parallelUploadChecklist).map(([division, items]) => (
                                 <div key={division}>
                                     <h4 className="font-semibold mb-2">{getTranslatedStatus(division)}</h4>
                                     <ul className="space-y-2">
-                                        {items?.map((item, index) => (
-                                            <li key={index} className="flex items-center gap-2 text-sm">
-                                                {item.uploaded ? (
-                                                    <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                                                ) : (
-                                                    <CircleIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                                )}
-                                                <div className="flex items-center gap-2 flex-1 min-w-0">
-                                                  <span className={cn("truncate", item.uploaded ? "text-foreground" : "text-muted-foreground")}>{item.name}</span>
-                                                  {item.uploaded && item.filePath && (
-                                                      <Button variant="ghost" size="icon" onClick={() => handleDownloadFile({ name: item.name, path: item.filePath!, uploadedBy: '', timestamp: '' })} disabled={isDownloading} title={projectsDict.downloadFileTooltip} className="h-7 w-7 flex-shrink-0">
-                                                          {isDownloading ? <Loader2 className="h-4 w-4 animate-spin"/> : <Download className="h-4 w-4 text-primary" />}
-                                                      </Button>
-                                                  )}
-                                                </div>
-                                            </li>
-                                        ))}
+                                        {items?.map((item) => {
+                                            const fileEntry = project.files.find(f => f.path === item.filePath);
+                                            return renderChecklistItem(item, fileEntry?.name || item.name);
+                                        })}
                                     </ul>
                                 </div>
                             ))}
                         </CardContent>
-                         {(currentUser?.role === 'Admin Proyek' || currentUser?.role === 'Owner' || currentUser?.role === 'Admin Developer') && (
+                         {(currentUser?.role === 'Admin Proyek' || currentUser?.role === 'Owner' || currentUser?.role === 'Admin Developer') && project.status === 'Pending Parallel Design Uploads' && (
                              <CardFooter className="p-4 sm:p-6 pt-0">
                                   <Button
                                     onClick={() => handleProgressSubmit('all_files_confirmed')}
@@ -1138,9 +1219,9 @@ export default function ProjectsPage() {
                                         <div className="flex items-start gap-3 flex-1 text-left">
                                             <div className={`mt-1 h-3 w-3 rounded-full flex-shrink-0 ${index === 0 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
                                             <div>
-                                                {group.entries.map((entry, entryIndex) => (
+                                                {group.entries.length > 0 ? group.entries.map((entry, entryIndex) => (
                                                     <p key={entryIndex} className="text-sm font-medium">{entry.action}</p>
-                                                ))}
+                                                )) : <p className="text-sm font-medium italic">{projectsDict.uploadedFilesTitle}</p>}
                                                 <p className="text-xs text-muted-foreground">{formatTimestamp(group.timestamp)}</p>
                                                 {group.entries.map((entry, entryIndex) => (
                                                     entry.note && <p key={`note-${entryIndex}`} className="text-xs text-muted-foreground italic mt-1 whitespace-pre-wrap">{projectsDict.revisionNotePrefix} {entry.note}</p>
@@ -1159,7 +1240,7 @@ export default function ProjectsPage() {
                                                         <span className="text-sm font-medium break-all">{file.name}</span>
                                                     </div>
                                                     {canDownloadFiles && (
-                                                        <Button variant="ghost" size="icon" onClick={() => handleDownloadFile(file)} disabled={isDownloading} title={projectsDict.downloadFileTooltip} className="h-7 w-7 flex-shrink-0">
+                                                        <Button variant="ghost" size="icon" onClick={() => handleDownloadFile(file)} disabled={isDownloading || !!isDeletingFile} title={projectsDict.downloadFileTooltip} className="h-7 w-7 flex-shrink-0">
                                                             {isDownloading ? <Loader2 className="h-4 w-4 animate-spin"/> : <Download className="h-4 w-4 text-primary" />}
                                                         </Button>
                                                     )}
@@ -1176,8 +1257,6 @@ export default function ProjectsPage() {
                         </Accordion>
                     </CardContent>
                 </Card>
-
-                  {/* The separate "Uploaded Files" Card is now removed */}
                   
                   {showArchitectInitialImageUploadSection && (
                     <Card className="mb-6 shadow-md">
@@ -1239,9 +1318,9 @@ export default function ProjectsPage() {
                         <CardDescription>{project.nextAction || projectsDict.none}</CardDescription>
                     </CardHeader>
                    <CardContent className="p-4 sm:p-6 pt-0">
-                      {showUploadSection && (
+                      {(showUploadSection || (project.status === 'Pending Post-Sidang Revision' && ['Arsitek', 'Struktur', 'MEP'].includes(currentUser!.role))) && (
                          <div className="space-y-4 border-t pt-4 mt-4">
-                           <h3 className="text-lg font-semibold">{projectsDict.uploadProgressTitle.replace('{role}', getTranslatedStatus(currentUser!.role))}</h3>
+                           <h3 className="text-lg font-semibold">{project.status === 'Pending Post-Sidang Revision' ? projectsDict.uploadRevisedFilesTitle : projectsDict.uploadProgressTitle.replace('{role}', getTranslatedStatus(currentUser!.role))}</h3>
                            <div className="grid w-full items-center gap-1.5"><Label htmlFor="description">{projectsDict.descriptionLabel}</Label><Textarea id="description" placeholder={projectsDict.descriptionPlaceholder.replace('{division}', getTranslatedStatus(project.assignedDivision))} value={description} onChange={(e) => setDescription(e.target.value)} disabled={isSubmitting}/></div>
                            <div className="grid w-full items-center gap-1.5">
                              <Label htmlFor="project-files">{projectsDict.attachFilesLabel}</Label>
@@ -1365,41 +1444,25 @@ export default function ProjectsPage() {
                       {showPostSidangRevisionSection && (
                             <div className="space-y-4 border-t pt-4 mt-4">
                                 <h3 className="text-lg font-semibold">{projectsDict.postSidangRevisionActionsSectionTitle}</h3>
-                                <div className="flex flex-col sm:flex-row gap-2">
-                                    <Button variant="outline" onClick={() => handleNotifyDivisionForRevision('Arsitek')} disabled={isSubmitting}>
-                                        <Briefcase className="mr-2 h-4 w-4" /> {projectsDict.notifyArchitectForRevisionButton}
-                                    </Button>
-                                    <Button variant="outline" onClick={() => handleNotifyDivisionForRevision('Struktur')} disabled={isSubmitting}>
-                                        <Replace className="mr-2 h-4 w-4" /> {projectsDict.notifyStructureForRevisionButton}
-                                    </Button>
-                                    <Button variant="outline" onClick={() => handleNotifyDivisionForRevision('MEP')} disabled={isSubmitting}>
-                                        <Wrench className="mr-2 h-4 w-4" /> {projectsDict.notifyMEPForRevisionButton}
-                                    </Button>
-                                </div>
-                                <div className="grid w-full items-center gap-1.5">
-                                    <Label htmlFor="revision-description">{projectsDict.revisionFilesDescriptionLabel}</Label>
-                                    <Textarea id="revision-description" placeholder={projectsDict.revisionFilesDescriptionPlaceholder} value={description} onChange={(e) => setDescription(e.target.value)} disabled={isSubmitting}/>
-                                </div>
-                                <div className="grid w-full items-center gap-1.5">
-                                    <Label htmlFor="revision-files">{projectsDict.attachRevisionFilesLabel}</Label>
-                                     <div className="flex flex-col sm:flex-row items-center gap-2">
-                                        <Input id="revision-files" type="file" multiple onChange={handleFileChange} disabled={isSubmitting || uploadedFiles.length >= MAX_FILES_UPLOAD} className="flex-grow"/>
-                                        <Upload className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">{projectsDict.filesHint.replace('{max}', MAX_FILES_UPLOAD.toString())}</p>
-                                </div>
-                                {uploadedFiles.length > 0 && (
-                                    <div className="space-y-2 rounded-md border p-3">
-                                    <Label>{projectsDict.selectedFilesLabel} ({uploadedFiles.length}/{MAX_FILES_UPLOAD})</Label>
-                                    <ul className="list-disc list-inside text-sm space-y-1 max-h-32 overflow-y-auto">
-                                        {uploadedFiles.map((file, index) => ( <li key={`revfile-${index}`} className="flex items-center justify-between group"><span className="truncate max-w-[calc(100%-4rem)] sm:max-w-xs text-muted-foreground group-hover:text-foreground">{file.name} <span className="text-xs">({(file.size / 1024).toFixed(1)} KB)</span></span><Button variant="ghost" size="sm" type="button" onClick={() => removeFile(index)} disabled={isSubmitting} className="opacity-50 group-hover:opacity-100 flex-shrink-0"><Trash2 className="h-4 w-4 text-destructive" /></Button></li>))}
-                                    </ul>
-                                    </div>
+                                {currentUser?.role === 'Admin Proyek' && (
+                                    <>
+                                        <div className="flex flex-col sm:flex-row gap-2">
+                                            <Button variant="outline" onClick={() => handleNotifyDivisionForRevision('Arsitek')} disabled={isSubmitting}>
+                                                <Briefcase className="mr-2 h-4 w-4" /> {projectsDict.notifyArchitectForRevisionButton}
+                                            </Button>
+                                            <Button variant="outline" onClick={() => handleNotifyDivisionForRevision('Struktur')} disabled={isSubmitting}>
+                                                <Replace className="mr-2 h-4 w-4" /> {projectsDict.notifyStructureForRevisionButton}
+                                            </Button>
+                                            <Button variant="outline" onClick={() => handleNotifyDivisionForRevision('MEP')} disabled={isSubmitting}>
+                                                <Wrench className="mr-2 h-4 w-4" /> {projectsDict.notifyMEPForRevisionButton}
+                                            </Button>
+                                        </div>
+                                        <Button onClick={() => handleDecision('revision_completed_and_finish')} disabled={isSubmitting} className="accent-teal w-full sm:w-auto">
+                                            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                                            {projectsDict.markRevisionCompletedAndFinishButton}
+                                        </Button>
+                                    </>
                                 )}
-                                <Button onClick={() => handleDecision('revision_completed_and_finish')} disabled={isSubmitting} className="accent-teal w-full sm:w-auto">
-                                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
-                                    {projectsDict.markRevisionCompletedAndFinishButton}
-                                </Button>
                             </div>
                         )}
                       {canReviseSelectedProject && (

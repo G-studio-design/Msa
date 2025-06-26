@@ -645,7 +645,7 @@
     "projectId": "project_1750762714162_h35ez",
     "message": "Divisi Arsitek telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek Bali Merdeka\" oleh komangmerta.",
     "timestamp": "2025-06-26T05:27:00.895Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750915623180_z5fja_h9d",
@@ -653,6 +653,14 @@
     "projectId": "project_1750762714162_h35ez",
     "message": "Divisi Struktur telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek Bali Merdeka\" oleh komangmerta.",
     "timestamp": "2025-06-26T05:27:03.180Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750917853391_dmeif_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Divisi Insinyur MEP telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek Bali Merdeka\" oleh komangmerta.",
+    "timestamp": "2025-06-26T06:04:13.385Z",
     "isRead": false
   }
 ]

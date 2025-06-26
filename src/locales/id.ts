@@ -240,6 +240,9 @@ const id = {
     adminParallelUploadsGuidance: "Pantau kemajuan dan unduh file dari divisi lain sebagai referensi. Unggah file yang Anda perlukan di bawah ini.",
     confirmAllDesignsUploadedButton: "Konfirmasi Semua Desain Telah Diunggah & Lanjutkan",
     confirmingAllDesignsButton: "Mengonfirmasi...",
+    revisionChecklistTitle: "Checklist Revisi Pasca-Sidang",
+    revisionChecklistDesc: "Unggah file revisi sesuai permintaan. Admin Proyek akan menyelesaikan proyek setelah semua revisi selesai.",
+    uploadRevisedFilesTitle: "Unggah File Revisi Anda",
     nextActionDescriptions: {
         uploadOfferDocument: "Unggah Dokumen Penawaran",
         approveOfferDocument: "Setujui Dokumen Penawaran",
@@ -380,6 +383,12 @@ const id = {
       revisionNotificationSentDesc: "Divisi {division} telah dinotifikasi untuk berkontribusi pada revisi proyek \"{projectName}\" oleh {actorUsername}.",
       parallelUploadSubmittedDesc: "{uploaderRole} mengirimkan file mereka untuk proyek \"{projectName}\". Admin Proyek telah diberitahu.",
       allDesignsConfirmedDesc: "Admin Proyek telah mengonfirmasi semua desain diunggah untuk \"{projectName}\". Proyek berlanjut ke penjadwalan.",
+      deleteFileTooltip: "Hapus File",
+      confirmFileDeleteTitle: "Konfirmasi Penghapusan File",
+      confirmFileDeleteDesc: "Apakah Anda yakin ingin menghapus file \"{filename}\"? Tindakan ini bersifat permanen.",
+      fileDeletedTitle: "File Dihapus",
+      fileDeletedDesc: "File \"{filename}\" telah berhasil dihapus.",
+      fileDeleteError: "Gagal menghapus file.",
     }
   },
   // Add Project Page

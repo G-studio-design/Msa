@@ -608,6 +608,37 @@ export async function manuallyUpdateProjectStatusAndAssignment(
     return projects[projectIndex];
 }
 
+export async function deleteProjectFile(projectId: string, filePath: string, deleterUsername: string): Promise<void> {
+    console.log(`[ProjectService/JSON] Deleting file record for project ${projectId}, path: ${filePath} by ${deleterUsername}`);
+    let projects = await readProjects();
+    const projectIndex = projects.findIndex(p => p.id === projectId);
+
+    if (projectIndex === -1) {
+        console.error(`[ProjectService/JSON] Project with ID "${projectId}" not found for file deletion.`);
+        throw new Error('PROJECT_NOT_FOUND');
+    }
+
+    const originalFileCount = projects[projectIndex].files?.length || 0;
+    const fileToDelete = projects[projectIndex].files.find(f => f.path === filePath);
+    
+    projects[projectIndex].files = (projects[projectIndex].files || []).filter(file => file.path !== filePath);
+    const newFileCount = projects[projectIndex].files?.length || 0;
+
+    if (originalFileCount === newFileCount) {
+        console.warn(`[ProjectService/JSON] File with path "${filePath}" not found in project ${projectId} data. No record was deleted.`);
+    } else {
+         const historyEntry: WorkflowHistoryEntry = {
+            division: deleterUsername,
+            action: `Deleted file: "${fileToDelete?.name || 'unknown file'}"`,
+            timestamp: new Date().toISOString(),
+        };
+        projects[projectIndex].workflowHistory.push(historyEntry);
+    }
+
+    await writeProjects(projects);
+    console.log(`[ProjectService/JSON] File record with path "${filePath}" removed from project ${projectId}.`);
+}
+
 export async function deleteProject(projectId: string, deleterUsername: string): Promise<void> {
     console.log(`[ProjectService/JSON] Attempting to delete project ID: ${projectId} by user: ${deleterUsername}`);
     let projects = await readProjects();

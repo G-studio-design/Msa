@@ -240,6 +240,9 @@ const en = {
     adminParallelUploadsGuidance: "Monitor progress and download files from other divisions as references. Upload your required files below.",
     confirmAllDesignsUploadedButton: "Confirm All Designs Uploaded & Proceed",
     confirmingAllDesignsButton: "Confirming...",
+    revisionChecklistTitle: "Post-Sidang Revision Checklist",
+    revisionChecklistDesc: "Upload revised files as requested. Admin Proyek will finalize the project once all revisions are complete.",
+    uploadRevisedFilesTitle: "Upload Your Revised Files",
     nextActionDescriptions: {
         uploadOfferDocument: "Upload Offer Document",
         approveOfferDocument: "Approve Offer Document",
@@ -380,6 +383,12 @@ const en = {
       revisionNotificationSentDesc: "Division {division} has been notified to contribute to the revision for project \"{projectName}\" by {actorUsername}.",
       parallelUploadSubmittedDesc: "{uploaderRole} submitted their files for project \"{projectName}\". Admin Proyek has been notified.",
       allDesignsConfirmedDesc: "Admin Proyek has confirmed all designs are uploaded for \"{projectName}\". Project proceeding to scheduling.",
+      deleteFileTooltip: "Delete File",
+      confirmFileDeleteTitle: "Confirm File Deletion",
+      confirmFileDeleteDesc: "Are you sure you want to delete the file \"{filename}\"? This action is permanent.",
+      fileDeletedTitle: "File Deleted",
+      fileDeletedDesc: "The file \"{filename}\" has been deleted successfully.",
+      fileDeleteError: "Failed to delete file.",
     }
   },
   // Add Project Page
