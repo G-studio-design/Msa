@@ -1,3 +1,4 @@
+
 // src/components/ui/table.tsx
 "use client"
 
@@ -25,7 +26,7 @@ Table.displayName = "Table"
 const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
->(({ className, children, ...props }, ref) => ( // Explicitly include children
+>(({ className, children, ...props }, ref) => (
   <thead
     ref={ref}
     className={cn(
@@ -33,14 +34,14 @@ const TableHeader = React.forwardRef<
       className
     )}
     {...props}
-  >{children}</thead> // Render children
+  >{children}</thead>
 ))
 TableHeader.displayName = "TableHeader"
 
 const TableBody = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
->(({ className, children, ...props }, ref) => ( // Explicitly include children
+>(({ className, children, ...props }, ref) => (
   <tbody
     ref={ref}
     className={cn(
@@ -48,14 +49,14 @@ const TableBody = React.forwardRef<
       className
     )}
     {...props}
-  >{children}</tbody> // Render children
+  >{children}</tbody>
 ))
 TableBody.displayName = "TableBody"
 
 const TableFooter = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
->(({ className, children, ...props }, ref) => ( // Explicitly include children
+>(({ className, children, ...props }, ref) => (
   <tfoot
     ref={ref}
     className={cn(
@@ -63,7 +64,7 @@ const TableFooter = React.forwardRef<
       className
     )}
     {...props}
-  >{children}</tfoot> // Render children
+  >{children}</tfoot>
 ))
 TableFooter.displayName = "TableFooter"
 
@@ -87,39 +88,39 @@ TableRow.displayName = "TableRow"
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
   React.ThHTMLAttributes<HTMLTableCellElement>
->(({ className, children, ...restProps }, ref) => ( // Destructure children, use ...restProps
+>(({ className, children, ...restProps }, ref) => (
   <th
     ref={ref}
     className={cn(
       "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
       className
     )}
-    {...restProps} // Spread remaining props
-  >{children}</th> // Render children explicitly
+    {...restProps}
+  >{children}</th>
 ))
 TableHead.displayName = "TableHead"
 
 const TableCell = React.forwardRef<
   HTMLTableCellElement,
   React.TdHTMLAttributes<HTMLTableCellElement>
->(({ className, children, ...restProps }, ref) => ( // Destructure children, use ...restProps
+>(({ className, children, ...restProps }, ref) => (
   <td
     ref={ref}
     className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
-    {...restProps} // Spread remaining props
-  >{children}</td> // Render children explicitly
+    {...restProps}
+  >{children}</td>
 ))
 TableCell.displayName = "TableCell"
 
 const TableCaption = React.forwardRef<
   HTMLTableCaptionElement,
   React.HTMLAttributes<HTMLTableCaptionElement>
->(({ className, children, ...props }, ref) => ( // Explicitly include children
+>(({ className, children, ...props }, ref) => (
   <caption
     ref={ref}
     className={cn("mt-4 text-sm text-muted-foreground", className)}
     {...props}
-  >{children}</caption> // Render children
+  >{children}</caption>
 ))
 TableCaption.displayName = "TableCaption"
 

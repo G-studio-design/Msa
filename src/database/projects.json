@@ -797,5 +797,53 @@
       "time": "12:51",
       "location": "Ruang Konfrensi Puspem"
     }
+  },
+  {
+    "id": "project_1750923884164_mtu12",
+    "title": "proyek mega mendung",
+    "status": "Pending Approval",
+    "progress": 20,
+    "assignedDivision": "Owner",
+    "nextAction": "Setujui Dokumen Penawaran",
+    "workflowId": "msa_workflow",
+    "workflowHistory": [
+      {
+        "division": "komangmerta",
+        "action": "Created Project with workflow: msa_workflow",
+        "timestamp": "2025-06-26T07:44:44.164Z",
+        "note": "Initial files: 1"
+      },
+      {
+        "division": "komangmerta",
+        "action": "Uploaded initial file: Data Proyek .pdf",
+        "timestamp": "2025-06-26T07:44:44.104Z"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
+        "timestamp": "2025-06-26T07:44:44.164Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
+        "timestamp": "2025-06-26T07:46:07.121Z"
+      }
+    ],
+    "files": [
+      {
+        "name": "Data Proyek .pdf",
+        "uploadedBy": "komangmerta",
+        "path": "temp-id-for-upload-proyek_mega_mendung/data_proyek_pdf",
+        "timestamp": "2025-06-26T07:44:44.104Z"
+      },
+      {
+        "name": "dokumen penawaran .pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/dokumen_penawaran_pdf",
+        "timestamp": "2025-06-26T07:46:07.121Z"
+      }
+    ],
+    "createdAt": "2025-06-26T07:44:44.164Z",
+    "createdBy": "komangmerta"
   }
 ]

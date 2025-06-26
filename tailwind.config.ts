@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 import { fontFamily } from "tailwindcss/defaultTheme";
 
@@ -12,7 +13,7 @@ export default {
   theme: {
     container: {
        center: true,
-       padding: "1rem", // Mengurangi padding default kontainer
+       padding: "1rem",
        screens: {
          "2xl": "1400px",
        },
@@ -70,7 +71,6 @@ export default {
   			sm: 'calc(var(--radius) - 4px)'
   		},
        spacing: {
-          // Removed sidebar spacing variables
        },
   		keyframes: {
          "caret-blink": {

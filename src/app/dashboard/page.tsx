@@ -269,14 +269,14 @@ export default function DashboardPage() {
                             {activeProjects.slice(0, 4).map(project => (
                                 <Link href={`/dashboard/projects?projectId=${project.id}`} key={project.id} passHref>
                                 <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
-                                    <CardContent className="p-3 flex items-center justify-between">
-                                        <div className="flex-1 overflow-hidden">
+                                    <CardContent className="p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                                        <div className="flex-1 overflow-hidden w-full">
                                             <p className="font-semibold truncate">{project.title}</p>
                                             <p className="text-xs text-muted-foreground truncate">{projectsDict.nextActionLabel}: {project.nextAction || projectsDict.none}</p>
                                         </div>
-                                        <div className="flex-shrink-0 ml-4 flex items-center gap-2">
-                                            <Badge variant="outline">{getTranslatedStatus(project.assignedDivision)}</Badge>
-                                            <Progress value={project.progress} className="w-20 h-2" />
+                                        <div className="flex-shrink-0 flex items-center gap-2 w-full sm:w-auto">
+                                            <Badge variant="outline" className="flex-shrink-0">{getTranslatedStatus(project.assignedDivision)}</Badge>
+                                            <Progress value={project.progress} className="w-full sm:w-20 h-2" />
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -298,13 +298,13 @@ export default function DashboardPage() {
                 <CardTitle>{dashboardDict.projectProgressChartTitle}</CardTitle>
                 <CardDescription>{dashboardDict.projectProgressChartDesc}</CardDescription>
               </CardHeader>
-              <CardContent className="pl-2">
+              <CardContent className="pl-0 pr-4 sm:pl-2">
                 {activeProjects.length > 0 ? (
                   <ChartContainer config={chartConfig} className="h-[300px] w-full">
                     <ResponsiveContainer>
-                      <BarChart data={activeProjects} layout="vertical" margin={{ left: 100, right: 30 }}>
-                        <XAxis type="number" dataKey="progress" domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
-                        <YAxis type="category" dataKey="title" width={100} tick={{ fontSize: 12 }} interval={0} />
+                      <BarChart data={activeProjects} layout="vertical" margin={{ right: 40, left: 10 }}>
+                        <XAxis type="number" dataKey="progress" domain={[0, 100]} tickFormatter={(value) => `${value}%`} tick={{ fontSize: 10 }} />
+                        <YAxis type="category" dataKey="title" width={language === 'id' ? 100 : 80} tick={{ fontSize: 10, width: language === 'id' ? 95 : 75 }} interval={0} className="truncate" />
                         <ChartTooltip
                             cursor={{ fill: 'hsl(var(--muted))' }}
                             content={<ChartTooltipContent />}

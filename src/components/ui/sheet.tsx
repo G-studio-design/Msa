@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -64,7 +65,6 @@ const SheetContent = React.forwardRef<
       className={cn(sheetVariants({ side }), className)}
       {...props}
     >
-      {/* Add a visually hidden title for accessibility */}
       <SheetHeader className="sr-only">
         <SheetTitle>Sheet Panel</SheetTitle>
         <SheetDescription>Contains navigation or actions.</SheetDescription>

@@ -670,5 +670,21 @@
     "message": "Proyek 'proyek Bali Merdeka' telah berhasil diselesaikan setelah revisi oleh komangmerta.",
     "timestamp": "2025-06-26T07:20:57.799Z",
     "isRead": false
+  },
+  {
+    "id": "notif_1750923884193_mo7nk_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek baru \"proyek mega mendung\" telah dibuat oleh komangmerta dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-26T07:44:44.192Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750923967132_7ivfv_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Penawaran untuk proyek 'proyek mega mendung' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-26T07:46:07.131Z",
+    "isRead": false
   }
 ]
