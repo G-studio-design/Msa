@@ -1183,10 +1183,10 @@
   {
     "id": "project_1750950968313_qtcnd",
     "title": "proyek villa di tanah lot",
-    "status": "Pending Survey Details",
-    "progress": 45,
+    "status": "Survey Scheduled",
+    "progress": 48,
     "assignedDivision": "Admin Proyek",
-    "nextAction": "Input Jadwal Survei",
+    "nextAction": "Konfirmasi penyelesaian survei dan unggah laporan (opsional).",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -1242,6 +1242,12 @@
         "action": "komangmerta (Admin Proyek) reschedule_survey_from_parallel for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
         "timestamp": "2025-06-26T16:45:22.769Z",
         "note": "gagal"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) submitted Survey Details for 2025-06-27 at 00:51",
+        "timestamp": "2025-06-26T16:50:07.074Z",
+        "note": "Survey Description: lokasi di ...."
       }
     ],
     "files": [
@@ -1268,7 +1274,7 @@
     "createdBy": "sudina",
     "surveyDetails": {
       "date": "2025-06-27",
-      "time": "00:40",
+      "time": "00:51",
       "description": "lokasi di ..."
     },
     "parallelUploadsCompletedBy": []

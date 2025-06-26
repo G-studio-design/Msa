@@ -1,3 +1,4 @@
+
 // src/app/dashboard/projects/page.tsx
 'use client';
 
@@ -295,11 +296,11 @@ export default function ProjectsPage() {
             if (checklistItems) {
                 currentStatus[division] = checklistItems.map(item => {
                     const uploadedFile = projectFiles.find(file => {
-                        const fileNameKeywords = file.name.replace(/\.[^/.]+$/, "").toLowerCase().split(' ');
-                        const allKeywordsMatch = fileNameKeywords.every(keyword => 
-                            item.name.toLowerCase().includes(keyword.toLowerCase())
-                        );
-                        return allKeywordsMatch && file.uploadedBy === division;
+                         const fileNameKeywords = item.name.toLowerCase().split(' ').filter(k => k);
+                         const allKeywordsMatch = fileNameKeywords.every(keyword =>
+                           file.name.toLowerCase().includes(keyword)
+                         );
+                         return allKeywordsMatch && file.uploadedBy === division;
                     });
                     return {
                         ...item,
@@ -1127,9 +1128,9 @@ export default function ProjectsPage() {
         const projectFiles = selectedProject.files || [];
         return finalDocRequirements.map(reqName => {
             const uploadedFile = projectFiles.find(file => {
-                const fileNameKeywords = file.name.replace(/\.[^/.]+$/, "").toLowerCase().split(' ');
+                const fileNameKeywords = reqName.toLowerCase().split(' ').filter(k => k);
                 const allKeywordsMatch = fileNameKeywords.every(keyword => 
-                    reqName.toLowerCase().includes(keyword.toLowerCase())
+                    file.name.toLowerCase().includes(keyword)
                 );
                 return allKeywordsMatch && file.uploadedBy === 'Admin Proyek';
             });
@@ -1144,7 +1145,7 @@ export default function ProjectsPage() {
 
     const showFinalDocumentUploadSection = React.useMemo(() => {
         if (!selectedProject || !currentUser) return false;
-        return selectedProject.status === 'Pending Final Documents' && currentUser.role === 'Admin Proyek';
+        return selectedProject.status === 'Pending Final Documents' && (currentUser.role === 'Admin Proyek' || currentUser.role === 'Owner');
     }, [selectedProject, currentUser]);
 
 

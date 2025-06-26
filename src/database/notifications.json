@@ -1295,7 +1295,7 @@
     "projectId": "project_1750950968313_qtcnd",
     "message": "Proyek 'proyek villa di tanah lot' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: gagal",
     "timestamp": "2025-06-26T16:45:22.784Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750956322813_kdkwb_ubw",
@@ -1303,7 +1303,7 @@
     "projectId": "project_1750950968313_qtcnd",
     "message": "Proyek 'proyek villa di tanah lot' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: gagal",
     "timestamp": "2025-06-26T16:45:22.810Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750956322821_qea2d_ult",
@@ -1311,6 +1311,30 @@
     "projectId": "project_1750950968313_qtcnd",
     "message": "Proyek 'proyek villa di tanah lot' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: gagal",
     "timestamp": "2025-06-26T16:45:22.820Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750956607099_5s6hw_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada Jumat, 27 Juni 2025 pukul 00:51 oleh arsitek.",
+    "timestamp": "2025-06-26T16:50:07.094Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750956607109_vacgo_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada Jumat, 27 Juni 2025 pukul 00:51 oleh arsitek.",
+    "timestamp": "2025-06-26T16:50:07.105Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750956607115_ulkkf_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada Jumat, 27 Juni 2025 pukul 00:51 oleh arsitek.",
+    "timestamp": "2025-06-26T16:50:07.114Z",
     "isRead": false
   }
 ]
