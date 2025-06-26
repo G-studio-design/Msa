@@ -166,7 +166,7 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
         "submitted": {
           targetStatus: "Pending Survey Details",
           targetAssignedDivision: "Admin Proyek", 
-          targetNextActionDescription: "Jadwal Survei (Ditentukan oleh Admin Proyek/Arsitek/Owner)",
+          targetNextActionDescription: "Input Jadwal Survei & Unggah Hasil (Opsional)",
           targetProgress: 45,
           notification: {
             division: ["Owner", "Admin Proyek", "Arsitek"], 
@@ -180,9 +180,9 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
       status: "Pending Survey Details",
       assignedDivision: "Admin Proyek",
       progress: 45,
-      nextActionDescription: "Jadwal Survei (Ditentukan oleh Admin Proyek/Arsitek/Owner)",
+      nextActionDescription: "Input Jadwal Survei & Unggah Hasil (Opsional)",
       transitions: {
-        "submitted": { // This transition will be modified for MSa_workflow
+        "submitted": { 
           targetStatus: "Pending Architect Files",
           targetAssignedDivision: "Arsitek",
           targetNextActionDescription: "Unggah Berkas Arsitektur",
@@ -195,7 +195,7 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
         "reschedule_survey": {
             targetStatus: "Pending Survey Details",
             targetAssignedDivision: "Admin Proyek",
-            targetNextActionDescription: "Jadwal Survei (Ditentukan oleh Admin Proyek/Arsitek/Owner)",
+            targetNextActionDescription: "Input Jadwal Survei & Unggah Hasil (Opsional)",
             targetProgress: 45,
             notification: {
               division: ["Admin Proyek", "Arsitek", "Owner"],
@@ -402,10 +402,10 @@ const MSA_WORKFLOW_STEPS: WorkflowStep[] = [
     },
     {
       stepName: "Admin Files Submission", status: "Pending Admin Files", assignedDivision: "Admin Proyek", progress: 40, nextActionDescription: "Unggah Berkas Administrasi",
-      transitions: { "submitted": { targetStatus: "Pending Survey Details", targetAssignedDivision: "Admin Proyek", targetNextActionDescription: "Jadwal Survei (Ditentukan oleh Admin Proyek/Arsitek/Owner)", targetProgress: 45, notification: { division: ["Owner", "Admin Proyek", "Arsitek"], message: "Berkas administrasi untuk proyek '{projectName}' lengkap. Mohon Admin Proyek/Arsitek/Owner untuk menginput jadwal survei." } } }
+      transitions: { "submitted": { targetStatus: "Pending Survey Details", targetAssignedDivision: "Admin Proyek", targetNextActionDescription: "Input Jadwal Survei & Unggah Hasil (Opsional)", targetProgress: 45, notification: { division: ["Owner", "Admin Proyek", "Arsitek"], message: "Berkas administrasi untuk proyek '{projectName}' lengkap. Mohon Admin Proyek/Arsitek/Owner untuk menginput jadwal survei." } } }
     },
     {
-      stepName: "Survey Details Submission", status: "Pending Survey Details", assignedDivision: "Admin Proyek", progress: 45, nextActionDescription: "Jadwal Survei (Ditentukan oleh Admin Proyek/Arsitek/Owner)",
+      stepName: "Survey Details Submission", status: "Pending Survey Details", assignedDivision: "Admin Proyek", progress: 45, nextActionDescription: "Input Jadwal Survei & Unggah Hasil (Opsional)",
       transitions: {
         "submitted": { 
           targetStatus: "Pending Parallel Design Uploads",
@@ -420,7 +420,7 @@ const MSA_WORKFLOW_STEPS: WorkflowStep[] = [
         "reschedule_survey": {
             targetStatus: "Pending Survey Details",
             targetAssignedDivision: "Admin Proyek",
-            targetNextActionDescription: "Jadwal Survei (Ditentukan oleh Admin Proyek/Arsitek/Owner)",
+            targetNextActionDescription: "Input Jadwal Survei & Unggah Hasil (Opsional)",
             targetProgress: 45,
             notification: {
               division: ["Admin Proyek", "Arsitek", "Owner"],
@@ -445,6 +445,16 @@ const MSA_WORKFLOW_STEPS: WorkflowStep[] = [
           notification: {
             division: "Admin Proyek", // Notify Admin Proyek to schedule
             message: "Semua berkas desain untuk proyek '{projectName}' telah dikonfirmasi terunggah oleh {actorUsername}. Mohon jadwalkan sidang."
+          }
+        },
+        "reschedule_survey_from_parallel": {
+          targetStatus: "Pending Survey Details",
+          targetAssignedDivision: "Admin Proyek",
+          targetNextActionDescription: "Input Jadwal Survei & Unggah Hasil (Opsional)",
+          targetProgress: 45,
+          notification: {
+            division: ["Admin Proyek", "Arsitek", "Owner"],
+            message: "Proyek '{projectName}' dikembalikan ke tahap survei oleh {actorUsername} untuk dijadwalkan ulang. Alasan: {reasonNote}"
           }
         }
       }
@@ -865,8 +875,3 @@ export async function getAllUniqueStatuses(): Promise<string[]> {
     });
     return Array.from(allStatuses);
 }
-
-
-
-
-

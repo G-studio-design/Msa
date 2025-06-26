@@ -1,3 +1,4 @@
+
 // src/app/dashboard/projects/page.tsx
 'use client';
 
@@ -186,6 +187,9 @@ export default function ProjectsPage() {
   const [rescheduleDate, setRescheduleDate] = React.useState('');
   const [rescheduleTime, setRescheduleTime] = React.useState('');
   const [rescheduleNote, setRescheduleNote] = React.useState('');
+
+  const [isRescheduleFromParallelDialogOpen, setIsRescheduleFromParallelDialogOpen] = React.useState(false);
+  const [rescheduleFromParallelNote, setRescheduleFromParallelNote] = React.useState('');
 
 
   // FIX: Extract search param value outside useEffect
@@ -420,8 +424,8 @@ export default function ProjectsPage() {
     const currentFiles = filesToSubmit || uploadedFiles;
     const currentDescription = descriptionForSubmit || description;
 
-    const isDecisionOrTerminalAction = ['approved', 'rejected', 'canceled', 'completed', 'revise_offer', 'revise_dp', 'revise_after_sidang', 'canceled_after_sidang', 'revision_completed_and_finish', 'all_files_confirmed'].includes(actionTaken);
-    const isSchedulingAction = actionTaken === 'scheduled' || actionTaken === 'reschedule_survey';
+    const isDecisionOrTerminalAction = ['approved', 'rejected', 'completed', 'revise_offer', 'revise_dp', 'revise_after_sidang', 'canceled_after_sidang', 'revision_completed_and_finish', 'all_files_confirmed'].includes(actionTaken);
+    const isSchedulingAction = actionTaken === 'scheduled' || actionTaken === 'reschedule_survey' || actionTaken === 'reschedule_survey_from_parallel';
     const isSurveyAction = selectedProject.status === 'Pending Survey Details' && actionTaken === 'submitted';
     const isArchitectInitialImageUpload = actionTaken === 'architect_uploaded_initial_images_for_struktur';
     
@@ -508,6 +512,9 @@ export default function ProjectsPage() {
             case 'reschedule_survey':
                  toastMessage = projectsDict.toast.surveyRescheduledDesc?.replace('{projectName}', newlyUpdatedProjectResult?.title || '') || `Survey for {projectName} rescheduled.`;
                  break;
+            case 'reschedule_survey_from_parallel':
+                 toastMessage = `Proyek '${newlyUpdatedProjectResult?.title || ''}' dikembalikan ke tahap survei.`;
+                 break;
             case 'submitted':
                 if (selectedProject.status === 'Pending Parallel Design Uploads') {
                     toastMessage = projectsDict.toast.parallelUploadSubmittedDesc.replace('{uploaderRole}', getTranslatedStatus(currentUser.role)).replace('{projectName}', newlyUpdatedProjectResult?.title || '');
@@ -554,7 +561,7 @@ export default function ProjectsPage() {
 
   const handleDecision = React.useCallback((decision: 'approved' | 'rejected' | 'completed' | 'revise_offer' | 'revise_dp' | 'canceled_after_sidang' | 'revision_completed_and_finish' | 'mark_division_complete') => {
     if (!currentUser || !selectedProject ) {
-      toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.onlyOwnerDecision });
+      toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.notYourTurn });
       return;
     }
     const isOwnerAction = ['approved', 'rejected', 'completed', 'revise_offer', 'revise_dp', 'canceled_after_sidang'].includes(decision);
@@ -647,6 +654,29 @@ export default function ProjectsPage() {
         setRescheduleTime('');
         setRescheduleNote('');
     };
+
+  const handleRescheduleFromParallel = React.useCallback(async () => {
+    if (!selectedProject || !currentUser) return;
+    if (!rescheduleFromParallelNote.trim()) {
+        toast({
+            variant: "destructive",
+            title: projectsDict.toast.error || "Error",
+            description: "Alasan penjadwalan ulang wajib diisi."
+        });
+        return;
+    }
+    setIsSubmitting(true);
+    try {
+        await handleProgressSubmit('reschedule_survey_from_parallel', [], rescheduleFromParallelNote);
+    } catch (error: any) {
+        console.error("Error rescheduling survey from parallel phase:", error);
+        toast({ variant: 'destructive', title: projectsDict.toast.error, description: error.message || "Gagal menjadwalkan ulang survei." });
+    } finally {
+        setIsSubmitting(false);
+        setIsRescheduleFromParallelDialogOpen(false);
+        setRescheduleFromParallelNote('');
+    }
+  }, [selectedProject, currentUser, rescheduleFromParallelNote, projectsDict, toast, handleProgressSubmit]);
 
 
     const handleAddToCalendar = React.useCallback(async () => {
@@ -1258,6 +1288,52 @@ export default function ProjectsPage() {
                      </div>
                    </CardHeader>
                 </Card>
+
+                {project.status === 'Pending Parallel Design Uploads' && ['Admin Proyek', 'Owner', 'Admin Developer'].includes(currentUser!.role) && (
+                  <Card className="mb-6 shadow-md border-orange-500/50">
+                      <CardHeader className="p-4 sm:p-6">
+                          <CardTitle>Tindakan Pengawas</CardTitle>
+                          <CardDescription>Opsi tambahan untuk mengelola alur proyek.</CardDescription>
+                      </CardHeader>
+                      <CardContent className="p-4 sm:p-6 pt-0">
+                          <Dialog open={isRescheduleFromParallelDialogOpen} onOpenChange={setIsRescheduleFromParallelDialogOpen}>
+                              <DialogTrigger asChild>
+                                  <Button variant="outline" disabled={isSubmitting}>
+                                      <RefreshCw className="mr-2 h-4 w-4"/>
+                                      Kembalikan ke Tahap Survei
+                                  </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                  <DialogHeader>
+                                      <DialogTitle>Konfirmasi Penjadwalan Ulang Survei</DialogTitle>
+                                      <DialogDescription>
+                                          Proyek akan dikembalikan ke tahap "Detail Survei". Masukkan alasan mengapa tindakan ini diperlukan.
+                                      </DialogDescription>
+                                  </DialogHeader>
+                                  <div className="grid gap-4 py-4">
+                                      <Label htmlFor="reschedule-parallel-note">Alasan (Wajib)</Label>
+                                      <Textarea
+                                          id="reschedule-parallel-note"
+                                          placeholder="Contoh: Ada perubahan data awal yang memerlukan survei ulang..."
+                                          value={rescheduleFromParallelNote}
+                                          onChange={(e) => setRescheduleFromParallelNote(e.target.value)}
+                                          disabled={isSubmitting}
+                                      />
+                                  </div>
+                                  <DialogFooter>
+                                      <Button variant="outline" onClick={() => setIsRescheduleFromParallelDialogOpen(false)} disabled={isSubmitting}>
+                                          Batal
+                                      </Button>
+                                      <Button onClick={handleRescheduleFromParallel} disabled={isSubmitting || !rescheduleFromParallelNote.trim()}>
+                                          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                                          Konfirmasi dan Kembalikan
+                                      </Button>
+                                  </DialogFooter>
+                              </DialogContent>
+                          </Dialog>
+                      </CardContent>
+                  </Card>
+                )}
 
                  {showSharedDesignChecklistSection && parallelUploadChecklist && (
                     <Card className="mb-6 shadow-md">
