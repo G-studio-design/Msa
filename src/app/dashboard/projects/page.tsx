@@ -655,7 +655,7 @@ export default function ProjectsPage() {
       toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.notYourTurn });
       return;
     }
-    const isOwnerAction = ['approved', 'rejected', 'completed', 'revise_offer', 'revise_dp', 'canceled_after_sidang', 'reschedule_sidang'].includes(decision);
+    const isOwnerAction = ['approved', 'rejected', 'revise_offer', 'revise_dp', 'canceled_after_sidang', 'reschedule_sidang'].includes(decision);
     if (isOwnerAction && currentUser.role !== 'Owner') {
         toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.onlyOwnerDecision });
         return;

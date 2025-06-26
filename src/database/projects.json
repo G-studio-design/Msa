@@ -983,6 +983,21 @@
         "division": "Admin Proyek",
         "action": "komangmerta (Admin Proyek) submitted for \"Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.\"",
         "timestamp": "2025-06-26T15:45:14.167Z"
+      },
+      {
+        "division": "komangmerta",
+        "action": "Deleted file: \"dokumen final.pdf\"",
+        "timestamp": "2025-06-26T16:12:25.650Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.\"",
+        "timestamp": "2025-06-26T16:13:14.525Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.\"",
+        "timestamp": "2025-06-26T16:13:37.174Z"
       }
     ],
     "files": [
@@ -1134,7 +1149,13 @@
         "name": "dokumen final.pdf",
         "uploadedBy": "Admin Proyek",
         "path": "project_1750923884164_mtu12-proyek_mega_mendung/dokumen_finalpdf",
-        "timestamp": "2025-06-26T15:45:14.167Z"
+        "timestamp": "2025-06-26T16:13:14.525Z"
+      },
+      {
+        "name": "tanda terima.pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/tanda_terimapdf",
+        "timestamp": "2025-06-26T16:13:37.174Z"
       }
     ],
     "createdAt": "2025-06-26T07:44:44.164Z",
