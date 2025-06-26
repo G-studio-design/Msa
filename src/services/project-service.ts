@@ -1,3 +1,4 @@
+
 'use server';
 
 import * as fs from 'fs/promises';
@@ -56,6 +57,7 @@ export interface Project {
     workflowId: string;
     scheduleDetails?: ScheduleDetails;
     surveyDetails?: SurveyDetails;
+    parallelUploadsCompletedBy?: string[]; // To track which divisions have completed their part
 }
 
 // Define the structure for adding a new project
@@ -333,6 +335,28 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
     const transitionInfo = await getTransitionInfo(projectWorkflowId, currentProject.status, currentProject.progress, actionTaken);
     console.log(`[ProjectService/JSON] Update for P_ID ${projectId}, Current Status: ${currentProject.status}, Progress: ${currentProject.progress}, Action: ${actionTaken}, TransitionInfo found:`, !!transitionInfo, transitionInfo ? `to ${transitionInfo.targetStatus}` : 'No transition');
 
+    // Special handling for file uploads during parallel design phase
+    if ((currentProject.status === 'Pending Parallel Design Uploads' || currentProject.status === 'Pending Post-Sidang Revision') && actionTaken === 'submitted' && newFilesData.length > 0) {
+        const historyAction = `${updaterUsername} (${updaterRole}) uploaded file(s).`;
+        const newWorkflowHistoryEntry: WorkflowHistoryEntry = {
+            division: updaterRole,
+            action: historyAction,
+            timestamp: now,
+            note: newFilesData.map(f => f.name).join(', '),
+        };
+        const updatedProject: Project = {
+            ...currentProject,
+            files: [...currentProject.files, ...filesWithTimestamp],
+            workflowHistory: [...currentProject.workflowHistory, newWorkflowHistoryEntry],
+        };
+        projects[projectIndex] = updatedProject;
+        await writeProjects(projects);
+        // Notify Admin Proyek about the specific upload
+        const notificationMessage = `${updaterRole} baru saja mengunggah file untuk proyek "${updatedProject.title}".`;
+        await notifyUsersByRole('Admin Proyek', notificationMessage, projectId);
+        console.log(`[ProjectService/JSON] Project ${projectId} updated with new files by ${updaterUsername}. Status remains ${currentProject.status}. Admin Proyek notified.`);
+        return updatedProject;
+    }
 
     let historyActionText = `${updaterUsername} (${updaterRole}) ${actionTaken} for "${currentProject.nextAction || 'progress'}"`;
     if (actionTaken === 'scheduled' && scheduleDetails) {
@@ -350,7 +374,7 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
     } else if (['completed', 'revise_after_sidang', 'canceled_after_sidang'].includes(actionTaken)) {
          historyActionText = `${updaterUsername} (${updaterRole}) declared Sidang outcome as: ${actionTaken.replace(/_after_sidang|_offer/g, '').replace(/_/g, ' ')}`;
     } else if (actionTaken === 'revision_completed_and_finish') {
-        historyActionText = `${updaterUsername} (${updaterRole}) completed post-sidang revisions and finalized the project.`;
+        historyActionText = `${updaterUsername} (${updaterRole}) completed post-sidang revisions and moved to final documentation.`;
     }
 
 
@@ -378,6 +402,11 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
         updatedProject.assignedDivision = transitionInfo.targetAssignedDivision;
         updatedProject.nextAction = transitionInfo.targetNextActionDescription;
         updatedProject.progress = transitionInfo.targetProgress;
+
+        // Reset the completion tracker when moving to a new parallel/revision phase
+        if (updatedProject.status === 'Pending Parallel Design Uploads' || updatedProject.status === 'Pending Post-Sidang Revision') {
+            updatedProject.parallelUploadsCompletedBy = [];
+        }
 
         if (transitionInfo.notification && transitionInfo.notification.division) {
             const notificationConfig = transitionInfo.notification;
@@ -452,9 +481,6 @@ export async function updateProjectTitle(projectId: string, newTitle: string): P
 
     const oldProjectRelativeFolderPath = `${projectId}-${oldSanitizedTitle}`;
     const newProjectRelativeFolderPath = `${projectId}-${newSanitizedTitle}`;
-
-    const oldProjectAbsoluteFolderPath = path.join(PROJECT_FILES_BASE_DIR, oldProjectRelativeFolderPath);
-    const newProjectAbsoluteFolderPath = path.join(PROJECT_FILES_BASE_DIR, newProjectRelativeFolderPath);
 
     if (oldProjectRelativeFolderPath !== newProjectRelativeFolderPath) {
         console.log(`[ProjectService/JSON] Sanitized title changed for project ${projectId}. Attempting to rename folder and update file paths.`);
@@ -671,4 +697,46 @@ export async function deleteProject(projectId: string, deleterUsername: string):
             console.error(`[ProjectService/JSON] Error deleting project folder ${projectSpecificDirAbsolute}:`, error);
         }
     }
+}
+
+export async function markParallelUploadsAsCompleteByDivision(
+    projectId: string,
+    division: string,
+    username: string
+): Promise<Project | null> {
+    console.log(`[ProjectService/JSON] Marking parallel uploads complete for project ${projectId} by division ${division}`);
+    let projects = await readProjects();
+    const projectIndex = projects.findIndex(p => p.id === projectId);
+
+    if (projectIndex === -1) {
+        throw new Error('PROJECT_NOT_FOUND');
+    }
+
+    const project = projects[projectIndex];
+    
+    if (!project.parallelUploadsCompletedBy) {
+        project.parallelUploadsCompletedBy = [];
+    }
+
+    if (!project.parallelUploadsCompletedBy.includes(division)) {
+        project.parallelUploadsCompletedBy.push(division);
+
+        const historyEntry: WorkflowHistoryEntry = {
+            division: username,
+            action: `Marked their design/revision phase as complete.`,
+            timestamp: new Date().toISOString(),
+            note: `Divisi ${division} telah menyelesaikan tugasnya.`,
+        };
+        project.workflowHistory.push(historyEntry);
+
+        await writeProjects(projects);
+
+        // Notify Admin Proyek
+        const notificationMessage = `Divisi ${division} telah menyelesaikan unggahan mereka untuk proyek "${project.title}".`;
+        await notifyUsersByRole('Admin Proyek', notificationMessage, projectId);
+
+        return project;
+    }
+    
+    return project; // Return current project if already marked
 }

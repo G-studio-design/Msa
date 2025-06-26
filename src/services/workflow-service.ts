@@ -409,9 +409,36 @@ const MSA_WORKFLOW_STEPS: WorkflowStep[] = [
     {
       stepName: "Sidang Outcome Declaration", status: "Scheduled", assignedDivision: "Owner", progress: 95, nextActionDescription: "Nyatakan Hasil Sidang (Sukses/Revisi/Batal)",
       transitions: {
-        "completed": { targetStatus: "Completed", targetAssignedDivision: "", targetNextActionDescription: null, targetProgress: 100, notification: { division: "Admin Proyek", message: "Proyek '{projectName}' telah berhasil diselesaikan oleh {actorUsername}." } },
-        "revise_after_sidang": { targetStatus: "Pending Post-Sidang Revision", targetAssignedDivision: "Admin Proyek", targetNextActionDescription: "Lakukan revisi pasca-sidang. Notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.", targetProgress: 85, notification: { division: "Admin Proyek", message: "Proyek '{projectName}' memerlukan revisi setelah sidang yang dinyatakan oleh {actorUsername}." } },
-        "canceled_after_sidang": { targetStatus: "Canceled", targetAssignedDivision: "", targetNextActionDescription: null, targetProgress: 95, notification: { division: "Admin Proyek", message: "Proyek '{projectName}' telah dibatalkan oleh {actorUsername} setelah sidang." } }
+        "completed": { 
+          targetStatus: "Pending Final Documents", // Changed: Go to final docs instead of complete
+          targetAssignedDivision: "Admin Proyek",
+          targetNextActionDescription: "Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.",
+          targetProgress: 98,
+          notification: { 
+            division: "Admin Proyek", 
+            message: "Sidang proyek '{projectName}' telah dinyatakan sukses oleh {actorUsername}. Mohon unggah dokumen akhir." 
+          } 
+        },
+        "revise_after_sidang": { 
+          targetStatus: "Pending Post-Sidang Revision", 
+          targetAssignedDivision: "Admin Proyek", 
+          targetNextActionDescription: "Lakukan revisi pasca-sidang. Notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.", 
+          targetProgress: 85, 
+          notification: { 
+            division: "Admin Proyek", 
+            message: "Proyek '{projectName}' memerlukan revisi setelah sidang yang dinyatakan oleh {actorUsername}." 
+          } 
+        },
+        "canceled_after_sidang": { 
+          targetStatus: "Canceled", 
+          targetAssignedDivision: "", 
+          targetNextActionDescription: null, 
+          targetProgress: 95, 
+          notification: { 
+            division: "Admin Proyek", 
+            message: "Proyek '{projectName}' telah dibatalkan oleh {actorUsername} setelah sidang." 
+          } 
+        }
       }
     },
     {
@@ -789,4 +816,5 @@ export async function getAllUniqueStatuses(): Promise<string[]> {
     });
     return Array.from(allStatuses);
 }
+
 
