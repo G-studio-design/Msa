@@ -306,97 +306,181 @@ export default function AdminActionsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="w-full overflow-x-auto rounded-md border">
-           <Table className="min-w-[800px]">
-            <TableHeader>
-              <TableRow>
-                  <TableHead className="w-[150px] sm:w-[200px]">{isClient ? adminDict.tableHeaderId : defaultGlobalDict.adminActionsPage.tableHeaderId}</TableHead>
-                <TableHead>{isClient ? adminDict.tableHeaderTitle : defaultGlobalDict.adminActionsPage.tableHeaderTitle}</TableHead>
-                  <TableHead className="w-[120px] sm:w-[150px]">{isClient ? adminDict.tableHeaderStatus : defaultGlobalDict.adminActionsPage.tableHeaderStatus}</TableHead>
-                  <TableHead className="text-right w-auto">{isClient ? adminDict.tableHeaderActions : defaultGlobalDict.adminActionsPage.tableHeaderActions}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {projects.length === 0 && !isLoadingProjects ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                    {isClient ? adminDict.noProjects : defaultGlobalDict.adminActionsPage.noProjects}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                projects.map((project) => (
-                  <TableRow key={project.id}>
-                      <TableCell className="text-xs font-mono break-all">{project.id}</TableCell>
-                    <TableCell className="font-medium">
-                      {editingProjectId === project.id ? (
-                        <Input
-                          value={newTitle}
-                          onChange={(e) => setNewTitle(e.target.value)}
-                          className="h-8 min-w-[150px]"
-                          disabled={isSaving}
-                        />
+            {/* Desktop Table View */}
+            <div className="hidden md:block">
+                <div className="w-full overflow-x-auto rounded-md border">
+                   <Table>
+                    <TableHeader>
+                      <TableRow>
+                          <TableHead className="w-[150px] sm:w-[200px]">{isClient ? adminDict.tableHeaderId : defaultGlobalDict.adminActionsPage.tableHeaderId}</TableHead>
+                        <TableHead>{isClient ? adminDict.tableHeaderTitle : defaultGlobalDict.adminActionsPage.tableHeaderTitle}</TableHead>
+                          <TableHead className="w-[120px] sm:w-[150px]">{isClient ? adminDict.tableHeaderStatus : defaultGlobalDict.adminActionsPage.tableHeaderStatus}</TableHead>
+                          <TableHead className="text-right w-auto">{isClient ? adminDict.tableHeaderActions : defaultGlobalDict.adminActionsPage.tableHeaderActions}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {projects.length === 0 && !isLoadingProjects ? (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                            {isClient ? adminDict.noProjects : defaultGlobalDict.adminActionsPage.noProjects}
+                          </TableCell>
+                        </TableRow>
                       ) : (
-                          <span className="break-words">{project.title}</span>
-                      )}
-                    </TableCell>
-                      <TableCell>{getTranslatedStatus(project.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex flex-col sm:flex-row justify-end items-end sm:items-center gap-0 sm:gap-1">
-                        {editingProjectId === project.id ? (
-                          <>
-                            <Button variant="ghost" size="icon" onClick={() => handleSaveTitle(project.id)} disabled={isSaving} title={isClient ? adminDict.saveTitleActionTooltip : "Save Title"}>
-                                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 text-green-600" />}
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={handleCancelEdit} disabled={isSaving} title={isClient ? adminDict.cancelEditActionTooltip : "Cancel Edit"}>
-                                <XCircle className="h-4 w-4 text-muted-foreground" />
-                            </Button>
-                          </>
-                        ) : (
-                          <>
-                            <Button variant="ghost" size="icon" onClick={() => handleEditClick(project.id, project.title)} disabled={isSaving || isDeleting} title={isClient ? adminDict.editTitleActionTooltip : "Edit Title"}>
-                              <Edit className="h-4 w-4 text-primary" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => openStatusChangeDialog(project)} disabled={isSaving || isDeleting} title={isClient ? adminDict.changeStatusActionTooltip : "Change Status"}>
-                              <Replace className="h-4 w-4 text-orange-500" />
-                            </Button>
-                              { (currentUser && ['Owner', 'Akuntan', 'Admin Developer'].includes(currentUser.role.trim())) && (
-                                  <AlertDialog>
-                                      <AlertDialogTrigger asChild>
-                                          <Button variant="ghost" size="icon" disabled={isSaving || isDeleting} title={isClient ? adminDict.deleteProjectActionTooltip : "Delete Project"}>
-                                              <Trash2 className="h-4 w-4 text-destructive" />
-                                          </Button>
-                                      </AlertDialogTrigger>
-                                      <AlertDialogContent>
-                                          <AlertDialogHeader>
-                                              <AlertDialogTitle>{isClient ? adminDict.deleteProjectDialogTitle : "Confirm Project Deletion"}</AlertDialogTitle>
-                                              <AlertDialogDescription>
-                                                  {(isClient ? adminDict.deleteProjectDialogDesc : "Are you sure you want to delete project \"{title}\"? This will also delete all associated files and cannot be undone.").replace('{title}', project.title)}
-                                              </AlertDialogDescription>
-                                          </AlertDialogHeader>
-                                          <AlertDialogFooter>
-                                              <AlertDialogCancel disabled={isDeleting}>{isClient ? adminDict.cancelButton : "Cancel"}</AlertDialogCancel>
-                                              <AlertDialogAction
-                                                  className="bg-destructive hover:bg-destructive/90"
-                                                  onClick={() => handleDeleteProject(project.id, project.title)}
-                                                  disabled={isDeleting}
-                                              >
-                                                  {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                                  {isClient ? adminDict.deleteProjectConfirmButton : "Yes, Delete Project"}
-                                              </AlertDialogAction>
-                                          </AlertDialogFooter>
-                                      </AlertDialogContent>
-                                  </AlertDialog>
+                        projects.map((project) => (
+                          <TableRow key={project.id}>
+                              <TableCell className="text-xs font-mono break-all">{project.id}</TableCell>
+                            <TableCell className="font-medium">
+                              {editingProjectId === project.id ? (
+                                <Input
+                                  value={newTitle}
+                                  onChange={(e) => setNewTitle(e.target.value)}
+                                  className="h-8 min-w-[150px]"
+                                  disabled={isSaving}
+                                />
+                              ) : (
+                                  <span className="break-words">{project.title}</span>
                               )}
-                          </>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-          </div>
+                            </TableCell>
+                              <TableCell>{getTranslatedStatus(project.status)}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex flex-row justify-end items-center gap-1">
+                                {editingProjectId === project.id ? (
+                                  <>
+                                    <Button variant="ghost" size="icon" onClick={() => handleSaveTitle(project.id)} disabled={isSaving} title={isClient ? adminDict.saveTitleActionTooltip : "Save Title"}>
+                                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 text-green-600" />}
+                                    </Button>
+                                    <Button variant="ghost" size="icon" onClick={handleCancelEdit} disabled={isSaving} title={isClient ? adminDict.cancelEditActionTooltip : "Cancel Edit"}>
+                                        <XCircle className="h-4 w-4 text-muted-foreground" />
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button variant="ghost" size="icon" onClick={() => handleEditClick(project.id, project.title)} disabled={isSaving || isDeleting} title={isClient ? adminDict.editTitleActionTooltip : "Edit Title"}>
+                                      <Edit className="h-4 w-4 text-primary" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" onClick={() => openStatusChangeDialog(project)} disabled={isSaving || isDeleting} title={isClient ? adminDict.changeStatusActionTooltip : "Change Status"}>
+                                      <Replace className="h-4 w-4 text-orange-500" />
+                                    </Button>
+                                      { (currentUser && ['Owner', 'Akuntan', 'Admin Developer'].includes(currentUser.role.trim())) && (
+                                          <AlertDialog>
+                                              <AlertDialogTrigger asChild>
+                                                  <Button variant="ghost" size="icon" disabled={isSaving || isDeleting} title={isClient ? adminDict.deleteProjectActionTooltip : "Delete Project"}>
+                                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                                  </Button>
+                                              </AlertDialogTrigger>
+                                              <AlertDialogContent>
+                                                  <AlertDialogHeader>
+                                                      <AlertDialogTitle>{isClient ? adminDict.deleteProjectDialogTitle : "Confirm Project Deletion"}</AlertDialogTitle>
+                                                      <AlertDialogDescription>
+                                                          {(isClient ? adminDict.deleteProjectDialogDesc : "Are you sure you want to delete project \"{title}\"? This will also delete all associated files and cannot be undone.").replace('{title}', project.title)}
+                                                      </AlertDialogDescription>
+                                                  </AlertDialogHeader>
+                                                  <AlertDialogFooter>
+                                                      <AlertDialogCancel disabled={isDeleting}>{isClient ? adminDict.cancelButton : "Cancel"}</AlertDialogCancel>
+                                                      <AlertDialogAction
+                                                          className="bg-destructive hover:bg-destructive/90"
+                                                          onClick={() => handleDeleteProject(project.id, project.title)}
+                                                          disabled={isDeleting}
+                                                      >
+                                                          {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                                          {isClient ? adminDict.deleteProjectConfirmButton : "Yes, Delete Project"}
+                                                      </AlertDialogAction>
+                                                  </AlertDialogFooter>
+                                              </AlertDialogContent>
+                                          </AlertDialog>
+                                      )}
+                                  </>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                  </div>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="grid gap-4 md:hidden">
+                {projects.length === 0 && !isLoadingProjects ? (
+                    <p className="text-center text-muted-foreground py-8">
+                        {isClient ? adminDict.noProjects : defaultGlobalDict.adminActionsPage.noProjects}
+                    </p>
+                ) : (
+                    projects.map((project) => (
+                        <div key={project.id} className="rounded-lg border bg-card text-card-foreground p-4">
+                            <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 min-w-0">
+                                    {editingProjectId === project.id ? (
+                                        <Input
+                                            value={newTitle}
+                                            onChange={(e) => setNewTitle(e.target.value)}
+                                            className="h-9 mb-2"
+                                            disabled={isSaving}
+                                        />
+                                    ) : (
+                                        <p className="font-semibold break-words">{project.title}</p>
+                                    )}
+                                    <div className="text-sm text-muted-foreground mt-1">
+                                        {getTranslatedStatus(project.status)}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground font-mono mt-1 break-all">{project.id}</p>
+                                </div>
+                                <div className="flex flex-col items-center gap-1">
+                                    {editingProjectId === project.id ? (
+                                        <>
+                                            <Button variant="ghost" size="icon" onClick={() => handleSaveTitle(project.id)} disabled={isSaving} title={isClient ? adminDict.saveTitleActionTooltip : "Save Title"}>
+                                                {isSaving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5 text-green-600" />}
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={handleCancelEdit} disabled={isSaving} title={isClient ? adminDict.cancelEditActionTooltip : "Cancel Edit"}>
+                                                <XCircle className="h-5 w-5 text-muted-foreground" />
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Button variant="ghost" size="icon" onClick={() => handleEditClick(project.id, project.title)} disabled={isSaving || isDeleting} title={isClient ? adminDict.editTitleActionTooltip : "Edit Title"}>
+                                                <Edit className="h-5 w-5 text-primary" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" onClick={() => openStatusChangeDialog(project)} disabled={isSaving || isDeleting} title={isClient ? adminDict.changeStatusActionTooltip : "Change Status"}>
+                                                <Replace className="h-5 w-5 text-orange-500" />
+                                            </Button>
+                                            {(currentUser && ['Owner', 'Akuntan', 'Admin Developer'].includes(currentUser.role.trim())) && (
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon" disabled={isSaving || isDeleting} title={isClient ? adminDict.deleteProjectActionTooltip : "Delete Project"}>
+                                                            <Trash2 className="h-5 w-5 text-destructive" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>{isClient ? adminDict.deleteProjectDialogTitle : "Confirm Project Deletion"}</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                {(isClient ? adminDict.deleteProjectDialogDesc : "Are you sure you want to delete project \"{title}\"? This will also delete all associated files and cannot be undone.").replace('{title}', project.title)}
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel disabled={isDeleting}>{isClient ? adminDict.cancelButton : "Cancel"}</AlertDialogCancel>
+                                                            <AlertDialogAction
+                                                                className="bg-destructive hover:bg-destructive/90"
+                                                                onClick={() => handleDeleteProject(project.id, project.title)}
+                                                                disabled={isDeleting}
+                                                            >
+                                                                {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                                                {isClient ? adminDict.deleteProjectConfirmButton : "Yes, Delete Project"}
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
         </CardContent>
       </Card>
 
