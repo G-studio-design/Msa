@@ -1,3 +1,4 @@
+
 'use server';
 
 import * as fs from 'fs/promises';
@@ -509,8 +510,8 @@ const MSA_WORKFLOW_STEPS: WorkflowStep[] = [
           targetNextActionDescription: "Jadwalkan Sidang",
           targetProgress: 90,
           notification: {
-            division: "Admin Proyek", // Notify Admin Proyek to schedule
-            message: "Semua berkas desain untuk proyek '{projectName}' telah dikonfirmasi terunggah oleh {actorUsername}. Mohon jadwalkan sidang."
+            division: ["Admin Proyek", "Owner"],
+            message: "Semua berkas desain untuk proyek '{projectName}' telah dikonfirmasi terunggah oleh {actorUsername}. Proyek kini siap untuk penjadwalan sidang."
           }
         },
         "reschedule_survey_from_parallel": {

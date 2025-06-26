@@ -745,10 +745,10 @@
   {
     "id": "project_1750950968313_qtcnd",
     "title": "proyek villa di tanah lot",
-    "status": "Pending Final Documents",
-    "progress": 98,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.",
+    "status": "Completed",
+    "progress": 100,
+    "assignedDivision": "",
+    "nextAction": null,
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -1013,6 +1013,11 @@
         "division": "komangmerta",
         "action": "Deleted file: \"susunan dokumen final.pdf\"",
         "timestamp": "2025-06-26T17:56:15.837Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) declared Sidang outcome as: completed",
+        "timestamp": "2025-06-26T18:10:29.726Z"
       }
     ],
     "files": [
@@ -1170,10 +1175,10 @@
   {
     "id": "project_1750955327988_zof0g",
     "title": "proyek kuta",
-    "status": "Pending Offer",
-    "progress": 10,
+    "status": "Pending Post-Sidang Revision",
+    "progress": 85,
     "assignedDivision": "Admin Proyek",
-    "nextAction": "Unggah Dokumen Penawaran",
+    "nextAction": "Lakukan revisi pasca-sidang. Notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -1186,10 +1191,213 @@
         "division": "System",
         "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
         "timestamp": "2025-06-26T16:28:47.988Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
+        "timestamp": "2025-06-26T18:04:08.605Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) approved: Setujui Dokumen Penawaran",
+        "timestamp": "2025-06-26T18:05:16.929Z"
+      },
+      {
+        "division": "Akuntan",
+        "action": "oksi (Akuntan) submitted for \"Buat Faktur DP\"",
+        "timestamp": "2025-06-26T18:05:59.213Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) approved: Setujui Faktur DP",
+        "timestamp": "2025-06-26T18:06:11.180Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) submitted for \"Unggah Berkas Administrasi\"",
+        "timestamp": "2025-06-26T18:08:46.126Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) submitted Survey Details for 2025-06-27 at 02:09",
+        "timestamp": "2025-06-26T18:08:57.041Z",
+        "note": "Survey Description: ."
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) submitted Survey Details for 2025-06-27 at 02:09",
+        "timestamp": "2025-06-26T18:11:29.206Z",
+        "note": "Survey Description: . Note: survey berhasil"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) uploaded file(s).",
+        "timestamp": "2025-06-26T18:11:56.957Z",
+        "note": "Daftar SIMak Proyek Bali Merdeka.pdf, Gambar  - Arsitek .pdf, RAP MEp.pdf, Spektek.pdf"
+      },
+      {
+        "division": "Struktur",
+        "action": "struktur (Struktur) uploaded file(s).",
+        "timestamp": "2025-06-26T18:12:34.255Z",
+        "note": "Analisa Laporan.pdf, Daftar SIMak Proyek Bali Merdeka.pdf, Gambar  - Struktur.pdf, Hammer Test .pdf, Spektek.pdf"
+      },
+      {
+        "division": "MEP",
+        "action": "agung (MEP) uploaded file(s).",
+        "timestamp": "2025-06-26T18:13:27.736Z",
+        "note": "Analisa Laporan.pdf, Daftar SIMak Proyek Bali Merdeka.pdf, Gambar - MEP .pdf, RAP MEp.pdf, Spektek.pdf"
+      },
+      {
+        "division": "agung",
+        "action": "Marked their design/revision phase as complete.",
+        "timestamp": "2025-06-26T18:13:34.513Z",
+        "note": "Divisi MEP telah menyelesaikan tugasnya."
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) all_files_confirmed for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-26T18:13:51.625Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) scheduled Sidang on 2025-06-27 at 02:17",
+        "timestamp": "2025-06-26T18:16:53.139Z",
+        "note": "Location: Ruang Konfrensi Puspem."
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) reschedule_sidang for \"Nyatakan Hasil Sidang\"",
+        "timestamp": "2025-06-26T18:17:34.636Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) scheduled Sidang on 2025-06-27 at 02:18",
+        "timestamp": "2025-06-26T18:18:32.418Z",
+        "note": "Location: Ruang Konfrensi Puspem."
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) declared Sidang outcome as: revise",
+        "timestamp": "2025-06-26T18:18:55.609Z",
+        "note": "revisi gambar struktur"
       }
     ],
-    "files": [],
+    "files": [
+      {
+        "name": "dokumen penawaran .pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1750955327988_zof0g-proyek_kuta/dokumen_penawaran_pdf",
+        "timestamp": "2025-06-26T18:04:08.605Z"
+      },
+      {
+        "name": "faktur dp.txt",
+        "uploadedBy": "Akuntan",
+        "path": "project_1750955327988_zof0g-proyek_kuta/faktur_dptxt",
+        "timestamp": "2025-06-26T18:05:59.213Z"
+      },
+      {
+        "name": "dokumen penawaran .pdf",
+        "uploadedBy": "Owner",
+        "path": "project_1750955327988_zof0g-proyek_kuta/dokumen_penawaran_pdf",
+        "timestamp": "2025-06-26T18:08:46.126Z"
+      },
+      {
+        "name": "Daftar SIMak Proyek Bali Merdeka.pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750955327988_zof0g-proyek_kuta/daftar_simak_proyek_bali_merdekapdf",
+        "timestamp": "2025-06-26T18:11:56.957Z"
+      },
+      {
+        "name": "Gambar  - Arsitek .pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750955327988_zof0g-proyek_kuta/gambar_-_arsitek_pdf",
+        "timestamp": "2025-06-26T18:11:56.957Z"
+      },
+      {
+        "name": "RAP MEp.pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750955327988_zof0g-proyek_kuta/rap_meppdf",
+        "timestamp": "2025-06-26T18:11:56.957Z"
+      },
+      {
+        "name": "Spektek.pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750955327988_zof0g-proyek_kuta/spektekpdf",
+        "timestamp": "2025-06-26T18:11:56.957Z"
+      },
+      {
+        "name": "Analisa Laporan.pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750955327988_zof0g-proyek_kuta/analisa_laporanpdf",
+        "timestamp": "2025-06-26T18:12:34.255Z"
+      },
+      {
+        "name": "Daftar SIMak Proyek Bali Merdeka.pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750955327988_zof0g-proyek_kuta/daftar_simak_proyek_bali_merdekapdf",
+        "timestamp": "2025-06-26T18:12:34.255Z"
+      },
+      {
+        "name": "Gambar  - Struktur.pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750955327988_zof0g-proyek_kuta/gambar_-_strukturpdf",
+        "timestamp": "2025-06-26T18:12:34.255Z"
+      },
+      {
+        "name": "Hammer Test .pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750955327988_zof0g-proyek_kuta/hammer_test_pdf",
+        "timestamp": "2025-06-26T18:12:34.255Z"
+      },
+      {
+        "name": "Spektek.pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750955327988_zof0g-proyek_kuta/spektekpdf",
+        "timestamp": "2025-06-26T18:12:34.255Z"
+      },
+      {
+        "name": "Analisa Laporan.pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750955327988_zof0g-proyek_kuta/analisa_laporanpdf",
+        "timestamp": "2025-06-26T18:13:27.736Z"
+      },
+      {
+        "name": "Daftar SIMak Proyek Bali Merdeka.pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750955327988_zof0g-proyek_kuta/daftar_simak_proyek_bali_merdekapdf",
+        "timestamp": "2025-06-26T18:13:27.736Z"
+      },
+      {
+        "name": "Gambar - MEP .pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750955327988_zof0g-proyek_kuta/gambar_-_mep_pdf",
+        "timestamp": "2025-06-26T18:13:27.736Z"
+      },
+      {
+        "name": "RAP MEp.pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750955327988_zof0g-proyek_kuta/rap_meppdf",
+        "timestamp": "2025-06-26T18:13:27.736Z"
+      },
+      {
+        "name": "Spektek.pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750955327988_zof0g-proyek_kuta/spektekpdf",
+        "timestamp": "2025-06-26T18:13:27.736Z"
+      }
+    ],
     "createdAt": "2025-06-26T16:28:47.988Z",
-    "createdBy": "sudina"
+    "createdBy": "sudina",
+    "surveyDetails": {
+      "date": "2025-06-27",
+      "time": "02:09",
+      "description": ""
+    },
+    "parallelUploadsCompletedBy": [],
+    "scheduleDetails": {
+      "date": "2025-06-27",
+      "time": "02:18",
+      "location": "Ruang Konfrensi Puspem"
+    }
   }
 ]
