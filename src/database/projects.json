@@ -794,10 +794,10 @@
   {
     "id": "project_1750923884164_mtu12",
     "title": "proyek mega mendung",
-    "status": "Pending Final Documents",
-    "progress": 98,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.",
+    "status": "Completed",
+    "progress": 100,
+    "assignedDivision": "",
+    "nextAction": null,
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -998,6 +998,11 @@
         "division": "Admin Proyek",
         "action": "komangmerta (Admin Proyek) submitted for \"Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.\"",
         "timestamp": "2025-06-26T16:13:37.174Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) declared Sidang outcome as: completed",
+        "timestamp": "2025-06-26T16:23:50.773Z"
       }
     ],
     "files": [

@@ -1160,5 +1160,13 @@
     "message": "Permintaan izin Anda (Keperluan Pribadi) dari 2025-06-27 hingga 2025-06-27 telah disetujui oleh sudina.",
     "timestamp": "2025-06-26T16:11:03.903Z",
     "isRead": false
+  },
+  {
+    "id": "notif_1750955030806_qgqyv_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek 'proyek mega mendung' telah selesai dengan semua dokumen akhir terunggah oleh komangmerta.",
+    "timestamp": "2025-06-26T16:23:50.797Z",
+    "isRead": false
   }
 ]

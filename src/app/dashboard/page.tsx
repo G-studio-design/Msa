@@ -341,6 +341,12 @@ export default function DashboardPage() {
                                             {format(event.date, 'eeee, MMM d', { locale: currentLocale })}
                                             {event.time ? ` @ ${event.time}` : ''}
                                         </p>
+                                        {event.type === 'survey' && event.description && (
+                                            <p className="text-xs text-muted-foreground truncate">{dashboardDict.surveyDescriptionLabel} {event.description}</p>
+                                        )}
+                                        {event.type === 'sidang' && event.location && (
+                                            <p className="text-xs text-muted-foreground truncate">{dashboardDict.eventLocationLabel} {event.location}</p>
+                                        )}
                                     </div>
                                     <Badge variant="secondary" className="capitalize flex-shrink-0">{dashboardDict.eventTypes[event.type]}</Badge>
                                 </li>
@@ -385,6 +391,12 @@ export default function DashboardPage() {
                                         <p className="text-xs text-muted-foreground">{dashboardDict.eventTypes[event.type]}</p>
                                         {event.time && <p className="text-xs text-muted-foreground">{dashboardDict.eventTimeLabel} {event.time}</p>}
                                         {event.location && <p className="text-xs text-muted-foreground">{dashboardDict.eventLocationLabel} {event.location}</p>}
+                                        {event.type === 'survey' && event.description && (
+                                            <p className="text-xs text-muted-foreground">{dashboardDict.surveyDescriptionLabel} {event.description}</p>
+                                        )}
+                                        {event.type === 'leave' && event.description && (
+                                            <p className="text-xs text-muted-foreground">{dashboardDict.reasonLabel}: {event.description}</p>
+                                        )}
                                     </div>
                                 </div>
                             ))
