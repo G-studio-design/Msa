@@ -30,7 +30,7 @@ const TableHeader = React.forwardRef<
   <thead
     ref={ref}
     className={cn(
-      " [&_tr]:border-b font-semibold",
+      "[&_tr]:border-b", // Removed font-semibold to apply it on TableHead directly
       className
     )}
     {...props}
@@ -45,7 +45,7 @@ const TableBody = React.forwardRef<
   <tbody
     ref={ref}
     className={cn(
-      " [&_tr:last-child]:border-0",
+      "[&_tr:last-child]:border-0",
       className
     )}
     {...props}

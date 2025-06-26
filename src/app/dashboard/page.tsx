@@ -270,7 +270,7 @@ export default function DashboardPage() {
                                 <Link href={`/dashboard/projects?projectId=${project.id}`} key={project.id} passHref>
                                 <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
                                     <CardContent className="p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                                        <div className="flex-1 overflow-hidden w-full">
+                                        <div className="flex-1 overflow-hidden w-full min-w-0">
                                             <p className="font-semibold truncate">{project.title}</p>
                                             <p className="text-xs text-muted-foreground truncate">{projectsDict.nextActionLabel}: {project.nextAction || projectsDict.none}</p>
                                         </div>
@@ -304,7 +304,7 @@ export default function DashboardPage() {
                     <ResponsiveContainer>
                       <BarChart data={activeProjects} layout="vertical" margin={{ right: 40, left: 10 }}>
                         <XAxis type="number" dataKey="progress" domain={[0, 100]} tickFormatter={(value) => `${value}%`} tick={{ fontSize: 10 }} />
-                        <YAxis type="category" dataKey="title" width={language === 'id' ? 100 : 80} tick={{ fontSize: 10, width: language === 'id' ? 95 : 75 }} interval={0} className="truncate" />
+                        <YAxis type="category" dataKey="title" width={language === 'id' ? 100 : 80} tick={{ fontSize: 10, width: language === 'id' ? 95 : 75, textAnchor: 'end' }} interval={0} tickFormatter={(value) => value.length > 20 ? `${value.substring(0, 20)}...` : value} />
                         <ChartTooltip
                             cursor={{ fill: 'hsl(var(--muted))' }}
                             content={<ChartTooltipContent />}
@@ -335,14 +335,14 @@ export default function DashboardPage() {
                             {upcomingEvents.slice(0, 5).map(event => (
                                 <li key={event.id} className="flex items-start gap-3">
                                     <div className="flex-shrink-0 mt-1">{getEventTypeIcon(event.type)}</div>
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium">{event.title}</p>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium truncate">{event.title}</p>
                                         <p className="text-xs text-muted-foreground">
                                             {format(event.date, 'eeee, MMM d', { locale: currentLocale })}
                                             {event.time ? ` @ ${event.time}` : ''}
                                         </p>
                                     </div>
-                                    <Badge variant="secondary" className="capitalize">{dashboardDict.eventTypes[event.type]}</Badge>
+                                    <Badge variant="secondary" className="capitalize flex-shrink-0">{dashboardDict.eventTypes[event.type]}</Badge>
                                 </li>
                             ))}
                         </ul>
