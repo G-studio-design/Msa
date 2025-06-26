@@ -1,53 +1,46 @@
-
 // public/sw.js
 
-// On install, you might want to cache some static assets.
+// This event listener is fired when the service worker is first installed.
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
-  // Placeholder for caching logic if needed in the future.
+  // The skipWaiting() method allows this service worker to activate
+  // as soon as it's finished installing.
+  self.skipWaiting();
+  console.log('[Service Worker] Installed');
 });
 
-// On activate, clean up old caches and take control.
+// This event listener is fired when the service worker is activated.
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
-  // This ensures the new service worker takes control of the page immediately.
+  // The clients.claim() method allows an active service worker to set itself
+  // as the controller for all clients within its scope.
   event.waitUntil(self.clients.claim());
+  console.log('[Service Worker] Activated');
 });
 
-/**
- * Handles the user clicking on a notification.
- * This is crucial for mobile device compatibility.
- */
+// This event listener is fired when a user clicks on a notification.
 self.addEventListener('notificationclick', (event) => {
-  console.log('Service Worker: Notification clicked.');
-  
-  // Close the notification pop-up
+  console.log('[Service Worker] Notification click Received.');
+
+  // Close the notification
   event.notification.close();
 
-  // Try to focus an existing window/tab of the app, or open a new one.
+  // Logic to focus an existing window or open a new one
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // If a window for this app is already open, focus it.
-      if (clientList.length > 0) {
-        let client = clientList[0];
-        // Try to find a focused client first
-        for (let i = 0; i < clientList.length; i++) {
-          if (clientList[i].focused) {
-            client = clientList[i];
-          }
+    clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true, // Important to find clients immediately after activation
+    }).then((clientList) => {
+      // If a window for the app is already open, focus it.
+      for (const client of clientList) {
+        // You can add more complex URL matching here if needed.
+        // For now, focusing any open client is sufficient.
+        if ('focus' in client) {
+          return client.focus();
         }
-        return client.focus();
       }
-      // Otherwise, open a new window.
-      return clients.openWindow('/');
+      // If no window is open, open a new one to the dashboard.
+      if (clients.openWindow) {
+        return clients.openWindow('/dashboard');
+      }
     })
   );
-});
-
-/**
- * Generic fetch handler. Can be expanded for offline support later.
- */
-self.addEventListener('fetch', (event) => {
-  // For now, just use the network.
-  event.respondWith(fetch(event.request));
 });

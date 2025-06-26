@@ -443,7 +443,7 @@
     "status": "Pending Offer",
     "progress": 10,
     "assignedDivision": "Admin Proyek",
-    "nextAction": "Unggah Dokumen Penawaran",
+    "nextAction": "Revisi dan Unggah Ulang Dokumen Penawaran berdasarkan masukan Owner.",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -456,9 +456,27 @@
         "division": "System",
         "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
         "timestamp": "2025-06-24T04:22:46.127Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
+        "timestamp": "2025-06-26T14:47:38.559Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) requested revision (revise_offer). Project sent to Admin Proyek for Revisi dan Unggah Ulang Dokumen Penawaran berdasarkan masukan Owner..",
+        "timestamp": "2025-06-26T14:49:30.317Z",
+        "note": "perbaiki"
       }
     ],
-    "files": [],
+    "files": [
+      {
+        "name": "dokumen penawaran .pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1750738966127_dn9n5-proyek_kesambi/dokumen_penawaran_pdf",
+        "timestamp": "2025-06-26T14:47:38.559Z"
+      }
+    ],
     "createdAt": "2025-06-24T04:22:46.127Z",
     "createdBy": "sudina"
   },
@@ -909,6 +927,12 @@
         "action": "arsitek (Arsitek) submitted Survey Details for 2025-06-26 at 22:42",
         "timestamp": "2025-06-26T14:43:31.844Z",
         "note": "Survey Description: kantor pertanahan . Note: survey berhasil"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) uploaded file(s).",
+        "timestamp": "2025-06-26T14:45:10.323Z",
+        "note": "Daftar SIMak Proyek Bali Merdeka.pdf, Gambar .pdf, RAP MEp.pdf, Spektek.pdf"
       }
     ],
     "files": [
@@ -953,6 +977,30 @@
         "uploadedBy": "Admin Proyek",
         "path": "project_1750923884164_mtu12-proyek_mega_mendung/berkas_administrasi_proyek_xlsx",
         "timestamp": "2025-06-26T12:09:21.349Z"
+      },
+      {
+        "name": "Daftar SIMak Proyek Bali Merdeka.pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/daftar_simak_proyek_bali_merdekapdf",
+        "timestamp": "2025-06-26T14:45:10.323Z"
+      },
+      {
+        "name": "Gambar .pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/gambar_pdf",
+        "timestamp": "2025-06-26T14:45:10.323Z"
+      },
+      {
+        "name": "RAP MEp.pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/rap_meppdf",
+        "timestamp": "2025-06-26T14:45:10.323Z"
+      },
+      {
+        "name": "Spektek.pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/spektekpdf",
+        "timestamp": "2025-06-26T14:45:10.323Z"
       }
     ],
     "createdAt": "2025-06-26T07:44:44.164Z",
