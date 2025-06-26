@@ -777,16 +777,22 @@ export default function ProjectsPage() {
     const showUploadSection = React.useMemo(() => {
         if (!selectedProject || !currentUser) return false;
         const userRole = currentUser.role.trim();
+    
         if (selectedProject.workflowId === 'msa_workflow' && selectedProject.status === 'Pending Parallel Design Uploads') {
             return ['Arsitek', 'Struktur', 'MEP'].includes(userRole);
         }
-        if (!canPerformSelectedProjectAction) return false;
-        const statusesExpectingUpload = [
+    
+        if (!canPerformSelectedProjectAction) {
+            return false;
+        }
+    
+        const statusesExpectingUploadGeneral = [
             'Pending Offer', 'Pending DP Invoice', 'Pending Admin Files',
             'Pending Architect Files', 'Pending Structure Files', 'Pending MEP Files',
             'Pending Consultation Docs', 'Pending Post-Sidang Revision'
         ];
-        return statusesExpectingUpload.includes(selectedProject.status);
+    
+        return statusesExpectingUploadGeneral.includes(selectedProject.status);
     }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
     const showAdminChecklistSection = React.useMemo(() => {
@@ -794,6 +800,14 @@ export default function ProjectsPage() {
       return selectedProject.workflowId === 'msa_workflow' &&
              selectedProject.status === 'Pending Parallel Design Uploads' &&
              (currentUser.role === 'Admin Proyek' || currentUser.role === 'Owner' || currentUser.role === 'Admin Developer');
+    }, [selectedProject, currentUser]);
+    
+    const showDesignDivisionChecklist = React.useMemo(() => {
+        if (!selectedProject || !currentUser) return false;
+        const userRole = currentUser.role.trim();
+        return selectedProject.workflowId === 'msa_workflow' &&
+               selectedProject.status === 'Pending Parallel Design Uploads' &&
+               ['Arsitek', 'Struktur', 'MEP'].includes(userRole);
     }, [selectedProject, currentUser]);
 
    const showArchitectInitialImageUploadSection = React.useMemo(() => {
@@ -1039,6 +1053,34 @@ export default function ProjectsPage() {
                           </CardFooter>
                     </Card>
                  )}
+
+                {showDesignDivisionChecklist && parallelUploadChecklist && currentUser && (
+                    <Card className="mb-6 shadow-md">
+                        <CardHeader className="p-4 sm:p-6">
+                            <CardTitle>{projectsDict.yourChecklistTitle.replace('{division}', getTranslatedStatus(currentUser.role))}</CardTitle>
+                            <CardDescription>{projectsDict.yourChecklistDesc}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-4 sm:p-6 pt-0">
+                            <ul className="space-y-2">
+                                {parallelUploadChecklist[currentUser.role.trim() as keyof ParallelUploadChecklist]?.map((item, index) => (
+                                    <li key={index} className="flex items-center gap-2 text-sm">
+                                        {item.uploaded ? (
+                                            <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                        ) : (
+                                            <CircleIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                        )}
+                                        <span className={cn(item.uploaded ? "text-foreground" : "text-muted-foreground")}>{item.name}</span>
+                                        {item.uploaded && item.filePath && (
+                                            <Button variant="ghost" size="icon" onClick={() => handleDownloadFile({ name: item.name, path: item.filePath, uploadedBy: '', timestamp: '' })} disabled={isDownloading} title={projectsDict.downloadFileTooltip} className="h-7 w-7 flex-shrink-0">
+                                                {isDownloading ? <Loader2 className="h-4 w-4 animate-spin"/> : <Download className="h-4 w-4 text-primary" />}
+                                            </Button>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        </CardContent>
+                    </Card>
+                )}
 
                  <Card className="mb-6 shadow-md">
                     <CardHeader className="p-4 sm:p-6"><CardTitle>{projectsDict.workflowHistoryTitle}</CardTitle><CardDescription>{projectsDict.workflowHistoryDesc}</CardDescription></CardHeader>

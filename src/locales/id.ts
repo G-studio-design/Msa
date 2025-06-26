@@ -235,6 +235,8 @@ const id = {
     adminParallelUploadsGuidance: "Menunggu unggahan file desain dari divisi Arsitek, Struktur, dan MEP. Anda dapat melanjutkan proyek ke tahap berikutnya setelah semua file yang diperlukan diunggah.",
     confirmAllDesignsUploadedButton: "Konfirmasi Semua Desain Telah Diunggah & Lanjutkan",
     confirmingAllDesignsButton: "Mengonfirmasi...",
+    yourChecklistTitle: "Checklist Anda ({division})",
+    yourChecklistDesc: "Ini adalah daftar dokumen yang harus Anda unggah pada tahap ini. Item akan tercentang secara otomatis saat Anda mengunggah file dengan nama yang cocok.",
     nextActionDescriptions: {
         uploadOfferDocument: "Unggah Dokumen Penawaran",
         approveOfferDocument: "Setujui Dokumen Penawaran",
