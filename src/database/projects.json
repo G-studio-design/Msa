@@ -801,10 +801,10 @@
   {
     "id": "project_1750923884164_mtu12",
     "title": "proyek mega mendung",
-    "status": "Pending Approval",
-    "progress": 30,
-    "assignedDivision": "Owner",
-    "nextAction": "Setujui Faktur DP",
+    "status": "Pending Admin Files",
+    "progress": 40,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Unggah Berkas Administrasi",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -859,6 +859,22 @@
         "division": "Akuntan",
         "action": "oksi (Akuntan) submitted for \"Revisi dan Unggah Ulang Faktur DP berdasarkan masukan Owner.\"",
         "timestamp": "2025-06-26T11:56:33.416Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) requested revision (revise_dp). Project sent to Akuntan for Revisi dan Unggah Ulang Faktur DP berdasarkan masukan Owner..",
+        "timestamp": "2025-06-26T12:02:43.118Z",
+        "note": "perbaiki lagi dikit"
+      },
+      {
+        "division": "Akuntan",
+        "action": "oksi (Akuntan) submitted for \"Revisi dan Unggah Ulang Faktur DP berdasarkan masukan Owner.\"",
+        "timestamp": "2025-06-26T12:03:20.332Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) approved: Setujui Faktur DP",
+        "timestamp": "2025-06-26T12:05:40.979Z"
       }
     ],
     "files": [
@@ -891,6 +907,12 @@
         "uploadedBy": "Akuntan",
         "path": "project_1750923884164_mtu12-proyek_mega_mendung/faktur_dptxt",
         "timestamp": "2025-06-26T11:56:33.416Z"
+      },
+      {
+        "name": "faktur dp.txt",
+        "uploadedBy": "Akuntan",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/faktur_dptxt",
+        "timestamp": "2025-06-26T12:03:20.332Z"
       }
     ],
     "createdAt": "2025-06-26T07:44:44.164Z",

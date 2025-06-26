@@ -709,7 +709,7 @@
     "projectId": "project_1750923884164_mtu12",
     "message": "Faktur DP untuk proyek 'proyek mega mendung' ditolak oleh sudina. Mohon direvisi.",
     "timestamp": "2025-06-26T11:52:17.358Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750938852675_nrk06_ult",
@@ -734,5 +734,29 @@
     "message": "Faktur DP untuk proyek 'proyek mega mendung' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
     "timestamp": "2025-06-26T11:56:33.427Z",
     "isRead": true
+  },
+  {
+    "id": "notif_1750939363138_j0qdt_ue2",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Faktur DP untuk proyek 'proyek mega mendung' ditolak oleh sudina. Mohon direvisi.",
+    "timestamp": "2025-06-26T12:02:43.136Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750939400345_ytgg4_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Faktur DP untuk proyek 'proyek mega mendung' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-26T12:03:20.342Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750939540988_z84ar_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Faktur DP untuk proyek 'proyek mega mendung' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-06-26T12:05:40.985Z",
+    "isRead": false
   }
 ]

@@ -2,7 +2,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Image from 'next/image'; // Import Image
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -73,16 +73,43 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const notifiedIds = useRef(new Set<string>()); // Ref to track shown system notifications
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  const showSystemNotification = (title: string, body: string) => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification(title, {
+        body: body,
+        icon: '/msarch-logo.png', // Optional: adds an icon to the notification
+      });
+    }
+  };
 
-  const fetchNotifications = useCallback(async () => {
+
+  const fetchAndProcessNotifications = useCallback(async () => {
     if (isClient && currentUser) {
       try {
         const fetchedNotifications = await getNotificationsForUser(currentUser.id);
+        
+        // Find new unread notifications that haven't had a system notification shown yet
+        const newUnreadNotifications = fetchedNotifications.filter(n =>
+            !n.isRead && !notifiedIds.current.has(n.id)
+        );
+
+        if (newUnreadNotifications.length > 0) {
+            const firstNewNotif = newUnreadNotifications[0];
+            // Show a single system notification for the most recent new message
+            showSystemNotification(
+                layoutDict.appTitle,
+                firstNewNotif.message
+            );
+            // Add all new IDs to the tracked set to prevent re-notifying
+            newUnreadNotifications.forEach(n => notifiedIds.current.add(n.id));
+        }
+
         setNotifications(fetchedNotifications);
       } catch (error) {
          console.error("Failed to fetch notifications:", error);
@@ -90,25 +117,26 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     } else {
       setNotifications([]);
     }
-  }, [isClient, currentUser]);
+  }, [isClient, currentUser, layoutDict.appTitle]);
+
 
   // Initial fetch on mount
   useEffect(() => {
     if (isClient && currentUser) {
-      fetchNotifications();
+      fetchAndProcessNotifications();
     }
-  }, [isClient, currentUser, fetchNotifications]);
+  }, [isClient, currentUser, fetchAndProcessNotifications]);
 
   // Polling for real-time notifications
   useEffect(() => {
     if (isClient && currentUser) {
       const intervalId = setInterval(() => {
-        fetchNotifications();
+        fetchAndProcessNotifications();
       }, 15000); // Poll every 15 seconds
 
       return () => clearInterval(intervalId); // Cleanup on unmount
     }
-  }, [isClient, currentUser, fetchNotifications]);
+  }, [isClient, currentUser, fetchAndProcessNotifications]);
 
 
   useEffect(() => {
@@ -116,6 +144,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [notifications]);
 
 
+  // Request permission for system notifications
   useEffect(() => {
       if (isClient && currentUser && notificationsDict) {
           if ('Notification' in window) {
