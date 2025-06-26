@@ -317,6 +317,15 @@ const id = {
       struktur: "Struktur",
       mep: "MEP",
     },
+    rescheduleSurveyDialog: {
+      buttonText: "Jadwalkan Ulang Survei",
+      title: "Jadwalkan Ulang Survei",
+      description: "Tetapkan tanggal dan waktu baru untuk survei. Berikan alasan perubahan.",
+      reasonLabel: "Alasan Penjadwalan Ulang (Wajib)",
+      reasonPlaceholder: "cth., Cuaca buruk, klien tidak tersedia...",
+      validationError: "Harap isi tanggal, waktu, dan alasan baru.",
+      confirmButton: "Konfirmasi Jadwal Ulang",
+    },
     toast: {
       permissionDenied: 'Izin Ditolak',
       notYourTurn: 'Bukan giliran Anda untuk memperbarui progres.',
@@ -359,6 +368,7 @@ const id = {
       provideDateTimeLoc: 'Harap berikan tanggal, waktu, dan lokasi.',
       sidangScheduled: 'Sidang Dijadwalkan',
       sidangScheduledDesc: 'Semua pihak terkait diberitahu. Mencoba menambahkan ke kalender.',
+      surveyRescheduledDesc: "Survei untuk proyek '{projectName}' telah dijadwalkan ulang. Semua pihak terkait telah diberitahu.",
       cannotAddCalendarYet: 'Belum Bisa Ditambahkan',
       mustScheduleFirst: 'Sidang harus dijadwalkan terlebih dahulu.',
       calendarError: 'Kesalahan Kalender',
@@ -859,5 +869,3 @@ const id = {
 };
 
 export default id;
-
-    

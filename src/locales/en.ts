@@ -317,6 +317,15 @@ const en = {
       struktur: "Structure",
       mep: "MEP",
     },
+    rescheduleSurveyDialog: {
+        buttonText: "Reschedule Survey",
+        title: "Reschedule Survey",
+        description: "Set a new date and time for the survey. Provide a reason for the change.",
+        reasonLabel: "Reason for Rescheduling (Required)",
+        reasonPlaceholder: "e.g., Bad weather, client unavailable...",
+        validationError: "Please fill in the new date, time, and reason.",
+        confirmButton: "Confirm Reschedule",
+    },
     toast: {
       permissionDenied: 'Permission Denied',
       notYourTurn: 'Not your turn to update progress.',
@@ -359,6 +368,7 @@ const en = {
       provideDateTimeLoc: 'Please provide date, time, and location.',
       sidangScheduled: 'Sidang Scheduled',
       sidangScheduledDesc: 'All relevant parties notified. Attempting to add to calendar.',
+      surveyRescheduledDesc: "Survey for project '{projectName}' has been rescheduled. All relevant parties have been notified.",
       cannotAddCalendarYet: 'Cannot Add Yet',
       mustScheduleFirst: 'Sidang must be scheduled first.',
       calendarError: 'Calendar Error',
@@ -859,5 +869,3 @@ const en = {
 };
 
 export default en;
-
-    

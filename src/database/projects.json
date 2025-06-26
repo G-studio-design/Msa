@@ -776,10 +776,10 @@
   {
     "id": "project_1750923884164_mtu12",
     "title": "proyek mega mendung",
-    "status": "Pending Parallel Design Uploads",
-    "progress": 50,
+    "status": "Pending Survey Details",
+    "progress": 45,
     "assignedDivision": "Admin Proyek",
-    "nextAction": "Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.",
+    "nextAction": "Input Jadwal Survei & Unggah Hasil (Opsional)",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -861,6 +861,12 @@
         "action": "sudina (Owner) submitted Survey Details for 2025-06-26 at 20:34",
         "timestamp": "2025-06-26T12:33:38.935Z",
         "note": "Survey Description: kantor pertanahan ."
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) reschedule_survey_from_parallel for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-26T13:58:35.049Z",
+        "note": "survey gagal karena hujan"
       }
     ],
     "files": [

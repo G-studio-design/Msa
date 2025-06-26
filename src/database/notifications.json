@@ -814,5 +814,29 @@
     "message": "Hasil survei untuk 'proyek mega mendung' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
     "timestamp": "2025-06-26T12:33:38.981Z",
     "isRead": false
+  },
+  {
+    "id": "notif_1750946315059_owcgj_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: survey gagal karena hujan",
+    "timestamp": "2025-06-26T13:58:35.058Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750946315072_7erja_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: survey gagal karena hujan",
+    "timestamp": "2025-06-26T13:58:35.069Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750946315081_1mt02_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: survey gagal karena hujan",
+    "timestamp": "2025-06-26T13:58:35.080Z",
+    "isRead": false
   }
 ]
