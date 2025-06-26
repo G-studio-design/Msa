@@ -776,12 +776,15 @@ export default function ProjectsPage() {
 
     const showUploadSection = React.useMemo(() => {
         if (!selectedProject || !currentUser) return false;
+        
         const userRole = currentUser.role.trim();
     
+        // Only design divisions can upload in parallel stage
         if (selectedProject.workflowId === 'msa_workflow' && selectedProject.status === 'Pending Parallel Design Uploads') {
             return ['Arsitek', 'Struktur', 'MEP'].includes(userRole);
         }
     
+        // General logic for other stages
         if (!canPerformSelectedProjectAction) {
             return false;
         }
@@ -795,21 +798,14 @@ export default function ProjectsPage() {
         return statusesExpectingUploadGeneral.includes(selectedProject.status);
     }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
-    const showAdminChecklistSection = React.useMemo(() => {
-      if (!selectedProject || !currentUser) return false;
-      return selectedProject.workflowId === 'msa_workflow' &&
-             selectedProject.status === 'Pending Parallel Design Uploads' &&
-             (currentUser.role === 'Admin Proyek' || currentUser.role === 'Owner' || currentUser.role === 'Admin Developer');
+    const showParallelDesignChecklistSection = React.useMemo(() => {
+        if (!selectedProject || !currentUser) return false;
+        const isParallelStatus = selectedProject.workflowId === 'msa_workflow' &&
+                               selectedProject.status === 'Pending Parallel Design Uploads';
+        const isAuthorizedRole = ['Admin Proyek', 'Owner', 'Admin Developer', 'Arsitek', 'Struktur', 'MEP'].includes(currentUser.role.trim());
+        return isParallelStatus && isAuthorizedRole;
     }, [selectedProject, currentUser]);
     
-    const showDesignDivisionChecklist = React.useMemo(() => {
-        if (!selectedProject || !currentUser) return false;
-        const userRole = currentUser.role.trim();
-        return selectedProject.workflowId === 'msa_workflow' &&
-               selectedProject.status === 'Pending Parallel Design Uploads' &&
-               ['Arsitek', 'Struktur', 'MEP'].includes(userRole);
-    }, [selectedProject, currentUser]);
-
    const showArchitectInitialImageUploadSection = React.useMemo(() => {
     return selectedProject &&
            currentUser &&
@@ -1015,7 +1011,7 @@ export default function ProjectsPage() {
                    </CardHeader>
                 </Card>
 
-                 {showAdminChecklistSection && parallelUploadChecklist && (
+                 {showParallelDesignChecklistSection && parallelUploadChecklist && (
                     <Card className="mb-6 shadow-md">
                         <CardHeader className="p-4 sm:p-6">
                             <CardTitle>{projectsDict.fileChecklist.title}</CardTitle>
@@ -1033,54 +1029,33 @@ export default function ProjectsPage() {
                                                 ) : (
                                                     <CircleIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                                 )}
-                                                <span className={cn(item.uploaded ? "text-foreground" : "text-muted-foreground")}>{item.name}</span>
+                                                <span className={cn("flex-grow", item.uploaded ? "text-foreground" : "text-muted-foreground")}>{item.name}</span>
+                                                {item.uploaded && item.filePath && (
+                                                    <Button variant="ghost" size="icon" onClick={() => handleDownloadFile({ name: item.name, path: item.filePath!, uploadedBy: '', timestamp: '' })} disabled={isDownloading} title={projectsDict.downloadFileTooltip} className="h-7 w-7 flex-shrink-0">
+                                                        {isDownloading ? <Loader2 className="h-4 w-4 animate-spin"/> : <Download className="h-4 w-4 text-primary" />}
+                                                    </Button>
+                                                )}
                                             </li>
                                         ))}
                                     </ul>
                                 </div>
                             ))}
                         </CardContent>
-                         <CardFooter className="p-4 sm:p-6 pt-0">
-                              <Button
-                                onClick={() => handleProgressSubmit('all_files_confirmed')}
-                                disabled={isSubmitting || !allChecklistItemsUploaded}
-                                className="w-full sm:w-auto accent-teal"
-                                title={!allChecklistItemsUploaded ? "Semua file harus diunggah sebelum melanjutkan" : ""}
-                              >
-                                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
-                                {projectsDict.confirmAllDesignsUploadedButton}
-                              </Button>
-                          </CardFooter>
+                         {(currentUser?.role === 'Admin Proyek' || currentUser?.role === 'Owner' || currentUser?.role === 'Admin Developer') && (
+                             <CardFooter className="p-4 sm:p-6 pt-0">
+                                  <Button
+                                    onClick={() => handleProgressSubmit('all_files_confirmed')}
+                                    disabled={isSubmitting || !allChecklistItemsUploaded}
+                                    className="w-full sm:w-auto accent-teal"
+                                    title={!allChecklistItemsUploaded ? "Semua file harus diunggah sebelum melanjutkan" : ""}
+                                  >
+                                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                                    {projectsDict.confirmAllDesignsUploadedButton}
+                                  </Button>
+                              </CardFooter>
+                         )}
                     </Card>
                  )}
-
-                {showDesignDivisionChecklist && parallelUploadChecklist && currentUser && (
-                    <Card className="mb-6 shadow-md">
-                        <CardHeader className="p-4 sm:p-6">
-                            <CardTitle>{projectsDict.yourChecklistTitle.replace('{division}', getTranslatedStatus(currentUser.role))}</CardTitle>
-                            <CardDescription>{projectsDict.yourChecklistDesc}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-4 sm:p-6 pt-0">
-                            <ul className="space-y-2">
-                                {parallelUploadChecklist[currentUser.role.trim() as keyof ParallelUploadChecklist]?.map((item, index) => (
-                                    <li key={index} className="flex items-center gap-2 text-sm">
-                                        {item.uploaded ? (
-                                            <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                                        ) : (
-                                            <CircleIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                        )}
-                                        <span className={cn(item.uploaded ? "text-foreground" : "text-muted-foreground")}>{item.name}</span>
-                                        {item.uploaded && item.filePath && (
-                                            <Button variant="ghost" size="icon" onClick={() => handleDownloadFile({ name: item.name, path: item.filePath, uploadedBy: '', timestamp: '' })} disabled={isDownloading} title={projectsDict.downloadFileTooltip} className="h-7 w-7 flex-shrink-0">
-                                                {isDownloading ? <Loader2 className="h-4 w-4 animate-spin"/> : <Download className="h-4 w-4 text-primary" />}
-                                            </Button>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
-                        </CardContent>
-                    </Card>
-                )}
 
                  <Card className="mb-6 shadow-md">
                     <CardHeader className="p-4 sm:p-6"><CardTitle>{projectsDict.workflowHistoryTitle}</CardTitle><CardDescription>{projectsDict.workflowHistoryDesc}</CardDescription></CardHeader>

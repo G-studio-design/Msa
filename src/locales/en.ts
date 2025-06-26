@@ -232,11 +232,9 @@ const en = {
     architectUploadInitialImagesDialogTitle: "Upload Initial Reference Images",
     architectUploadInitialImagesDialogDesc: "These images will be sent to Structure & MEP divisions for early planning. The project will remain in your court.",
     currentProjectActionsTitle: "Current Project Actions",
-    adminParallelUploadsGuidance: "Awaiting design file uploads from Architect, Structure, and MEP divisions. You can submit the project to the next stage once all required files are uploaded.",
+    adminParallelUploadsGuidance: "Monitor progress and download files from other divisions as references. Upload your required files below.",
     confirmAllDesignsUploadedButton: "Confirm All Designs Uploaded & Proceed",
     confirmingAllDesignsButton: "Confirming...",
-    yourChecklistTitle: "Your Checklist ({division})",
-    yourChecklistDesc: "This is your list of required documents for this stage. The items will be checked off automatically as you upload files with matching names.",
     nextActionDescriptions: {
         uploadOfferDocument: "Upload Offer Document",
         approveOfferDocument: "Approve Offer Document",
@@ -298,7 +296,7 @@ const en = {
         adminConfirmedAllDesigns: "Admin Project confirmed all parallel designs uploaded.", // New
     },
     fileChecklist: {
-      title: "Design & Engineering File Checklist",
+      title: "Shared Design Checklist",
       architect: "Architect",
       struktur: "Structure",
       mep: "MEP",

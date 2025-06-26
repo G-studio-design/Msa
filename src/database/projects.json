@@ -566,6 +566,21 @@
         "action": "agung (MEP) submitted for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
         "timestamp": "2025-06-26T02:55:21.902Z",
         "note": "RAP "
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) submitted for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-26T03:33:18.393Z"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) submitted for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-26T03:38:08.228Z"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) submitted for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-26T03:38:57.804Z"
       }
     ],
     "files": [
@@ -616,6 +631,24 @@
         "uploadedBy": "agung",
         "path": "project_1750762714162_h35ez-proyek_bali_merdeka/rap_mep_pdf",
         "timestamp": "2025-06-26T02:55:21.902Z"
+      },
+      {
+        "name": "Gambar Arsitek .pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/gambar_arsitek_pdf",
+        "timestamp": "2025-06-26T03:33:18.393Z"
+      },
+      {
+        "name": "RAP .pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/rap_pdf",
+        "timestamp": "2025-06-26T03:38:08.228Z"
+      },
+      {
+        "name": "SpekTek Proyek Bali Merdeka Arsitek.pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/spektek_proyek_bali_merdeka_arsitekpdf",
+        "timestamp": "2025-06-26T03:38:57.804Z"
       }
     ],
     "createdAt": "2025-06-24T10:58:34.162Z",

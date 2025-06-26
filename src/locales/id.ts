@@ -232,11 +232,9 @@ const id = {
     architectUploadInitialImagesDialogTitle: "Unggah Gambar Referensi Awal",
     architectUploadInitialImagesDialogDesc: "Gambar-gambar ini akan dikirim ke divisi Struktur & MEP untuk perencanaan awal. Proyek akan tetap menjadi tanggung jawab Anda.",
     currentProjectActionsTitle: "Tindakan Proyek Saat Ini",
-    adminParallelUploadsGuidance: "Menunggu unggahan file desain dari divisi Arsitek, Struktur, dan MEP. Anda dapat melanjutkan proyek ke tahap berikutnya setelah semua file yang diperlukan diunggah.",
+    adminParallelUploadsGuidance: "Pantau kemajuan dan unduh file dari divisi lain sebagai referensi. Unggah file yang Anda perlukan di bawah ini.",
     confirmAllDesignsUploadedButton: "Konfirmasi Semua Desain Telah Diunggah & Lanjutkan",
     confirmingAllDesignsButton: "Mengonfirmasi...",
-    yourChecklistTitle: "Checklist Anda ({division})",
-    yourChecklistDesc: "Ini adalah daftar dokumen yang harus Anda unggah pada tahap ini. Item akan tercentang secara otomatis saat Anda mengunggah file dengan nama yang cocok.",
     nextActionDescriptions: {
         uploadOfferDocument: "Unggah Dokumen Penawaran",
         approveOfferDocument: "Setujui Dokumen Penawaran",
@@ -298,7 +296,7 @@ const id = {
         adminConfirmedAllDesigns: "Admin Proyek mengonfirmasi semua desain paralel telah diunggah.", // New
     },
     fileChecklist: {
-      title: "Daftar Periksa Unggahan File Desain & Teknis",
+      title: "Checklist Desain Bersama",
       architect: "Arsitek",
       struktur: "Struktur",
       mep: "MEP",
