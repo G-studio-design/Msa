@@ -1,443 +1,5 @@
 [
   {
-    "id": "project_demo_aktif_001",
-    "title": "Proyek Renovasi Kantor Pusat",
-    "status": "Pending Architect Files",
-    "progress": 50,
-    "assignedDivision": "Arsitek",
-    "nextAction": "Unggah Berkas Arsitektur",
-    "workflowHistory": [
-      {
-        "division": "sudina",
-        "action": "Created Project",
-        "timestamp": "2024-05-24T10:00:00.000Z",
-        "note": "Proyek baru untuk renovasi."
-      },
-      {
-        "division": "System",
-        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
-        "timestamp": "2024-05-24T10:00:00.000Z"
-      },
-      {
-        "division": "Admin Proyek",
-        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
-        "timestamp": "2025-05-24T09:44:40.905Z",
-        "note": "dokumen penawaran"
-      },
-      {
-        "division": "Owner",
-        "action": "sudina (Owner) approved: Setujui Dokumen Penawaran",
-        "timestamp": "2025-05-24T09:46:31.662Z"
-      },
-      {
-        "division": "Akuntan",
-        "action": "oksi (Akuntan) submitted for \"Buat Faktur DP\"",
-        "timestamp": "2025-05-24T09:47:42.235Z",
-        "note": "faktur dp"
-      },
-      {
-        "division": "Owner",
-        "action": "sudina (Owner) approved: Setujui Faktur DP",
-        "timestamp": "2025-05-24T09:48:07.167Z"
-      },
-      {
-        "division": "Admin Proyek",
-        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Berkas Administrasi\"",
-        "timestamp": "2025-05-24T10:19:28.505Z",
-        "note": "berkas administrasi proyek"
-      },
-      {
-        "division": "Admin Proyek",
-        "action": "komangmerta (Admin Proyek) submitted Survey Details for 2025-05-29 at 08:50",
-        "timestamp": "2025-05-27T11:54:26.380Z",
-        "note": "Survey Description: survey langsung ke lokasi."
-      },
-      {
-        "division": "Arsitek",
-        "action": "arsitek (Arsitek) uploaded initial reference images for Struktur & MEP.",
-        "timestamp": "2025-05-28T08:29:09.664Z",
-        "note": "gambar arsitektur"
-      }
-    ],
-    "files": [
-      {
-        "name": "pool warung semana.pdf",
-        "uploadedBy": "komangmerta",
-        "path": "project_demo_aktif_001-proyek_renovasi_kantor_pusat/pool_warung_semanapdf",
-        "timestamp": "2025-05-24T09:44:40.905Z"
-      },
-      {
-        "name": "faktur dp.txt",
-        "uploadedBy": "oksi",
-        "path": "project_demo_aktif_001-proyek_renovasi_kantor_pusat/faktur_dptxt",
-        "timestamp": "2025-05-24T09:47:42.235Z"
-      },
-      {
-        "name": "pemecahan nangka.pdf",
-        "uploadedBy": "komangmerta",
-        "path": "project_demo_aktif_001-proyek_renovasi_kantor_pusat/pemecahan_nangkapdf",
-        "timestamp": "2025-05-24T10:19:28.505Z"
-      },
-      {
-        "name": "plot.log",
-        "uploadedBy": "komangmerta",
-        "path": "project_demo_aktif_001-proyek_renovasi_kantor_pusat/plotlog",
-        "timestamp": "2025-05-24T10:19:28.505Z"
-      },
-      {
-        "name": "pool warung semana.pdf",
-        "uploadedBy": "komangmerta",
-        "path": "project_demo_aktif_001-proyek_renovasi_kantor_pusat/pool_warung_semanapdf",
-        "timestamp": "2025-05-24T10:19:28.505Z"
-      },
-      {
-        "name": "pool warung semana.pdf",
-        "uploadedBy": "arsitek",
-        "path": "project_demo_aktif_001-proyek_renovasi_kantor_pusat/pool_warung_semanapdf",
-        "timestamp": "2025-05-28T08:29:09.664Z"
-      }
-    ],
-    "createdAt": "2024-05-24T10:00:00.000Z",
-    "createdBy": "sudina",
-    "workflowId": "default_standard_workflow",
-    "surveyDetails": {
-      "date": "2025-05-29",
-      "time": "08:50",
-      "description": "survey langsung ke lokasi"
-    }
-  },
-  {
-    "id": "project_demo_menunggu_dp_003",
-    "title": "Pembangunan Villa Ubud",
-    "status": "Pending Architect Files",
-    "progress": 50,
-    "assignedDivision": "Arsitek",
-    "nextAction": "Unggah Berkas Arsitektur",
-    "workflowHistory": [
-      {
-        "division": "sudina",
-        "action": "Created Project",
-        "timestamp": "2024-05-25T09:00:00.000Z"
-      },
-      {
-        "division": "System",
-        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
-        "timestamp": "2024-05-25T09:00:00.000Z"
-      },
-      {
-        "division": "Admin Proyek",
-        "action": "adminproyek (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
-        "timestamp": "2024-05-25T10:00:00.000Z",
-        "note": "Penawaran awal terlampir."
-      },
-      {
-        "division": "Owner",
-        "action": "sudina (Owner) approved: Setujui Dokumen Penawaran",
-        "timestamp": "2024-05-25T11:00:00.000Z"
-      },
-      {
-        "division": "Akuntan",
-        "action": "oksi (Akuntan) submitted for \"Buat Faktur DP\"",
-        "timestamp": "2025-05-24T09:38:23.660Z",
-        "note": "dokumen penawaran"
-      },
-      {
-        "division": "Owner",
-        "action": "sudina (Owner) approved: Setujui Faktur DP",
-        "timestamp": "2025-05-24T09:41:24.628Z"
-      },
-      {
-        "division": "Admin Proyek",
-        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Berkas Administrasi\"",
-        "timestamp": "2025-05-24T09:42:19.160Z",
-        "note": "faktur dp"
-      },
-      {
-        "division": "Admin Proyek",
-        "action": "komangmerta (Admin Proyek) submitted Survey Details for 2025-05-26 at 15:20",
-        "timestamp": "2025-05-24T09:45:45.209Z",
-        "note": "Survey Description: survei  proyek di tabanan."
-      },
-      {
-        "division": "Arsitek",
-        "action": "arsitek (Arsitek) uploaded initial reference images for Structure.",
-        "timestamp": "2025-05-24T09:49:25.034Z"
-      }
-    ],
-    "files": [
-      {
-        "name": "plot.log",
-        "uploadedBy": "oksi",
-        "path": "project_demo_menunggu_dp_003-pembangunan_villa_ubud/plotlog",
-        "timestamp": "2025-05-24T09:38:23.660Z"
-      },
-      {
-        "name": "New Text Document.txt",
-        "uploadedBy": "komangmerta",
-        "path": "project_demo_menunggu_dp_003-pembangunan_villa_ubud/new_text_documenttxt",
-        "timestamp": "2025-05-24T09:42:19.160Z"
-      },
-      {
-        "name": "pool warung semana.pdf",
-        "uploadedBy": "arsitek",
-        "path": "project_demo_menunggu_dp_003-pembangunan_villa_ubud/pool_warung_semanapdf",
-        "timestamp": "2025-05-24T09:49:25.034Z"
-      }
-    ],
-    "createdAt": "2024-05-25T09:00:00.000Z",
-    "createdBy": "sudina",
-    "workflowId": "default_standard_workflow",
-    "surveyDetails": {
-      "date": "2025-05-26",
-      "time": "15:20",
-      "description": "survei  proyek di tabanan"
-    }
-  },
-  {
-    "id": "project_1748335034794_tx1vy",
-    "title": "proyek hotel ubud",
-    "status": "Pending Architect Files",
-    "progress": 50,
-    "assignedDivision": "Arsitek",
-    "nextAction": "Unggah Berkas Arsitektur",
-    "workflowId": "default_standard_workflow",
-    "workflowHistory": [
-      {
-        "division": "sudina",
-        "action": "Created Project with workflow: default_standard_workflow",
-        "timestamp": "2025-05-27T08:37:14.794Z",
-        "note": "Initial files: 1"
-      },
-      {
-        "division": "sudina",
-        "action": "Uploaded initial file: pool warung semana.pdf",
-        "timestamp": "2025-05-27T08:37:14.460Z"
-      },
-      {
-        "division": "System",
-        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
-        "timestamp": "2025-05-27T08:37:14.794Z"
-      },
-      {
-        "division": "Admin Proyek",
-        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
-        "timestamp": "2025-05-27T08:38:12.660Z",
-        "note": "berkas penawaran"
-      },
-      {
-        "division": "Owner",
-        "action": "sudina (Owner) approved: Setujui Dokumen Penawaran",
-        "timestamp": "2025-05-27T08:38:35.947Z"
-      },
-      {
-        "division": "Akuntan",
-        "action": "oksi (Akuntan) submitted for \"Buat Faktur DP\"",
-        "timestamp": "2025-05-27T08:39:18.549Z",
-        "note": "dp invoice"
-      },
-      {
-        "division": "Owner",
-        "action": "sudina (Owner) approved: Setujui Faktur DP",
-        "timestamp": "2025-05-27T08:39:44.891Z"
-      },
-      {
-        "division": "Admin Proyek",
-        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Berkas Administrasi\"",
-        "timestamp": "2025-05-27T08:40:48.001Z",
-        "note": "berkas administrasi proyek"
-      },
-      {
-        "division": "Arsitek",
-        "action": "arsitek (Arsitek) submitted Survey Details for 2025-05-28 at 08:50",
-        "timestamp": "2025-05-27T09:59:56.949Z",
-        "note": "Survey Description: survey proyek."
-      },
-      {
-        "division": "Arsitek",
-        "action": "arsitek (Arsitek) uploaded initial reference images for Struktur & MEP.",
-        "timestamp": "2025-05-27T10:52:15.567Z",
-        "note": "gambar proyek arsitek"
-      },
-      {
-        "division": "Arsitek",
-        "action": "arsitek (Arsitek) uploaded initial reference images for Struktur & MEP.",
-        "timestamp": "2025-06-09T12:12:45.947Z",
-        "note": "gambar arsitek"
-      }
-    ],
-    "files": [
-      {
-        "name": "pool warung semana.pdf",
-        "uploadedBy": "sudina",
-        "path": "temp-id-for-upload-proyek_hotel_ubud/pool_warung_semanapdf",
-        "timestamp": "2025-05-27T08:37:14.460Z"
-      },
-      {
-        "name": "TEMBOK  WRS.pdf",
-        "uploadedBy": "komangmerta",
-        "path": "project_1748335034794_tx1vy-proyek_hotel_ubud/tembok_wrspdf",
-        "timestamp": "2025-05-27T08:38:12.660Z"
-      },
-      {
-        "name": "faktur dp.txt",
-        "uploadedBy": "oksi",
-        "path": "project_1748335034794_tx1vy-proyek_hotel_ubud/faktur_dptxt",
-        "timestamp": "2025-05-27T08:39:18.549Z"
-      },
-      {
-        "name": "faktur dp.txt",
-        "uploadedBy": "komangmerta",
-        "path": "project_1748335034794_tx1vy-proyek_hotel_ubud/faktur_dptxt",
-        "timestamp": "2025-05-27T08:40:48.001Z"
-      },
-      {
-        "name": "New Text Document.txt",
-        "uploadedBy": "komangmerta",
-        "path": "project_1748335034794_tx1vy-proyek_hotel_ubud/new_text_documenttxt",
-        "timestamp": "2025-05-27T08:40:48.001Z"
-      },
-      {
-        "name": "pool warung semana.pdf",
-        "uploadedBy": "komangmerta",
-        "path": "project_1748335034794_tx1vy-proyek_hotel_ubud/pool_warung_semanapdf",
-        "timestamp": "2025-05-27T08:40:48.001Z"
-      },
-      {
-        "name": "pool warung semana.pdf",
-        "uploadedBy": "arsitek",
-        "path": "project_1748335034794_tx1vy-proyek_hotel_ubud/pool_warung_semanapdf",
-        "timestamp": "2025-05-27T10:52:15.567Z"
-      },
-      {
-        "name": "pemecahan nangka 2.pdf",
-        "uploadedBy": "arsitek",
-        "path": "project_1748335034794_tx1vy-proyek_hotel_ubud/pemecahan_nangka_2pdf",
-        "timestamp": "2025-06-09T12:12:45.947Z"
-      }
-    ],
-    "createdAt": "2025-05-27T08:37:14.794Z",
-    "createdBy": "sudina",
-    "surveyDetails": {
-      "date": "2025-05-28",
-      "time": "08:50",
-      "description": "survey proyek"
-    }
-  },
-  {
-    "id": "project_test_ppdu_001",
-    "title": "Tes Proyek Unggah Desain Paralel",
-    "status": "Pending Parallel Design Uploads",
-    "progress": 55,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Verify all design files are uploaded and proceed.",
-    "workflowHistory": [
-      {
-        "division": "Admin Proyek",
-        "action": "Moved to Parallel Design Uploads",
-        "timestamp": "2024-05-28T10:00:00.000Z",
-        "note": "Awaiting designs from Architect, Structure, MEP."
-      }
-    ],
-    "files": [],
-    "createdAt": "2024-05-28T09:00:00.000Z",
-    "createdBy": "admin_test",
-    "workflowId": "default_standard_workflow"
-  },
-  {
-    "id": "project_1749619498431_vp9jp",
-    "title": "proyek gapura tabanan",
-    "status": "Pending Parallel Design Uploads",
-    "progress": 50,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.",
-    "workflowId": "msa_workflow",
-    "workflowHistory": [
-      {
-        "division": "sudina",
-        "action": "Created Project with workflow: msa_workflow",
-        "timestamp": "2025-06-11T05:24:58.431Z",
-        "note": "Initial files: 1"
-      },
-      {
-        "division": "sudina",
-        "action": "Uploaded initial file: POOL.pdf",
-        "timestamp": "2025-06-11T05:24:58.161Z"
-      },
-      {
-        "division": "System",
-        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
-        "timestamp": "2025-06-11T05:24:58.431Z"
-      },
-      {
-        "division": "Admin Proyek",
-        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
-        "timestamp": "2025-06-11T05:26:36.665Z",
-        "note": "dokumen penawaran"
-      },
-      {
-        "division": "Owner",
-        "action": "sudina (Owner) approved: Setujui Dokumen Penawaran",
-        "timestamp": "2025-06-11T05:27:05.695Z"
-      },
-      {
-        "division": "Akuntan",
-        "action": "oksi (Akuntan) submitted for \"Buat Faktur DP\"",
-        "timestamp": "2025-06-11T05:28:01.461Z",
-        "note": "invoice dp"
-      },
-      {
-        "division": "Owner",
-        "action": "sudina (Owner) approved: Setujui Faktur DP",
-        "timestamp": "2025-06-11T05:28:36.010Z"
-      },
-      {
-        "division": "Admin Proyek",
-        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Berkas Administrasi\"",
-        "timestamp": "2025-06-11T05:30:14.518Z",
-        "note": "dokumen kelengkapan proyek"
-      },
-      {
-        "division": "Arsitek",
-        "action": "arsitek (Arsitek) submitted Survey Details for 2025-06-12 at 08:30",
-        "timestamp": "2025-06-11T05:32:51.481Z",
-        "note": "Survey Description: lokasi di map: https://maps.app.goo.gl/z66bvg5T2W4V1RocA."
-      }
-    ],
-    "files": [
-      {
-        "name": "POOL.pdf",
-        "uploadedBy": "sudina",
-        "path": "temp-id-for-upload-proyek_gapura_tabanan/poolpdf",
-        "timestamp": "2025-06-11T05:24:58.161Z"
-      },
-      {
-        "name": "dokumen penawaran .pdf",
-        "uploadedBy": "komangmerta",
-        "path": "project_1749619498431_vp9jp-proyek_gapura_tabanan/dokumen_penawaran_pdf",
-        "timestamp": "2025-06-11T05:26:36.665Z"
-      },
-      {
-        "name": "invoice dp.pdf",
-        "uploadedBy": "oksi",
-        "path": "project_1749619498431_vp9jp-proyek_gapura_tabanan/invoice_dppdf",
-        "timestamp": "2025-06-11T05:28:01.461Z"
-      },
-      {
-        "name": "dokumen kelengkapan proyek.pdf",
-        "uploadedBy": "komangmerta",
-        "path": "project_1749619498431_vp9jp-proyek_gapura_tabanan/dokumen_kelengkapan_proyekpdf",
-        "timestamp": "2025-06-11T05:30:14.518Z"
-      }
-    ],
-    "createdAt": "2025-06-11T05:24:58.431Z",
-    "createdBy": "sudina",
-    "surveyDetails": {
-      "date": "2025-06-12",
-      "time": "08:30",
-      "description": "lokasi di map: https://maps.app.goo.gl/z66bvg5T2W4V1RocA"
-    }
-  },
-  {
     "id": "project_1750738966127_dn9n5",
     "title": "proyek kesambi",
     "status": "Pending Offer",
@@ -1183,10 +745,10 @@
   {
     "id": "project_1750950968313_qtcnd",
     "title": "proyek villa di tanah lot",
-    "status": "Pending Parallel Design Uploads",
-    "progress": 50,
+    "status": "Pending Post-Sidang Revision",
+    "progress": 85,
     "assignedDivision": "Admin Proyek",
-    "nextAction": "Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.",
+    "nextAction": "Lakukan revisi pasca-sidang. Notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -1278,6 +840,148 @@
         "action": "Marked their design/revision phase as complete.",
         "timestamp": "2025-06-26T17:05:16.719Z",
         "note": "Divisi Arsitek telah menyelesaikan tugasnya."
+      },
+      {
+        "division": "MEP",
+        "action": "agung (MEP) uploaded file(s).",
+        "timestamp": "2025-06-26T17:20:36.510Z",
+        "note": "Analisa Laporan.pdf, Daftar SIMak Proyek Bali Merdeka.pdf, Gambar .pdf, RAP MEp.pdf, Spektek.pdf"
+      },
+      {
+        "division": "agung",
+        "action": "Marked their design/revision phase as complete.",
+        "timestamp": "2025-06-26T17:20:43.024Z",
+        "note": "Divisi MEP telah menyelesaikan tugasnya."
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) all_files_confirmed for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-26T17:21:04.194Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) scheduled Sidang on 2025-06-27 at 01:23",
+        "timestamp": "2025-06-26T17:21:23.646Z",
+        "note": "Location: Ruang Konfrensi Puspem."
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) reschedule_sidang for \"Nyatakan Hasil Sidang\"",
+        "timestamp": "2025-06-26T17:22:22.130Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) scheduled Sidang on 2025-06-27 at 01:23",
+        "timestamp": "2025-06-26T17:22:36.898Z",
+        "note": "Location: Ruang Konfrensi Puspem."
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) declared Sidang outcome as: revise",
+        "timestamp": "2025-06-26T17:23:11.353Z",
+        "note": "revisi gambar struktur"
+      },
+      {
+        "division": "komangmerta",
+        "action": "Deleted file: \"Gambar .pdf\"",
+        "timestamp": "2025-06-26T17:24:07.405Z"
+      },
+      {
+        "division": "MEP",
+        "action": "agung (MEP) uploaded file(s).",
+        "timestamp": "2025-06-26T17:28:06.427Z",
+        "note": "Gambar .pdf"
+      },
+      {
+        "division": "Struktur",
+        "action": "struktur (Struktur) uploaded file(s).",
+        "timestamp": "2025-06-26T17:28:22.761Z",
+        "note": "Gambar .pdf"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) uploaded file(s).",
+        "timestamp": "2025-06-26T17:28:41.212Z",
+        "note": "Gambar .pdf"
+      },
+      {
+        "division": "arsitek",
+        "action": "Marked their design/revision phase as complete.",
+        "timestamp": "2025-06-26T17:28:44.475Z",
+        "note": "Divisi Arsitek telah menyelesaikan tugasnya."
+      },
+      {
+        "division": "struktur",
+        "action": "Marked their design/revision phase as complete.",
+        "timestamp": "2025-06-26T17:28:49.273Z",
+        "note": "Divisi Struktur telah menyelesaikan tugasnya."
+      },
+      {
+        "division": "agung",
+        "action": "Marked their design/revision phase as complete.",
+        "timestamp": "2025-06-26T17:28:54.095Z",
+        "note": "Divisi MEP telah menyelesaikan tugasnya."
+      },
+      {
+        "division": "komangmerta",
+        "action": "Deleted file: \"Gambar .pdf\"",
+        "timestamp": "2025-06-26T17:30:19.632Z"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) uploaded file(s).",
+        "timestamp": "2025-06-26T17:42:30.251Z",
+        "note": "Gambar .pdf"
+      },
+      {
+        "division": "Struktur",
+        "action": "struktur (Struktur) uploaded file(s).",
+        "timestamp": "2025-06-26T17:42:44.874Z",
+        "note": "Gambar .pdf"
+      },
+      {
+        "division": "MEP",
+        "action": "agung (MEP) uploaded file(s).",
+        "timestamp": "2025-06-26T17:43:01.553Z",
+        "note": "Gambar .pdf"
+      },
+      {
+        "division": "komangmerta",
+        "action": "Deleted file: \"Gambar .pdf\"",
+        "timestamp": "2025-06-26T17:43:14.470Z"
+      },
+      {
+        "division": "komangmerta",
+        "action": "Deleted file: \"Daftar SIMak Proyek Bali Merdeka.pdf\"",
+        "timestamp": "2025-06-26T17:43:23.704Z"
+      },
+      {
+        "division": "komangmerta",
+        "action": "Deleted file: \"Spektek.pdf\"",
+        "timestamp": "2025-06-26T17:44:28.339Z"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) uploaded file(s).",
+        "timestamp": "2025-06-26T17:50:35.036Z",
+        "note": "Daftar SIMak Proyek Bali Merdeka.pdf, Gambar  - Arsitek .pdf, Spektek.pdf"
+      },
+      {
+        "division": "Struktur",
+        "action": "struktur (Struktur) uploaded file(s).",
+        "timestamp": "2025-06-26T17:51:06.782Z",
+        "note": "Daftar SIMak Proyek Bali Merdeka.pdf, Gambar  - Struktur.pdf, Spektek.pdf"
+      },
+      {
+        "division": "MEP",
+        "action": "agung (MEP) uploaded file(s).",
+        "timestamp": "2025-06-26T17:51:33.033Z",
+        "note": "Daftar SIMak Proyek Bali Merdeka.pdf, Gambar - MEP .pdf, Spektek.pdf"
+      },
+      {
+        "division": "komangmerta",
+        "action": "Deleted file: \"Gambar  - Struktur.pdf\"",
+        "timestamp": "2025-06-26T17:51:54.056Z"
       }
     ],
     "files": [
@@ -1300,27 +1004,9 @@
         "timestamp": "2025-06-26T16:38:47.250Z"
       },
       {
-        "name": "Daftar SIMak Proyek Bali Merdeka.pdf",
-        "uploadedBy": "Arsitek",
-        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/daftar_simak_proyek_bali_merdekapdf",
-        "timestamp": "2025-06-26T17:01:42.819Z"
-      },
-      {
-        "name": "Gambar .pdf",
-        "uploadedBy": "Arsitek",
-        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/gambar_pdf",
-        "timestamp": "2025-06-26T17:01:42.819Z"
-      },
-      {
         "name": "RAP MEp.pdf",
         "uploadedBy": "Arsitek",
         "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/rap_meppdf",
-        "timestamp": "2025-06-26T17:01:42.819Z"
-      },
-      {
-        "name": "Spektek.pdf",
-        "uploadedBy": "Arsitek",
-        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/spektekpdf",
         "timestamp": "2025-06-26T17:01:42.819Z"
       },
       {
@@ -1330,28 +1016,70 @@
         "timestamp": "2025-06-26T17:03:03.087Z"
       },
       {
-        "name": "Daftar SIMak Proyek Bali Merdeka.pdf",
-        "uploadedBy": "Struktur",
-        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/daftar_simak_proyek_bali_merdekapdf",
-        "timestamp": "2025-06-26T17:03:03.087Z"
-      },
-      {
-        "name": "Gambar .pdf",
-        "uploadedBy": "Struktur",
-        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/gambar_pdf",
-        "timestamp": "2025-06-26T17:03:03.087Z"
-      },
-      {
         "name": "Hammer Test .pdf",
         "uploadedBy": "Struktur",
         "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/hammer_test_pdf",
         "timestamp": "2025-06-26T17:03:03.087Z"
       },
       {
+        "name": "Analisa Laporan.pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/analisa_laporanpdf",
+        "timestamp": "2025-06-26T17:20:36.510Z"
+      },
+      {
+        "name": "RAP MEp.pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/rap_meppdf",
+        "timestamp": "2025-06-26T17:20:36.510Z"
+      },
+      {
+        "name": "Daftar SIMak Proyek Bali Merdeka.pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/daftar_simak_proyek_bali_merdekapdf",
+        "timestamp": "2025-06-26T17:50:35.036Z"
+      },
+      {
+        "name": "Gambar  - Arsitek .pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/gambar_-_arsitek_pdf",
+        "timestamp": "2025-06-26T17:50:35.036Z"
+      },
+      {
+        "name": "Spektek.pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/spektekpdf",
+        "timestamp": "2025-06-26T17:50:35.036Z"
+      },
+      {
+        "name": "Daftar SIMak Proyek Bali Merdeka.pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/daftar_simak_proyek_bali_merdekapdf",
+        "timestamp": "2025-06-26T17:51:06.782Z"
+      },
+      {
         "name": "Spektek.pdf",
         "uploadedBy": "Struktur",
         "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/spektekpdf",
-        "timestamp": "2025-06-26T17:03:03.087Z"
+        "timestamp": "2025-06-26T17:51:06.782Z"
+      },
+      {
+        "name": "Daftar SIMak Proyek Bali Merdeka.pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/daftar_simak_proyek_bali_merdekapdf",
+        "timestamp": "2025-06-26T17:51:33.033Z"
+      },
+      {
+        "name": "Gambar - MEP .pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/gambar_-_mep_pdf",
+        "timestamp": "2025-06-26T17:51:33.033Z"
+      },
+      {
+        "name": "Spektek.pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/spektekpdf",
+        "timestamp": "2025-06-26T17:51:33.033Z"
       }
     ],
     "createdAt": "2025-06-26T15:16:08.313Z",
@@ -1362,9 +1090,15 @@
       "description": "lokasi di ..."
     },
     "parallelUploadsCompletedBy": [
+      "Arsitek",
       "Struktur",
-      "Arsitek"
-    ]
+      "MEP"
+    ],
+    "scheduleDetails": {
+      "date": "2025-06-27",
+      "time": "01:23",
+      "location": "Ruang Konfrensi Puspem"
+    }
   },
   {
     "id": "project_1750955327988_zof0g",

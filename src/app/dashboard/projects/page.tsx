@@ -427,8 +427,7 @@ export default function ProjectsPage() {
     const isDesignDivision = ['Arsitek', 'Struktur', 'MEP'].includes(userRole);
     
     if (selectedProject.status === 'Pending Post-Sidang Revision' && isDesignDivision) return true;
-    // Allow Arsitek to act during Survey Scheduled as well
-    if (selectedProject.status === 'Survey Scheduled' && userRole === 'Arsitek') return true;
+    if (selectedProject.status === 'Survey Scheduled' && (userRole === 'Arsitek' || userRole === 'Admin Proyek')) return true;
 
     const assignedDivisionCleaned = selectedProject.assignedDivision?.trim();
     return userRole === assignedDivisionCleaned;
@@ -668,8 +667,8 @@ export default function ProjectsPage() {
     }
 
     // New logic for 'completed' action from final documents step
-    if (decision === 'completed' && selectedProject.status === 'Pending Final Documents' && currentUser.role !== 'Admin Proyek') {
-        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: "Only Admin Proyek can complete the project at this stage." });
+    if (decision === 'completed' && selectedProject.status === 'Pending Final Documents' && !['Admin Proyek', 'Owner'].includes(currentUser.role)) {
+        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: "Only Admin Proyek or Owner can complete the project at this stage." });
         return;
     }
 
@@ -1102,6 +1101,42 @@ export default function ProjectsPage() {
         }
     }, [selectedProject, currentUser, toast, projectsDict, getTranslatedStatus]);
 
+    const handleNotifyDivision = async (division: 'Arsitek' | 'Struktur' | 'MEP') => {
+        if (!selectedProject || !currentUser) return;
+        setIsSubmitting(true);
+        try {
+            const response = await fetch('/api/notify-division', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    projectId: selectedProject.id,
+                    projectName: selectedProject.title,
+                    actorUserId: currentUser.id,
+                    divisionToNotify: division,
+                }),
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.error || `Gagal mengirim notifikasi ke ${division}.`);
+            }
+            toast({
+                title: projectsDict.toast.revisionNotificationSentTitle,
+                description: projectsDict.toast.revisionNotificationSentDesc
+                    .replace('{division}', getTranslatedStatus(division))
+                    .replace('{projectName}', selectedProject.title)
+                    .replace('{actorUsername}', currentUser.username),
+            });
+        } catch (error: any) {
+            toast({
+                variant: 'destructive',
+                title: projectsDict.toast.error,
+                description: error.message,
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     const allChecklistItemsUploaded = React.useMemo(() => {
         if (!parallelUploadChecklist) return false;
         return Object.values(parallelUploadChecklist).every(divisionItems =>
@@ -1139,10 +1174,9 @@ export default function ProjectsPage() {
         const projectFiles = selectedProject.files || [];
         return finalDocRequirements.map(reqName => {
             const uploadedFile = projectFiles.find(file => {
-                const fileNameKeywords = reqName.toLowerCase().split(' ').filter(k => k);
-                const allKeywordsMatch = fileNameKeywords.every(keyword => 
-                    file.name.toLowerCase().includes(keyword)
-                );
+                const reqKeywords = reqName.toLowerCase().split(' ').filter(k => k);
+                const fileNameLower = file.name.toLowerCase();
+                const allKeywordsMatch = reqKeywords.every(keyword => fileNameLower.includes(keyword));
                 return allKeywordsMatch && file.uploadedBy === 'Admin Proyek';
             });
             return { name: reqName, uploaded: !!uploadedFile, filePath: uploadedFile?.path, originalFileName: uploadedFile?.name };
@@ -1782,13 +1816,13 @@ export default function ProjectsPage() {
                                 {currentUser?.role === 'Admin Proyek' && (
                                     <>
                                         <div className="flex flex-col sm:flex-row gap-2">
-                                            <Button variant="outline" onClick={() => {}} disabled={isSubmitting}>
+                                            <Button variant="outline" onClick={() => handleNotifyDivision('Arsitek')} disabled={isSubmitting}>
                                                 <Briefcase className="mr-2 h-4 w-4" /> {projectsDict.notifyArchitectForRevisionButton}
                                             </Button>
-                                            <Button variant="outline" onClick={() => {}} disabled={isSubmitting}>
+                                            <Button variant="outline" onClick={() => handleNotifyDivision('Struktur')} disabled={isSubmitting}>
                                                 <Replace className="mr-2 h-4 w-4" /> {projectsDict.notifyStructureForRevisionButton}
                                             </Button>
-                                            <Button variant="outline" onClick={() => {}} disabled={isSubmitting}>
+                                            <Button variant="outline" onClick={() => handleNotifyDivision('MEP')} disabled={isSubmitting}>
                                                 <Wrench className="mr-2 h-4 w-4" /> {projectsDict.notifyMEPForRevisionButton}
                                             </Button>
                                         </div>

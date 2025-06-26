@@ -1255,7 +1255,7 @@
     "projectId": "project_1750950968313_qtcnd",
     "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada {surveyDate} oleh arsitek.",
     "timestamp": "2025-06-26T16:39:35.069Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750956303428_xiwv4_22a",
@@ -1271,7 +1271,7 @@
     "projectId": "project_1750950968313_qtcnd",
     "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
     "timestamp": "2025-06-26T16:45:03.436Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750956303442_yukmi_h9d",
@@ -1351,7 +1351,7 @@
     "projectId": "project_1750950968313_qtcnd",
     "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
     "timestamp": "2025-06-26T16:59:01.752Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750957141773_agyad_h9d",
@@ -1399,6 +1399,166 @@
     "projectId": "project_1750950968313_qtcnd",
     "message": "Divisi Arsitek telah menyelesaikan unggahan mereka untuk proyek \"proyek villa di tanah lot\".",
     "timestamp": "2025-06-26T17:05:16.727Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958436522_6ff9d_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "MEP baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:20:36.522Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958443035_a8in6_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Divisi MEP telah menyelesaikan unggahan mereka untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:20:43.028Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958464204_58ig1_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Semua berkas desain untuk proyek 'proyek villa di tanah lot' telah dikonfirmasi terunggah oleh komangmerta. Mohon jadwalkan sidang.",
+    "timestamp": "2025-06-26T17:21:04.204Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958483654_llfmf_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Sidang untuk proyek 'proyek villa di tanah lot' telah dijadwalkan oleh komangmerta. Mohon nyatakan hasilnya setelah selesai.",
+    "timestamp": "2025-06-26T17:21:23.652Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750958542141_d98q5_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Sidang untuk proyek 'proyek villa di tanah lot' perlu dijadwalkan ulang oleh Anda atas permintaan dari sudina.",
+    "timestamp": "2025-06-26T17:22:22.140Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958556912_aeeqx_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Sidang untuk proyek 'proyek villa di tanah lot' telah dijadwalkan oleh sudina. Mohon nyatakan hasilnya setelah selesai.",
+    "timestamp": "2025-06-26T17:22:36.907Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958591374_4x7ve_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Proyek 'proyek villa di tanah lot' memerlukan revisi setelah sidang yang dinyatakan oleh sudina.",
+    "timestamp": "2025-06-26T17:23:11.371Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750958886440_56cyd_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "MEP baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:28:06.439Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958902772_zvzcy_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:28:22.771Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958921228_celko_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Arsitek baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:28:41.226Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958924480_l3do9_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Divisi Arsitek telah menyelesaikan unggahan mereka untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:28:44.479Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958929279_499ol_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Divisi Struktur telah menyelesaikan unggahan mereka untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:28:49.278Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958934109_dfv5r_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Divisi MEP telah menyelesaikan unggahan mereka untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:28:54.103Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750959612940_ezy1b_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_demo_aktif_001",
+    "message": "Proyek \"Proyek Renovasi Kantor Pusat\" telah diperbarui secara manual oleh komangmerta. Status baru: \"Pending Admin Files\", Ditugaskan ke: \"Admin Proyek\". Tindakan berikutnya: Unggah Berkas Administrasi. Alasan: untuk demo",
+    "timestamp": "2025-06-26T17:40:12.939Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750959750267_370vu_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Arsitek baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:42:30.265Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750959764882_9fcgy_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:42:44.881Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750959781566_zqddz_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "MEP baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:43:01.565Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750960235054_z71bp_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Arsitek baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:50:35.052Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750960266799_h6k31_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:51:06.798Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750960293042_ohqvy_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "MEP baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:51:33.041Z",
     "isRead": false
   }
 ]
