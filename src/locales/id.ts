@@ -179,6 +179,7 @@ const id = {
     sidangOutcomeDesc: 'Tandai proyek sebagai berhasil diselesaikan, perlu revisi, atau gagal berdasarkan hasil sidang.',
     markSuccessButton: 'Tandai sebagai Berhasil',
     markRevisionNeededButton: 'Minta Revisi Pasca Sidang',
+    rescheduleSidangButton: "Jadwalkan Ulang Sidang",
     markFailButton: 'Tandai sebagai Gagal (Batalkan Proyek)',
     postSidangRevisionActionsSectionTitle: "Tindakan Revisi Pasca-Sidang",
     postSidangRevisionDialogTitle: 'Minta Revisi Pasca-Sidang',

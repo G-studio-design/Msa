@@ -1053,6 +1053,54 @@
     "projectId": "project_1750738966127_dn9n5",
     "message": "Penawaran untuk proyek 'proyek kesambi' perlu direvisi oleh Anda berdasarkan masukan dari sudina.",
     "timestamp": "2025-06-26T14:49:30.323Z",
-    "isRead": false
+    "isRead": true
+  },
+  {
+    "id": "notif_1750949529471_ve807_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek mega mendung\".",
+    "timestamp": "2025-06-26T14:52:09.469Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750949544160_sgg6v_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Divisi Struktur telah menyelesaikan unggahan mereka untuk proyek \"proyek mega mendung\".",
+    "timestamp": "2025-06-26T14:52:24.159Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750949676381_b97nj_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "MEP baru saja mengunggah file untuk proyek \"proyek mega mendung\".",
+    "timestamp": "2025-06-26T14:54:36.379Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750949680694_ryg8b_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Divisi MEP telah menyelesaikan unggahan mereka untuk proyek \"proyek mega mendung\".",
+    "timestamp": "2025-06-26T14:54:40.691Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750949733577_1inco_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Semua berkas desain untuk proyek 'proyek mega mendung' telah dikonfirmasi terunggah oleh komangmerta. Mohon jadwalkan sidang.",
+    "timestamp": "2025-06-26T14:55:33.575Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750949873012_bw03c_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Sidang untuk proyek 'proyek mega mendung' telah dijadwalkan oleh sudina. Mohon nyatakan hasilnya setelah selesai.",
+    "timestamp": "2025-06-26T14:57:53.005Z",
+    "isRead": true
   }
 ]

@@ -440,7 +440,7 @@ export default function ProjectsPage() {
     const currentFiles = filesToSubmit || uploadedFiles;
     const currentDescription = descriptionForSubmit || description;
 
-    const isDecisionOrTerminalAction = ['approved', 'rejected', 'completed', 'revise_offer', 'revise_dp', 'revise_after_sidang', 'canceled_after_sidang', 'revision_completed_and_finish', 'all_files_confirmed'].includes(actionTaken);
+    const isDecisionOrTerminalAction = ['approved', 'rejected', 'completed', 'revise_offer', 'revise_dp', 'revise_after_sidang', 'canceled_after_sidang', 'revision_completed_and_finish', 'all_files_confirmed', 'reschedule_sidang'].includes(actionTaken);
     const isSchedulingAction = actionTaken === 'scheduled' || actionTaken === 'reschedule_survey' || actionTaken === 'reschedule_survey_from_parallel';
     const isSurveySchedulingAction = selectedProject.status === 'Pending Survey Details' && actionTaken === 'submitted';
     const isArchitectInitialImageUpload = actionTaken === 'architect_uploaded_initial_images_for_struktur';
@@ -530,6 +530,9 @@ export default function ProjectsPage() {
                  break;
             case 'reschedule_survey_from_parallel':
                  toastMessage = `Proyek '${newlyUpdatedProjectResult?.title || ''}' dikembalikan ke tahap survei.`;
+                 break;
+            case 'reschedule_sidang':
+                 toastMessage = `Sidang untuk proyek '${newlyUpdatedProjectResult?.title || ''}' telah diminta untuk dijadwalkan ulang. Admin Proyek telah diberitahu.`;
                  break;
             case 'submitted':
                 if (selectedProject.status === 'Pending Parallel Design Uploads') {
@@ -645,12 +648,12 @@ export default function ProjectsPage() {
     }
   }, [selectedProject, currentUser, rescheduleFromParallelNote, projectsDict, toast, handleProgressSubmit]);
 
-  const handleDecision = React.useCallback((decision: 'approved' | 'rejected' | 'completed' | 'revise_offer' | 'revise_dp' | 'canceled_after_sidang' | 'revision_completed_and_finish' | 'mark_division_complete') => {
+  const handleDecision = React.useCallback((decision: 'approved' | 'rejected' | 'completed' | 'revise_offer' | 'revise_dp' | 'canceled_after_sidang' | 'revision_completed_and_finish' | 'mark_division_complete' | 'reschedule_sidang') => {
     if (!currentUser || !selectedProject ) {
       toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.notYourTurn });
       return;
     }
-    const isOwnerAction = ['approved', 'rejected', 'completed', 'revise_offer', 'revise_dp', 'canceled_after_sidang'].includes(decision);
+    const isOwnerAction = ['approved', 'rejected', 'completed', 'revise_offer', 'revise_dp', 'canceled_after_sidang', 'reschedule_sidang'].includes(decision);
     if (isOwnerAction && currentUser.role !== 'Owner') {
         toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.onlyOwnerDecision });
         return;
@@ -1741,6 +1744,9 @@ export default function ProjectsPage() {
                                         </DialogFooter>
                                     </DialogContent>
                                  </Dialog>
+                                 <Button variant="outline" onClick={() => handleDecision('reschedule_sidang')} disabled={isSubmitting} className="w-full sm:w-auto border-orange-500 text-orange-600 hover:bg-orange-50 hover:text-orange-700">
+                                    <CalendarClock className="mr-2 h-4 w-4" />{projectsDict.rescheduleSidangButton}
+                                 </Button>
                                  <Button variant="destructive" onClick={() => handleDecision('canceled_after_sidang')} disabled={isSubmitting} className="w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}{projectsDict.markFailButton}</Button>
                               </div>
                            </div>

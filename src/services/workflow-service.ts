@@ -183,11 +183,11 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
       transitions: {
         "submitted": { 
           targetStatus: "Survey Scheduled",
-          targetAssignedDivision: "Admin Proyek",
+          targetAssignedDivision: "Admin Proyek", 
           targetNextActionDescription: "Konfirmasi penyelesaian survei dan unggah laporan (opsional).",
-          targetProgress: 48,
+          targetProgress: 48, 
           notification: {
-            division: ["Owner", "Admin Proyek", "Arsitek"],
+            division: ["Owner", "Admin Proyek", "Arsitek"], 
             message: "Survei untuk proyek '{projectName}' telah dijadwalkan pada {surveyDate} oleh {actorUsername}."
           }
         }
@@ -333,6 +333,16 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           notification: {
             division: "Admin Proyek",
             message: "Proyek '{projectName}' telah dibatalkan oleh {actorUsername} setelah sidang."
+          }
+        },
+        "reschedule_sidang": {
+          targetStatus: "Pending Scheduling",
+          targetAssignedDivision: "Admin Proyek",
+          targetNextActionDescription: "Jadwalkan Ulang Sidang karena sidang sebelumnya dibatalkan/ditunda.",
+          targetProgress: 90,
+          notification: {
+            division: "Admin Proyek",
+            message: "Sidang untuk proyek '{projectName}' perlu dijadwalkan ulang oleh Anda atas permintaan dari {actorUsername}."
           }
         }
       }
@@ -553,6 +563,16 @@ const MSA_WORKFLOW_STEPS: WorkflowStep[] = [
             division: "Admin Proyek", 
             message: "Proyek '{projectName}' telah dibatalkan oleh {actorUsername} setelah sidang." 
           } 
+        },
+        "reschedule_sidang": {
+          targetStatus: "Pending Scheduling",
+          targetAssignedDivision: "Admin Proyek",
+          targetNextActionDescription: "Jadwalkan Ulang Sidang karena sidang sebelumnya dibatalkan/ditunda.",
+          targetProgress: 90,
+          notification: {
+            division: "Admin Proyek",
+            message: "Sidang untuk proyek '{projectName}' perlu dijadwalkan ulang oleh Anda atas permintaan dari {actorUsername}."
+          }
         }
       }
     },

@@ -179,6 +179,7 @@ const en = {
     sidangOutcomeDesc: 'Mark the project as completed successfully, needing revision, or failed based on the sidang results.',
     markSuccessButton: 'Mark as Success',
     markRevisionNeededButton: 'Request Post-Sidang Revision',
+    rescheduleSidangButton: "Reschedule Sidang",
     markFailButton: 'Mark as Fail (Cancel Project)',
     postSidangRevisionActionsSectionTitle: "Post-Sidang Revision Actions",
     postSidangRevisionDialogTitle: 'Request Post-Sidang Revision',

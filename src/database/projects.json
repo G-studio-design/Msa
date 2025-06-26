@@ -794,10 +794,10 @@
   {
     "id": "project_1750923884164_mtu12",
     "title": "proyek mega mendung",
-    "status": "Pending Parallel Design Uploads",
-    "progress": 50,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.",
+    "status": "Scheduled",
+    "progress": 95,
+    "assignedDivision": "Owner",
+    "nextAction": "Nyatakan Hasil Sidang",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -933,6 +933,41 @@
         "action": "arsitek (Arsitek) uploaded file(s).",
         "timestamp": "2025-06-26T14:45:10.323Z",
         "note": "Daftar SIMak Proyek Bali Merdeka.pdf, Gambar .pdf, RAP MEp.pdf, Spektek.pdf"
+      },
+      {
+        "division": "Struktur",
+        "action": "struktur (Struktur) uploaded file(s).",
+        "timestamp": "2025-06-26T14:52:09.461Z",
+        "note": "Analisa Laporan.pdf, Daftar SIMak Proyek Bali Merdeka.pdf, Gambar .pdf, Hammer Test .pdf, Spektek.pdf"
+      },
+      {
+        "division": "struktur",
+        "action": "Marked their design/revision phase as complete.",
+        "timestamp": "2025-06-26T14:52:24.145Z",
+        "note": "Divisi Struktur telah menyelesaikan tugasnya."
+      },
+      {
+        "division": "MEP",
+        "action": "agung (MEP) uploaded file(s).",
+        "timestamp": "2025-06-26T14:54:36.370Z",
+        "note": "Analisa Laporan.pdf, Daftar SIMak Proyek Bali Merdeka.pdf, Gambar .pdf, RAP MEp.pdf, Spektek.pdf"
+      },
+      {
+        "division": "agung",
+        "action": "Marked their design/revision phase as complete.",
+        "timestamp": "2025-06-26T14:54:40.689Z",
+        "note": "Divisi MEP telah menyelesaikan tugasnya."
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) all_files_confirmed for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-26T14:55:33.571Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) scheduled Sidang on 2025-06-26 at 22:58",
+        "timestamp": "2025-06-26T14:57:52.995Z",
+        "note": "Location: bali."
       }
     ],
     "files": [
@@ -1001,15 +1036,83 @@
         "uploadedBy": "Arsitek",
         "path": "project_1750923884164_mtu12-proyek_mega_mendung/spektekpdf",
         "timestamp": "2025-06-26T14:45:10.323Z"
+      },
+      {
+        "name": "Analisa Laporan.pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/analisa_laporanpdf",
+        "timestamp": "2025-06-26T14:52:09.461Z"
+      },
+      {
+        "name": "Daftar SIMak Proyek Bali Merdeka.pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/daftar_simak_proyek_bali_merdekapdf",
+        "timestamp": "2025-06-26T14:52:09.461Z"
+      },
+      {
+        "name": "Gambar .pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/gambar_pdf",
+        "timestamp": "2025-06-26T14:52:09.461Z"
+      },
+      {
+        "name": "Hammer Test .pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/hammer_test_pdf",
+        "timestamp": "2025-06-26T14:52:09.461Z"
+      },
+      {
+        "name": "Spektek.pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/spektekpdf",
+        "timestamp": "2025-06-26T14:52:09.461Z"
+      },
+      {
+        "name": "Analisa Laporan.pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/analisa_laporanpdf",
+        "timestamp": "2025-06-26T14:54:36.370Z"
+      },
+      {
+        "name": "Daftar SIMak Proyek Bali Merdeka.pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/daftar_simak_proyek_bali_merdekapdf",
+        "timestamp": "2025-06-26T14:54:36.370Z"
+      },
+      {
+        "name": "Gambar .pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/gambar_pdf",
+        "timestamp": "2025-06-26T14:54:36.370Z"
+      },
+      {
+        "name": "RAP MEp.pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/rap_meppdf",
+        "timestamp": "2025-06-26T14:54:36.370Z"
+      },
+      {
+        "name": "Spektek.pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/spektekpdf",
+        "timestamp": "2025-06-26T14:54:36.370Z"
       }
     ],
     "createdAt": "2025-06-26T07:44:44.164Z",
     "createdBy": "komangmerta",
-    "parallelUploadsCompletedBy": [],
+    "parallelUploadsCompletedBy": [
+      "Struktur",
+      "MEP"
+    ],
     "surveyDetails": {
       "date": "2025-06-26",
       "time": "22:42",
       "description": "kantor pertanahan "
+    },
+    "scheduleDetails": {
+      "date": "2025-06-26",
+      "time": "22:58",
+      "location": "bali"
     }
   }
 ]
