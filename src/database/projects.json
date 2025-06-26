@@ -801,10 +801,10 @@
   {
     "id": "project_1750923884164_mtu12",
     "title": "proyek mega mendung",
-    "status": "Pending Approval",
-    "progress": 20,
-    "assignedDivision": "Owner",
-    "nextAction": "Setujui Dokumen Penawaran",
+    "status": "Pending DP Invoice",
+    "progress": 25,
+    "assignedDivision": "Akuntan",
+    "nextAction": "Buat Faktur DP",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -827,6 +827,11 @@
         "division": "Admin Proyek",
         "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
         "timestamp": "2025-06-26T07:46:07.121Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) approved: Setujui Dokumen Penawaran",
+        "timestamp": "2025-06-26T08:14:50.643Z"
       }
     ],
     "files": [
