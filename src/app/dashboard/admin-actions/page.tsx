@@ -1,4 +1,3 @@
-
 // src/app/dashboard/admin-actions/page.tsx
 'use client';
 
@@ -309,7 +308,7 @@ export default function AdminActionsPage() {
         </CardHeader>
         <CardContent>
           <ScrollArea className="w-full rounded-md border">
-           <Table>
+           <Table className="min-w-[800px]">
             <TableHeader>
               <TableRow>
                   <TableHead className="w-[150px] sm:w-[200px]">{isClient ? adminDict.tableHeaderId : defaultGlobalDict.adminActionsPage.tableHeaderId}</TableHead>

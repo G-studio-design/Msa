@@ -1,4 +1,3 @@
-
 // src/app/dashboard/admin-actions/leave-approvals/page.tsx
 'use client';
 
@@ -203,8 +202,8 @@ export default function LeaveApprovalsPage() {
               <p className="text-sm">{leaveApprovalsDict.allCaughtUp}</p>
             </div>
           ) : (
-            <ScrollArea className="w-full whitespace-nowrap rounded-md border">
-              <Table>
+            <ScrollArea className="w-full rounded-md border">
+              <Table className="min-w-[800px]">
                 <TableCaption>{leaveApprovalsDict.tableCaption}</TableCaption>
                 <TableHeader>
                   <TableRow>

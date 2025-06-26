@@ -1,4 +1,3 @@
-
 // src/app/dashboard/monthly-report/page.tsx
 'use client';
 
@@ -468,7 +467,7 @@ export default function MonthlyReportPage() {
 
               {!noDataForReport && (
                 <ScrollArea className="w-full rounded-md border">
-                  <Table>
+                  <Table className="min-w-[1000px]">
                     <TableCaption>{reportDict.tableCaption}</TableCaption>
                     <TableHeader>
                       <TableRow>

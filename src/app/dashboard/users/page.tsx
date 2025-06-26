@@ -1,4 +1,3 @@
-
 // src/app/dashboard/users/page.tsx
 'use client';
 
@@ -571,7 +570,7 @@ export default function ManageUsersPage() {
         </CardHeader>
         <CardContent>
           <ScrollArea className="w-full rounded-md border">
-            <Table>
+            <Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>{isClient ? usersDict.tableHeaderUsername : defaultGlobalDict.manageUsersPage.tableHeaderUsername}</TableHead>
