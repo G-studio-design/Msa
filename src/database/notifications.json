@@ -542,5 +542,77 @@
     "message": "Penawaran untuk proyek 'proyek Bali Merdeka' telah disetujui oleh sudina. Mohon buat faktur DP.",
     "timestamp": "2025-06-24T11:00:23.287Z",
     "isRead": true
+  },
+  {
+    "id": "notif_1750763403989_wudhi_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Faktur DP untuk proyek 'proyek Bali Merdeka' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-24T11:10:03.988Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750763428614_vp5ny_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Faktur DP untuk proyek 'proyek Bali Merdeka' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-06-24T11:10:28.612Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750763487262_jpxqr_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Berkas administrasi untuk proyek 'proyek Bali Merdeka' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-24T11:11:27.255Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750763487281_u783p_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Berkas administrasi untuk proyek 'proyek Bali Merdeka' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-24T11:11:27.278Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750763487301_pepzv_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Berkas administrasi untuk proyek 'proyek Bali Merdeka' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-24T11:11:27.299Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750763530549_d7sbe_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Hasil survei untuk 'proyek Bali Merdeka' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-24T11:12:10.544Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750763530562_p7ewr_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Hasil survei untuk 'proyek Bali Merdeka' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-24T11:12:10.557Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750763530575_kb7b4_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Hasil survei untuk 'proyek Bali Merdeka' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-24T11:12:10.573Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750763530590_xdi08_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Hasil survei untuk 'proyek Bali Merdeka' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-24T11:12:10.586Z",
+    "isRead": false
   }
 ]

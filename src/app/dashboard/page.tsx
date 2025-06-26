@@ -1,3 +1,4 @@
+
 // src/app/dashboard/page.tsx
 'use client';
 
@@ -43,6 +44,13 @@ import {
     PartyPopper,
     Building
 } from 'lucide-react';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartConfig,
+} from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LabelList } from "recharts";
 import { cn } from '@/lib/utils';
 
 // Unified event type for the calendar
@@ -202,6 +210,13 @@ export default function DashboardPage() {
       }
   }
 
+  const chartConfig = {
+    progress: {
+      label: dashboardDict.progressChart.label,
+      color: "hsl(var(--primary))",
+    },
+  } as ChartConfig;
+
   if (isLoading) {
     return (
       <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
@@ -275,6 +290,35 @@ export default function DashboardPage() {
                         <Button variant="outline" className="w-full">{`View All ${activeProjects.length} Active Projects`}</Button>
                     </Link>
                 </CardFooter>
+            </Card>
+
+            {/* Project Progress Chart */}
+            <Card>
+              <CardHeader>
+                <CardTitle>{dashboardDict.projectProgressChartTitle}</CardTitle>
+                <CardDescription>{dashboardDict.projectProgressChartDesc}</CardDescription>
+              </CardHeader>
+              <CardContent className="pl-2">
+                {activeProjects.length > 0 ? (
+                  <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                    <ResponsiveContainer>
+                      <BarChart data={activeProjects} layout="vertical" margin={{ left: 100, right: 30 }}>
+                        <XAxis type="number" dataKey="progress" domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                        <YAxis type="category" dataKey="title" width={100} tick={{ fontSize: 12 }} interval={0} />
+                        <ChartTooltip
+                            cursor={{ fill: 'hsl(var(--muted))' }}
+                            content={<ChartTooltipContent />}
+                        />
+                        <Bar dataKey="progress" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]}>
+                           <LabelList dataKey="progress" position="right" offset={8} className="fill-foreground" fontSize={12} formatter={(value: number) => `${value}%`} />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                ) : (
+                  <p className="text-sm text-muted-foreground">{dashboardDict.noActiveProjectsForChart}</p>
+                )}
+              </CardContent>
             </Card>
 
             {/* Upcoming Agenda Card */}

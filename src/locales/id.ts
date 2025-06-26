@@ -1,3 +1,4 @@
+
 // src/locales/id.ts
 const id = {
   // Login Page
