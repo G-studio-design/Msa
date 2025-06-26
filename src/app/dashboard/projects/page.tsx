@@ -1,3 +1,4 @@
+
 // src/app/dashboard/projects/page.tsx
 'use client';
 
@@ -1092,14 +1093,14 @@ export default function ProjectsPage() {
             ) : displayedProjects.length === 0 ? (<p className="text-muted-foreground text-center py-4">{searchTerm ? projectsDict.noSearchResults : projectsDict.noProjectsFound}</p>) : (
               displayedProjects.map((projectItem) => (
                 <Card key={projectItem.id} className="hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 cursor-pointer" onClick={() => {setSelectedProject(projectItem); router.push(`/dashboard/projects?projectId=${projectItem.id}`, { scroll: false }); }}>
-                   <CardHeader className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between p-4 pb-2">
+                   <CardHeader className="flex flex-col items-start gap-2 sm:flex-row sm:items-start sm:justify-between p-4 pb-2">
                         <div className="flex-1 min-w-0">
                             <CardTitle className="text-base sm:text-lg">{projectItem.title}</CardTitle>
-                            <CardDescription className="text-xs text-muted-foreground mt-1 truncate">
+                            <CardDescription className="text-xs text-muted-foreground mt-1">
                                 {projectsDict.assignedLabel}: {getTranslatedStatus(projectItem.assignedDivision) || projectsDict.none} | {projectsDict.nextActionLabel}: {projectItem.nextAction || projectsDict.none}
                             </CardDescription>
                         </div>
-                        <div className="flex-shrink-0 w-full sm:w-auto">
+                        <div className="flex-shrink-0 pt-2 sm:pt-0">
                             {getStatusBadge(projectItem.status)}
                         </div>
                     </CardHeader>
