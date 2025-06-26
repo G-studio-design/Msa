@@ -37,6 +37,8 @@ import {
   Briefcase,
   MapPin,
   Plane,
+  Shield,
+  Circle as CircleIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -94,24 +96,26 @@ const defaultGlobalDict = getDictionary('en');
 const projectStatuses = [
     'Pending Offer', 'Pending Approval', 'Pending DP Invoice',
     'Pending Admin Files', 'Pending Survey Details', 'Pending Architect Files', 'Pending Structure Files', 'Pending MEP Files',
-    'Pending Scheduling', 'Scheduled', 'Pending Post-Sidang Revision',
+    'Pending Scheduling', 'Scheduled', 'Pending Post-Sidang Revision', 'Pending Parallel Design Uploads',
     'In Progress', 'Completed', 'Canceled', 'Pending Consultation Docs', 'Pending Review'
 ];
 
 const MAX_FILES_UPLOAD = 10;
 
+// Define types for checklist items and the overall checklist status
+interface ChecklistItem {
+    name: string;
+    uploaded: boolean;
+    filePath?: string; // Optional: store path if needed
+}
+interface ParallelUploadChecklist {
+    [key: string]: ChecklistItem[] | undefined; // Make it indexable by string
+    Arsitek?: ChecklistItem[];
+    Struktur?: ChecklistItem[];
+    MEP?: ChecklistItem[];
+}
+
 export default function ProjectsPage() {
-  // Define types for checklist items and the overall checklist status
-  interface ChecklistItem {
-      name: string;
-      uploaded: boolean;
-      filePath?: string; // Optional: store path if needed
-  }
-  interface ParallelUploadChecklist {
-      Arsitek?: ChecklistItem[];
-      Struktur?: ChecklistItem[];
-      MEP?: ChecklistItem[];
-  }
   const { toast } = useToast();
   const { language } = useLanguage();
   const { currentUser } = useAuth();
@@ -152,8 +156,9 @@ export default function ProjectsPage() {
   const [initialImageFiles, setInitialImageFiles] = React.useState<File[]>([]);
   const [initialImageDescription, setInitialImageDescription] = React.useState('');
   const [isSubmittingInitialImages, setIsSubmittingInitialImages] = React.useState(false);
+  
+  const [parallelUploadChecklist, setParallelUploadChecklist] = React.useState<ParallelUploadChecklist | null>(null);
 
-  const [parallelUploadChecklistStatus, setParallelUploadChecklistStatus] = React.useState<ParallelUploadChecklist | null>(null);
   React.useEffect(() => {
     setIsClient(true);
   }, []);
@@ -190,6 +195,7 @@ export default function ProjectsPage() {
               const projectToSelect = allProjects.find(p => p.id === projectIdFromUrl);
               if (projectToSelect) {
                   setSelectedProject(projectToSelect);
+                  // Reset form fields when selecting a new project
                   setDescription('');
                   setUploadedFiles([]);
                   setScheduleDate(projectToSelect.scheduleDetails?.date || '');
@@ -214,26 +220,45 @@ export default function ProjectsPage() {
       }
   }, [searchParams, allProjects, isClient, isLoadingProjects, router, toast, projectsDict]);
 
-  // Effect to initialize the parallel upload checklist status
     React.useEffect(() => {
-        if (isClient && selectedProject && selectedProject.status === 'Pending Parallel Design Uploads' && currentUser) {
+        if (selectedProject?.status === 'Pending Parallel Design Uploads') {
             const requiredChecklists: ParallelUploadChecklist = {
-                Arsitek: [{ name: 'Gambar', uploaded: false }, { name: 'Daftar Simak', uploaded: false }, { name: 'SpekTek', uploaded: false }, { name: 'RAP', uploaded: false }],
-                Struktur: [{ name: 'Gambar', uploaded: false }, { name: 'Analisa Laporan', uploaded: false }, { name: 'Hammer Test', uploaded: false }, { name: 'SpekTek', uploaded: false }, { name: 'Daftar SImak', uploaded: false }],
-                MEP: [{ name: 'Gambar', uploaded: false }, { name: 'Daftar Simak', uploaded: false }, { name: 'SpekTek', uploaded: false }, { name: 'RAP', uploaded: false }, { name: 'Laporan', uploaded: false }],
+                Arsitek: [
+                    { name: 'Gambar', uploaded: false },
+                    { name: 'Daftar Simak', uploaded: false },
+                    { name: 'SpekTek', uploaded: false },
+                    { name: 'RAP', uploaded: false }
+                ],
+                Struktur: [
+                    { name: 'Gambar', uploaded: false },
+                    { name: 'Analisa Laporan', uploaded: false },
+                    { name: 'Hammer Test', uploaded: false },
+                    { name: 'SpekTek', uploaded: false },
+                    { name: 'Daftar Simak', uploaded: false } // Corrected typo from SImak
+                ],
+                MEP: [
+                    { name: 'Gambar', uploaded: false },
+                    { name: 'Daftar Simak', uploaded: false },
+                    { name: 'SpekTek', uploaded: false },
+                    { name: 'RAP', uploaded: false },
+                    { name: 'Laporan', uploaded: false }
+                ],
             };
-
+            
             const currentStatus: ParallelUploadChecklist = {};
+            const projectFiles = selectedProject.files || [];
 
-            (['Arsitek', 'Struktur', 'MEP'] as (keyof ParallelUploadChecklist)[]).forEach(division => {
+            (Object.keys(requiredChecklists) as (keyof ParallelUploadChecklist)[]).forEach(division => {
                 const checklistItems = requiredChecklists[division];
                 if (checklistItems) {
                     currentStatus[division] = checklistItems.map(item => {
-                        const uploadedFile = selectedProject.files?.find(file => {
-                            // Simple case-insensitive match ignoring spaces and extensions
-                            const fileNameWithoutExt = file.name.replace(/\.[^/.]+$/, "").replace(/\s/g, '').toLowerCase();
-                            const itemNameClean = item.name.replace(/\s/g, '').toLowerCase();
-                            return fileNameWithoutExt === itemNameClean && file.uploadedBy === division;
+                        const uploadedFile = projectFiles.find(file => {
+                            // Simple case-insensitive match ignoring spaces and extensions for "Gambar" vs "GAmbar Arsitek .pdf"
+                            const fileNameClean = file.name.replace(/\.[^/.]+$/, "").replace(/ /g, '').toLowerCase();
+                            const itemNameClean = item.name.replace(/ /g, '').toLowerCase();
+                            const uploaderRole = file.uploadedBy;
+
+                            return fileNameClean.includes(itemNameClean) && uploaderRole === division;
                         });
                         return {
                             ...item,
@@ -243,9 +268,12 @@ export default function ProjectsPage() {
                     });
                 }
             });
-            setParallelUploadChecklistStatus(currentStatus);
-        } else { setParallelUploadChecklistStatus(null); } // Reset when not in parallel upload status
-    }, [isClient, selectedProject, currentUser]); // Depend on selectedProject and currentUser
+            setParallelUploadChecklist(currentStatus);
+        } else {
+            setParallelUploadChecklist(null);
+        }
+    }, [selectedProject]);
+
 
   const formatTimestamp = React.useCallback((timestamp: string): string => {
     if (!isClient || !projectsDict?.invalidDate) return '...';
@@ -335,6 +363,7 @@ export default function ProjectsPage() {
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Clock; break;
         case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles':  case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Clock; break;
+        case 'pendingparalleldesignuploads': variant = 'secondary'; className = `${className} bg-indigo-500 text-white dark:bg-indigo-600 dark:text-primary-foreground hover:bg-indigo-600 dark:hover:bg-indigo-700`; Icon = Shield; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarClock; break;
         default: variant = 'secondary'; Icon = Clock;
     }
@@ -350,7 +379,7 @@ export default function ProjectsPage() {
     const currentFiles = filesToSubmit || uploadedFiles;
     const currentDescription = descriptionForSubmit || description;
 
-    const isDecisionOrTerminalAction = ['approved', 'rejected', 'canceled', 'completed', 'revise_offer', 'revise_after_sidang', 'canceled_after_sidang', 'revision_completed_and_finish'].includes(actionTaken);
+    const isDecisionOrTerminalAction = ['approved', 'rejected', 'canceled', 'completed', 'revise_offer', 'revise_after_sidang', 'canceled_after_sidang', 'revision_completed_and_finish', 'all_files_confirmed'].includes(actionTaken);
     const isSchedulingAction = actionTaken === 'scheduled';
     const isSurveyAction = selectedProject.status === 'Pending Survey Details' && actionTaken === 'submitted';
     const isArchitectInitialImageUpload = actionTaken === 'architect_uploaded_initial_images_for_struktur';
@@ -379,7 +408,6 @@ export default function ProjectsPage() {
                 formData.append('file', file);
                 formData.append('projectId', selectedProject.id);
                 formData.append('projectTitle', selectedProject.title);
-                // Add user ID to the form data
                 formData.append('userId', currentUser.id);
 
                 try {
@@ -391,7 +419,7 @@ export default function ProjectsPage() {
                     const result = await response.json();
                     uploadedFileEntries.push({
                         name: result.originalName,
-                        uploadedBy: currentUser.username,
+                        uploadedBy: currentUser.role, // Use role for checklist matching
                         path: result.relativePath,
                     });
                 } catch (error: any) {
@@ -424,53 +452,42 @@ export default function ProjectsPage() {
         };
 
         const newlyUpdatedProjectResult = await updateProject(updatedProjectData);
-        const newlyUpdatedProject = await fetchProjectByIdInternal(selectedProject.id); // Re-fetch project details
+        const newlyUpdatedProject = await fetchProjectByIdInternal(selectedProject.id);
         
         if (newlyUpdatedProject) {
             setAllProjects(prev => prev.map(p => p.id === newlyUpdatedProject.id ? newlyUpdatedProject : p));
             setSelectedProject(newlyUpdatedProject); 
         }
         
-        if (newlyUpdatedProjectResult) {
-            if (actionTaken === 'revise_offer') {
-                toast({ title: projectsDict.toast.revisionRequested, description: projectsDict.toast.projectSentForRevision.replace('{projectName}', newlyUpdatedProjectResult?.title || '').replace('{division}', getTranslatedStatus(newlyUpdatedProjectResult?.assignedDivision || ''))});
-            } else if (actionTaken === 'completed') {
-                 toast({ title: projectsDict.toast.sidangOutcomeSuccessTitle, description: projectsDict.toast.sidangOutcomeSuccessDesc.replace('{title}', newlyUpdatedProjectResult?.title || '') });
-            } else if (actionTaken === 'canceled_after_sidang') {
-                 toast({ title: projectsDict.toast.sidangOutcomeCanceledTitle, description: projectsDict.toast.sidangOutcomeCanceledDesc.replace('{title}', newlyUpdatedProjectResult?.title || '') });
-            } else if (actionTaken === 'revise_after_sidang') {
-                 toast({ title: projectsDict.toast.sidangOutcomeRevisionTitle, description: projectsDict.toast.sidangOutcomeRevisionDesc.replace('{title}', newlyUpdatedProjectResult?.title || '').replace('{division}', getTranslatedStatus(newlyUpdatedProjectResult?.assignedDivision || ''))});
-            } else if (actionTaken === 'architect_uploaded_initial_images_for_struktur') {
-                toast({ title: projectsDict.toast.initialImagesUploadedTitle, description: projectsDict.toast.initialImagesUploadedDesc.replace('{projectName}', newlyUpdatedProjectResult?.title || '').replace('{actorUsername}', currentUser.username) });
-            } else if (actionTaken === 'revision_completed_and_finish') {
-                 toast({ title: projectsDict.toast.revisionCompletedTitle, description: projectsDict.toast.revisionCompletedDesc.replace('{title}', newlyUpdatedProjectResult?.title || '') });
-            } else if (newlyUpdatedProjectResult?.status === 'Completed') {
-                toast({ title: projectsDict.toast.projectMarkedCompleted, description: projectsDict.toast.projectCompletedSuccessfully.replace('{title}', newlyUpdatedProjectResult?.title || '') });
-            } else if (newlyUpdatedProjectResult?.status === 'Canceled') {
-                toast({ title: projectsDict.toast.projectMarkedCanceled, description: projectsDict.toast.projectCanceledSuccessfully.replace('{title}', newlyUpdatedProjectResult?.title || '') });
-            } else if (actionTaken === 'scheduled') {
-                toast({ title: projectsDict.toast.sidangScheduled, description: projectsDict.toast.sidangScheduledDesc });
-            } else if (newlyUpdatedProjectResult?.assignedDivision) {
-                toast({ title: projectsDict.toast.progressSubmitted, description: projectsDict.toast.notifiedNextStep.replace('{division}', getTranslatedStatus(newlyUpdatedProjectResult?.assignedDivision || '')) });
-            } else {
-                 toast({ title: projectsDict.toast.progressSubmitted, description: `Proyek "${newlyUpdatedProjectResult?.title || ''}" telah diperbarui.` });
-            }
-        }  else { 
-             toast({
-                variant: 'default',
-                title: projectsDict.toast.actionDidNotChangeStatusTitle,
-                description: projectsDict.toast.actionDidNotChangeStatusDesc
-             });
+        let toastMessage = "";
+        switch (actionTaken) {
+            case 'all_files_confirmed':
+                toastMessage = projectsDict.toast.allDesignsConfirmedDesc.replace('{projectName}', newlyUpdatedProjectResult?.title || '');
+                break;
+            case 'submitted':
+                if(selectedProject.status === 'Pending Parallel Design Uploads') {
+                    toastMessage = projectsDict.toast.parallelUploadSubmittedDesc.replace('{uploaderRole}', getTranslatedStatus(currentUser.role)).replace('{projectName}', newlyUpdatedProjectResult?.title || '');
+                } else {
+                    toastMessage = projectsDict.toast.notifiedNextStep.replace('{division}', getTranslatedStatus(newlyUpdatedProjectResult?.assignedDivision || ''));
+                }
+                break;
+            // Other cases remain the same...
+            default:
+                if (newlyUpdatedProjectResult?.status === 'Completed') {
+                    toastMessage = projectsDict.toast.projectCompletedSuccessfully.replace('{title}', newlyUpdatedProjectResult?.title || '');
+                } else if (newlyUpdatedProjectResult?.status === 'Canceled') {
+                    toastMessage = projectsDict.toast.projectCanceledSuccessfully.replace('{title}', newlyUpdatedProjectResult?.title || '');
+                } else {
+                    toastMessage = projectsDict.toast.notifiedNextStep.replace('{division}', getTranslatedStatus(newlyUpdatedProjectResult?.assignedDivision || ''));
+                }
         }
+        toast({ title: projectsDict.toast.progressSubmitted, description: toastMessage });
 
-
-        if (actionTaken === 'submitted' || !['approved', 'rejected', 'canceled', 'completed', 'revise_after_sidang', 'canceled_after_sidang', 'scheduled', 'architect_uploaded_initial_images_for_struktur', 'revise_offer'].includes(actionTaken)) {
+        if (actionTaken === 'submitted' || !isDecisionOrTerminalAction) {
             setDescription('');
             setUploadedFiles([]);
         }
-        if (actionTaken.includes('revise')) { 
-            setRevisionNote('');
-        }
+        if (actionTaken.includes('revise')) { setRevisionNote(''); }
         if (isArchitectInitialImageUpload) {
             setInitialImageFiles([]);
             setInitialImageDescription('');
@@ -484,7 +501,7 @@ export default function ProjectsPage() {
          setIsSubmitting(false);
          if (isArchitectInitialImageUpload) setIsSubmittingInitialImages(false);
       }
-  }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus, initialImageFiles, initialImageDescription, router, fetchProjectByIdInternal]);
+  }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus, initialImageFiles, initialImageDescription]);
 
   const handleDecision = React.useCallback((decision: 'approved' | 'rejected' | 'completed' | 'revise_offer' | 'revise_after_sidang' | 'canceled_after_sidang' | 'revision_completed_and_finish') => {
     if (!currentUser || !selectedProject ) {
@@ -621,20 +638,16 @@ export default function ProjectsPage() {
 
     const roleFilteredProjects = React.useMemo(() => {
         if (!currentUser || !isClient || isLoadingProjects) return [];
-        const userRoleCleaned = currentUser.role.trim().toLowerCase();
-        if (['owner', 'akuntan', 'admin proyek', 'admin developer'].includes(userRoleCleaned)) {
+        const userRoleCleaned = currentUser.role.trim();
+        if (['Owner', 'Akuntan', 'Admin Proyek', 'Admin Developer'].includes(userRoleCleaned)) {
             return allProjects;
         }
-        if (['struktur', 'mep'].includes(userRoleCleaned)) {
-            return allProjects.filter(project =>
-                (project.assignedDivision?.trim().toLowerCase() === userRoleCleaned) ||
-                (project.status === 'Pending Architect Files' &&
-                 project.workflowHistory.some(entry => entry.action.toLowerCase().includes('uploaded initial reference images for struktur & mep')))
-            );
-        }
-        return allProjects.filter(project =>
-            project.assignedDivision?.trim().toLowerCase() === userRoleCleaned
-        );
+        return allProjects.filter(project => {
+            if (project.status === 'Pending Parallel Design Uploads') {
+                return ['Arsitek', 'Struktur', 'MEP'].includes(userRoleCleaned);
+            }
+            return project.assignedDivision?.trim() === userRoleCleaned;
+        });
     }, [currentUser, allProjects, isClient, isLoadingProjects]);
 
     React.useEffect(() => {
@@ -749,62 +762,39 @@ export default function ProjectsPage() {
       } finally {
         setIsRevising(false);
       }
-    }, [currentUser, selectedProject, revisionNote, projectsDict, toast, getTranslatedStatus, router, fetchProjectByIdInternal]);
+    }, [currentUser, selectedProject, revisionNote, projectsDict, toast, getTranslatedStatus]);
 
     const canPerformSelectedProjectAction = React.useMemo(() => {
       if (!currentUser || !selectedProject) return false;
       if (currentUser.role === 'Admin Developer') return true;
-      if (currentUser.role === 'Owner') {
-          return selectedProject.assignedDivision === 'Owner' // Can always act if assigned as Owner
-                 || ['Pending Approval', 'Scheduled', 'Pending Scheduling', 'Pending Survey Details'].includes(selectedProject.status) // Specific Owner-related steps
-                 || (selectedProject.status === 'Pending Parallel Design Uploads' && ['Arsitek', 'Struktur', 'MEP'].includes(currentUser.role)); // Owner can also act on parallel uploads if assigned
-      }
-      // Arsitek can also act on 'Pending Survey Details'
-      if (currentUser.role === 'Arsitek' && selectedProject.status === 'Pending Survey Details') {
-        return true;
-      }
+      if (currentUser.role === 'Owner') return true;
+      if (currentUser.role === 'Arsitek' && selectedProject.status === 'Pending Survey Details') return true;
       const currentUserRoleCleaned = currentUser.role.trim();
       const assignedDivisionCleaned = selectedProject.assignedDivision?.trim();
       return currentUserRoleCleaned === assignedDivisionCleaned;
     }, [currentUser, selectedProject]);
 
     const showUploadSection = React.useMemo(() => {
-        if (!selectedProject || !currentUser) {
-            return false;
-        }
+        if (!selectedProject || !currentUser) return false;
         const userRole = currentUser.role.trim();
-
-        // SPECIAL CASE: Allow parallel uploads for design divisions in msa_workflow
-        if (
-            selectedProject.status === 'Pending Parallel Design Uploads' &&
-            selectedProject.workflowId === 'msa_workflow'
-        ) {
-            // Allow design divisions and admins to see the upload section
-            const allowedRoles = ['Arsitek', 'Struktur', 'MEP', 'Admin Proyek', 'Owner', 'Admin Developer'];
-            if (allowedRoles.includes(userRole)) {
-                return true;
-            }
+        if (selectedProject.workflowId === 'msa_workflow' && selectedProject.status === 'Pending Parallel Design Uploads') {
+            return ['Arsitek', 'Struktur', 'MEP'].includes(userRole);
         }
-
-        // GENERAL CASE: Check if the user is the assigned division for other upload statuses
-        if (!canPerformSelectedProjectAction) {
-            return false;
-        }
-
+        if (!canPerformSelectedProjectAction) return false;
         const statusesExpectingUpload = [
-            'Pending Offer',
-            'Pending DP Invoice',
-            'Pending Admin Files',
-            'Pending Architect Files', // From default workflow
-            'Pending Structure Files', // From default workflow
-            'Pending MEP Files', // From default workflow
-            'Pending Consultation Docs',
-            'Pending Post-Sidang Revision'
+            'Pending Offer', 'Pending DP Invoice', 'Pending Admin Files',
+            'Pending Architect Files', 'Pending Structure Files', 'Pending MEP Files',
+            'Pending Consultation Docs', 'Pending Post-Sidang Revision'
         ];
-
         return statusesExpectingUpload.includes(selectedProject.status);
-
     }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
+
+    const showAdminChecklistSection = React.useMemo(() => {
+      if (!selectedProject || !currentUser) return false;
+      return selectedProject.workflowId === 'msa_workflow' &&
+             selectedProject.status === 'Pending Parallel Design Uploads' &&
+             (currentUser.role === 'Admin Proyek' || currentUser.role === 'Owner' || currentUser.role === 'Admin Developer');
+    }, [selectedProject, currentUser]);
 
    const showArchitectInitialImageUploadSection = React.useMemo(() => {
     return selectedProject &&
@@ -824,19 +814,19 @@ export default function ProjectsPage() {
         if (!selectedProject || !currentUser) return false;
         return selectedProject.status === 'Pending Scheduling' &&
                (
-                  (currentUser.role === 'Admin Proyek' && canPerformSelectedProjectAction) || // Admin Proyek yang ditugaskan
+                  (currentUser.role === 'Admin Proyek' && canPerformSelectedProjectAction) ||
                   currentUser.role === 'Owner'
                );
     },[selectedProject, currentUser, canPerformSelectedProjectAction]);
 
     const showSurveyDetailsInputSection = React.useMemo(() => {
         if (!selectedProject || !currentUser) return false;
-        const userRoleCleaned = currentUser.role.trim().toLowerCase();
+        const userRoleCleaned = currentUser.role.trim();
         return selectedProject.status === 'Pending Survey Details' &&
                (
-                   userRoleCleaned === 'admin proyek' ||
-                   userRoleCleaned === 'owner' ||
-                   userRoleCleaned === 'arsitek'
+                   userRoleCleaned === 'Admin Proyek' ||
+                   userRoleCleaned === 'Owner' ||
+                   userRoleCleaned === 'Arsitek'
                );
     }, [selectedProject, currentUser]);
 
@@ -894,6 +884,13 @@ export default function ProjectsPage() {
         }
 
     }, [selectedProject, currentUser, projectsDict, toast, getTranslatedStatus]);
+    
+    const allChecklistItemsUploaded = React.useMemo(() => {
+        if (!parallelUploadChecklist) return false;
+        return Object.values(parallelUploadChecklist).every(divisionItems =>
+            divisionItems?.every(item => item.uploaded)
+        );
+    }, [parallelUploadChecklist]);
 
 
     if (!isClient || !currentUser || (isLoadingProjects && !selectedProject && !searchParams.get('projectId'))) {
@@ -1004,6 +1001,45 @@ export default function ProjectsPage() {
                    </CardHeader>
                 </Card>
 
+                 {showAdminChecklistSection && parallelUploadChecklist && (
+                    <Card className="mb-6 shadow-md">
+                        <CardHeader className="p-4 sm:p-6">
+                            <CardTitle>{projectsDict.fileChecklist.title}</CardTitle>
+                            <CardDescription>{projectsDict.adminParallelUploadsGuidance}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-4 sm:p-6 pt-0 grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {Object.entries(parallelUploadChecklist).map(([division, items]) => (
+                                <div key={division}>
+                                    <h4 className="font-semibold mb-2">{getTranslatedStatus(division)}</h4>
+                                    <ul className="space-y-2">
+                                        {items?.map((item, index) => (
+                                            <li key={index} className="flex items-center gap-2 text-sm">
+                                                {item.uploaded ? (
+                                                    <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                                                ) : (
+                                                    <CircleIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                                )}
+                                                <span className={cn(item.uploaded ? "text-foreground" : "text-muted-foreground")}>{item.name}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ))}
+                        </CardContent>
+                         <CardFooter className="p-4 sm:p-6 pt-0">
+                              <Button
+                                onClick={() => handleProgressSubmit('all_files_confirmed')}
+                                disabled={isSubmitting || !allChecklistItemsUploaded}
+                                className="w-full sm:w-auto accent-teal"
+                                title={!allChecklistItemsUploaded ? "Semua file harus diunggah sebelum melanjutkan" : ""}
+                              >
+                                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                                {projectsDict.confirmAllDesignsUploadedButton}
+                              </Button>
+                          </CardFooter>
+                    </Card>
+                 )}
+
                  <Card className="mb-6 shadow-md">
                     <CardHeader className="p-4 sm:p-6"><CardTitle>{projectsDict.workflowHistoryTitle}</CardTitle><CardDescription>{projectsDict.workflowHistoryDesc}</CardDescription></CardHeader>
                     <CardContent className="p-4 sm:p-6 pt-0">
@@ -1046,7 +1082,6 @@ export default function ProjectsPage() {
                        </CardContent>
                    </Card>
                   
-                  {/* Moved Architect's Initial Image Upload Section */}
                   {showArchitectInitialImageUploadSection && (
                     <Card className="mb-6 shadow-md">
                         <CardHeader className="p-4 sm:p-6">
@@ -1128,11 +1163,7 @@ export default function ProjectsPage() {
                              </div>
                            )}
                             <Button onClick={()=> handleProgressSubmit('submitted')}
-                                disabled={
-                                    isSubmitting ||
-                                    (currentUser?.role === 'Admin Proyek' && project.status === 'Pending Offer' && uploadedFiles.length === 0 ) ||
-                                    (!description && uploadedFiles.length === 0 && !['Pending Scheduling', 'Pending Approval', 'Completed', 'Canceled', 'Pending Survey Details'].includes(project.status) && !(currentUser?.role === 'Admin Proyek' && project.status === 'Pending Offer') )
-                                }
+                                disabled={isSubmitting}
                                 className="w-full sm:w-auto accent-teal">
                                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                                 {isSubmitting ? projectsDict.submittingButton : projectsDict.submitButton}

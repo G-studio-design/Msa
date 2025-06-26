@@ -548,6 +548,24 @@
         "action": "arsitek (Arsitek) submitted for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
         "timestamp": "2025-06-26T02:42:41.463Z",
         "note": "file gambar arsitek"
+      },
+      {
+        "division": "Struktur",
+        "action": "struktur (Struktur) submitted for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-26T02:52:19.107Z",
+        "note": "Gambar Struktur"
+      },
+      {
+        "division": "MEP",
+        "action": "agung (MEP) submitted for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-26T02:54:18.573Z",
+        "note": "Gambar Mep"
+      },
+      {
+        "division": "MEP",
+        "action": "agung (MEP) submitted for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-26T02:55:21.902Z",
+        "note": "RAP "
       }
     ],
     "files": [
@@ -580,6 +598,24 @@
         "uploadedBy": "arsitek",
         "path": "project_1750762714162_h35ez-proyek_bali_merdeka/gambar_arsitek_pdf",
         "timestamp": "2025-06-26T02:42:41.463Z"
+      },
+      {
+        "name": "Gambar Struktur .pdf",
+        "uploadedBy": "struktur",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/gambar_struktur_pdf",
+        "timestamp": "2025-06-26T02:52:19.107Z"
+      },
+      {
+        "name": "Gambar Mep.pdf",
+        "uploadedBy": "agung",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/gambar_meppdf",
+        "timestamp": "2025-06-26T02:54:18.573Z"
+      },
+      {
+        "name": "RAP MEP .pdf",
+        "uploadedBy": "agung",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/rap_mep_pdf",
+        "timestamp": "2025-06-26T02:55:21.902Z"
       }
     ],
     "createdAt": "2025-06-24T10:58:34.162Z",

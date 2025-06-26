@@ -232,12 +232,7 @@ const en = {
     architectUploadInitialImagesDialogTitle: "Upload Initial Reference Images",
     architectUploadInitialImagesDialogDesc: "These images will be sent to Structure & MEP divisions for early planning. The project will remain in your court.",
     currentProjectActionsTitle: "Current Project Actions",
-    parallelUploadsSectionTitle: "Parallel Design File Uploads",
     adminParallelUploadsGuidance: "Awaiting design file uploads from Architect, Structure, and MEP divisions. You can submit the project to the next stage once all required files are uploaded.",
-    architectParallelUploadTitle: "Architect: Upload Main Design Files",
-    structureParallelUploadTitle: "Structure: Upload Structural Design Files",
-    mepParallelUploadTitle: "MEP: Upload MEP Design Files",
-    parallelUploadDescriptionPlaceholder: "Optional: Add a description for these files...",
     confirmAllDesignsUploadedButton: "Confirm All Designs Uploaded & Proceed",
     confirmingAllDesignsButton: "Confirming...",
     nextActionDescriptions: {
@@ -302,12 +297,9 @@ const en = {
     },
     fileChecklist: {
       title: "Design & Engineering File Checklist",
-      architectInitialReferences: "Architect: Initial References",
-      architectMainDesign: "Architect: Main Design Files",
-      structureDesign: "Structure: Design Files",
-      mepDesign: "MEP: Design Files",
-      completed: "Completed",
-      pending: "Pending",
+      architect: "Architect",
+      struktur: "Structure",
+      mep: "MEP",
     },
     toast: {
       permissionDenied: 'Permission Denied',
@@ -381,9 +373,7 @@ const en = {
       initialImagesUploadedDesc: "Initial reference images for project \"{projectName}\" have been uploaded by {actorUsername}. Divisions Structure & MEP have been notified.", // Updated
       revisionNotificationSentTitle: "Notification Sent",
       revisionNotificationSentDesc: "Division {division} has been notified to contribute to the revision for project \"{projectName}\" by {actorUsername}.",
-      parallelUploadSubmittedTitle: "File Submitted",
       parallelUploadSubmittedDesc: "{uploaderRole} submitted their files for project \"{projectName}\". Admin Proyek has been notified.",
-      allDesignsConfirmedTitle: "All Designs Confirmed",
       allDesignsConfirmedDesc: "Admin Proyek has confirmed all designs are uploaded for \"{projectName}\". Project proceeding to scheduling.",
     }
   },

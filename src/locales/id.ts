@@ -232,12 +232,7 @@ const id = {
     architectUploadInitialImagesDialogTitle: "Unggah Gambar Referensi Awal",
     architectUploadInitialImagesDialogDesc: "Gambar-gambar ini akan dikirim ke divisi Struktur & MEP untuk perencanaan awal. Proyek akan tetap menjadi tanggung jawab Anda.",
     currentProjectActionsTitle: "Tindakan Proyek Saat Ini",
-    parallelUploadsSectionTitle: "Unggahan File Desain Paralel",
     adminParallelUploadsGuidance: "Menunggu unggahan file desain dari divisi Arsitek, Struktur, dan MEP. Anda dapat melanjutkan proyek ke tahap berikutnya setelah semua file yang diperlukan diunggah.",
-    architectParallelUploadTitle: "Arsitek: Unggah File Desain Utama",
-    structureParallelUploadTitle: "Struktur: Unggah File Desain Struktural",
-    mepParallelUploadTitle: "MEP: Unggah File Desain MEP",
-    parallelUploadDescriptionPlaceholder: "Opsional: Tambahkan deskripsi untuk file-file ini...",
     confirmAllDesignsUploadedButton: "Konfirmasi Semua Desain Telah Diunggah & Lanjutkan",
     confirmingAllDesignsButton: "Mengonfirmasi...",
     nextActionDescriptions: {
@@ -302,12 +297,9 @@ const id = {
     },
     fileChecklist: {
       title: "Daftar Periksa Unggahan File Desain & Teknis",
-      architectInitialReferences: "Arsitek: Referensi Awal",
-      architectMainDesign: "Arsitek: File Desain Utama",
-      structureDesign: "Struktur: File Desain",
-      mepDesign: "MEP: File Desain",
-      completed: "Selesai",
-      pending: "Tertunda",
+      architect: "Arsitek",
+      struktur: "Struktur",
+      mep: "MEP",
     },
     toast: {
       permissionDenied: 'Izin Ditolak',
@@ -381,9 +373,7 @@ const id = {
       initialImagesUploadedDesc: "Gambar referensi awal untuk proyek \"{projectName}\" telah diunggah oleh {actorUsername}. Divisi Struktur & MEP telah dinotifikasi.", // Updated
       revisionNotificationSentTitle: "Notifikasi Terkirim",
       revisionNotificationSentDesc: "Divisi {division} telah dinotifikasi untuk berkontribusi pada revisi proyek \"{projectName}\" oleh {actorUsername}.",
-      parallelUploadSubmittedTitle: "File Terkirim",
       parallelUploadSubmittedDesc: "{uploaderRole} mengirimkan file mereka untuk proyek \"{projectName}\". Admin Proyek telah diberitahu.",
-      allDesignsConfirmedTitle: "Semua Desain Dikonfirmasi",
       allDesignsConfirmedDesc: "Admin Proyek telah mengonfirmasi semua desain diunggah untuk \"{projectName}\". Proyek berlanjut ke penjadwalan.",
     }
   },
