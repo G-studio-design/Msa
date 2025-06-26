@@ -224,7 +224,7 @@ export default function DashboardPage() {
           <Skeleton className="h-10 w-2/5" />
           <Skeleton className="h-10 w-44" />
         </div>
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-6">
             <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-40 w-full" /></CardContent></Card>
             <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-1/2" /></CardHeader><CardContent><Skeleton className="h-32 w-full" /></CardContent></Card>
@@ -253,7 +253,7 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
             {/* Active Projects Card */}
             <Card>
@@ -304,7 +304,7 @@ export default function DashboardPage() {
                     <ResponsiveContainer>
                       <BarChart data={activeProjects} layout="vertical" margin={{ right: 40, left: 10 }}>
                         <XAxis type="number" dataKey="progress" domain={[0, 100]} tickFormatter={(value) => `${value}%`} tick={{ fontSize: 10 }} />
-                        <YAxis type="category" dataKey="title" width={language === 'id' ? 100 : 80} tick={{ fontSize: 10, width: language === 'id' ? 95 : 75, textAnchor: 'end' }} interval={0} tickFormatter={(value) => value.length > 20 ? `${value.substring(0, 20)}...` : value} />
+                        <YAxis type="category" dataKey="title" tick={{ fontSize: 10, width: 80, textAnchor: 'end' }} interval={0} tickFormatter={(value) => value.length > 15 ? `${value.substring(0, 15)}...` : value} />
                         <ChartTooltip
                             cursor={{ fill: 'hsl(var(--muted))' }}
                             content={<ChartTooltipContent />}
@@ -359,19 +359,21 @@ export default function DashboardPage() {
                     <CardDescription>{dashboardDict.scheduleAgendaDesc}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={setSelectedDate}
-                        className="rounded-md border p-0"
-                        locale={currentLocale}
-                        modifiers={{
-                            hasEvent: Object.keys(eventsByDate).map(d => parseISO(d)),
-                        }}
-                        modifiersClassNames={{
-                            hasEvent: "relative !bg-primary/10",
-                        }}
-                    />
+                    <div className="flex justify-center">
+                        <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={setSelectedDate}
+                            className="rounded-md border"
+                            locale={currentLocale}
+                            modifiers={{
+                                hasEvent: Object.keys(eventsByDate).map(d => parseISO(d)),
+                            }}
+                            modifiersClassNames={{
+                                hasEvent: "relative !bg-primary/10",
+                            }}
+                        />
+                    </div>
                     <div className="space-y-3 pt-4 border-t h-48 overflow-y-auto pr-2">
                         <h3 className="text-md font-semibold">{dashboardDict.eventsForDate.replace('{date}', selectedDate ? format(selectedDate, 'PP', { locale: currentLocale }) : '...')}</h3>
                         {selectedDate && eventsByDate[format(selectedDate, 'yyyy-MM-dd')] ? (
