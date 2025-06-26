@@ -465,7 +465,7 @@ export default function MonthlyReportPage() {
                         <p>{reportDict.noDataForMonth}</p>
                     </div>
                  ) : (
-                    <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] w-full">
+                    <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] w-full min-w-[500px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart 
                                 data={chartDisplayData} 
@@ -492,7 +492,7 @@ export default function MonthlyReportPage() {
                 <>
                   {/* Desktop Table View */}
                   <div className="hidden md:block w-full overflow-x-auto rounded-md border">
-                    <Table>
+                    <Table className="min-w-[1000px]">
                       <TableCaption>{reportDict.tableCaption}</TableCaption>
                       <TableHeader>
                         <TableRow>
