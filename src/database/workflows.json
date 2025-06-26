@@ -98,14 +98,24 @@
               "message": "Faktur DP untuk proyek '{projectName}' telah disetujui oleh {actorUsername}. Mohon unggah berkas administrasi."
             }
           },
-          "rejected": {
+          "revise_dp": {
             "targetStatus": "Pending DP Invoice",
             "targetAssignedDivision": "Akuntan",
-            "targetNextActionDescription": "Revisi dan Unggah Ulang Faktur DP",
+            "targetNextActionDescription": "Revisi dan Unggah Ulang Faktur DP berdasarkan masukan Owner.",
             "targetProgress": 25,
             "notification": {
               "division": "Akuntan",
               "message": "Faktur DP untuk proyek '{projectName}' ditolak oleh {actorUsername}. Mohon direvisi."
+            }
+          },
+          "rejected": {
+            "targetStatus": "Canceled",
+            "targetAssignedDivision": "",
+            "targetNextActionDescription": null,
+            "targetProgress": 30,
+            "notification": {
+              "division": "Admin Proyek",
+              "message": "Proyek '{projectName}' dibatalkan oleh {actorUsername} pada tahap persetujuan faktur DP."
             }
           }
         }
@@ -403,14 +413,24 @@
               "message": "Faktur DP untuk proyek '{projectName}' telah disetujui oleh {actorUsername}. Mohon unggah berkas administrasi."
             }
           },
-          "rejected": {
+          "revise_dp": {
             "targetStatus": "Pending DP Invoice",
             "targetAssignedDivision": "Akuntan",
-            "targetNextActionDescription": "Revisi dan Unggah Ulang Faktur DP",
+            "targetNextActionDescription": "Revisi dan Unggah Ulang Faktur DP berdasarkan masukan Owner.",
             "targetProgress": 25,
             "notification": {
               "division": "Akuntan",
               "message": "Faktur DP untuk proyek '{projectName}' ditolak oleh {actorUsername}. Mohon direvisi."
+            }
+          },
+          "rejected": {
+            "targetStatus": "Canceled",
+            "targetAssignedDivision": "",
+            "targetNextActionDescription": null,
+            "targetProgress": 30,
+            "notification": {
+              "division": "Admin Proyek",
+              "message": "Proyek '{projectName}' dibatalkan oleh {actorUsername} pada tahap persetujuan faktur DP."
             }
           }
         }

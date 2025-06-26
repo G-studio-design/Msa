@@ -90,9 +90,21 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     }
   }, [isClient, currentUser]);
 
+  // Initial fetch on mount
   useEffect(() => {
     if (isClient && currentUser) {
       fetchNotifications();
+    }
+  }, [isClient, currentUser, fetchNotifications]);
+
+  // Polling for real-time notifications
+  useEffect(() => {
+    if (isClient && currentUser) {
+      const intervalId = setInterval(() => {
+        fetchNotifications();
+      }, 15000); // Poll every 15 seconds
+
+      return () => clearInterval(intervalId); // Cleanup on unmount
     }
   }, [isClient, currentUser, fetchNotifications]);
 
@@ -406,4 +418,3 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
-
