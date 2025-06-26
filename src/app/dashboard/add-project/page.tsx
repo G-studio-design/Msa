@@ -1,3 +1,4 @@
+
 // src/app/dashboard/add-project/page.tsx
 'use client';
 
@@ -417,6 +418,3 @@ export default function AddProjectPage() {
     </div>
   );
 }
-    
-
-    

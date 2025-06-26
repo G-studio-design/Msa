@@ -12,29 +12,24 @@ const ALLOWED_ROLES = ['Owner', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP', 'A
 
 export async function POST(request: Request) {
   try {
+    console.log('[API Upload] Received new file upload request.');
     const formData = await request.formData();
-
-    // --- ADDED LOG FOR RECEIVED FORM DATA ---
-    console.log('[API Upload] Received FormData:');
-    for (const [key, value] of formData.entries()) {
-      console.log(`[API Upload] Key: ${key}, Value: ${typeof value === 'string' ? value : 'File object'}`);
-    }
-    // --- END ADDED LOG ---
+    console.log('[API Upload] FormData parsed successfully.');
 
     await ensureProjectFilesBaseDirExists(); // Make sure the base directory exists
 
     const file = formData.get('file') as File | null;
     const projectId = formData.get('projectId') as string | null;
     const projectTitle = formData.get('projectTitle') as string | null;
-    const userId = formData.get('userId') as string | null; // Get userId from form data
+    const userId = formData.get('userId') as string | null;
+    console.log(`[API Upload] Extracted form fields: projectId=${projectId}, projectTitle=${projectTitle}, userId=${userId}, file=${file?.name}`);
 
-    if (!file) {
-      return NextResponse.json({ message: 'No file uploaded.' }, { status: 400 });
-    }
-    if (!projectId || !projectTitle || !userId) { // Ensure userId is present
-      console.error('[API Upload] Missing required fields:', { projectId, projectTitle, userId });
+    if (!file || !projectId || !projectTitle || !userId) {
+      console.error('[API Upload] Missing required fields:', { projectId, projectTitle, userId, file: !!file });
       return NextResponse.json({ message: 'Project ID, title, and User ID are required.' }, { status: 400 });
     }
+    
+    console.log('[API Upload] All required fields are present. Proceeding with role check.');
 
     // --- Role Check ---
     const usersFilePath = path.join(process.cwd(), 'src/database/users.json');
@@ -46,6 +41,7 @@ export async function POST(request: Request) {
       console.error('Error reading users.json:', readError);
       return NextResponse.json({ message: 'Failed to read user data for authorization.' }, { status: 500 });
     }
+    console.log(`[API Upload] users.json read successfully. Searching for user ID: ${userId}`);
 
     const user = users.find((u: any) => u.id === userId);
 
@@ -53,11 +49,15 @@ export async function POST(request: Request) {
       console.error('[API Upload] User not found for ID:', userId);
       return NextResponse.json({ message: 'User not found.' }, { status: 404 });
     }
+    console.log(`[API Upload] User found: ${user.username}, Role: ${user.role}`);
+
 
     if (!ALLOWED_ROLES.includes(user.role)) {
       console.warn('[API Upload] User role not authorized:', user.role, 'for user ID:', userId);
       return NextResponse.json({ message: 'User role is not authorized to upload files.' }, { status: 403 }); // Forbidden
     }
+    
+    console.log(`[API Upload] User role '${user.role}' is authorized. Proceeding with file save.`);
     // --- End Role Check ---
 
     const projectTitleSanitized = sanitizeForPath(projectTitle);
@@ -71,13 +71,16 @@ export async function POST(request: Request) {
       console.error(`Error creating directory ${projectSpecificDirAbsolute}:`, mkdirError);
       return NextResponse.json({ message: 'Failed to create project directory on server.' }, { status: 500 });
     }
+    
+    console.log(`[API Upload] Project directory ensured: ${projectSpecificDirAbsolute}`);
 
-    // Sanitize the original filename before saving for path compatibility
     const originalFilename = file.name;
-    const safeFilenameForPath = sanitizeForPath(originalFilename) || `file_${Date.now()}`; // Ensure there's always a name
+    const safeFilenameForPath = sanitizeForPath(originalFilename) || `file_${Date.now()}`;
 
     const relativeFilePath = `${projectSpecificDirRelative}/${safeFilenameForPath}`;
     const absoluteFilePath = path.join(PROJECT_FILES_BASE_DIR, relativeFilePath);
+
+    console.log(`[API Upload] Preparing to write file to: ${absoluteFilePath}`);
 
     // Convert ArrayBuffer to Buffer and write file
     const bytes = await file.arrayBuffer();
@@ -92,7 +95,7 @@ export async function POST(request: Request) {
     }, { status: 200 });
 
   } catch (error) {
-    console.error('[API Upload] File upload error:', error);
+    console.error('[API Upload] Unhandled error in POST handler:', error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during file upload.';
     return NextResponse.json({ message: `File upload failed: ${errorMessage}` }, { status: 500 });
   }
