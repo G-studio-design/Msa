@@ -581,6 +581,11 @@
         "division": "Arsitek",
         "action": "arsitek (Arsitek) submitted for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
         "timestamp": "2025-06-26T03:38:57.804Z"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) submitted for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-26T04:18:32.064Z"
       }
     ],
     "files": [
@@ -649,6 +654,12 @@
         "uploadedBy": "Arsitek",
         "path": "project_1750762714162_h35ez-proyek_bali_merdeka/spektek_proyek_bali_merdeka_arsitekpdf",
         "timestamp": "2025-06-26T03:38:57.804Z"
+      },
+      {
+        "name": "Daftar SIMak Proyek Bali Merdeka.pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/daftar_simak_proyek_bali_merdekapdf",
+        "timestamp": "2025-06-26T04:18:32.064Z"
       }
     ],
     "createdAt": "2025-06-24T10:58:34.162Z",

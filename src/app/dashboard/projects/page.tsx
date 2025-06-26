@@ -89,6 +89,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { notifyUsersByRole } from '@/services/notification-service';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 
 const defaultGlobalDict = getDictionary('en');
@@ -114,6 +115,13 @@ interface ParallelUploadChecklist {
     Struktur?: ChecklistItem[];
     MEP?: ChecklistItem[];
 }
+
+interface GroupedHistoryItem {
+    timestamp: string;
+    entries: WorkflowHistoryEntry[];
+    files: FileEntry[];
+}
+
 
 export default function ProjectsPage() {
   const { toast } = useToast();
@@ -902,6 +910,30 @@ export default function ProjectsPage() {
         );
     }, [parallelUploadChecklist]);
 
+    const groupedAndSortedHistory = React.useMemo(() => {
+        if (!selectedProject) return [];
+        const grouped = new Map<string, GroupedHistoryItem>();
+
+        (selectedProject.workflowHistory || []).forEach(entry => {
+            if (!grouped.has(entry.timestamp)) {
+                grouped.set(entry.timestamp, { timestamp: entry.timestamp, entries: [], files: [] });
+            }
+            grouped.get(entry.timestamp)!.entries.push(entry);
+        });
+
+        (selectedProject.files || []).forEach(file => {
+            if (!grouped.has(file.timestamp)) {
+                grouped.set(file.timestamp, { timestamp: file.timestamp, entries: [], files: [] });
+            }
+            grouped.get(file.timestamp)!.files.push(file);
+        });
+        
+        return Array.from(grouped.values())
+            .filter(group => group.entries.length > 0) // Only show groups that have a history action
+            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    }, [selectedProject]);
+
 
     if (!isClient || !currentUser || (isLoadingProjects && !selectedProject && !searchParams.get('projectId'))) {
         return (
@@ -1060,46 +1092,59 @@ export default function ProjectsPage() {
                  )}
 
                  <Card className="mb-6 shadow-md">
-                    <CardHeader className="p-4 sm:p-6"><CardTitle>{projectsDict.workflowHistoryTitle}</CardTitle><CardDescription>{projectsDict.workflowHistoryDesc}</CardDescription></CardHeader>
+                    <CardHeader className="p-4 sm:p-6">
+                        <CardTitle>{projectsDict.workflowHistoryTitle}</CardTitle>
+                        <CardDescription>{projectsDict.workflowHistoryDesc}</CardDescription>
+                    </CardHeader>
                     <CardContent className="p-4 sm:p-6 pt-0">
-                        <ul className="space-y-3">
-                        {(project.workflowHistory || []).map((entry, index) => (
-                            <li key={`${entry.timestamp}-${index}-${entry.action.replace(/\s/g, '_')}`} className="flex items-start gap-3">
-                                <div className={`mt-1 h-3 w-3 rounded-full flex-shrink-0 ${index === project.workflowHistory.length - 1 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
-                                <div>
-                                    <p className="text-sm font-medium">{entry.action}</p>
-                                    <p className="text-xs text-muted-foreground">{formatTimestamp(entry.timestamp)}</p>
-                                    {entry.note && <p className="text-xs text-muted-foreground italic mt-1 whitespace-pre-wrap">{projectsDict.revisionNotePrefix} {entry.note}</p>}
-                                </div>
-                            </li>
-                        ))}
-                        </ul>
+                        <Accordion type="single" collapsible className="w-full">
+                             {groupedAndSortedHistory.length > 0 ? (
+                                groupedAndSortedHistory.map((group, index) => (
+                                <AccordionItem value={`item-${index}`} key={group.timestamp}>
+                                    <AccordionTrigger disabled={group.files.length === 0} className={cn("hover:no-underline", group.files.length === 0 && "cursor-default")}>
+                                        <div className="flex items-start gap-3 flex-1 text-left">
+                                            <div className={`mt-1 h-3 w-3 rounded-full flex-shrink-0 ${index === 0 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
+                                            <div>
+                                                {group.entries.map((entry, entryIndex) => (
+                                                    <p key={entryIndex} className="text-sm font-medium">{entry.action}</p>
+                                                ))}
+                                                <p className="text-xs text-muted-foreground">{formatTimestamp(group.timestamp)}</p>
+                                                {group.entries.map((entry, entryIndex) => (
+                                                    entry.note && <p key={`note-${entryIndex}`} className="text-xs text-muted-foreground italic mt-1 whitespace-pre-wrap">{projectsDict.revisionNotePrefix} {entry.note}</p>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent>
+                                        <div className="pl-6 border-l-2 border-dashed ml-1.5">
+                                            <h4 className="text-sm font-semibold mb-2 ml-4 text-muted-foreground">{projectsDict.uploadedFilesTitle}</h4>
+                                            <ul className="space-y-2 ml-4">
+                                            {group.files.map((file, fileIndex) => (
+                                                <li key={fileIndex} className="flex items-center justify-between p-2 border rounded-md hover:bg-secondary/50 gap-2">
+                                                    <div className="flex items-center gap-2 flex-grow min-w-0">
+                                                        <FileText className="h-5 w-5 text-primary flex-shrink-0" />
+                                                        <span className="text-sm font-medium break-all">{file.name}</span>
+                                                    </div>
+                                                    {canDownloadFiles && (
+                                                        <Button variant="ghost" size="icon" onClick={() => handleDownloadFile(file)} disabled={isDownloading} title={projectsDict.downloadFileTooltip} className="h-7 w-7 flex-shrink-0">
+                                                            {isDownloading ? <Loader2 className="h-4 w-4 animate-spin"/> : <Download className="h-4 w-4 text-primary" />}
+                                                        </Button>
+                                                    )}
+                                                </li>
+                                            ))}
+                                            </ul>
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
+                                ))
+                             ) : (
+                                <p className="text-sm text-muted-foreground">{projectsDict.loadingHistory}</p>
+                             )}
+                        </Accordion>
                     </CardContent>
-                  </Card>
+                </Card>
 
-                  <Card className="mb-6 shadow-md">
-                       <CardHeader className="p-4 sm:p-6"><CardTitle>{projectsDict.uploadedFilesTitle}</CardTitle><CardDescription>{projectsDict.uploadedFilesDesc}</CardDescription></CardHeader>
-                       <CardContent className="p-4 sm:p-6 pt-0">
-                         {(project.files || []).length === 0 ? (<p className="text-sm text-muted-foreground">{projectsDict.noFiles}</p>) : (
-                           <ul className="space-y-2">
-                              {(project.files || []).map((file, index) => (
-                               <li key={`${file.path}-${index}`} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 border rounded-md hover:bg-secondary/50 gap-2 sm:gap-4">
-                                  <div className="flex items-center gap-2 flex-grow min-w-0"><FileText className="h-5 w-5 text-primary flex-shrink-0" />
-                                      <div className="flex-1 min-w-0">
-                                        <span className="text-sm font-medium break-all">{file.name}</span>
-                                        {file.path && (<p className="text-xs text-muted-foreground/70 flex items-center gap-1 truncate"><FolderOpen className="h-3 w-3 flex-shrink-0" />{file.path}</p>)}
-                                      </div>
-                                  </div>
-                                  <div className="flex flex-shrink-0 items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-                                       <span className="text-xs text-muted-foreground text-left sm:text-right flex-grow">{projectsDict.uploadedByOn.replace('{user}', file.uploadedBy).replace('{date}', formatDateOnly(file.timestamp))}</span>
-                                       {canDownloadFiles && (<Button variant="ghost" size="icon" onClick={() => handleDownloadFile(file)} disabled={isDownloading} title={projectsDict.downloadFileTooltip} className="h-7 w-7 flex-shrink-0">{isDownloading ? <Loader2 className="h-4 w-4 animate-spin"/> : <Download className="h-4 w-4 text-primary" />}</Button>)}
-                                  </div>
-                               </li>
-                              ))}
-                           </ul>
-                         )}
-                       </CardContent>
-                   </Card>
+                  {/* The separate "Uploaded Files" Card is now removed */}
                   
                   {showArchitectInitialImageUploadSection && (
                     <Card className="mb-6 shadow-md">
