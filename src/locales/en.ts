@@ -1,4 +1,3 @@
-
 // src/locales/en.ts
 const en = {
   // Login Page
@@ -160,9 +159,12 @@ const en = {
     submittingButton: 'Submitting...',
     ownerActionTitle: 'Owner Action Required',
     ownerActionDesc: 'Review the submitted documents and decide whether to proceed.',
+    dpInvoiceApprovalTitle: 'DP Invoice Approval',
+    dpInvoiceApprovalDesc: 'Review the DP invoice. You can approve it, request a revision, or cancel the project.',
     approveButton: 'Approve',
-    cancelProjectButton: 'Cancel Project', // New
-    reviseOfferButton: "Request Offer Revision", // Kept for potential specific use
+    cancelProjectButton: 'Cancel Project',
+    reviseOfferButton: "Request Offer Revision",
+    reviseDPButton: "Request DP Revision",
     scheduleSidangTitle: 'Schedule Sidang ({role})',
     dateLabel: 'Date',
     timeLabel: 'Time',
@@ -339,13 +341,13 @@ const en = {
       revisionRequested: "Revision Requested",
       projectSentForRevision: "Project \"{projectName}\" sent back to {division} for revision.",
       sidangOutcomeSuccessTitle: "Sidang Outcome: Success",
-      sidangOutcomeSuccessDesc: "Project \"{title}\" has been marked as completed based on sidang outcome.",
+      sidangOutcomeSuccessDesc: "Project \"{title}\" has been sent to Final Documentation based on sidang outcome.",
       sidangOutcomeRevisionTitle: "Sidang Outcome: Revision Needed",
       sidangOutcomeRevisionDesc: "Project \"{title}\" has been sent to {division} for post-sidang revisions.",
       sidangOutcomeCanceledTitle: "Sidang Outcome: Canceled",
       sidangOutcomeCanceledDesc: "Project \"{title}\" has been canceled based on sidang outcome.",
       revisionCompletedTitle: "Revision Completed",
-      revisionCompletedDesc: "Project \"{title}\" has been successfully completed after revisions.",
+      revisionCompletedDesc: "Project \"{title}\" has been successfully sent to Final Documentation after revisions.",
       offerApproved: 'Offer Approved',
       offerApprovedDesc: '{division} notified for DP Invoice.',
       dpApproved: 'DP Invoice Approved',
@@ -372,7 +374,7 @@ const en = {
       revisionSuccess: 'Revision Requested',
       revisionSuccessDesc: 'Project sent back to {division} for revision.',
       revisionError: 'Revision Error',
-      revisionNoteRequired: 'A note is required to request a post-sidang revision.',
+      revisionNoteRequired: 'A revision note is required.',
       schedulingPermissionDenied: 'You do not have permission to schedule this project.',
       error: 'Error',
       couldNotLoadProjects: 'Could not load project data.',
@@ -397,6 +399,10 @@ const en = {
       fileDeletedDesc: "The file \"{filename}\" has been deleted successfully.",
       fileDeleteError: "Failed to delete file.",
       deleteFileConfirmButton: "Yes, Delete File",
+      divisionCompletionTitle: "Division Work Submitted",
+      divisionCompletionDesc: "You have marked the work for {role} as complete. Admin Proyek has been notified.",
+      markDivisionCompleteButton: "Mark My Work as Done",
+      divisionCompletedButton: "Work Marked as Done",
     }
   },
   // Add Project Page
@@ -853,3 +859,5 @@ const en = {
 };
 
 export default en;
+
+    

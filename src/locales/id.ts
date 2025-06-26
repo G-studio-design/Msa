@@ -1,4 +1,3 @@
-
 // src/locales/id.ts
 const id = {
   // Login Page
@@ -160,9 +159,12 @@ const id = {
     submittingButton: 'Mengirim...',
     ownerActionTitle: 'Tindakan Pemilik Diperlukan',
     ownerActionDesc: 'Tinjau dokumen yang dikirim dan putuskan apakah akan melanjutkan.',
+    dpInvoiceApprovalTitle: 'Persetujuan Faktur DP',
+    dpInvoiceApprovalDesc: 'Tinjau faktur DP. Anda dapat menyetujuinya, meminta revisi, atau membatalkan proyek.',
     approveButton: 'Setujui',
-    cancelProjectButton: 'Batalkan Proyek', // New
-    reviseOfferButton: "Minta Revisi Penawaran", // Kept for potential specific use
+    cancelProjectButton: 'Batalkan Proyek',
+    reviseOfferButton: "Minta Revisi Penawaran",
+    reviseDPButton: "Minta Revisi DP",
     scheduleSidangTitle: 'Jadwalkan Sidang ({role})',
     dateLabel: 'Tanggal',
     timeLabel: 'Waktu',
@@ -339,13 +341,13 @@ const id = {
       revisionRequested: "Permintaan Revisi",
       projectSentForRevision: "Proyek \"{projectName}\" dikirim kembali ke {division} untuk revisi.",
       sidangOutcomeSuccessTitle: "Hasil Sidang: Berhasil",
-      sidangOutcomeSuccessDesc: "Proyek \"{title}\" telah ditandai selesai berdasarkan hasil sidang.",
+      sidangOutcomeSuccessDesc: "Proyek \"{title}\" telah dikirim ke Dokumentasi Akhir berdasarkan hasil sidang.",
       sidangOutcomeRevisionTitle: "Hasil Sidang: Perlu Revisi",
       sidangOutcomeRevisionDesc: "Proyek \"{title}\" telah dikirim ke {division} untuk revisi pasca-sidang.",
       sidangOutcomeCanceledTitle: "Hasil Sidang: Dibatalkan",
       sidangOutcomeCanceledDesc: "Proyek \"{title}\" telah dibatalkan berdasarkan hasil sidang.",
       revisionCompletedTitle: "Revisi Selesai",
-      revisionCompletedDesc: "Proyek \"{title}\" telah berhasil diselesaikan setelah revisi.",
+      revisionCompletedDesc: "Proyek \"{title}\" telah berhasil dikirim ke Dokumentasi Akhir setelah revisi.",
       offerApproved: 'Penawaran Disetujui',
       offerApprovedDesc: '{division} diberitahu untuk Faktur DP.',
       dpApproved: 'Faktur DP Disetujui',
@@ -372,7 +374,7 @@ const id = {
       revisionSuccess: 'Permintaan Revisi Berhasil',
       revisionSuccessDesc: 'Proyek dikirim kembali ke {division} untuk revisi.',
       revisionError: 'Kesalahan Revisi',
-      revisionNoteRequired: 'Catatan revisi wajib diisi untuk meminta revisi pasca-sidang.',
+      revisionNoteRequired: 'Catatan revisi wajib diisi.',
       schedulingPermissionDenied: 'Anda tidak memiliki izin untuk menjadwalkan proyek ini.',
       error: 'Kesalahan',
       couldNotLoadProjects: 'Tidak dapat memuat data proyek.',
@@ -397,6 +399,10 @@ const id = {
       fileDeletedDesc: "File \"{filename}\" telah berhasil dihapus.",
       fileDeleteError: "Gagal menghapus file.",
       deleteFileConfirmButton: "Ya, Hapus File",
+      divisionCompletionTitle: "Pekerjaan Divisi Dikirim",
+      divisionCompletionDesc: "Anda telah menandai pekerjaan untuk {role} sebagai selesai. Admin Proyek telah diberitahu.",
+      markDivisionCompleteButton: "Tandai Pekerjaan Saya Selesai",
+      divisionCompletedButton: "Pekerjaan Ditandai Selesai",
     }
   },
   // Add Project Page
@@ -853,3 +859,5 @@ const id = {
 };
 
 export default id;
+
+    

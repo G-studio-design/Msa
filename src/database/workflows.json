@@ -98,14 +98,24 @@
               "message": "Faktur DP untuk proyek '{projectName}' telah disetujui oleh {actorUsername}. Mohon unggah berkas administrasi."
             }
           },
-          "rejected": {
+          "revise_dp": {
             "targetStatus": "Pending DP Invoice",
             "targetAssignedDivision": "Akuntan",
-            "targetNextActionDescription": "Revisi dan Unggah Ulang Faktur DP",
+            "targetNextActionDescription": "Revisi dan Unggah Ulang Faktur DP berdasarkan masukan dari Owner.",
             "targetProgress": 25,
             "notification": {
               "division": "Akuntan",
-              "message": "Faktur DP untuk proyek '{projectName}' ditolak oleh {actorUsername}. Mohon direvisi."
+              "message": "Faktur DP untuk proyek '{projectName}' perlu direvisi berdasarkan masukan dari {actorUsername}."
+            }
+          },
+          "rejected": {
+            "targetStatus": "Canceled",
+            "targetAssignedDivision": "",
+            "targetNextActionDescription": null,
+            "targetProgress": 30,
+            "notification": {
+              "division": "Admin Proyek",
+              "message": "Proyek '{projectName}' telah dibatalkan oleh {actorUsername} pada tahap persetujuan faktur DP."
             }
           }
         }
@@ -403,14 +413,24 @@
               "message": "Faktur DP untuk proyek '{projectName}' telah disetujui oleh {actorUsername}. Mohon unggah berkas administrasi."
             }
           },
-          "rejected": {
+          "revise_dp": {
             "targetStatus": "Pending DP Invoice",
             "targetAssignedDivision": "Akuntan",
-            "targetNextActionDescription": "Revisi dan Unggah Ulang Faktur DP",
+            "targetNextActionDescription": "Revisi dan Unggah Ulang Faktur DP berdasarkan masukan dari Owner.",
             "targetProgress": 25,
             "notification": {
               "division": "Akuntan",
-              "message": "Faktur DP untuk proyek '{projectName}' ditolak oleh {actorUsername}. Mohon direvisi."
+              "message": "Faktur DP untuk proyek '{projectName}' perlu direvisi berdasarkan masukan dari {actorUsername}."
+            }
+          },
+          "rejected": {
+            "targetStatus": "Canceled",
+            "targetAssignedDivision": "",
+            "targetNextActionDescription": null,
+            "targetProgress": 30,
+            "notification": {
+              "division": "Admin Proyek",
+              "message": "Proyek '{projectName}' telah dibatalkan oleh {actorUsername} pada tahap persetujuan faktur DP."
             }
           }
         }
@@ -508,13 +528,13 @@
         "nextActionDescription": "Nyatakan Hasil Sidang (Sukses/Revisi/Batal)",
         "transitions": {
           "completed": {
-            "targetStatus": "Completed",
-            "targetAssignedDivision": "",
-            "targetNextActionDescription": null,
-            "targetProgress": 100,
+            "targetStatus": "Pending Final Documents",
+            "targetAssignedDivision": "Admin Proyek",
+            "targetNextActionDescription": "Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.",
+            "targetProgress": 98,
             "notification": {
               "division": "Admin Proyek",
-              "message": "Proyek '{projectName}' telah berhasil diselesaikan oleh {actorUsername}."
+              "message": "Sidang proyek '{projectName}' telah dinyatakan sukses oleh {actorUsername}. Mohon unggah dokumen akhir."
             }
           },
           "revise_after_sidang": {
@@ -547,13 +567,32 @@
         "nextActionDescription": "Lakukan revisi, notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.",
         "transitions": {
           "revision_completed_and_finish": {
+            "targetStatus": "Pending Final Documents",
+            "targetAssignedDivision": "Admin Proyek",
+            "targetNextActionDescription": "Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.",
+            "targetProgress": 98,
+            "notification": {
+              "division": "Admin Proyek",
+              "message": "Revisi pasca-sidang untuk proyek '{projectName}' telah selesai. Mohon unggah dokumen akhir."
+            }
+          }
+        }
+      },
+      {
+        "stepName": "Final Document Upload",
+        "status": "Pending Final Documents",
+        "assignedDivision": "Admin Proyek",
+        "progress": 98,
+        "nextActionDescription": "Unggah dokumen penyelesaian proyek: Berita Acara, SKRD, Ijin Terbit, Susunan Dokumen Final, Tanda Terima.",
+        "transitions": {
+          "completed": {
             "targetStatus": "Completed",
             "targetAssignedDivision": "",
             "targetNextActionDescription": null,
             "targetProgress": 100,
             "notification": {
               "division": "Owner",
-              "message": "Proyek '{projectName}' telah berhasil diselesaikan setelah revisi oleh {actorUsername}."
+              "message": "Proyek '{projectName}' telah selesai dengan semua dokumen akhir terunggah oleh {actorUsername}."
             }
           }
         }
@@ -576,4 +615,5 @@
       }
     ]
   }
-]
+
+    

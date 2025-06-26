@@ -801,10 +801,10 @@
   {
     "id": "project_1750923884164_mtu12",
     "title": "proyek mega mendung",
-    "status": "Pending DP Invoice",
-    "progress": 25,
-    "assignedDivision": "Akuntan",
-    "nextAction": "Buat Faktur DP",
+    "status": "Pending Approval",
+    "progress": 30,
+    "assignedDivision": "Owner",
+    "nextAction": "Setujui Faktur DP",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -832,6 +832,11 @@
         "division": "Owner",
         "action": "sudina (Owner) approved: Setujui Dokumen Penawaran",
         "timestamp": "2025-06-26T08:14:50.643Z"
+      },
+      {
+        "division": "Akuntan",
+        "action": "oksi (Akuntan) submitted for \"Buat Faktur DP\"",
+        "timestamp": "2025-06-26T11:20:15.524Z"
       }
     ],
     "files": [
@@ -846,6 +851,12 @@
         "uploadedBy": "Admin Proyek",
         "path": "project_1750923884164_mtu12-proyek_mega_mendung/dokumen_penawaran_pdf",
         "timestamp": "2025-06-26T07:46:07.121Z"
+      },
+      {
+        "name": "faktur dp.txt",
+        "uploadedBy": "Akuntan",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/faktur_dptxt",
+        "timestamp": "2025-06-26T11:20:15.524Z"
       }
     ],
     "createdAt": "2025-06-26T07:44:44.164Z",

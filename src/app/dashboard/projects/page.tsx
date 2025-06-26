@@ -1,4 +1,3 @@
-
 // src/app/dashboard/projects/page.tsx
 'use client';
 
@@ -40,6 +39,7 @@ import {
   Shield,
   Circle as CircleIcon,
   Wrench,
+  Check,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -75,6 +75,7 @@ import {
     reviseProject,
     getProjectById as fetchProjectByIdInternal,
     deleteProjectFile,
+    markParallelUploadsAsCompleteByDivision,
     type Project,
     type WorkflowHistoryEntry,
     type FileEntry,
@@ -178,6 +179,8 @@ export default function ProjectsPage() {
   const [isPostSidangRevisionDialogOpen, setIsPostSidangRevisionDialogOpen] = React.useState(false);
   const [postSidangRevisionNote, setPostSidangRevisionNote] = React.useState('');
   const [isDeletingFile, setIsDeletingFile] = React.useState<string | null>(null);
+
+  const [isGenericRevisionDialogOpen, setIsGenericRevisionDialogOpen] = React.useState(false);
 
 
   React.useEffect(() => {
@@ -539,7 +542,7 @@ export default function ProjectsPage() {
       }
   }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus, initialImageFiles, initialImageDescription]);
 
-  const handleDecision = React.useCallback((decision: 'approved' | 'rejected' | 'completed' | 'revise_offer' | 'canceled_after_sidang' | 'revision_completed_and_finish') => {
+  const handleDecision = React.useCallback((decision: 'approved' | 'rejected' | 'completed' | 'revise_offer' | 'canceled_after_sidang' | 'revision_completed_and_finish' | 'mark_division_complete') => {
     if (!currentUser || !selectedProject ) {
       toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.onlyOwnerDecision });
       return;
@@ -828,17 +831,20 @@ export default function ProjectsPage() {
         return;
       }
       
-      let actionForRevision = 'revise'; 
+      let actionForRevision = 'revise';
       if (currentUser.role === 'Owner' && selectedProject.status === 'Pending Approval' && selectedProject.progress === 20) {
         actionForRevision = 'revise_offer';
+      } else if (currentUser.role === 'Owner' && selectedProject.status === 'Pending Approval' && selectedProject.progress === 30) {
+        actionForRevision = 'revise_dp';
       }
 
-      if (!revisionNote.trim() && actionForRevision !== 'revise_offer') {
+      if (!revisionNote.trim()) {
         toast({ variant: 'destructive', title: projectsDict.toast.revisionError, description: projectsDict.toast.revisionNoteRequired });
         return;
       }
 
       setIsRevising(true);
+      setIsGenericRevisionDialogOpen(false); // Close the dialog immediately
 
       try {
         const revisedProjectResult = await reviseProject(selectedProject.id, currentUser.username, currentUser.role, revisionNote, actionForRevision);
@@ -964,19 +970,6 @@ export default function ProjectsPage() {
         (currentUser.role === 'Owner' || currentUser.role === 'Admin Proyek'),
     [selectedProject, currentUser]);
 
-    const canReviseSelectedProject = React.useMemo(() => {
-        if (!currentUser || !selectedProject) return false;
-        const allowedRoles = ['Owner', 'Akuntan', 'Admin Developer', 'Admin Proyek'];
-        const nonRevisableStatuses = ['Completed', 'Canceled'];
-        
-        if (currentUser.role === 'Owner' && selectedProject.status === 'Pending Approval' && selectedProject.progress === 20) {
-            return true; 
-        }
-        
-        return allowedRoles.includes(currentUser.role.trim()) && !nonRevisableStatuses.includes(selectedProject.status);
-    }, [currentUser, selectedProject]);
-
-
     const showSidangOutcomeSection = React.useMemo(() => {
         if (!selectedProject || !currentUser || !canPerformSelectedProjectAction) return false;
         return selectedProject.status === 'Scheduled' &&
@@ -990,26 +983,26 @@ export default function ProjectsPage() {
         return selectedProject.status === 'Pending Post-Sidang Revision' && isAdminRole;
     }, [selectedProject, currentUser]);
 
-    const handleNotifyDivisionForRevision = React.useCallback(async (targetDivision: 'Arsitek' | 'Struktur' | 'MEP') => {
+    const handleDivisionCompletion = React.useCallback(async () => {
         if (!selectedProject || !currentUser) return;
-        setIsSubmitting(true); 
+        setIsSubmitting(true);
         try {
-            const message = projectsDict.toast.revisionNotificationSentDesc
-                .replace('{division}', getTranslatedStatus(targetDivision))
-                .replace('{projectName}', selectedProject.title)
-                .replace('{actorUsername}', currentUser.username); 
-
-            await notifyUsersByRole(targetDivision, message, selectedProject.id);
-            toast({ title: projectsDict.toast.revisionNotificationSentTitle, description: message });
-        } catch (error:any) {
-            console.error(`Error notifying ${targetDivision} for revision:`, error);
-            toast({ variant: 'destructive', title: projectsDict.toast.error, description: error.message || `Failed to notify ${targetDivision}.`});
+            await markParallelUploadsAsCompleteByDivision(selectedProject.id, currentUser.role, currentUser.username);
+            
+            const updatedProject = await fetchProjectByIdInternal(selectedProject.id);
+            if (updatedProject) {
+                setAllProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
+                setSelectedProject(updatedProject);
+            }
+            toast({ title: projectsDict.toast.divisionCompletionTitle, description: projectsDict.toast.divisionCompletionDesc.replace('{role}', getTranslatedStatus(currentUser.role)) });
+        } catch (error: any) {
+            console.error(`Error marking division as complete for project ${selectedProject.id}:`, error);
+            toast({ variant: 'destructive', title: projectsDict.toast.error, description: error.message });
         } finally {
             setIsSubmitting(false);
         }
+    }, [selectedProject, currentUser, toast, projectsDict, getTranslatedStatus]);
 
-    }, [selectedProject, currentUser, projectsDict, toast, getTranslatedStatus]);
-    
     const allChecklistItemsUploaded = React.useMemo(() => {
         if (!parallelUploadChecklist) return false;
         return Object.values(parallelUploadChecklist).every(divisionItems =>
@@ -1244,9 +1237,26 @@ export default function ProjectsPage() {
                              <CardDescription>{project.status === 'Pending Post-Sidang Revision' ? projectsDict.revisionChecklistDesc : projectsDict.adminParallelUploadsGuidance}</CardDescription>
                         </CardHeader>
                         <CardContent className="p-4 sm:p-6 pt-0 grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {Object.entries(parallelUploadChecklist).map(([division, items]) => (
+                            {(Object.entries(parallelUploadChecklist) as [keyof ParallelUploadChecklist, ChecklistItem[]][]).map(([division, items]) => (
                                 <div key={division}>
-                                    <h4 className="font-semibold mb-2">{getTranslatedStatus(division)}</h4>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <h4 className="font-semibold">{getTranslatedStatus(division)}</h4>
+                                        {currentUser?.role === division && (
+                                             <Button 
+                                                 size="sm"
+                                                 variant="outline"
+                                                 onClick={handleDivisionCompletion}
+                                                 disabled={isSubmitting || project.parallelUploadsCompletedBy?.includes(division)}
+                                                 className={cn(project.parallelUploadsCompletedBy?.includes(division) && "border-green-500 text-green-600 hover:text-green-700 hover:bg-green-50/50")}
+                                             >
+                                                {project.parallelUploadsCompletedBy?.includes(division) ? 
+                                                    <Check className="mr-2 h-4 w-4" /> : 
+                                                    <Send className="mr-2 h-4 w-4" />
+                                                }
+                                                {project.parallelUploadsCompletedBy?.includes(division) ? projectsDict.toast.divisionCompletedButton : projectsDict.toast.markDivisionCompleteButton}
+                                             </Button>
+                                        )}
+                                    </div>
                                     <ul className="space-y-2">
                                         {items?.map((item) => renderChecklistItem(item))}
                                     </ul>
@@ -1489,18 +1499,38 @@ export default function ProjectsPage() {
                             </div>
                         )}
 
-                      {showOwnerDecisionSection && (
-                        <div className="space-y-4 border-t pt-4 mt-4">
-                           <h3 className="text-lg font-semibold">{projectsDict.ownerActionTitle}</h3>
-                           <p className="text-sm text-muted-foreground">{projectsDict.ownerActionDesc}</p>
-                           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                              <AlertDialog><AlertDialogTrigger asChild><Button variant="destructive" disabled={isSubmitting} className="w-full sm:w-auto"><XCircle className="mr-2 h-4 w-4" /> {projectsDict.cancelProjectButton}</Button></AlertDialogTrigger>
-                                <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{projectsDict.cancelDialogTitle}</AlertDialogTitle><AlertDialogDescription>{projectsDict.cancelDialogDesc.replace('{projectName}', project.title)}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={isSubmitting}>{projectsDict.cancelButton}</AlertDialogCancel><AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleDecision('rejected')} disabled={isSubmitting}>{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}{projectsDict.confirmCancelButton}</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
-                              </AlertDialog>
-                              <Button onClick={() => handleDecision('approved')} disabled={isSubmitting} className="accent-teal w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}{projectsDict.approveButton}</Button>
+                        {showOwnerDecisionSection && (
+                            <div className="space-y-4 border-t pt-4 mt-4">
+                            {project.progress === 20 && ( // Offer Approval
+                                <>
+                                    <h3 className="text-lg font-semibold">{projectsDict.ownerActionTitle}</h3>
+                                    <p className="text-sm text-muted-foreground">{projectsDict.ownerActionDesc}</p>
+                                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild><Button variant="destructive" disabled={isSubmitting} className="w-full sm:w-auto"><XCircle className="mr-2 h-4 w-4" /> {projectsDict.cancelProjectButton}</Button></AlertDialogTrigger>
+                                            <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{projectsDict.cancelDialogTitle}</AlertDialogTitle><AlertDialogDescription>{projectsDict.cancelDialogDesc.replace('{projectName}', project.title)}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={isSubmitting}>{projectsDict.cancelButton}</AlertDialogCancel><AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleDecision('rejected')} disabled={isSubmitting}>{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}{projectsDict.confirmCancelButton}</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+                                        </AlertDialog>
+                                        <Button variant="outline" onClick={() => setIsGenericRevisionDialogOpen(true)} disabled={isSubmitting}><RefreshCw className="mr-2 h-4 w-4" /> {projectsDict.reviseOfferButton}</Button>
+                                        <Button onClick={() => handleDecision('approved')} disabled={isSubmitting} className="accent-teal w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}{projectsDict.approveButton}</Button>
+                                    </div>
+                                </>
+                            )}
+                            {project.progress === 30 && ( // DP Invoice Approval
+                                <>
+                                    <h3 className="text-lg font-semibold">{projectsDict.dpInvoiceApprovalTitle}</h3>
+                                    <p className="text-sm text-muted-foreground">{projectsDict.dpInvoiceApprovalDesc}</p>
+                                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                                         <AlertDialog>
+                                            <AlertDialogTrigger asChild><Button variant="destructive" disabled={isSubmitting} className="w-full sm:w-auto"><XCircle className="mr-2 h-4 w-4" /> {projectsDict.cancelProjectButton}</Button></AlertDialogTrigger>
+                                            <AlertDialogContent><AlertDialogHeader><AlertDialogTitle>{projectsDict.cancelDialogTitle}</AlertDialogTitle><AlertDialogDescription>{projectsDict.cancelDialogDesc.replace('{projectName}', project.title)}</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel disabled={isSubmitting}>{projectsDict.cancelButton}</AlertDialogCancel><AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleDecision('rejected')} disabled={isSubmitting}>{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}{projectsDict.confirmCancelButton}</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
+                                        </AlertDialog>
+                                        <Button variant="outline" onClick={() => setIsGenericRevisionDialogOpen(true)} disabled={isSubmitting}><RefreshCw className="mr-2 h-4 w-4" /> {projectsDict.reviseDPButton}</Button>
+                                        <Button onClick={() => handleDecision('approved')} disabled={isSubmitting} className="accent-teal w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}{projectsDict.approveButton}</Button>
+                                    </div>
+                                </>
+                            )}
                             </div>
-                        </div>
-                      )}
+                        )}
                        {showSchedulingSection && (
                             <div className="space-y-4 border-t pt-4 mt-4">
                               <h3 className="text-lg font-semibold">{projectsDict.scheduleSidangTitle.replace('{role}', getTranslatedStatus(currentUser!.role))}</h3>
@@ -1560,13 +1590,13 @@ export default function ProjectsPage() {
                                 {currentUser?.role === 'Admin Proyek' && (
                                     <>
                                         <div className="flex flex-col sm:flex-row gap-2">
-                                            <Button variant="outline" onClick={() => handleNotifyDivisionForRevision('Arsitek')} disabled={isSubmitting}>
+                                            <Button variant="outline" onClick={() => {}} disabled={isSubmitting}>
                                                 <Briefcase className="mr-2 h-4 w-4" /> {projectsDict.notifyArchitectForRevisionButton}
                                             </Button>
-                                            <Button variant="outline" onClick={() => handleNotifyDivisionForRevision('Struktur')} disabled={isSubmitting}>
+                                            <Button variant="outline" onClick={() => {}} disabled={isSubmitting}>
                                                 <Replace className="mr-2 h-4 w-4" /> {projectsDict.notifyStructureForRevisionButton}
                                             </Button>
-                                            <Button variant="outline" onClick={() => handleNotifyDivisionForRevision('MEP')} disabled={isSubmitting}>
+                                            <Button variant="outline" onClick={() => {}} disabled={isSubmitting}>
                                                 <Wrench className="mr-2 h-4 w-4" /> {projectsDict.notifyMEPForRevisionButton}
                                             </Button>
                                         </div>
@@ -1578,41 +1608,30 @@ export default function ProjectsPage() {
                                 )}
                             </div>
                         )}
-                      {canReviseSelectedProject && (
-                           <div className="space-y-4 border-t pt-4 mt-4">
-                               <h3 className="text-lg font-semibold">{projectsDict.reviseProjectTitle}</h3>
-                               <div className="grid w-full items-center gap-1.5">
-                                   <Label htmlFor="revisionNote">{projectsDict.revisionNoteLabel}</Label>
-                                   <Textarea id="revisionNote" placeholder={projectsDict.revisionNotePlaceholder} value={revisionNote} onChange={(e) => setRevisionNote(e.target.value)} disabled={isRevising} />
-                               </div>
-                               <AlertDialog>
-                                   <AlertDialogTrigger asChild>
-                                       <Button variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-50 w-full sm:w-auto" disabled={isRevising || (!revisionNote.trim() && !(currentUser?.role === 'Owner' && selectedProject?.status === 'Pending Approval' && selectedProject?.progress === 20))}>
-                                           <RefreshCw className="mr-2 h-4 w-4" />
-                                           {isRevising ? projectsDict.revisingButton : projectsDict.reviseButton}
-                                       </Button>
-                                   </AlertDialogTrigger>
-                                   <AlertDialogContent>
-                                       <AlertDialogHeader>
-                                           <AlertDialogTitle>{projectsDict.confirmRevisionTitle}</AlertDialogTitle>
-                                           <AlertDialogDescription>{projectsDict.confirmRevisionDesc}</AlertDialogDescription>
-                                       </AlertDialogHeader>
-                                       <AlertDialogFooter>
-                                           <AlertDialogCancel disabled={isRevising}>{projectsDict.cancelButton}</AlertDialogCancel>
-                                           <AlertDialogAction onClick={handleReviseSubmit} disabled={isRevising} className="bg-orange-500 hover:bg-orange-600">
-                                               {isRevising && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                               {projectsDict.confirmRevisionButton}
-                                           </AlertDialogAction>
-                                       </AlertDialogFooter>
-                                   </AlertDialogContent>
-                               </AlertDialog>
-                           </div>
-                        )}
 
                       {project.status === 'Completed' && ( <div className="border-t pt-4 mt-4 text-center"><CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" /><p className="font-semibold text-lg text-green-600">{projectsDict.completedMessage}</p></div>)}
                        {project.status === 'Canceled' && ( <div className="border-t pt-4 mt-4 text-center"><XCircle className="h-12 w-12 text-destructive mx-auto mb-2" /><p className="font-semibold text-lg text-destructive">{projectsDict.canceledMessage}</p></div>)}
                    </CardContent>
                  </Card>
+                 <Dialog open={isGenericRevisionDialogOpen} onOpenChange={setIsGenericRevisionDialogOpen}>
+                     <DialogContent>
+                         <DialogHeader>
+                             <DialogTitle>{projectsDict.confirmRevisionTitle}</DialogTitle>
+                             <DialogDescription>{projectsDict.confirmRevisionDesc}</DialogDescription>
+                         </DialogHeader>
+                         <div className="grid gap-4 py-4">
+                             <Label htmlFor="revisionNote">{projectsDict.revisionNoteLabel}</Label>
+                             <Textarea id="revisionNote" placeholder={projectsDict.revisionNotePlaceholder} value={revisionNote} onChange={(e) => setRevisionNote(e.target.value)} disabled={isRevising} />
+                         </div>
+                         <DialogFooter>
+                             <Button variant="outline" onClick={() => setIsGenericRevisionDialogOpen(false)} disabled={isRevising}>{projectsDict.cancelButton}</Button>
+                             <Button onClick={handleReviseSubmit} disabled={isRevising || !revisionNote.trim()} className="bg-orange-500 hover:bg-orange-600">
+                                 {isRevising && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                 {projectsDict.confirmRevisionButton}
+                             </Button>
+                         </DialogFooter>
+                     </DialogContent>
+                 </Dialog>
                 </>
        );
   }
@@ -1623,3 +1642,5 @@ export default function ProjectsPage() {
     </div>
   );
 }
+
+    

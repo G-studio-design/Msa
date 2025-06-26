@@ -693,6 +693,14 @@
     "projectId": "project_1750923884164_mtu12",
     "message": "Penawaran untuk proyek 'proyek mega mendung' telah disetujui oleh sudina. Mohon buat faktur DP.",
     "timestamp": "2025-06-26T08:14:50.654Z",
-    "isRead": false
+    "isRead": true
+  },
+  {
+    "id": "notif_1750936815551_zu68r_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Faktur DP untuk proyek 'proyek mega mendung' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-26T11:20:15.546Z",
+    "isRead": true
   }
 ]
