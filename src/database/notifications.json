@@ -1775,6 +1775,46 @@
     "projectId": "project_1750955327988_zof0g",
     "message": "Proyek 'proyek kuta' memerlukan revisi setelah sidang yang dinyatakan oleh sudina.",
     "timestamp": "2025-06-26T18:18:55.618Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750962003127_1y8rz_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Divisi Struktur telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek kuta\" oleh komangmerta.",
+    "timestamp": "2025-06-26T18:20:03.125Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750962039447_6lyog_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek kuta\".",
+    "timestamp": "2025-06-26T18:20:39.446Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750962055207_jhbh9_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Divisi Struktur telah menyelesaikan unggahan mereka untuk proyek \"proyek kuta\".",
+    "timestamp": "2025-06-26T18:20:55.205Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750962076783_n6i8x_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Revisi pasca-sidang untuk proyek 'proyek kuta' telah selesai. Mohon unggah dokumen akhir.",
+    "timestamp": "2025-06-26T18:21:16.782Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750962160839_az806_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Proyek 'proyek kuta' telah selesai dengan semua dokumen akhir terunggah oleh komangmerta.",
+    "timestamp": "2025-06-26T18:22:40.837Z",
     "isRead": false
   }
 ]

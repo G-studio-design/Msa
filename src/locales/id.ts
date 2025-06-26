@@ -1,8 +1,9 @@
+
 // src/locales/id.ts
 const id = {
   // Login Page
   login: {
-    title: 'Login Msarch App',
+    title: 'Login TaskTrackPro',
     description: 'Masukkan kredensial Anda untuk mengakses dasbor.',
     usernameLabel: 'Nama Pengguna',
     usernamePlaceholder: 'Masukkan nama pengguna Anda',
@@ -34,8 +35,8 @@ const id = {
     monthlyReport: 'Laporan Bulanan',
     settings: 'Pengaturan',
     logout: 'Keluar',
-    appTitle: 'Msarch App',
-    appTitleShort: 'Msarch',
+    appTitle: 'TaskTrackPro',
+    appTitleShort: 'TaskTrack',
     toggleMenu: 'Buka/Tutup Panel Menu',
     roles: {
         owner: 'Pemilik',
@@ -115,7 +116,7 @@ const id = {
     scheduleAgendaTitle: 'Jadwal & Agenda',
     scheduleAgendaDesc: 'Lihat jadwal sidang proyek, survei, izin karyawan, hari libur dan acara perusahaan.',
     todayButtonLabel: 'Hari Ini',
-    scheduleDetailsTitle: 'Rincian Jadwal',
+    scheduleDetailsTitle: 'Rincian Jadwal untuk',
     noEventsOnDate: 'Tidak ada acara terjadwal pada tanggal ini.',
     selectDatePrompt: 'Pilih tanggal untuk melihat jadwalnya.',
     eventTimeLabel: 'Waktu:',
@@ -253,6 +254,7 @@ const id = {
     finalDocsSectionDesc: "Unggah semua dokumen akhir yang diperlukan untuk menyelesaikan proyek.",
     finalDocsChecklistTitle: "Checklist Dokumen Akhir",
     completeProjectButton: "Selesaikan Proyek",
+    sensitiveFileHidden: "File sensitif disembunyikan karena izin peran.",
     surveyCompletion: {
       title: "Konfirmasi Penyelesaian Survei",
       scheduledFor: "Survei dijadwalkan pada",

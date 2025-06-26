@@ -1,8 +1,9 @@
+
 // src/locales/en.ts
 const en = {
   // Login Page
   login: {
-    title: 'Msarch App Login',
+    title: 'TaskTrackPro Login',
     description: 'Enter your credentials to access the dashboard.',
     usernameLabel: 'Username',
     usernamePlaceholder: 'Enter your username',
@@ -34,8 +35,8 @@ const en = {
     monthlyReport: 'Monthly Report',
     settings: 'Settings',
     logout: 'Logout',
-    appTitle: 'Msarch App',
-    appTitleShort: 'Msarch',
+    appTitle: 'TaskTrackPro',
+    appTitleShort: 'TaskTrack',
     toggleMenu: 'Toggle Menu Panel',
     roles: {
         owner: 'Owner',
@@ -253,6 +254,7 @@ const en = {
     finalDocsSectionDesc: "Upload all required final documents to complete the project.",
     finalDocsChecklistTitle: "Final Document Checklist",
     completeProjectButton: "Complete Project",
+    sensitiveFileHidden: "Sensitive file hidden due to role permissions.",
     surveyCompletion: {
       title: "Survey Completion",
       scheduledFor: "Survey scheduled for",

@@ -41,6 +41,7 @@ import {
   Circle as CircleIcon,
   Wrench,
   Check,
+  FileLock,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -92,7 +93,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from '@/lib/utils';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { notifyUsersByRole } from '@/services/notification-service';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ToastAction } from '@/components/ui/toast';
 
@@ -409,7 +409,7 @@ export default function ProjectsPage() {
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = Clock; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Clock; break;
-        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles':  case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': case 'pendingfinaldocuments': variant = 'secondary'; Icon = Clock; break;
+        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles': case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs': case 'menungudokkonsultasi': case 'pendingreview': case 'menunggutinjauan': case 'pendingfinaldocuments': variant = 'secondary'; Icon = Clock; break;
         case 'pendingparalleldesignuploads': variant = 'secondary'; className = `${className} bg-indigo-500 text-white dark:bg-indigo-600 dark:text-primary-foreground hover:bg-indigo-600 dark:hover:bg-indigo-700`; Icon = Shield; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarClock; break;
         case 'surveyscheduled': variant = 'secondary'; className = `${className} bg-cyan-500 text-white dark:bg-cyan-600 dark:text-primary-foreground hover:bg-cyan-600 dark:hover:bg-cyan-700`; Icon = MapPin; break;
@@ -1170,18 +1170,23 @@ export default function ProjectsPage() {
 
     const finalDocsChecklistStatus = React.useMemo(() => {
         if (selectedProject?.status !== 'Pending Final Documents') return null;
-
+    
         const projectFiles = selectedProject.files || [];
         return finalDocRequirements.map(reqName => {
-            const uploadedFile = projectFiles.find(file => {
-                const reqKeywords = reqName.toLowerCase().split(' ').filter(k => k);
-                const fileNameLower = file.name.toLowerCase();
-                const allKeywordsMatch = reqKeywords.every(keyword => fileNameLower.includes(keyword));
-                return allKeywordsMatch && file.uploadedBy === 'Admin Proyek';
-            });
-            return { name: reqName, uploaded: !!uploadedFile, filePath: uploadedFile?.path, originalFileName: uploadedFile?.name };
+             const reqKeywords = reqName.toLowerCase().split(' ').filter(k => k);
+             const uploadedFile = projectFiles.find(file => {
+                 const fileNameLower = file.name.toLowerCase();
+                 // Special handling for 'Dokumen Final'
+                 if (reqName === 'Dokumen Final') {
+                     return (fileNameLower.includes('dokumen') && fileNameLower.includes('final')) && file.uploadedBy === 'Admin Proyek';
+                 }
+                 const allKeywordsMatch = reqKeywords.every(keyword => fileNameLower.includes(keyword));
+                 return allKeywordsMatch && file.uploadedBy === 'Admin Proyek';
+             });
+             return { name: reqName, uploaded: !!uploadedFile, filePath: uploadedFile?.path, originalFileName: uploadedFile?.name };
         });
     }, [selectedProject]);
+    
 
     const allFinalDocsUploaded = React.useMemo(() => {
         if (!finalDocsChecklistStatus) return false;
@@ -1488,19 +1493,32 @@ export default function ProjectsPage() {
                                         <div className="pl-6 border-l-2 border-dashed ml-1.5">
                                             <h4 className="text-sm font-semibold mb-2 ml-4 text-muted-foreground">{projectsDict.uploadedFilesTitle}</h4>
                                             <ul className="space-y-2 ml-4">
-                                            {group.files.map((file, fileIndex) => (
-                                                <li key={fileIndex} className="flex items-center justify-between p-2 border rounded-md hover:bg-secondary/50 gap-2">
-                                                    <div className="flex items-center gap-2 flex-grow min-w-0">
-                                                        <FileText className="h-5 w-5 text-primary flex-shrink-0" />
-                                                        <span className="text-sm font-medium break-all">{file.name}</span>
-                                                    </div>
-                                                    {canDownloadFiles && (
-                                                        <Button variant="ghost" size="icon" onClick={() => handleDownloadFile(file)} disabled={isDownloading || !!isDeletingFile} title={projectsDict.downloadFileTooltip} className="h-7 w-7 flex-shrink-0">
-                                                            {isDownloading ? <Loader2 className="h-4 w-4 animate-spin"/> : <Download className="h-4 w-4 text-primary" />}
-                                                        </Button>
-                                                    )}
-                                                </li>
-                                            ))}
+                                            {group.files.map((file, fileIndex) => {
+                                                const isSensitiveFile = file.uploadedBy === 'Akuntan';
+                                                const canViewSensitiveFile = currentUser && ['Owner', 'Admin Proyek', 'Akuntan'].includes(currentUser.role.trim());
+
+                                                if (isSensitiveFile && !canViewSensitiveFile) {
+                                                    return (
+                                                        <li key={`hidden-${fileIndex}`} className="flex items-center p-2 border rounded-md gap-2 bg-muted/50 cursor-not-allowed">
+                                                            <FileLock className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                                                            <span className="text-sm font-medium text-muted-foreground italic">{projectsDict.sensitiveFileHidden}</span>
+                                                        </li>
+                                                    );
+                                                }
+                                                return (
+                                                    <li key={fileIndex} className="flex items-center justify-between p-2 border rounded-md hover:bg-secondary/50 gap-2">
+                                                        <div className="flex items-center gap-2 flex-grow min-w-0">
+                                                            <FileText className="h-5 w-5 text-primary flex-shrink-0" />
+                                                            <span className="text-sm font-medium break-all">{file.name}</span>
+                                                        </div>
+                                                        {canDownloadFiles && (
+                                                            <Button variant="ghost" size="icon" onClick={() => handleDownloadFile(file)} disabled={isDownloading || !!isDeletingFile} title={projectsDict.downloadFileTooltip} className="h-7 w-7 flex-shrink-0">
+                                                                {isDownloading ? <Loader2 className="h-4 w-4 animate-spin"/> : <Download className="h-4 w-4 text-primary" />}
+                                                            </Button>
+                                                        )}
+                                                    </li>
+                                                );
+                                            })}
                                             </ul>
                                         </div>
                                     </AccordionContent>

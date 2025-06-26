@@ -10,7 +10,7 @@ import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar';
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
-  title: 'Msarch App',
+  title: 'TaskTrackPro',
   description: 'Employee task management application for various divisions.',
   manifest: '/manifest.json', // Link to the web app manifest
   icons: {
