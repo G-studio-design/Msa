@@ -1000,6 +1000,17 @@ export default function ProjectsPage() {
         const isAuthorizedRole = ['Admin Proyek', 'Owner', 'Admin Developer', 'Arsitek', 'Struktur', 'MEP'].includes(currentUser.role.trim());
         return (isParallelStatus || isRevisionStatus) && isAuthorizedRole;
     }, [selectedProject, currentUser]);
+
+    const showDivisionalChecklist = React.useMemo(() => {
+        if (!selectedProject || !currentUser || !parallelUploadChecklist) return false;
+        const userRole = currentUser.role.trim();
+        const isDesignRole = ['Arsitek', 'Struktur', 'MEP'].includes(userRole);
+        const isParallelOrRevisionStatus =
+            selectedProject.status === 'Pending Parallel Design Uploads' ||
+            selectedProject.status === 'Pending Post-Sidang Revision';
+        
+        return isDesignRole && isParallelOrRevisionStatus;
+    }, [selectedProject, currentUser, parallelUploadChecklist]);
     
    const showArchitectInitialImageUploadSection = React.useMemo(() => {
     return selectedProject &&
@@ -1528,6 +1539,14 @@ export default function ProjectsPage() {
                         <CardDescription>{project.nextAction || projectsDict.none}</CardDescription>
                     </CardHeader>
                    <CardContent className="p-4 sm:p-6 pt-0">
+                      {showDivisionalChecklist && (
+                        <div className="space-y-4 border-t pt-4 mt-4">
+                            <h3 className="text-lg font-semibold">{`Checklist Unggahan Divisi Anda (${getTranslatedStatus(currentUser.role)})`}</h3>
+                            <ul className="space-y-2">
+                                {parallelUploadChecklist?.[currentUser.role as keyof typeof parallelUploadChecklist]?.map(item => renderChecklistItem(item))}
+                            </ul>
+                        </div>
+                      )}
                       {showUploadSection && (
                          <div className="space-y-4 border-t pt-4 mt-4">
                            <h3 className="text-lg font-semibold">{project.status === 'Pending Post-Sidang Revision' ? projectsDict.uploadRevisedFilesTitle : projectsDict.uploadProgressTitle.replace('{role}', getTranslatedStatus(currentUser!.role))}</h3>

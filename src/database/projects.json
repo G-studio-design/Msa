@@ -1183,10 +1183,10 @@
   {
     "id": "project_1750950968313_qtcnd",
     "title": "proyek villa di tanah lot",
-    "status": "Survey Scheduled",
-    "progress": 48,
+    "status": "Pending Parallel Design Uploads",
+    "progress": 50,
     "assignedDivision": "Admin Proyek",
-    "nextAction": "Konfirmasi penyelesaian survei dan unggah laporan (opsional).",
+    "nextAction": "Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -1248,6 +1248,36 @@
         "action": "arsitek (Arsitek) submitted Survey Details for 2025-06-27 at 00:51",
         "timestamp": "2025-06-26T16:50:07.074Z",
         "note": "Survey Description: lokasi di ...."
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) submitted Survey Details for 2025-06-27 at 00:51",
+        "timestamp": "2025-06-26T16:59:01.709Z",
+        "note": "Survey Description: lokasi di .... Note: survey telah selesai"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) uploaded file(s).",
+        "timestamp": "2025-06-26T17:01:42.819Z",
+        "note": "Daftar SIMak Proyek Bali Merdeka.pdf, Gambar .pdf, RAP MEp.pdf, Spektek.pdf"
+      },
+      {
+        "division": "Struktur",
+        "action": "struktur (Struktur) uploaded file(s).",
+        "timestamp": "2025-06-26T17:03:03.087Z",
+        "note": "Analisa Laporan.pdf, Daftar SIMak Proyek Bali Merdeka.pdf, Gambar .pdf, Hammer Test .pdf, Spektek.pdf"
+      },
+      {
+        "division": "struktur",
+        "action": "Marked their design/revision phase as complete.",
+        "timestamp": "2025-06-26T17:03:04.782Z",
+        "note": "Divisi Struktur telah menyelesaikan tugasnya."
+      },
+      {
+        "division": "arsitek",
+        "action": "Marked their design/revision phase as complete.",
+        "timestamp": "2025-06-26T17:05:16.719Z",
+        "note": "Divisi Arsitek telah menyelesaikan tugasnya."
       }
     ],
     "files": [
@@ -1268,6 +1298,60 @@
         "uploadedBy": "Admin Proyek",
         "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/berkas_administrasi_proyek_xlsx",
         "timestamp": "2025-06-26T16:38:47.250Z"
+      },
+      {
+        "name": "Daftar SIMak Proyek Bali Merdeka.pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/daftar_simak_proyek_bali_merdekapdf",
+        "timestamp": "2025-06-26T17:01:42.819Z"
+      },
+      {
+        "name": "Gambar .pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/gambar_pdf",
+        "timestamp": "2025-06-26T17:01:42.819Z"
+      },
+      {
+        "name": "RAP MEp.pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/rap_meppdf",
+        "timestamp": "2025-06-26T17:01:42.819Z"
+      },
+      {
+        "name": "Spektek.pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/spektekpdf",
+        "timestamp": "2025-06-26T17:01:42.819Z"
+      },
+      {
+        "name": "Analisa Laporan.pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/analisa_laporanpdf",
+        "timestamp": "2025-06-26T17:03:03.087Z"
+      },
+      {
+        "name": "Daftar SIMak Proyek Bali Merdeka.pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/daftar_simak_proyek_bali_merdekapdf",
+        "timestamp": "2025-06-26T17:03:03.087Z"
+      },
+      {
+        "name": "Gambar .pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/gambar_pdf",
+        "timestamp": "2025-06-26T17:03:03.087Z"
+      },
+      {
+        "name": "Hammer Test .pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/hammer_test_pdf",
+        "timestamp": "2025-06-26T17:03:03.087Z"
+      },
+      {
+        "name": "Spektek.pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/spektekpdf",
+        "timestamp": "2025-06-26T17:03:03.087Z"
       }
     ],
     "createdAt": "2025-06-26T15:16:08.313Z",
@@ -1277,7 +1361,10 @@
       "time": "00:51",
       "description": "lokasi di ..."
     },
-    "parallelUploadsCompletedBy": []
+    "parallelUploadsCompletedBy": [
+      "Struktur",
+      "Arsitek"
+    ]
   },
   {
     "id": "project_1750955327988_zof0g",
