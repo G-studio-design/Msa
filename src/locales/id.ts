@@ -183,6 +183,7 @@ const id = {
     postSidangRevisionConfirmButton: 'Konfirmasi dan Minta Revisi',
     notifyArchitectForRevisionButton: "Notifikasi Arsitek untuk Kontribusi Revisi",
     notifyStructureForRevisionButton: "Notifikasi Struktur untuk Kontribusi Revisi",
+    notifyMEPForRevisionButton: "Notifikasi MEP untuk Kontribusi Revisi",
     revisionFilesDescriptionLabel: "Catatan / Deskripsi Revisi",
     revisionFilesDescriptionPlaceholder: "Jelaskan revisi yang dibuat atau diperlukan...",
     attachRevisionFilesLabel: "Lampirkan File Revisi",

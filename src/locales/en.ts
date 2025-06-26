@@ -183,6 +183,7 @@ const en = {
     postSidangRevisionConfirmButton: 'Confirm and Request Revision',
     notifyArchitectForRevisionButton: "Notify Architect for Revision Input",
     notifyStructureForRevisionButton: "Notify Structure for Revision Input",
+    notifyMEPForRevisionButton: "Notify MEP for Revision Input",
     revisionFilesDescriptionLabel: "Revision Notes / Description",
     revisionFilesDescriptionPlaceholder: "Describe the revisions made or required...",
     attachRevisionFilesLabel: "Attach Revised Files",

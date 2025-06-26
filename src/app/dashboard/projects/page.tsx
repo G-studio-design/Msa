@@ -38,6 +38,7 @@ import {
   Plane,
   Shield,
   Circle as CircleIcon,
+  Wrench,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -915,7 +916,7 @@ export default function ProjectsPage() {
                canPerformSelectedProjectAction;
     }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
-    const handleNotifyDivisionForRevision = React.useCallback(async (targetDivision: 'Arsitek' | 'Struktur') => {
+    const handleNotifyDivisionForRevision = React.useCallback(async (targetDivision: 'Arsitek' | 'Struktur' | 'MEP') => {
         if (!selectedProject || !currentUser) return;
         setIsSubmitting(true); 
         try {
@@ -1370,6 +1371,9 @@ export default function ProjectsPage() {
                                     </Button>
                                     <Button variant="outline" onClick={() => handleNotifyDivisionForRevision('Struktur')} disabled={isSubmitting}>
                                         <Replace className="mr-2 h-4 w-4" /> {projectsDict.notifyStructureForRevisionButton}
+                                    </Button>
+                                    <Button variant="outline" onClick={() => handleNotifyDivisionForRevision('MEP')} disabled={isSubmitting}>
+                                        <Wrench className="mr-2 h-4 w-4" /> {projectsDict.notifyMEPForRevisionButton}
                                     </Button>
                                 </div>
                                 <div className="grid w-full items-center gap-1.5">
