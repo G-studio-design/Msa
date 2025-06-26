@@ -61,6 +61,14 @@ interface MonthlyReportData {
 
 const defaultDict = getDictionary('en');
 
+// Define literal HEX colors for the chart export to ensure colors are captured correctly.
+const CHART_EXPORT_COLORS = {
+  inProgress: "#2980B9", // Blue
+  completed: "#27AE60", // Green
+  canceled: "#C0392B", // Red
+};
+
+
 export default function MonthlyReportPage() {
   const { currentUser } = useAuth();
   const { language } = useLanguage();
@@ -96,7 +104,7 @@ export default function MonthlyReportPage() {
 
   React.useEffect(() => {
     const fetchProjects = async () => {
-      if (currentUser && ['Owner', 'General Admin', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role)) {
+      if (currentUser && ['Owner', 'Akuntan', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role)) {
         setIsLoadingProjects(true);
         try {
           const fetchedProjects = await getAllProjects();
@@ -114,7 +122,7 @@ export default function MonthlyReportPage() {
     if (isClient) fetchProjects();
   }, [currentUser, isClient, toast, reportDict]);
 
-  const canViewPage = currentUser && ['Owner', 'General Admin', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role);
+  const canViewPage = currentUser && ['Owner', 'Akuntan', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role);
 
   const getMonthName = React.useCallback((monthNumber: number, lang: Language) => {
     const date = new Date();
@@ -324,19 +332,12 @@ export default function MonthlyReportPage() {
   const years = Array.from({ length: 10 }, (_, i) => (parseInt(currentYear) - 5 + i).toString());
   const months = Array.from({ length: 12 }, (_, i) => ({ value: (i + 1).toString(), label: getMonthName(i + 1, language) }));
 
-  // Define literal HSL/HEX colors for the chart, matching globals.css
-  const chartLiteralColors = {
-    inProgress: "hsl(var(--chart-2))",
-    completed: "hsl(var(--chart-1))",
-    canceled: "hsl(var(--destructive))",
-  };
-
   const chartConfig = React.useMemo(() => ({
-    count: { label: reportDict.totalProjectsShort, color: "hsl(var(--foreground))" }, // Default foreground
-    [reportDict.status.inprogress]: { label: reportDict.status.inprogress, color: chartLiteralColors.inProgress },
-    [reportDict.status.completed]: { label: reportDict.status.completed, color: chartLiteralColors.completed },
-    [reportDict.status.canceled]: { label: reportDict.status.canceled, color: chartLiteralColors.canceled },
-  } as ChartConfig), [reportDict, chartLiteralColors.inprogress, chartLiteralColors.completed, chartLiteralColors.canceled]);
+    count: { label: reportDict.totalProjectsShort, color: "hsl(var(--foreground))" },
+    [reportDict.status.inprogress]: { label: reportDict.status.inprogress, color: CHART_EXPORT_COLORS.inProgress },
+    [reportDict.status.completed]: { label: reportDict.status.completed, color: CHART_EXPORT_COLORS.completed },
+    [reportDict.status.canceled]: { label: reportDict.status.canceled, color: CHART_EXPORT_COLORS.canceled },
+  } as ChartConfig), [reportDict]);
 
 
   const chartDisplayData = React.useMemo(() => {
@@ -549,5 +550,3 @@ export default function MonthlyReportPage() {
     </div>
   );
 }
-
-

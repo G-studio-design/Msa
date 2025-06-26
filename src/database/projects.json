@@ -490,10 +490,10 @@
   {
     "id": "project_1750762714162_h35ez",
     "title": "proyek Bali Merdeka",
-    "status": "Pending Post-Sidang Revision",
-    "progress": 85,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Lakukan revisi pasca-sidang. Notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.",
+    "status": "Completed",
+    "progress": 100,
+    "assignedDivision": "",
+    "nextAction": null,
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -618,6 +618,31 @@
         "division": "Owner",
         "action": "sudina (Owner) declared Sidang outcome as: revise",
         "timestamp": "2025-06-26T05:24:28.967Z"
+      },
+      {
+        "division": "arsitek",
+        "action": "Deleted file: \"RAP .pdf\"",
+        "timestamp": "2025-06-26T07:17:21.444Z"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) submitted for \"Lakukan revisi pasca-sidang. Notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.\"",
+        "timestamp": "2025-06-26T07:18:49.720Z"
+      },
+      {
+        "division": "arsitek",
+        "action": "Deleted file: \"SpekTek Proyek Bali Merdeka Arsitek.pdf\"",
+        "timestamp": "2025-06-26T07:19:21.827Z"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) submitted for \"Lakukan revisi pasca-sidang. Notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.\"",
+        "timestamp": "2025-06-26T07:19:49.094Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) completed post-sidang revisions and finalized the project.",
+        "timestamp": "2025-06-26T07:20:57.792Z"
       }
     ],
     "files": [
@@ -674,18 +699,6 @@
         "uploadedBy": "Arsitek",
         "path": "project_1750762714162_h35ez-proyek_bali_merdeka/gambar_arsitek_pdf",
         "timestamp": "2025-06-26T03:33:18.393Z"
-      },
-      {
-        "name": "RAP .pdf",
-        "uploadedBy": "Arsitek",
-        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/rap_pdf",
-        "timestamp": "2025-06-26T03:38:08.228Z"
-      },
-      {
-        "name": "SpekTek Proyek Bali Merdeka Arsitek.pdf",
-        "uploadedBy": "Arsitek",
-        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/spektek_proyek_bali_merdeka_arsitekpdf",
-        "timestamp": "2025-06-26T03:38:57.804Z"
       },
       {
         "name": "Daftar SIMak Proyek Bali Merdeka.pdf",
@@ -758,6 +771,18 @@
         "uploadedBy": "MEP",
         "path": "project_1750762714162_h35ez-proyek_bali_merdeka/rap_meppdf",
         "timestamp": "2025-06-26T04:48:48.157Z"
+      },
+      {
+        "name": "RAP MEp.pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/rap_meppdf",
+        "timestamp": "2025-06-26T07:18:49.720Z"
+      },
+      {
+        "name": "Spektek.pdf",
+        "uploadedBy": "Arsitek",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/spektekpdf",
+        "timestamp": "2025-06-26T07:19:49.094Z"
       }
     ],
     "createdAt": "2025-06-24T10:58:34.162Z",
