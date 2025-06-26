@@ -568,132 +568,163 @@ export default function ManageUsersPage() {
             </Dialog>
         </CardHeader>
         <CardContent>
-          <div className="w-full overflow-x-auto rounded-md border">
-            <Table className="min-w-[700px]">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{isClient ? usersDict.tableHeaderUsername : defaultGlobalDict.manageUsersPage.tableHeaderUsername}</TableHead>
-                  <TableHead className="hidden sm:table-cell">{isClient ? usersDict.tableHeaderPassword : defaultGlobalDict.manageUsersPage.tableHeaderPassword}</TableHead>
-                  <TableHead>{isClient ? usersDict.tableHeaderRole : defaultGlobalDict.manageUsersPage.tableHeaderRole}</TableHead>
-                  <TableHead className="text-right">{isClient ? usersDict.tableHeaderActions : defaultGlobalDict.manageUsersPage.tableHeaderActions}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.length === 0 && !isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                      {isClient ? usersDict.noUsers : defaultGlobalDict.manageUsersPage.noUsers}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  users.map((user) => {
-                      const isSelf = user.id === currentUser?.id;
-                      const isTargetAdminDeveloper = user.role === 'Admin Developer'; 
-                      const isTargetOwner = user.role === 'Owner';
-                      const isTargetAccountant = user.role === 'Akuntan'; 
-                      
-                      let disableEditBasedOnRole = 
-                          (isTargetAdminDeveloper && currentUser?.role !== 'Admin Developer') ||
-                          (currentUser?.role === 'Akuntan' && (isTargetOwner || isTargetAdminDeveloper)) ||
-                          (currentUser?.role === 'Admin Proyek' && (isTargetOwner || isTargetAccountant || isTargetAdminDeveloper));
-
-                      let disableDeleteBasedOnRole =
-                          isTargetAdminDeveloper ||
-                          isSelf ||
-                          (isTargetOwner && currentUser?.role !== 'Admin Developer' && currentUser?.role !== 'Owner') || 
-                          (isTargetAccountant && currentUser?.role !== 'Owner' && currentUser?.role !== 'Admin Developer') ||
-                          (currentUser?.role === 'Admin Proyek' && (isTargetOwner || isTargetAccountant || isTargetAdminDeveloper));
-                      
-                      const isPasswordVisible = visiblePasswords[user.id] || false;
-                      let canViewPassword = false;
-                      if(currentUser) {
-                          canViewPassword = (currentUser.role === 'Owner' || currentUser.role === 'Akuntan' || currentUser.role === 'Admin Developer') && !isTargetAdminDeveloper;
-                      }
-
-
-                      return (
-                        <TableRow key={user.id}>
-                          <TableCell className="font-medium break-words">{user.username}</TableCell>
-                            <TableCell className="hidden sm:table-cell">
-                              {canViewPassword ? (
-                                  <div className="flex items-center gap-1">
-                                    <span className="font-mono text-xs break-all text-foreground">
-                                      {isPasswordVisible ? (user.password || usersDict.passwordNotSet) : '••••••••'}
-                                    </span>
-                                      {user.password && (
-                                          <Button
-                                              variant="ghost"
-                                              size="icon"
-                                              className="h-6 w-6 flex-shrink-0"
-                                              onClick={() => togglePasswordVisibility(user.id)}
-                                              aria-label={isPasswordVisible ? usersDict.hidePasswordButtonLabel : usersDict.showPasswordButtonLabel}
-                                              disabled={isProcessing}
-                                              title={isPasswordVisible ? usersDict.hidePasswordButtonLabel : usersDict.showPasswordButtonLabel}
-                                          >
-                                            {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                          </Button>
-                                      )}
-                                      {!user.password && (
-                                          <span className="text-xs text-muted-foreground italic ml-1">({isClient ? usersDict.passwordNotSet : defaultGlobalDict.manageUsersPage.passwordNotSet})</span>
-                                      )}
-                                  </div>
-                                ) : (
-                                  <span className="text-xs text-muted-foreground italic">{isClient ? usersDict.passwordHidden : defaultGlobalDict.manageUsersPage.passwordHidden}</span>
-                                )}
-                            </TableCell>
-                          <TableCell>
-                              <div className="flex items-center gap-2">
-                                  {getRoleIcon(user.role)}
-                                  <span>{getTranslatedRole(user.role)}</span>
-                              </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex flex-col sm:flex-row justify-end items-end sm:items-center gap-0 sm:gap-1">
-                                  <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => openEditDialog(user)}
-                                      disabled={isProcessing || disableEditBasedOnRole || !canManageUsers}
-                                      aria-label={isClient ? usersDict.editUserButtonLabel : defaultGlobalDict.manageUsersPage.editUserButtonLabel}
-                                      title={isClient ? usersDict.editUserButtonLabel : defaultGlobalDict.manageUsersPage.editUserButtonLabel}
-                                  >
-                                      <Edit className={`h-4 w-4 ${(disableEditBasedOnRole || !canManageUsers) ? 'text-muted-foreground' : 'text-blue-500'}`} />
-                                  </Button>
-
-                              <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button variant="ghost" size="icon" disabled={isProcessing || disableDeleteBasedOnRole || !canManageUsers} aria-label={isClient ? usersDict.deleteUserButtonLabel : defaultGlobalDict.manageUsersPage.deleteUserButtonLabel} title={isClient ? usersDict.deleteUserButtonLabel : defaultGlobalDict.manageUsersPage.deleteUserButtonLabel}>
-                                        <Trash2 className={`h-4 w-4 ${(disableDeleteBasedOnRole || !canManageUsers) ? 'text-muted-foreground' : 'text-destructive'}`} />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>{isClient ? usersDict.deleteDialogTitle : defaultGlobalDict.manageUsersPage.deleteDialogTitle}</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                          {(isClient ? usersDict.deleteDialogDesc : defaultGlobalDict.manageUsersPage.deleteDialogDesc).replace('{username}', user.username)}
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel disabled={isProcessing}>{isClient ? usersDict.deleteDialogCancel : defaultGlobalDict.manageUsersPage.deleteDialogCancel}</AlertDialogCancel>
-                                      <AlertDialogAction
-                                          className="bg-destructive hover:bg-destructive/90"
-                                          onClick={() => handleDeleteUser(user.id, user.username)}
-                                          disabled={isProcessing}>
-                                          {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                        {isClient ? usersDict.deleteDialogConfirm : defaultGlobalDict.manageUsersPage.deleteDialogConfirm}
-                                      </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-                          </TableCell>
+            {/* Desktop Table - hidden on small screens */}
+            <div className="hidden md:block w-full overflow-x-auto rounded-md border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>{isClient ? usersDict.tableHeaderUsername : defaultGlobalDict.manageUsersPage.tableHeaderUsername}</TableHead>
+                            <TableHead>{isClient ? usersDict.tableHeaderPassword : defaultGlobalDict.manageUsersPage.tableHeaderPassword}</TableHead>
+                            <TableHead>{isClient ? usersDict.tableHeaderRole : defaultGlobalDict.manageUsersPage.tableHeaderRole}</TableHead>
+                            <TableHead className="text-right">{isClient ? usersDict.tableHeaderActions : defaultGlobalDict.manageUsersPage.tableHeaderActions}</TableHead>
                         </TableRow>
-                      );
-                  })
+                    </TableHeader>
+                    <TableBody>
+                        {users.map((user) => {
+                            const isSelf = user.id === currentUser?.id;
+                            const isTargetAdminDeveloper = user.role === 'Admin Developer'; 
+                            const isTargetOwner = user.role === 'Owner';
+                            const isTargetAccountant = user.role === 'Akuntan'; 
+                            
+                            let disableEditBasedOnRole = 
+                                (isTargetAdminDeveloper && currentUser?.role !== 'Admin Developer') ||
+                                (currentUser?.role === 'Akuntan' && (isTargetOwner || isTargetAdminDeveloper)) ||
+                                (currentUser?.role === 'Admin Proyek' && (isTargetOwner || isTargetAccountant || isTargetAdminDeveloper));
+
+                            let disableDeleteBasedOnRole =
+                                isTargetAdminDeveloper ||
+                                isSelf ||
+                                (isTargetOwner && currentUser?.role !== 'Admin Developer' && currentUser?.role !== 'Owner') || 
+                                (isTargetAccountant && currentUser?.role !== 'Owner' && currentUser?.role !== 'Admin Developer') ||
+                                (currentUser?.role === 'Admin Proyek' && (isTargetOwner || isTargetAccountant || isTargetAdminDeveloper));
+                            
+                            const isPasswordVisible = visiblePasswords[user.id] || false;
+                            let canViewPassword = false;
+                            if(currentUser) {
+                                canViewPassword = (currentUser.role === 'Owner' || currentUser.role === 'Akuntan' || currentUser.role === 'Admin Developer') && !isTargetAdminDeveloper;
+                            }
+                            return (
+                                <TableRow key={user.id}>
+                                    <TableCell className="font-medium break-words">{user.username}</TableCell>
+                                    <TableCell>
+                                        {canViewPassword ? (
+                                            <div className="flex items-center gap-1">
+                                                <span className="font-mono text-xs break-all text-foreground">
+                                                    {isPasswordVisible ? (user.password || usersDict.passwordNotSet) : '••••••••'}
+                                                </span>
+                                                {user.password && (
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={() => togglePasswordVisibility(user.id)} disabled={isProcessing} title={isPasswordVisible ? usersDict.hidePasswordButtonLabel : usersDict.showPasswordButtonLabel}>
+                                                        {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                    </Button>
+                                                )}
+                                                {!user.password && <span className="text-xs text-muted-foreground italic ml-1">({isClient ? usersDict.passwordNotSet : defaultGlobalDict.manageUsersPage.passwordNotSet})</span>}
+                                            </div>
+                                        ) : ( <span className="text-xs text-muted-foreground italic">{isClient ? usersDict.passwordHidden : defaultGlobalDict.manageUsersPage.passwordHidden}</span>)}
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            {getRoleIcon(user.role)}
+                                            <span>{getTranslatedRole(user.role)}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex justify-end items-center gap-1">
+                                            <Button variant="ghost" size="icon" onClick={() => openEditDialog(user)} disabled={isProcessing || disableEditBasedOnRole || !canManageUsers} title={isClient ? usersDict.editUserButtonLabel : defaultGlobalDict.manageUsersPage.editUserButtonLabel}>
+                                                <Edit className={`h-4 w-4 ${(disableEditBasedOnRole || !canManageUsers) ? 'text-muted-foreground' : 'text-blue-500'}`} />
+                                            </Button>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon" disabled={isProcessing || disableDeleteBasedOnRole || !canManageUsers} title={isClient ? usersDict.deleteUserButtonLabel : defaultGlobalDict.manageUsersPage.deleteUserButtonLabel}>
+                                                        <Trash2 className={`h-4 w-4 ${(disableDeleteBasedOnRole || !canManageUsers) ? 'text-muted-foreground' : 'text-destructive'}`} />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>{isClient ? usersDict.deleteDialogTitle : defaultGlobalDict.manageUsersPage.deleteDialogTitle}</AlertDialogTitle>
+                                                        <AlertDialogDescription>{(isClient ? usersDict.deleteDialogDesc : defaultGlobalDict.manageUsersPage.deleteDialogDesc).replace('{username}', user.username)}</AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel disabled={isProcessing}>{isClient ? usersDict.deleteDialogCancel : defaultGlobalDict.manageUsersPage.deleteDialogCancel}</AlertDialogCancel>
+                                                        <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleDeleteUser(user.id, user.username)} disabled={isProcessing}>
+                                                            {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                            {isClient ? usersDict.deleteDialogConfirm : defaultGlobalDict.manageUsersPage.deleteDialogConfirm}
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
+                    </TableBody>
+                </Table>
+            </div>
+            
+            {/* Mobile Card List - hidden on medium screens and up */}
+            <div className="grid gap-4 md:hidden">
+                {users.length === 0 && !isLoading ? (
+                    <p className="text-center text-muted-foreground py-8">{isClient ? usersDict.noUsers : defaultGlobalDict.manageUsersPage.noUsers}</p>
+                ) : (
+                    users.map((user) => {
+                        const isSelf = user.id === currentUser?.id;
+                        const isTargetAdminDeveloper = user.role === 'Admin Developer'; 
+                        const isTargetOwner = user.role === 'Owner';
+                        const isTargetAccountant = user.role === 'Akuntan'; 
+                        
+                        let disableEditBasedOnRole = 
+                            (isTargetAdminDeveloper && currentUser?.role !== 'Admin Developer') ||
+                            (currentUser?.role === 'Akuntan' && (isTargetOwner || isTargetAdminDeveloper)) ||
+                            (currentUser?.role === 'Admin Proyek' && (isTargetOwner || isTargetAccountant || isTargetAdminDeveloper));
+
+                        let disableDeleteBasedOnRole =
+                            isTargetAdminDeveloper ||
+                            isSelf ||
+                            (isTargetOwner && currentUser?.role !== 'Admin Developer' && currentUser?.role !== 'Owner') || 
+                            (isTargetAccountant && currentUser?.role !== 'Owner' && currentUser?.role !== 'Admin Developer') ||
+                            (currentUser?.role === 'Admin Proyek' && (isTargetOwner || isTargetAccountant || isTargetAdminDeveloper));
+
+                        return (
+                            <div key={user.id} className="rounded-lg border bg-card text-card-foreground p-4">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-semibold break-words">{user.username}</p>
+                                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                                            {getRoleIcon(user.role)}
+                                            <span>{getTranslatedRole(user.role)}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-0">
+                                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(user)} disabled={isProcessing || disableEditBasedOnRole || !canManageUsers} title={isClient ? usersDict.editUserButtonLabel : defaultGlobalDict.manageUsersPage.editUserButtonLabel}>
+                                            <Edit className={`h-5 w-5 ${(disableEditBasedOnRole || !canManageUsers) ? 'text-muted-foreground' : 'text-blue-500'}`} />
+                                        </Button>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="ghost" size="icon" disabled={isProcessing || disableDeleteBasedOnRole || !canManageUsers} title={isClient ? usersDict.deleteUserButtonLabel : defaultGlobalDict.manageUsersPage.deleteUserButtonLabel}>
+                                                    <Trash2 className={`h-5 w-5 ${(disableDeleteBasedOnRole || !canManageUsers) ? 'text-muted-foreground' : 'text-destructive'}`} />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>{isClient ? usersDict.deleteDialogTitle : defaultGlobalDict.manageUsersPage.deleteDialogTitle}</AlertDialogTitle>
+                                                    <AlertDialogDescription>{(isClient ? usersDict.deleteDialogDesc : defaultGlobalDict.manageUsersPage.deleteDialogDesc).replace('{username}', user.username)}</AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel disabled={isProcessing}>{isClient ? usersDict.deleteDialogCancel : defaultGlobalDict.manageUsersPage.deleteDialogCancel}</AlertDialogCancel>
+                                                    <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleDeleteUser(user.id, user.username)} disabled={isProcessing}>
+                                                        {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                        {isClient ? usersDict.deleteDialogConfirm : defaultGlobalDict.manageUsersPage.deleteDialogConfirm}
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })
                 )}
-              </TableBody>
-            </Table>
-          </div>
+            </div>
         </CardContent>
       </Card>
 
