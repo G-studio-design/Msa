@@ -1,4 +1,3 @@
-
 // src/components/ui/table.tsx
 "use client"
 
@@ -30,7 +29,7 @@ const TableHeader = React.forwardRef<
   <thead
     ref={ref}
     className={cn(
-      "[&_tr]:border-b", // Removed font-semibold to apply it on TableHead directly
+      "[&_tr]:border-b",
       className
     )}
     {...props}

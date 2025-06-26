@@ -359,7 +359,7 @@ export default function ManageWorkflowsPage() {
                   <p className="text-xs text-muted-foreground">
                     {workflowsDict.addDialogStepsInfo}
                   </p>
-                  <DialogFooter className="pt-2">
+                   <DialogFooter className="pt-2 sm:justify-between">
                     <Button type="button" variant="outline" onClick={() => setIsAddWorkflowDialogOpen(false)} disabled={isProcessing}>
                       {workflowsDict.cancelButton}
                     </Button>
@@ -551,7 +551,7 @@ export default function ManageWorkflowsPage() {
                       </ScrollArea>
                     </div>
                 </div>
-                <DialogFooter className="pt-4 sticky bottom-0 bg-background pb-0 mt-auto p-2 border-t">
+                 <DialogFooter className="pt-4 sticky bottom-0 bg-background pb-0 mt-auto p-2 border-t sm:justify-between">
                   <Button type="button" variant="outline" onClick={() => {setIsEditWorkflowDialogOpen(false); setEditingWorkflow(null); setStepsOrderChanged(false); setCurrentEditableSteps([]); setActiveAccordionItem(undefined);}} disabled={isProcessing}>
                     {workflowsDict.cancelButton}
                   </Button>
@@ -573,4 +573,3 @@ export default function ManageWorkflowsPage() {
     </div>
   );
 }
-

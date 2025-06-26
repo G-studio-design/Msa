@@ -1,4 +1,3 @@
-
 // src/app/dashboard/admin-actions/page.tsx
 'use client';
 
@@ -406,14 +405,14 @@ export default function AdminActionsPage() {
                     <DialogDescription>{isClient ? adminDict.changeStatusDialogDesc : "Manually update status. Use cautiously."}</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="currentStatus" className="text-right">{isClient ? adminDict.currentStatusLabel : "Current Status"}</Label>
-                        <Input id="currentStatus" value={getTranslatedStatus(projectForStatusChange?.status || '')} disabled className="col-span-3" />
+                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="currentStatus" className="text-left sm:text-right">{isClient ? adminDict.currentStatusLabel : "Current Status"}</Label>
+                        <Input id="currentStatus" value={getTranslatedStatus(projectForStatusChange?.status || '')} disabled className="sm:col-span-3" />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="newStatus" className="text-right">{isClient ? adminDict.newStatusLabel : "New Status"}</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="newStatus" className="text-left sm:text-right">{isClient ? adminDict.newStatusLabel : "New Status"}</Label>
                         <Select value={newStatus} onValueChange={setNewStatus}>
-                            <SelectTrigger className="col-span-3">
+                            <SelectTrigger className="sm:col-span-3">
                                 <SelectValue placeholder={isClient ? adminDict.newStatusPlaceholder : "Select status"} />
                             </SelectTrigger>
                             <SelectContent>
@@ -423,10 +422,10 @@ export default function AdminActionsPage() {
                             </SelectContent>
                         </Select>
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="newAssignedDivision" className="text-right">{isClient ? adminDict.newAssignedDivisionLabel : "New Division"}</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="newAssignedDivision" className="text-left sm:text-right">{isClient ? adminDict.newAssignedDivisionLabel : "New Division"}</Label>
                          <Select value={newAssignedDivision} onValueChange={setNewAssignedDivision}>
-                            <SelectTrigger className="col-span-3">
+                            <SelectTrigger className="sm:col-span-3">
                                 <SelectValue placeholder={isClient ? adminDict.newAssignedDivisionPlaceholder : "Select division"} />
                             </SelectTrigger>
                             <SelectContent>
@@ -437,17 +436,17 @@ export default function AdminActionsPage() {
                             </SelectContent>
                         </Select>
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="newNextAction" className="text-right">{isClient ? adminDict.newNextActionLabel : "New Next Action"}</Label>
-                        <Input id="newNextAction" value={newNextAction} onChange={(e) => setNewNextAction(e.target.value)} className="col-span-3" placeholder={isClient ? adminDict.newNextActionPlaceholder : "Describe next step"}/>
+                     <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="newNextAction" className="text-left sm:text-right">{isClient ? adminDict.newNextActionLabel : "New Next Action"}</Label>
+                        <Input id="newNextAction" value={newNextAction} onChange={(e) => setNewNextAction(e.target.value)} className="sm:col-span-3" placeholder={isClient ? adminDict.newNextActionPlaceholder : "Describe next step"}/>
                     </div>
-                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="newProgress" className="text-right">{isClient ? adminDict.newProgressLabel : "New Progress"}</Label>
-                        <Input id="newProgress" type="number" value={newProgress} onChange={(e) => setNewProgress(parseInt(e.target.value,10) || '')} className="col-span-3" min="0" max="100"/>
+                     <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="newProgress" className="text-left sm:text-right">{isClient ? adminDict.newProgressLabel : "New Progress"}</Label>
+                        <Input id="newProgress" type="number" value={newProgress} onChange={(e) => setNewProgress(parseInt(e.target.value,10) || '')} className="sm:col-span-3" min="0" max="100"/>
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="reasonNote" className="text-right">{isClient ? adminDict.reasonNoteLabel : "Reason/Note"}</Label>
-                        <Textarea id="reasonNote" value={reasonNote} onChange={(e) => setReasonNote(e.target.value)} className="col-span-3" placeholder={isClient ? adminDict.reasonNotePlaceholder : "Explain the change"}/>
+                    <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-4">
+                        <Label htmlFor="reasonNote" className="text-left sm:text-right">{isClient ? adminDict.reasonNoteLabel : "Reason/Note"}</Label>
+                        <Textarea id="reasonNote" value={reasonNote} onChange={(e) => setReasonNote(e.target.value)} className="sm:col-span-3" placeholder={isClient ? adminDict.reasonNotePlaceholder : "Explain the change"}/>
                     </div>
                 </div>
                 <DialogFooter>

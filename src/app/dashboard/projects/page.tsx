@@ -1092,15 +1092,33 @@ export default function ProjectsPage() {
             ) : displayedProjects.length === 0 ? (<p className="text-muted-foreground text-center py-4">{searchTerm ? projectsDict.noSearchResults : projectsDict.noProjectsFound}</p>) : (
               displayedProjects.map((projectItem) => (
                 <Card key={projectItem.id} className="hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 cursor-pointer" onClick={() => {setSelectedProject(projectItem); router.push(`/dashboard/projects?projectId=${projectItem.id}`, { scroll: false }); }}>
-                  <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-2 sm:space-y-0 pb-2 p-4 sm:p-6">
-                    <div className="flex-1 min-w-0"><CardTitle className="text-base sm:text-lg">{projectItem.title}</CardTitle><CardDescription className="text-xs text-muted-foreground mt-1 truncate">{projectsDict.assignedLabel}: {getTranslatedStatus(projectItem.assignedDivision) || projectsDict.none} {projectItem.nextAction ? `| ${projectsDict.nextActionLabel}: ${projectItem.nextAction}` : ''}</CardDescription></div>
-                     <div className="flex-shrink-0 mt-2 sm:mt-0">{getStatusBadge(projectItem.status)}</div>
-                  </CardHeader>
-                  <CardContent className="p-4 sm:p-6 pt-0">
-                     {projectItem.status !== 'Canceled' && projectItem.status !== 'Completed' && (<div className="flex items-center gap-2"><Progress value={projectItem.progress} className="w-full h-2" /><span className="text-xs text-muted-foreground font-medium">{projectItem.progress}%</span></div>)}
-                    {(projectItem.status === 'Canceled' || projectItem.status === 'Completed') && (<p className={`text-sm font-medium ${projectItem.status === 'Canceled' ? 'text-destructive' : 'text-green-600'}`}>{getTranslatedStatus(projectItem.status)}</p>)}
-                  </CardContent>
-                  <CardFooter className="text-xs text-muted-foreground justify-end p-4 sm:p-6 pt-0"><span className="flex items-center gap-1">{projectsDict.viewDetails} <ArrowRight className="h-3 w-3" /></span></CardFooter>
+                   <CardHeader className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between p-4 pb-2">
+                        <div className="flex-1 min-w-0">
+                            <CardTitle className="text-base sm:text-lg">{projectItem.title}</CardTitle>
+                            <CardDescription className="text-xs text-muted-foreground mt-1 truncate">
+                                {projectsDict.assignedLabel}: {getTranslatedStatus(projectItem.assignedDivision) || projectsDict.none} | {projectsDict.nextActionLabel}: {projectItem.nextAction || projectsDict.none}
+                            </CardDescription>
+                        </div>
+                        <div className="flex-shrink-0 w-full sm:w-auto">
+                            {getStatusBadge(projectItem.status)}
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-2">
+                        {projectItem.status !== 'Canceled' && projectItem.status !== 'Completed' && (
+                            <div className="flex items-center gap-2">
+                                <Progress value={projectItem.progress} className="w-full h-2" />
+                                <span className="text-xs text-muted-foreground font-medium">{projectItem.progress}%</span>
+                            </div>
+                        )}
+                        {(projectItem.status === 'Canceled' || projectItem.status === 'Completed') && (
+                            <p className={`text-sm font-medium ${projectItem.status === 'Canceled' ? 'text-destructive' : 'text-green-600'}`}>
+                                {getTranslatedStatus(projectItem.status)}
+                            </p>
+                        )}
+                    </CardContent>
+                    <CardFooter className="text-xs text-muted-foreground justify-end p-4 pt-0">
+                        <span className="flex items-center gap-1">{projectsDict.viewDetails} <ArrowRight className="h-3 w-3" /></span>
+                    </CardFooter>
                 </Card>
               ))
             )}
@@ -1128,7 +1146,7 @@ export default function ProjectsPage() {
           const displayName = item.originalFileName || item.name;
 
           return (
-            <li key={item.name} className="flex items-center text-sm p-2 border rounded-md hover:bg-secondary/50 gap-2">
+            <li key={`${item.name}-${item.filePath || 'no-path'}`} className="flex items-center text-sm p-2 border rounded-md hover:bg-secondary/50 gap-2">
                 {item.uploaded ? <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" /> : <CircleIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                     <span className={cn("truncate", item.uploaded ? "text-foreground" : "text-muted-foreground")}>{displayName}</span>
@@ -1303,7 +1321,7 @@ export default function ProjectsPage() {
                                             </div>
                                         )}
                                     </div>
-                                    <DialogFooter className="pt-2">
+                                    <DialogFooter className="pt-2 sm:justify-between">
                                         <Button type="button" variant="outline" onClick={() => setIsInitialImageUploadDialogOpen(false)} disabled={isSubmittingInitialImages}>{projectsDict.cancelButton}</Button>
                                         <Button
                                             type="button"
