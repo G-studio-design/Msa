@@ -801,10 +801,10 @@
   {
     "id": "project_1750923884164_mtu12",
     "title": "proyek mega mendung",
-    "status": "Pending Admin Files",
-    "progress": 40,
+    "status": "Pending Survey Details",
+    "progress": 45,
     "assignedDivision": "Admin Proyek",
-    "nextAction": "Unggah Berkas Administrasi",
+    "nextAction": "Input Jadwal Survei & Unggah Hasil",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -875,6 +875,11 @@
         "division": "Owner",
         "action": "sudina (Owner) approved: Setujui Faktur DP",
         "timestamp": "2025-06-26T12:05:40.979Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Berkas Administrasi\"",
+        "timestamp": "2025-06-26T12:09:21.349Z"
       }
     ],
     "files": [
@@ -913,6 +918,12 @@
         "uploadedBy": "Akuntan",
         "path": "project_1750923884164_mtu12-proyek_mega_mendung/faktur_dptxt",
         "timestamp": "2025-06-26T12:03:20.332Z"
+      },
+      {
+        "name": "berkas administrasi proyek .xlsx",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/berkas_administrasi_proyek_xlsx",
+        "timestamp": "2025-06-26T12:09:21.349Z"
       }
     ],
     "createdAt": "2025-06-26T07:44:44.164Z",

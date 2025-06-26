@@ -758,5 +758,29 @@
     "message": "Faktur DP untuk proyek 'proyek mega mendung' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
     "timestamp": "2025-06-26T12:05:40.985Z",
     "isRead": false
+  },
+  {
+    "id": "notif_1750939761366_8nlil_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Berkas administrasi untuk proyek 'proyek mega mendung' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-26T12:09:21.361Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750939761388_gclrk_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Berkas administrasi untuk proyek 'proyek mega mendung' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-26T12:09:21.386Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750939761409_15as0_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Berkas administrasi untuk proyek 'proyek mega mendung' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-26T12:09:21.402Z",
+    "isRead": false
   }
 ]
