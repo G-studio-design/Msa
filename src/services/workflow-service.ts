@@ -189,8 +189,18 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           targetProgress: 50,
           notification: {
             division: "Arsitek",
-            message: "Hasil survei untuk '{projectName}' telah diunggah oleh {actorUsername}. Mohon unggah berkas arsitektur."
+            message: "Survey proyek '{projectName}' telah selesai, segera kerjakan dan lengkapi semua berkas proyek."
           }
+        },
+        "reschedule_survey": {
+            targetStatus: "Pending Survey Details",
+            targetAssignedDivision: "Admin Proyek",
+            targetNextActionDescription: "Jadwal Survei (Ditentukan oleh Admin Proyek/Arsitek/Owner)",
+            targetProgress: 45,
+            notification: {
+              division: ["Admin Proyek", "Arsitek", "Owner"],
+              message: "Survei untuk proyek '{projectName}' telah dijadwalkan ulang oleh {actorUsername}. Alasan: {reasonNote}. Mohon periksa jadwal baru."
+            }
         }
       }
     },
@@ -397,15 +407,25 @@ const MSA_WORKFLOW_STEPS: WorkflowStep[] = [
     {
       stepName: "Survey Details Submission", status: "Pending Survey Details", assignedDivision: "Admin Proyek", progress: 45, nextActionDescription: "Jadwal Survei (Ditentukan oleh Admin Proyek/Arsitek/Owner)",
       transitions: {
-        "submitted": { // This transition points to our new parallel step
+        "submitted": { 
           targetStatus: "Pending Parallel Design Uploads",
-          targetAssignedDivision: "Admin Proyek", // Admin Proyek monitors
+          targetAssignedDivision: "Admin Proyek", 
           targetNextActionDescription: "Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.",
-          targetProgress: 50, // New progress for this step
+          targetProgress: 50, 
           notification: {
-            division: ["Admin Proyek", "Arsitek", "Struktur", "MEP"], // Notify all relevant parties
-            message: "Hasil survei untuk '{projectName}' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel."
+            division: ["Admin Proyek", "Arsitek", "Struktur", "MEP"], 
+            message: "Survey proyek '{projectName}' telah selesai, segera kerjakan dan lengkapi semua berkas proyek."
           }
+        },
+        "reschedule_survey": {
+            targetStatus: "Pending Survey Details",
+            targetAssignedDivision: "Admin Proyek",
+            targetNextActionDescription: "Jadwal Survei (Ditentukan oleh Admin Proyek/Arsitek/Owner)",
+            targetProgress: 45,
+            notification: {
+              division: ["Admin Proyek", "Arsitek", "Owner"],
+              message: "Survei untuk proyek '{projectName}' telah dijadwalkan ulang oleh {actorUsername}. Alasan: {reasonNote}. Mohon periksa jadwal baru."
+            }
         }
       }
     },
@@ -439,7 +459,7 @@ const MSA_WORKFLOW_STEPS: WorkflowStep[] = [
       stepName: "Sidang Outcome Declaration", status: "Scheduled", assignedDivision: "Owner", progress: 95, nextActionDescription: "Nyatakan Hasil Sidang (Sukses/Revisi/Batal)",
       transitions: {
         "completed": { 
-          targetStatus: "Pending Final Documents", // Changed: Go to final docs instead of complete
+          targetStatus: "Pending Final Documents",
           targetAssignedDivision: "Admin Proyek",
           targetNextActionDescription: "Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.",
           targetProgress: 98,
@@ -845,6 +865,7 @@ export async function getAllUniqueStatuses(): Promise<string[]> {
     });
     return Array.from(allStatuses);
 }
+
 
 
 

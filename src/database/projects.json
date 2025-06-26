@@ -107,31 +107,6 @@
     }
   },
   {
-    "id": "project_demo_selesai_002",
-    "title": "Konsultasi Desain Interior Apartemen",
-    "status": "Completed",
-    "progress": 100,
-    "assignedDivision": "",
-    "nextAction": null,
-    "workflowHistory": [
-      {
-        "division": "sudina",
-        "action": "Created Project",
-        "timestamp": "2024-05-20T11:00:00.000Z",
-        "note": "Proyek konsultasi cepat."
-      },
-      {
-        "division": "System",
-        "action": "Project marked as Completed",
-        "timestamp": "2024-05-21T15:00:00.000Z"
-      }
-    ],
-    "files": [],
-    "createdAt": "2024-05-20T11:00:00.000Z",
-    "createdBy": "sudina",
-    "workflowId": "simple_consultation_v1"
-  },
-  {
     "id": "project_demo_menunggu_dp_003",
     "title": "Pembangunan Villa Ubud",
     "status": "Pending Architect Files",

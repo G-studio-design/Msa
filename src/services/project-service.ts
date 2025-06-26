@@ -361,8 +361,12 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
     let historyActionText = `${updaterUsername} (${updaterRole}) ${actionTaken} for "${currentProject.nextAction || 'progress'}"`;
     if (actionTaken === 'scheduled' && scheduleDetails) {
         historyActionText = `${updaterUsername} (${updaterRole}) scheduled Sidang on ${scheduleDetails.date} at ${scheduleDetails.time}`;
-    } else if (actionTaken === 'submitted' && surveyDetails && currentProject.status === 'Pending Survey Details') {
-         historyActionText = `${updaterUsername} (${updaterRole}) submitted Survey Details for ${surveyDetails.date} at ${surveyDetails.time}`;
+    } else if ((actionTaken === 'submitted' || actionTaken === 'reschedule_survey') && surveyDetails) {
+        if (actionTaken === 'reschedule_survey') {
+            historyActionText = `${updaterUsername} (${updaterRole}) rescheduled Survey to ${surveyDetails.date} at ${surveyDetails.time}`;
+        } else {
+            historyActionText = `${updaterUsername} (${updaterRole}) submitted Survey Details for ${surveyDetails.date} at ${surveyDetails.time}`;
+        }
     } else if (actionTaken === 'approved') {
         historyActionText = `${updaterUsername} (${updaterRole}) approved: ${currentProject.nextAction || 'current step'}`;
     } else if (actionTaken === 'rejected' && currentProject.status === 'Pending Approval' && currentProject.progress === 20) {
@@ -386,8 +390,12 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
     };
      if (actionTaken === 'scheduled' && scheduleDetails) {
         newWorkflowHistoryEntry.note = `Location: ${scheduleDetails.location}. ${note ? `Note: ${note}` : ''}`.trim();
-    } else if (actionTaken === 'submitted' && surveyDetails && currentProject.status === 'Pending Survey Details') {
-         newWorkflowHistoryEntry.note = `Survey Description: ${surveyDetails.description}. ${note ? `Note: ${note}` : ''}`.trim();
+    } else if ((actionTaken === 'submitted' || actionTaken === 'reschedule_survey') && surveyDetails) {
+        if (actionTaken === 'reschedule_survey') {
+            newWorkflowHistoryEntry.note = `Reason: ${note}`;
+        } else {
+            newWorkflowHistoryEntry.note = `Survey Description: ${surveyDetails.description}. ${note ? `Note: ${note}` : ''}`.trim();
+        }
     }
 
     let updatedProject: Project = {
@@ -413,7 +421,8 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
             let message = (notificationConfig.message || "Proyek '{projectName}' telah diperbarui ke status: {newStatus}.")
                 .replace('{projectName}', updatedProject.title)
                 .replace('{newStatus}', updatedProject.status)
-                .replace('{actorUsername}', updaterUsername);
+                .replace('{actorUsername}', updaterUsername)
+                .replace('{reasonNote}', note || '');
 
             const targetDivisions = Array.isArray(notificationConfig.division) ? notificationConfig.division : [notificationConfig.division];
             for (const role of targetDivisions) {
@@ -449,10 +458,10 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
          }
     }
 
-    if (actionTaken === 'scheduled' && scheduleDetails) {
+    if (scheduleDetails) {
         updatedProject.scheduleDetails = scheduleDetails;
     }
-    if (actionTaken === 'submitted' && surveyDetails && currentProject.status === 'Pending Survey Details') {
+    if (surveyDetails) {
         updatedProject.surveyDetails = surveyDetails;
     }
 
@@ -478,11 +487,11 @@ export async function updateProjectTitle(projectId: string, newTitle: string): P
     const originalProject = projects[projectIndex];
     const oldSanitizedTitle = sanitizeForPath(originalProject.title);
     const newSanitizedTitle = sanitizeForPath(newTitle);
+    
+    const oldProjectAbsoluteFolderPath = path.join(PROJECT_FILES_BASE_DIR, `${projectId}-${oldSanitizedTitle}`);
+    const newProjectAbsoluteFolderPath = path.join(PROJECT_FILES_BASE_DIR, `${projectId}-${newSanitizedTitle}`);
 
-    const oldProjectRelativeFolderPath = `${projectId}-${oldSanitizedTitle}`;
-    const newProjectRelativeFolderPath = `${projectId}-${newSanitizedTitle}`;
-
-    if (oldProjectRelativeFolderPath !== newProjectRelativeFolderPath) {
+    if (oldProjectAbsoluteFolderPath !== newProjectAbsoluteFolderPath) {
         console.log(`[ProjectService/JSON] Sanitized title changed for project ${projectId}. Attempting to rename folder and update file paths.`);
         try {
              try {
@@ -499,7 +508,7 @@ export async function updateProjectTitle(projectId: string, newTitle: string): P
              }
 
             projects[projectIndex].files = (originalProject.files || []).map(file => {
-                const updatedRelativePath = `${newProjectRelativeFolderPath}/${path.basename(file.path)}`;
+                const updatedRelativePath = `${projectId}-${newSanitizedTitle}/${path.basename(file.path)}`;
                 return { ...file, path: updatedRelativePath };
             });
         } catch (error) {
@@ -583,7 +592,7 @@ export async function reviseProject(
         return projects[projectIndex];
     } else {
         console.warn(`No explicit '${actionTaken}' transition found for project ${projectId} status ${currentProject.status}. Fallback revision logic might be needed or this action is not allowed.`);
-        return null;
+        throw new Error('REVISION_NOT_SUPPORTED_FOR_CURRENT_STEP');
     }
 }
 

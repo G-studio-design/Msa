@@ -181,6 +181,12 @@ export default function ProjectsPage() {
   const [isDeletingFile, setIsDeletingFile] = React.useState<string | null>(null);
 
   const [isGenericRevisionDialogOpen, setIsGenericRevisionDialogOpen] = React.useState(false);
+  
+  const [isRescheduleDialogOpen, setIsRescheduleDialogOpen] = React.useState(false);
+  const [rescheduleDate, setRescheduleDate] = React.useState('');
+  const [rescheduleTime, setRescheduleTime] = React.useState('');
+  const [rescheduleNote, setRescheduleNote] = React.useState('');
+
 
   // FIX: Extract search param value outside useEffect
   const projectIdFromUrl = searchParams.get('projectId');
@@ -415,7 +421,7 @@ export default function ProjectsPage() {
     const currentDescription = descriptionForSubmit || description;
 
     const isDecisionOrTerminalAction = ['approved', 'rejected', 'canceled', 'completed', 'revise_offer', 'revise_dp', 'revise_after_sidang', 'canceled_after_sidang', 'revision_completed_and_finish', 'all_files_confirmed'].includes(actionTaken);
-    const isSchedulingAction = actionTaken === 'scheduled';
+    const isSchedulingAction = actionTaken === 'scheduled' || actionTaken === 'reschedule_survey';
     const isSurveyAction = selectedProject.status === 'Pending Survey Details' && actionTaken === 'submitted';
     const isArchitectInitialImageUpload = actionTaken === 'architect_uploaded_initial_images_for_struktur';
     
@@ -474,14 +480,14 @@ export default function ProjectsPage() {
             actionTaken: actionTaken,
             files: uploadedFileEntries.length > 0 ? uploadedFileEntries : undefined,
             note: currentDescription || undefined,
-            scheduleDetails: selectedProject.status === 'Pending Scheduling' && actionTaken === 'scheduled' ? {
+            scheduleDetails: (selectedProject.status === 'Pending Scheduling' && actionTaken === 'scheduled') ? {
                 date: scheduleDate,
                 time: scheduleTime,
                 location: scheduleLocation
             } : undefined,
-             surveyDetails: selectedProject.status === 'Pending Survey Details' && actionTaken === 'submitted' ? {
-                date: surveyDate,
-                time: surveyTime,
+             surveyDetails: (selectedProject.status === 'Pending Survey Details' && (actionTaken === 'submitted' || actionTaken === 'reschedule_survey')) ? {
+                date: (actionTaken === 'reschedule_survey') ? rescheduleDate : surveyDate,
+                time: (actionTaken === 'reschedule_survey') ? rescheduleTime : surveyTime,
                 description: surveyDescription
             } : undefined,
         };
@@ -499,6 +505,9 @@ export default function ProjectsPage() {
             case 'all_files_confirmed':
                 toastMessage = projectsDict.toast.allDesignsConfirmedDesc.replace('{projectName}', newlyUpdatedProjectResult?.title || '');
                 break;
+            case 'reschedule_survey':
+                 toastMessage = projectsDict.toast.surveyRescheduledDesc?.replace('{projectName}', newlyUpdatedProjectResult?.title || '') || `Survey for {projectName} rescheduled.`;
+                 break;
             case 'submitted':
                 if (selectedProject.status === 'Pending Parallel Design Uploads') {
                     toastMessage = projectsDict.toast.parallelUploadSubmittedDesc.replace('{uploaderRole}', getTranslatedStatus(currentUser.role)).replace('{projectName}', newlyUpdatedProjectResult?.title || '');
@@ -541,7 +550,7 @@ export default function ProjectsPage() {
          setIsSubmitting(false);
          if (isArchitectInitialImageUpload) setIsSubmittingInitialImages(false);
       }
-  }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus, initialImageFiles, initialImageDescription]);
+  }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus, initialImageFiles, initialImageDescription, rescheduleDate, rescheduleTime]);
 
   const handleDecision = React.useCallback((decision: 'approved' | 'rejected' | 'completed' | 'revise_offer' | 'revise_dp' | 'canceled_after_sidang' | 'revision_completed_and_finish' | 'mark_division_complete') => {
     if (!currentUser || !selectedProject ) {
@@ -607,7 +616,7 @@ export default function ProjectsPage() {
         }
         const canSubmitSurvey = selectedProject.status === 'Pending Survey Details' &&
                             (
-                                (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === currentUser.role) ||
+                                (currentUser.role === 'Admin Proyek' && canPerformSelectedProjectAction) ||
                                 currentUser.role === 'Owner' ||
                                 currentUser.role === 'Arsitek'
                             );
@@ -622,7 +631,23 @@ export default function ProjectsPage() {
             return;
         }
         await handleProgressSubmit('submitted');
-    }, [currentUser, selectedProject, surveyDate, surveyTime, surveyDescription, projectsDict, toast, handleProgressSubmit]);
+    }, [currentUser, selectedProject, surveyDate, surveyTime, surveyDescription, projectsDict, toast, handleProgressSubmit, canPerformSelectedProjectAction]);
+
+    const handleRescheduleSurveySubmit = async () => {
+        if (!selectedProject || !currentUser) return;
+        if (!rescheduleDate || !rescheduleTime || !rescheduleNote.trim()) {
+            toast({ variant: 'destructive', title: projectsDict.toast.error, description: projectsDict.rescheduleSurveyDialog.validationError });
+            return;
+        }
+        setIsSubmitting(true);
+        await handleProgressSubmit('reschedule_survey', [], rescheduleNote);
+        setIsSubmitting(false);
+        setIsRescheduleDialogOpen(false);
+        setRescheduleDate('');
+        setRescheduleTime('');
+        setRescheduleNote('');
+    };
+
 
     const handleAddToCalendar = React.useCallback(async () => {
       if (!selectedProject || selectedProject.status !== 'Scheduled' || !currentUser) {
@@ -887,12 +912,15 @@ export default function ProjectsPage() {
       if (!currentUser || !selectedProject) return false;
       if (currentUser.role === 'Admin Developer') return true;
       if (currentUser.role === 'Owner') return true;
-      if (currentUser.role === 'Arsitek' && selectedProject.status === 'Pending Survey Details') return true;
-      if (selectedProject.status === 'Pending Post-Sidang Revision' && ['Arsitek', 'Struktur', 'MEP'].includes(currentUser.role)) return true;
+      
+      const userRole = currentUser.role.trim();
+      const isDesignDivision = ['Arsitek', 'Struktur', 'MEP'].includes(userRole);
+      
+      if (selectedProject.status === 'Pending Post-Sidang Revision' && isDesignDivision) return true;
+      if (selectedProject.status === 'Pending Survey Details' && userRole === 'Arsitek') return true;
 
-      const currentUserRoleCleaned = currentUser.role.trim();
       const assignedDivisionCleaned = selectedProject.assignedDivision?.trim();
-      return currentUserRoleCleaned === assignedDivisionCleaned;
+      return userRole === assignedDivisionCleaned;
     }, [currentUser, selectedProject]);
 
     const showUploadSection = React.useMemo(() => {
@@ -1075,7 +1103,7 @@ export default function ProjectsPage() {
     }
 
   const renderProjectList = () => {
-    if (!isClient || !projectsDict?.projectListTitle) {
+       if (!isClient || !projectsDict?.projectListTitle) {
         return (<div className="container mx-auto py-4 px-4 md:px-6 space-y-6"><Card><CardHeader className="p-4 sm:p-6"><Skeleton className="h-7 w-3/5 mb-2" /></CardHeader></Card></div>);
     }
     return (
@@ -1493,10 +1521,40 @@ export default function ProjectsPage() {
                                          </ul>
                                      </div>
                                   )}
-                                <Button onClick={handleSurveySubmit} disabled={isSubmitting || !surveyDate || !surveyTime || !surveyDescription.trim()} className="w-full sm:w-auto accent-teal">
-                                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                                    {isSubmitting ? projectsDict.submittingButton : projectsDict.submitButton}
-                                </Button>
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                  <Button onClick={handleSurveySubmit} disabled={isSubmitting || !surveyDate || !surveyTime || !surveyDescription.trim()} className="w-full sm:w-auto accent-teal">
+                                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                                      {isSubmitting ? projectsDict.submittingButton : projectsDict.submitButton}
+                                  </Button>
+                                  <Dialog open={isRescheduleDialogOpen} onOpenChange={setIsRescheduleDialogOpen}>
+                                      <DialogTrigger asChild>
+                                          <Button variant="outline" disabled={isSubmitting}><RefreshCw className="mr-2 h-4 w-4"/>{projectsDict.rescheduleSurveyDialog.buttonText}</Button>
+                                      </DialogTrigger>
+                                      <DialogContent>
+                                          <DialogHeader>
+                                              <DialogTitle>{projectsDict.rescheduleSurveyDialog.title}</DialogTitle>
+                                              <DialogDescription>{projectsDict.rescheduleSurveyDialog.description}</DialogDescription>
+                                          </DialogHeader>
+                                          <div className="grid gap-4 py-4">
+                                              <div className="grid grid-cols-2 gap-4">
+                                                  <div><Label htmlFor="reschedule-date">{projectsDict.dateLabel}</Label><Input id="reschedule-date" type="date" value={rescheduleDate} onChange={(e) => setRescheduleDate(e.target.value)} disabled={isSubmitting}/></div>
+                                                  <div><Label htmlFor="reschedule-time">{projectsDict.timeLabel}</Label><Input id="reschedule-time" type="time" value={rescheduleTime} onChange={(e) => setRescheduleTime(e.target.value)} disabled={isSubmitting}/></div>
+                                              </div>
+                                              <div>
+                                                  <Label htmlFor="reschedule-note">{projectsDict.rescheduleSurveyDialog.reasonLabel}</Label>
+                                                  <Textarea id="reschedule-note" placeholder={projectsDict.rescheduleSurveyDialog.reasonPlaceholder} value={rescheduleNote} onChange={(e) => setRescheduleNote(e.target.value)} disabled={isSubmitting}/>
+                                              </div>
+                                          </div>
+                                          <DialogFooter>
+                                              <Button variant="outline" onClick={() => setIsRescheduleDialogOpen(false)} disabled={isSubmitting}>{projectsDict.cancelButton}</Button>
+                                              <Button onClick={handleRescheduleSurveySubmit} disabled={isSubmitting || !rescheduleDate || !rescheduleTime || !rescheduleNote.trim()} className="accent-teal">
+                                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                                                {projectsDict.rescheduleSurveyDialog.confirmButton}
+                                              </Button>
+                                          </DialogFooter>
+                                      </DialogContent>
+                                  </Dialog>
+                                </div>
                             </div>
                         )}
 
