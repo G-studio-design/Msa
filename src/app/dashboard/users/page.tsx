@@ -72,7 +72,6 @@ import {
 } from '@/services/user-service';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 // Define available roles for selection (internal role names)
 const divisions = ['Owner', 'Akuntan', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP'];
@@ -569,7 +568,7 @@ export default function ManageUsersPage() {
             </Dialog>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="w-full rounded-md border">
+          <div className="w-full overflow-x-auto rounded-md border">
             <Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow>
@@ -694,8 +693,7 @@ export default function ManageUsersPage() {
                 )}
               </TableBody>
             </Table>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+          </div>
         </CardContent>
       </Card>
 

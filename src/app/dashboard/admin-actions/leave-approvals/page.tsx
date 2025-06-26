@@ -41,7 +41,6 @@ import { getAllLeaveRequests, approveLeaveRequest, rejectLeaveRequest, type Leav
 import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 const defaultDict = getDictionary('en');
 
@@ -202,7 +201,7 @@ export default function LeaveApprovalsPage() {
               <p className="text-sm">{leaveApprovalsDict.allCaughtUp}</p>
             </div>
           ) : (
-            <ScrollArea className="w-full rounded-md border">
+            <div className="w-full overflow-x-auto rounded-md border">
               <Table className="min-w-[800px]">
                 <TableCaption>{leaveApprovalsDict.tableCaption}</TableCaption>
                 <TableHeader>
@@ -271,8 +270,7 @@ export default function LeaveApprovalsPage() {
                   ))}
                 </TableBody>
               </Table>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+            </div>
           )}
         </CardContent>
       </Card>

@@ -59,7 +59,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllWorkflows, deleteWorkflow, addWorkflow, updateWorkflow, type Workflow, type WorkflowStep, DEFAULT_STANDARD_WORKFLOW_STRUCTURE } from '@/services/workflow-service';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const defaultDict = getDictionary('en');
 
@@ -374,7 +374,7 @@ export default function ManageWorkflowsPage() {
           </Dialog>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="w-full rounded-md border">
+          <div className="w-full overflow-x-auto rounded-md border">
             <Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow>
@@ -449,8 +449,7 @@ export default function ManageWorkflowsPage() {
                 )}
               </TableBody>
             </Table>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+          </div>
         </CardContent>
       </Card>
 

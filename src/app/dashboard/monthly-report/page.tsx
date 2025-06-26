@@ -37,7 +37,6 @@ import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllProjects, type Project, type WorkflowHistoryEntry } from '@/services/project-service';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { format, parseISO, getMonth, getYear } from 'date-fns';
 import { id as idLocale, enUS as enLocale } from 'date-fns/locale';
 import {
@@ -466,7 +465,7 @@ export default function MonthlyReportPage() {
                </div>
 
               {!noDataForReport && (
-                <ScrollArea className="w-full rounded-md border">
+                <div className="w-full overflow-x-auto rounded-md border">
                   <Table className="min-w-[1000px]">
                     <TableCaption>{reportDict.tableCaption}</TableCaption>
                     <TableHeader>
@@ -516,8 +515,7 @@ export default function MonthlyReportPage() {
                       ))}
                     </TableBody>
                   </Table>
-                  <ScrollBar orientation="horizontal" />
-                </ScrollArea>
+                </div>
               )}
             </CardContent>
           </Card>
