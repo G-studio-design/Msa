@@ -12,7 +12,6 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 export const metadata: Metadata = {
   title: 'TaskTrackPro',
   description: 'Employee task management application for various divisions.',
-  manifest: '/manifest.json', // Link to the web app manifest
   icons: {
     icon: '/msarch-logo.png', // Ensure this uses hyphenated version
     apple: '/msarch-logo.png', // Ensure this uses hyphenated version
