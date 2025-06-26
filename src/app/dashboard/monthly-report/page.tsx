@@ -50,6 +50,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelL
 import type { Language } from '@/context/LanguageContext';
 import { toPng } from 'html-to-image';
 import { cn } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
 
 
 interface MonthlyReportData {
@@ -464,7 +465,7 @@ export default function MonthlyReportPage() {
                         <p>{reportDict.noDataForMonth}</p>
                     </div>
                  ) : (
-                    <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] w-full min-w-[500px]">
+                    <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart 
                                 data={chartDisplayData} 
@@ -489,8 +490,9 @@ export default function MonthlyReportPage() {
 
               {!noDataForReport && (
                 <>
-                  <div className="w-full overflow-x-auto">
-                    <Table className="min-w-[800px]">
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block w-full overflow-x-auto rounded-md border">
+                    <Table>
                       <TableCaption>{reportDict.tableCaption}</TableCaption>
                       <TableHeader>
                         <TableRow>
@@ -523,6 +525,32 @@ export default function MonthlyReportPage() {
                       </TableBody>
                     </Table>
                   </div>
+
+                  {/* Mobile Card View */}
+                  <div className="grid gap-4 md:hidden">
+                    {allProjectsForReport.map((project) => (
+                      <div key={`mobile-${project.id}`} className="rounded-lg border bg-card text-card-foreground p-4 space-y-3">
+                          <div className="flex justify-between items-start gap-2">
+                              <h3 className="font-semibold break-words flex-1">{project.title}</h3>
+                              <Badge variant={ project.status === 'Completed' ? 'default' : project.status === 'Canceled' ? 'destructive' : 'secondary'}
+                                className={cn(project.status === 'Completed' && 'bg-green-500 hover:bg-green-600 text-white', 'flex-shrink-0')}>
+                                {dashboardDict.status[project.status.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status] || project.status}
+                              </Badge>
+                          </div>
+                          <div className="text-sm text-muted-foreground space-y-2 border-t pt-3 mt-2">
+                              <div><strong>{reportDict.tableHeaderLastActivityDate}:</strong> {getLastActivityDate(project)}</div>
+                              <div><strong>{reportDict.tableHeaderContributors}:</strong> {getContributors(project)}</div>
+                              <div><strong>{reportDict.tableHeaderCreatedBy}:</strong> {project.createdBy}</div>
+                              <div><strong>{reportDict.tableHeaderCreatedAt}:</strong> {formatDateOnly(project.createdAt)}</div>
+                          </div>
+                          <div className="flex items-center gap-2 pt-2">
+                              <Progress value={project.progress} className="w-full h-2" />
+                              <span className="text-xs text-muted-foreground font-medium">{project.progress}%</span>
+                          </div>
+                      </div>
+                    ))}
+                  </div>
+
                 </>
               )}
             </CardContent>
