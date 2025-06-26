@@ -1,4 +1,3 @@
-
 // src/app/dashboard/page.tsx
 'use client';
 
@@ -381,7 +380,9 @@ export default function DashboardPage() {
                         />
                     </div>
                     <div className="space-y-3 pt-4 border-t h-48 overflow-y-auto pr-2">
-                        <h3 className="text-md font-semibold">{dashboardDict.eventsForDate.replace('{date}', selectedDate ? format(selectedDate, 'PP', { locale: currentLocale }) : '...')}</h3>
+                        <h3 className="text-md font-semibold">
+                            {selectedDate ? `${dashboardDict.scheduleDetailsTitle} ${format(selectedDate, 'PPPP', { locale: currentLocale })}` : dashboardDict.selectDatePrompt}
+                        </h3>
                         {selectedDate && eventsByDate[format(selectedDate, 'yyyy-MM-dd')] ? (
                             eventsByDate[format(selectedDate, 'yyyy-MM-dd')].map(event => (
                                 <div key={event.id} className="flex gap-3">

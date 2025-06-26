@@ -115,9 +115,9 @@ const en = {
     scheduleAgendaTitle: 'Schedule & Agenda',
     scheduleAgendaDesc: 'View scheduled project sidangs, surveys, employee leaves, holidays and company events.',
     todayButtonLabel: 'Today',
-    eventsForDate: 'Events for {date}',
+    scheduleDetailsTitle: 'Schedule Details for',
     noEventsOnDate: 'No events scheduled on this date.',
-    selectDatePrompt: 'Select a date to view events.',
+    selectDatePrompt: 'Select a date to view its schedule.',
     eventTimeLabel: 'Time:',
     eventLocationLabel: 'Location:',
     projectSidangLabel: 'Project Sidang',
@@ -428,11 +428,11 @@ const en = {
   // Add Project Page
   addProjectPage: {
       title: 'Create New Project',
-      description: 'Enter the project title and upload initial files. The standard workflow will be used.',
+      description: 'Enter the project title and upload initial files. The MSa standard workflow will be used.',
       titleLabel: 'Project Title',
       titlePlaceholder: 'Enter the full project title',
-      workflowLabel: 'Select Workflow', // Kept for consistency, though not selectable by user
-      workflowPlaceholder: 'Choose a workflow type', // Kept
+      workflowLabel: 'Select Workflow',
+      workflowPlaceholder: 'Choose a workflow type',
       filesLabel: 'Initial Files (Optional)',
       filesHint: 'Upload any initial documents or briefs related to the project. Max {max} files.',
       createButton: 'Create Project',
@@ -443,7 +443,7 @@ const en = {
       selectedFilesLabel: 'Selected Files',
       toast: {
           success: 'Project Created',
-          successDesc: 'Project "{title}" added successfully. {division} notified for the first step.',
+          successDesc: 'Project {title} added successfully. {division} notified for the first step.',
           error: 'Failed to Create Project',
           fetchWorkflowsError: 'Could not load workflow types.',
           uploadFailed: "One or more files failed to upload. Project not created.",

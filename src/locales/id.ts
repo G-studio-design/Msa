@@ -115,9 +115,9 @@ const id = {
     scheduleAgendaTitle: 'Jadwal & Agenda',
     scheduleAgendaDesc: 'Lihat jadwal sidang proyek, survei, izin karyawan, hari libur dan acara perusahaan.',
     todayButtonLabel: 'Hari Ini',
-    eventsForDate: 'Acara untuk {date}',
+    scheduleDetailsTitle: 'Rincian Jadwal',
     noEventsOnDate: 'Tidak ada acara terjadwal pada tanggal ini.',
-    selectDatePrompt: 'Pilih tanggal untuk melihat acara.',
+    selectDatePrompt: 'Pilih tanggal untuk melihat jadwalnya.',
     eventTimeLabel: 'Waktu:',
     eventLocationLabel: 'Lokasi:',
     projectSidangLabel: 'Sidang Proyek',
@@ -428,11 +428,11 @@ const id = {
   // Add Project Page
   addProjectPage: {
       title: 'Buat Proyek Baru',
-      description: 'Masukkan judul proyek dan unggah file awal. Alur kerja standar akan digunakan.',
+      description: 'Masukkan judul proyek dan unggah file awal. Alur kerja standar MSa akan digunakan.',
       titleLabel: 'Judul Proyek',
       titlePlaceholder: 'Masukkan judul lengkap proyek',
-      workflowLabel: 'Pilih Alur Kerja', // Kept for consistency, though not selectable by user
-      workflowPlaceholder: 'Pilih jenis alur kerja', // Kept
+      workflowLabel: 'Pilih Alur Kerja',
+      workflowPlaceholder: 'Pilih jenis alur kerja',
       filesLabel: 'File Awal (Opsional)',
       filesHint: 'Unggah dokumen atau brief awal terkait proyek. Maks {max} file.',
       createButton: 'Buat Proyek',
@@ -443,7 +443,7 @@ const id = {
       selectedFilesLabel: 'File Terpilih',
       toast: {
           success: 'Proyek Dibuat',
-          successDesc: 'Proyek "{title}" berhasil ditambahkan. {division} diberitahu untuk langkah pertama.',
+          successDesc: 'Proyek {title} berhasil ditambahkan. {division} diberitahu untuk langkah pertama.',
           error: 'Gagal Membuat Proyek',
           fetchWorkflowsError: 'Tidak dapat memuat jenis alur kerja.',
           uploadFailed: "Satu atau lebih file gagal diunggah. Proyek tidak dibuat.",

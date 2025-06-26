@@ -1167,6 +1167,46 @@
     "projectId": "project_1750923884164_mtu12",
     "message": "Proyek 'proyek mega mendung' telah selesai dengan semua dokumen akhir terunggah oleh komangmerta.",
     "timestamp": "2025-06-26T16:23:50.797Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750955328012_9e1cp_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Proyek baru \"proyek kuta\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-26T16:28:48.008Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750955751290_ujv9r_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Penawaran untuk proyek 'proyek villa di tanah lot' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-26T16:35:51.288Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750955778044_4s7sz_ue2",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Penawaran untuk proyek 'proyek villa di tanah lot' telah disetujui oleh sudina. Mohon buat faktur DP.",
+    "timestamp": "2025-06-26T16:36:18.042Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750955812797_xfjth_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Faktur DP untuk proyek 'proyek villa di tanah lot' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-26T16:36:52.794Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750955843004_7reo2_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Faktur DP untuk proyek 'proyek villa di tanah lot' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-06-26T16:37:23.001Z",
     "isRead": false
   }
 ]

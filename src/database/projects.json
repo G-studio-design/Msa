@@ -1183,10 +1183,10 @@
   {
     "id": "project_1750950968313_qtcnd",
     "title": "proyek villa di tanah lot",
-    "status": "Pending Offer",
-    "progress": 10,
+    "status": "Pending Admin Files",
+    "progress": 40,
     "assignedDivision": "Admin Proyek",
-    "nextAction": "Unggah Dokumen Penawaran",
+    "nextAction": "Unggah Berkas Administrasi",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -1199,10 +1199,68 @@
         "division": "System",
         "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
         "timestamp": "2025-06-26T15:16:08.313Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
+        "timestamp": "2025-06-26T16:35:51.281Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) approved: Setujui Dokumen Penawaran",
+        "timestamp": "2025-06-26T16:36:18.037Z"
+      },
+      {
+        "division": "Akuntan",
+        "action": "oksi (Akuntan) submitted for \"Buat Faktur DP\"",
+        "timestamp": "2025-06-26T16:36:52.787Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) approved: Setujui Faktur DP",
+        "timestamp": "2025-06-26T16:37:22.998Z"
+      }
+    ],
+    "files": [
+      {
+        "name": "dokumen penawaran .pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/dokumen_penawaran_pdf",
+        "timestamp": "2025-06-26T16:35:51.281Z"
+      },
+      {
+        "name": "faktur dp.txt",
+        "uploadedBy": "Akuntan",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/faktur_dptxt",
+        "timestamp": "2025-06-26T16:36:52.787Z"
+      }
+    ],
+    "createdAt": "2025-06-26T15:16:08.313Z",
+    "createdBy": "sudina"
+  },
+  {
+    "id": "project_1750955327988_zof0g",
+    "title": "proyek kuta",
+    "status": "Pending Offer",
+    "progress": 10,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Unggah Dokumen Penawaran",
+    "workflowId": "msa_workflow",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project with workflow: msa_workflow",
+        "timestamp": "2025-06-26T16:28:47.988Z",
+        "note": "Initial files: 0"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
+        "timestamp": "2025-06-26T16:28:47.988Z"
       }
     ],
     "files": [],
-    "createdAt": "2025-06-26T15:16:08.313Z",
+    "createdAt": "2025-06-26T16:28:47.988Z",
     "createdBy": "sudina"
   }
 ]

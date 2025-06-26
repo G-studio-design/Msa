@@ -1,4 +1,3 @@
-
 // src/app/dashboard/add-project/page.tsx
 'use client';
 
@@ -12,21 +11,20 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { addProject, type FileEntry, type AddProjectData } from '@/services/project-service';
-import { getAllWorkflows, type Workflow } from '@/services/workflow-service';
 import { Loader2, Upload, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
 
 const MAX_FILES_UPLOAD = 10;
 
+// Updated schema: workflowId is removed from form validation
 const getAddProjectSchema = (dictValidation: ReturnType<typeof getDictionary>['addProjectPage']['validation']) => z.object({
   title: z.string().min(5, dictValidation.titleMin),
-  workflowId: z.string({ required_error: dictValidation.workflowRequired }),
 });
 
 const defaultDict = getDictionary('en');
@@ -44,42 +42,11 @@ export default function AddProjectPage() {
 
   const [isLoading, setIsLoading] = React.useState(false);
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
-  const [fetchedWorkflows, setFetchedWorkflows] = React.useState<Workflow[]>([]);
-  const [isLoadingWorkflows, setIsLoadingWorkflows] = React.useState(true);
+  // Workflow related states are no longer needed
 
   React.useEffect(() => {
     setIsClient(true);
   }, []);
-
-  const fetchWorkflows = React.useCallback(async () => {
-    console.log('[AddProjectPage] useEffect triggered: Attempting to fetch workflows...');
-    setIsLoadingWorkflows(true);
-    try {
-      const workflows = await getAllWorkflows();
-      console.log('[AddProjectPage] Fetched workflows:', workflows);
-      setFetchedWorkflows(workflows);
-    } catch (error) {
-      console.error('Failed to fetch workflows:', error);
-      toast({
-        variant: 'destructive',
-        title: addProjectDict.toast.error,
-        description: addProjectDict.toast.fetchWorkflowsError,
-      });
-      setFetchedWorkflows([]);
-    } finally {
-      setIsLoadingWorkflows(false);
-      console.log('[AddProjectPage] Finished fetching workflows. isLoadingWorkflows:', false);
-    }
-  }, [toast, addProjectDict.toast.error, addProjectDict.toast.fetchWorkflowsError]);
-
-  React.useEffect(() => {
-    // Roles allowed to fetch workflows (project creation is tied to workflows)
-    if (isClient && currentUser && ['Owner', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role.trim())) {
-      fetchWorkflows();
-    } else if (isClient) {
-        setIsLoadingWorkflows(false);
-    }
-  }, [isClient, currentUser, fetchWorkflows]);
 
   const addProjectSchema = React.useMemo(() => getAddProjectSchema(addProjectDict.validation), [addProjectDict.validation]);
   type AddProjectFormValues = z.infer<typeof addProjectSchema>;
@@ -88,7 +55,6 @@ export default function AddProjectPage() {
     resolver: zodResolver(addProjectSchema),
     defaultValues: {
       title: '',
-      workflowId: undefined,
     },
   });
   
@@ -102,7 +68,7 @@ export default function AddProjectPage() {
     if (!currentUser) return false;
     const userRole = currentUser.role.trim();
     // Allow Owner, Admin Proyek, Admin Developer to add projects
-    // Allow Arsitek, Struktur, MEP to proceed with form submission for file upload associated with projects
+    // Other roles might view the page but won't be able to submit
     return ['Owner', 'Admin Proyek', 'Admin Developer', 'Arsitek', 'Struktur', 'MEP'].includes(userRole);
   }, [currentUser]);
 
@@ -133,30 +99,14 @@ export default function AddProjectPage() {
   }, [isClient, dashboardDict]);
 
   const onSubmit = async (data: AddProjectFormValues) => {
-    console.log('[AddProjectPage] onSubmit triggered.');
     if (!canAddProject || !currentUser) {
-        console.log('[AddProjectPage] onSubmit: User not authorized or not logged in.', { canAddProject, currentUser });
         return;
     }
-    console.log('[AddProjectPage] Current user ID:', currentUser.id, ', Role:', currentUser.role);
-
-    // Check if workflows are loaded before proceeding to ensure project creation is possible
-    if (isLoadingWorkflows || fetchedWorkflows.length === 0) {
-         console.log('[AddProjectPage] onSubmit: Workflows not loaded.', { isLoadingWorkflows, fetchedWorkflowsLength: fetchedWorkflows.length });
-         toast({
-             variant: 'destructive',
-             title: addProjectDict.toast.error,
-             description: addProjectDict.toast.fetchWorkflowsError || defaultDict.addProjectPage.toast.fetchWorkflowsError,
-         });
-         return;
-     }
 
     setIsLoading(true);
     form.clearErrors();
     
     const actualFileEntriesForService: Omit<FileEntry, 'timestamp'>[] = [];
-
-    console.log('[AddProjectPage] Number of selected files:', selectedFiles.length);
 
     if (selectedFiles.length > 0) {
       for (const file of selectedFiles) {
@@ -164,20 +114,15 @@ export default function AddProjectPage() {
         formData.append('file', file);
         formData.append('projectId', 'temp-id-for-upload'); 
         formData.append('projectTitle', data.title);
-        // Add user ID to the form data
         formData.append('userId', currentUser.id);
 
         try {
           const response = await fetch('/api/upload-file', { method: 'POST', body: formData });
-          console.log('[AddProjectPage] Upload API response status:', response.status);
-
           if (!response.ok) {
             const errorData = await response.json().catch(() => ({ message: `Failed to upload ${file.name}` }));
-             console.error('[AddProjectPage] Upload API error response:', errorData);
             throw new Error(errorData.message || `Failed to upload ${file.name}`);
           }
           const result = await response.json();
-          console.log('[AddProjectPage] Upload API success response data:', result);
           actualFileEntriesForService.push({
             name: result.originalName,
             uploadedBy: currentUser.username,
@@ -192,15 +137,13 @@ export default function AddProjectPage() {
       }
     }
     
-    const effectiveWorkflowId = data.workflowId;
-    const selectedWorkflow = fetchedWorkflows.find(wf => wf.id === effectiveWorkflowId);
-    const workflowName = selectedWorkflow ? selectedWorkflow.name : (addProjectDict.toast.unknownWorkflow || defaultDict.addProjectPage.toast.unknownWorkflow);
-
-    console.log('[AddProjectPage] Submitting with selected workflowId:', effectiveWorkflowId, "Name:", workflowName);
+    // WorkflowId is now hardcoded to the default
+    const effectiveWorkflowId = DEFAULT_WORKFLOW_ID;
+    console.log('[AddProjectPage] Submitting with implicit workflowId:', effectiveWorkflowId);
 
     const newProjectData: AddProjectData = {
       title: data.title,
-      workflowId: effectiveWorkflowId,
+      workflowId: effectiveWorkflowId, // Use default workflow ID
       initialFiles: actualFileEntriesForService.map(f => ({...f, timestamp: new Date().toISOString()})),
       createdBy: currentUser.username,
     };
@@ -208,28 +151,27 @@ export default function AddProjectPage() {
     try {
       const createdProject = await addProject(newProjectData);
       console.log('Project created successfully on server:', createdProject);
-      // --- ADDED LOG FOR CREATED PROJECT ---
-      console.log('[AddProjectPage] Created Project Object:', createdProject);
-      // --- END ADDED LOG ---
       
       const firstStepAssignedDivision = createdProject.assignedDivision;
       const translatedDivision = getTranslatedStatus(firstStepAssignedDivision) || firstStepAssignedDivision;
 
+      // Simplified toast message, removing workflowName as it's implicit
       toast({
         title: addProjectDict.toast.success,
         description: (addProjectDict.toast.successDesc || defaultDict.addProjectPage.toast.successDesc)
           .replace('{title}', `"${createdProject.title}"`) 
-          .replace('{workflowName}', workflowName) 
+          .replace(' using workflow "{workflowName}"', '') // Remove workflow name part
+          .replace(' dengan alur kerja "{workflowName}"', '') // Remove Indonesian version too
           .replace('{division}', translatedDivision),
       });
-      form.reset({ title: '', workflowId: undefined });
+      form.reset({ title: ''}); // Only reset title
       setSelectedFiles([]);
       router.push('/dashboard/projects'); 
     } catch (error: any) {
       console.error('Failed to add project:', error);
       let desc = addProjectDict.toast.error;
       if (error.message === 'WORKFLOW_INVALID') {
-        desc = `The selected workflow "${workflowName}" is invalid or missing steps. Please contact an administrator.`;
+        desc = `The default workflow ("MSa Workflow") is invalid or missing steps. Please contact an administrator.`;
       } else {
         desc = error.message || 'An unexpected error occurred while creating the project.';
       }
@@ -243,25 +185,7 @@ export default function AddProjectPage() {
     }
   };
 
-    // Render Skeleton if client not ready, workflows loading, or user cannot add project AND is not one of the allowed roles for file upload
-    // The added roles (Arsitek, Struktur, MEP) still see the form but authorization happens on backend
-    if (!isClient || isLoadingWorkflows || (!canAddProject && currentUser && !['Arsitek', 'Struktur', 'MEP'].includes(currentUser.role.trim())) ) {
-        // If the user is NOT allowed to add projects AND is NOT one of the roles allowed for file upload
-         if (isClient && currentUser && !['Owner', 'Admin Proyek', 'Admin Developer', 'Arsitek', 'Struktur', 'MEP'].includes(currentUser.role.trim())) {
-            return (
-                <div className="container mx-auto py-4 px-4 md:px-6">
-                 <Card className="border-destructive">
-                   <CardHeader>
-                     <CardTitle className="text-destructive">{addProjectDict.accessDeniedTitle || defaultDict.manageUsersPage.accessDeniedTitle}</CardTitle>
-                   </CardHeader>
-                   <CardContent>
-                     <p>{addProjectDict.accessDenied || defaultDict.manageUsersPage.accessDeniedDesc}</p>
-                   </CardContent>
-                 </Card>
-               </div>
-            );
-         }
-        // Otherwise, show skeleton (loading workflows for allowed users or initial load)
+    if (!isClient) {
         return (
               <div className="container mx-auto py-4 px-4 md:px-6">
                  <Card>
@@ -272,7 +196,6 @@ export default function AddProjectPage() {
                      <CardContent>
                          <div className="space-y-4">
                              <Skeleton className="h-10 w-full" />
-                             <Skeleton className="h-10 w-full" />
                              <Skeleton className="h-20 w-full" /> 
                              <Skeleton className="h-10 w-32" />
                          </div>
@@ -282,30 +205,27 @@ export default function AddProjectPage() {
         );
     }
 
-    // This check is now redundant due to the combined check above, but keeping the explicit denial message separate
-    // if (!canAddProject) {
-    //    return (
-    //       <div className="container mx-auto py-4 px-4 md:px-6">
-    //        <Card className="border-destructive">
-    //          <CardHeader>
-    //            <CardTitle className="text-destructive">{addProjectDict.accessDeniedTitle || defaultDict.manageUsersPage.accessDeniedTitle}</CardTitle>
-    //          </CardHeader>
-    //          <CardContent>
-    //            <p>{addProjectDict.accessDenied || defaultDict.manageUsersPage.accessDeniedDesc}</p>
-    //          </CardContent>
-    //        </Card>
-    //      </div>
-    //    );
-    // }
-
-  console.log('[AddProjectPage] Rendering form. fetchedWorkflows for Select:', fetchedWorkflows);
+    if (!canAddProject) {
+       return (
+          <div className="container mx-auto py-4 px-4 md:px-6">
+           <Card className="border-destructive">
+             <CardHeader>
+               <CardTitle className="text-destructive">{addProjectDict.accessDeniedTitle || defaultDict.manageUsersPage.accessDeniedTitle}</CardTitle>
+             </CardHeader>
+             <CardContent>
+               <p>{addProjectDict.accessDenied || defaultDict.manageUsersPage.accessDeniedDesc}</p>
+             </CardContent>
+           </Card>
+         </div>
+       );
+    }
 
   return (
      <div className="container mx-auto py-4 px-4 md:px-6">
       <Card className="w-full max-w-2xl mx-auto">
         <CardHeader>
            <CardTitle className="text-xl md:text-2xl">{addProjectDict.title}</CardTitle>
-          <CardDescription>{addProjectDict.description.replace('The standard workflow will be used.', 'You can select the desired workflow for the project.')}</CardDescription>
+          <CardDescription>{addProjectDict.description.replace('The standard workflow will be used.', 'The MSa standard workflow will be used.')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -324,40 +244,7 @@ export default function AddProjectPage() {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="workflowId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{addProjectDict.workflowLabel}</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value || ""} 
-                      disabled={isLoadingWorkflows || isLoading || fetchedWorkflows.length === 0}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={addProjectDict.workflowPlaceholder} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {isLoadingWorkflows ? (
-                          <SelectItem value="loading" disabled>Loading workflows...</SelectItem>
-                        ) : fetchedWorkflows.length === 0 ? (
-                           <SelectItem value="no-workflows" disabled>No workflows available.</SelectItem>
-                        ) : (
-                          fetchedWorkflows.map((workflow) => (
-                            <SelectItem key={workflow.id} value={workflow.id}>
-                              {workflow.name}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* WorkflowId FormField removed */}
 
               <div className="space-y-2">
                  <Label htmlFor="project-files">{addProjectDict.filesLabel}</Label>
@@ -406,7 +293,7 @@ export default function AddProjectPage() {
                   <Button type="button" variant="outline" onClick={() => router.back()} disabled={isLoading} className="w-full sm:w-auto">
                     {addProjectDict.cancelButton || defaultDict.manageUsersPage.cancelButton}
                  </Button>
-                  <Button type="submit" className="accent-teal w-full sm:w-auto" disabled={isLoadingWorkflows || isLoading}>
+                  <Button type="submit" className="accent-teal w-full sm:w-auto" disabled={isLoading}>
                     {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     {isLoading ? addProjectDict.creatingButton : addProjectDict.createButton}
                  </Button>
