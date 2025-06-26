@@ -1,4 +1,3 @@
-
 // src/app/dashboard/projects/page.tsx
 'use client';
 
@@ -168,6 +167,10 @@ export default function ProjectsPage() {
   const [isSubmittingInitialImages, setIsSubmittingInitialImages] = React.useState(false);
   
   const [parallelUploadChecklist, setParallelUploadChecklist] = React.useState<ParallelUploadChecklist | null>(null);
+
+  const [isPostSidangRevisionDialogOpen, setIsPostSidangRevisionDialogOpen] = React.useState(false);
+  const [postSidangRevisionNote, setPostSidangRevisionNote] = React.useState('');
+
 
   React.useEffect(() => {
     setIsClient(true);
@@ -513,12 +516,12 @@ export default function ProjectsPage() {
       }
   }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus, initialImageFiles, initialImageDescription]);
 
-  const handleDecision = React.useCallback((decision: 'approved' | 'rejected' | 'completed' | 'revise_offer' | 'revise_after_sidang' | 'canceled_after_sidang' | 'revision_completed_and_finish') => {
+  const handleDecision = React.useCallback((decision: 'approved' | 'rejected' | 'completed' | 'revise_offer' | 'canceled_after_sidang' | 'revision_completed_and_finish') => {
     if (!currentUser || !selectedProject ) {
       toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.onlyOwnerDecision });
       return;
     }
-    const isOwnerAction = ['approved', 'rejected', 'completed', 'revise_offer', 'revise_after_sidang', 'canceled_after_sidang'].includes(decision);
+    const isOwnerAction = ['approved', 'rejected', 'completed', 'revise_offer', 'canceled_after_sidang'].includes(decision);
     if (isOwnerAction && currentUser.role !== 'Owner') {
         toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.onlyOwnerDecision });
         return;
@@ -531,6 +534,16 @@ export default function ProjectsPage() {
 
     handleProgressSubmit(decision);
   }, [currentUser, selectedProject, projectsDict, toast, handleProgressSubmit]);
+
+  const handlePostSidangRevisionSubmit = async () => {
+    if (!postSidangRevisionNote.trim()) {
+      toast({ variant: 'destructive', title: projectsDict.toast.error, description: projectsDict.toast.revisionNoteRequired || "A revision note is required." });
+      return;
+    }
+    await handleProgressSubmit('revise_after_sidang', undefined, postSidangRevisionNote);
+    setIsPostSidangRevisionDialogOpen(false);
+    setPostSidangRevisionNote('');
+  };
 
   const handleScheduleSubmit = React.useCallback(() => {
     if (!currentUser || !selectedProject) {
@@ -1319,7 +1332,31 @@ export default function ProjectsPage() {
                              <h3 className="text-lg font-semibold">{projectsDict.sidangOutcomeTitle}</h3><p className="text-sm text-muted-foreground">{projectsDict.sidangOutcomeDesc}</p>
                                <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                                  <Button onClick={() => handleDecision('completed')} disabled={isSubmitting} className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}{projectsDict.markSuccessButton}</Button>
-                                 <Button variant="outline" onClick={() => handleDecision('revise_after_sidang')} disabled={isSubmitting} className="w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}{projectsDict.markRevisionNeededButton || "Request Post-Sidang Revision"}</Button>
+                                 <Dialog open={isPostSidangRevisionDialogOpen} onOpenChange={setIsPostSidangRevisionDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" disabled={isSubmitting} className="w-full sm:w-auto"><RefreshCw className="mr-2 h-4 w-4" />{projectsDict.markRevisionNeededButton}</Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>{projectsDict.postSidangRevisionDialogTitle}</DialogTitle>
+                                            <DialogDescription>{projectsDict.postSidangRevisionDialogDesc}</DialogDescription>
+                                        </DialogHeader>
+                                        <div className="grid gap-4 py-4">
+                                            <Label htmlFor="postSidangRevisionNote">{projectsDict.postSidangRevisionNoteLabel}</Label>
+                                            <Textarea
+                                                id="postSidangRevisionNote"
+                                                placeholder={projectsDict.postSidangRevisionNotePlaceholder}
+                                                value={postSidangRevisionNote}
+                                                onChange={(e) => setPostSidangRevisionNote(e.target.value)}
+                                                rows={4}
+                                            />
+                                        </div>
+                                        <DialogFooter>
+                                            <Button variant="outline" onClick={() => setIsPostSidangRevisionDialogOpen(false)}>{projectsDict.cancelButton}</Button>
+                                            <Button onClick={handlePostSidangRevisionSubmit} disabled={isSubmitting || !postSidangRevisionNote.trim()}>{isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{projectsDict.postSidangRevisionConfirmButton}</Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                 </Dialog>
                                  <Button variant="destructive" onClick={() => handleDecision('canceled_after_sidang')} disabled={isSubmitting} className="w-full sm:w-auto">{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}{projectsDict.markFailButton}</Button>
                               </div>
                            </div>

@@ -1,4 +1,3 @@
-
 // src/locales/en.ts
 const en = {
   // Login Page
@@ -177,6 +176,11 @@ const en = {
     markRevisionNeededButton: 'Request Post-Sidang Revision',
     markFailButton: 'Mark as Fail (Cancel Project)',
     postSidangRevisionActionsSectionTitle: "Post-Sidang Revision Actions",
+    postSidangRevisionDialogTitle: 'Request Post-Sidang Revision',
+    postSidangRevisionDialogDesc: 'Please provide clear feedback on what needs to be revised before sending it back to the Project Admin.',
+    postSidangRevisionNoteLabel: 'Revision Notes (Required)',
+    postSidangRevisionNotePlaceholder: 'e.g., "Please adjust the balcony design and re-check the structural calculations..."',
+    postSidangRevisionConfirmButton: 'Confirm and Request Revision',
     notifyArchitectForRevisionButton: "Notify Architect for Revision Input",
     notifyStructureForRevisionButton: "Notify Structure for Revision Input",
     revisionFilesDescriptionLabel: "Revision Notes / Description",
@@ -357,7 +361,7 @@ const en = {
       revisionSuccess: 'Revision Requested',
       revisionSuccessDesc: 'Project sent back to {division} for revision.',
       revisionError: 'Revision Error',
-      revisionNoteRequired: 'A note is required to request a revision.',
+      revisionNoteRequired: 'A note is required to request a post-sidang revision.',
       schedulingPermissionDenied: 'You do not have permission to schedule this project.',
       error: 'Error',
       couldNotLoadProjects: 'Could not load project data.',

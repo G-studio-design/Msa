@@ -490,10 +490,10 @@
   {
     "id": "project_1750762714162_h35ez",
     "title": "proyek Bali Merdeka",
-    "status": "Scheduled",
-    "progress": 95,
-    "assignedDivision": "Owner",
-    "nextAction": "Nyatakan Hasil Sidang",
+    "status": "Pending Post-Sidang Revision",
+    "progress": 85,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Lakukan revisi pasca-sidang. Notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -613,6 +613,11 @@
         "action": "komangmerta (Admin Proyek) scheduled Sidang on 2025-06-26 at 12:51",
         "timestamp": "2025-06-26T04:50:23.311Z",
         "note": "Location: Ruang Konfrensi Puspem."
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) declared Sidang outcome as: revise",
+        "timestamp": "2025-06-26T05:24:28.967Z"
       }
     ],
     "files": [

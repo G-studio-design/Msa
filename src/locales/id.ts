@@ -1,4 +1,3 @@
-
 // src/locales/id.ts
 const id = {
   // Login Page
@@ -177,6 +176,11 @@ const id = {
     markRevisionNeededButton: 'Minta Revisi Pasca Sidang',
     markFailButton: 'Tandai sebagai Gagal (Batalkan Proyek)',
     postSidangRevisionActionsSectionTitle: "Tindakan Revisi Pasca-Sidang",
+    postSidangRevisionDialogTitle: 'Minta Revisi Pasca-Sidang',
+    postSidangRevisionDialogDesc: 'Harap berikan umpan balik yang jelas tentang apa yang perlu direvisi sebelum mengirimkannya kembali ke Admin Proyek.',
+    postSidangRevisionNoteLabel: 'Catatan Revisi (Wajib)',
+    postSidangRevisionNotePlaceholder: 'cth., "Harap sesuaikan desain balkon dan periksa kembali perhitungan struktural..."',
+    postSidangRevisionConfirmButton: 'Konfirmasi dan Minta Revisi',
     notifyArchitectForRevisionButton: "Notifikasi Arsitek untuk Kontribusi Revisi",
     notifyStructureForRevisionButton: "Notifikasi Struktur untuk Kontribusi Revisi",
     revisionFilesDescriptionLabel: "Catatan / Deskripsi Revisi",
@@ -357,7 +361,7 @@ const id = {
       revisionSuccess: 'Permintaan Revisi Berhasil',
       revisionSuccessDesc: 'Proyek dikirim kembali ke {division} untuk revisi.',
       revisionError: 'Kesalahan Revisi',
-      revisionNoteRequired: 'Catatan diperlukan untuk meminta revisi.',
+      revisionNoteRequired: 'Catatan revisi wajib diisi untuk meminta revisi pasca-sidang.',
       schedulingPermissionDenied: 'Anda tidak memiliki izin untuk menjadwalkan proyek ini.',
       error: 'Kesalahan',
       couldNotLoadProjects: 'Tidak dapat memuat data proyek.',

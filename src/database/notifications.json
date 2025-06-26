@@ -621,7 +621,7 @@
     "projectId": "project_1750762714162_h35ez",
     "message": "Semua berkas desain untuk proyek 'proyek Bali Merdeka' telah dikonfirmasi terunggah oleh komangmerta. Mohon jadwalkan sidang.",
     "timestamp": "2025-06-26T04:49:41.336Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750913423321_blbvq_ult",
@@ -629,6 +629,30 @@
     "projectId": "project_1750762714162_h35ez",
     "message": "Sidang untuk proyek 'proyek Bali Merdeka' telah dijadwalkan oleh komangmerta. Mohon nyatakan hasilnya setelah selesai.",
     "timestamp": "2025-06-26T04:50:23.319Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750915468977_ypsam_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Proyek 'proyek Bali Merdeka' memerlukan revisi setelah sidang yang dinyatakan oleh sudina.",
+    "timestamp": "2025-06-26T05:24:28.974Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750915620895_emw4c_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Divisi Arsitek telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek Bali Merdeka\" oleh komangmerta.",
+    "timestamp": "2025-06-26T05:27:00.895Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750915623180_z5fja_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Divisi Struktur telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek Bali Merdeka\" oleh komangmerta.",
+    "timestamp": "2025-06-26T05:27:03.180Z",
     "isRead": false
   }
 ]
