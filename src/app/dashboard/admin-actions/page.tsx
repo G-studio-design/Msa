@@ -53,6 +53,7 @@ import {
 } from '@/services/project-service';
 import { getAllUniqueStatuses, type WorkflowStep } from '@/services/workflow-service';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 
 const defaultGlobalDict = getDictionary('en');
@@ -307,6 +308,7 @@ export default function AdminActionsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <ScrollArea className="w-full whitespace-nowrap rounded-md border">
            <Table>
             <TableHeader>
               <TableRow>
@@ -396,6 +398,8 @@ export default function AdminActionsPage() {
               )}
             </TableBody>
           </Table>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
         </CardContent>
       </Card>
 

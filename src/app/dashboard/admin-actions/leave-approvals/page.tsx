@@ -42,6 +42,7 @@ import { getAllLeaveRequests, approveLeaveRequest, rejectLeaveRequest, type Leav
 import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 const defaultDict = getDictionary('en');
 
@@ -202,74 +203,77 @@ export default function LeaveApprovalsPage() {
               <p className="text-sm">{leaveApprovalsDict.allCaughtUp}</p>
             </div>
           ) : (
-            <Table>
-              <TableCaption>{leaveApprovalsDict.tableCaption}</TableCaption>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{leaveApprovalsDict.tableHeaders.employee}</TableHead>
-                  <TableHead>{leaveApprovalsDict.tableHeaders.leaveType}</TableHead>
-                  <TableHead>{leaveApprovalsDict.tableHeaders.dates}</TableHead>
-                  <TableHead>{leaveApprovalsDict.tableHeaders.reason}</TableHead>
-                  <TableHead className="text-right">{leaveApprovalsDict.tableHeaders.actions}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pendingRequests.map((req) => (
-                  <TableRow key={req.id}>
-                    <TableCell className="font-medium">{req.displayName || req.username}</TableCell>
-                    <TableCell>
-                        <Badge variant="outline">{getTranslatedLeaveType(req.leaveType)}</Badge>
-                    </TableCell>
-                    <TableCell>{formatDateRange(req.startDate, req.endDate)}</TableCell>
-                    <TableCell className="max-w-xs truncate">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                              <Button variant="link" size="sm" className="p-0 h-auto text-muted-foreground hover:text-primary">
-                                  <MessageSquareText className="mr-1 h-3.5 w-3.5"/> {leaveApprovalsDict.viewReason}
-                              </Button>
-                          </DialogTrigger>
-                          <DialogContent className="sm:max-w-md">
-                              <DialogHeader>
-                                  <DialogTitle>{leaveApprovalsDict.reasonDialogTitle.replace('{employee}', req.displayName || req.username)}</DialogTitle>
-                              </DialogHeader>
-                              <div className="py-4 text-sm text-foreground whitespace-pre-wrap">
-                                  {req.reason}
-                              </div>
-                              <DialogFooter>
-                                  <Button type="button" variant="outline" onClick={() => (document.querySelector('[data-radix-dialog-default-open="true"] [aria-label="Close"]') as HTMLElement)?.click()}>
-                                      {leaveApprovalsDict.closeButton}
-                                  </Button>
-                              </DialogFooter>
-                          </DialogContent>
-                      </Dialog>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex flex-col sm:flex-row justify-end items-end sm:items-center gap-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openRejectDialog(req)}
-                          disabled={isProcessing === req.id}
-                          className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        >
-                          {isProcessing === req.id && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
-                          <XCircle className="mr-1.5 h-3.5 w-3.5" /> {leaveApprovalsDict.rejectButton}
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => handleApprove(req.id)}
-                          disabled={isProcessing === req.id}
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          {isProcessing === req.id && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
-                          <CheckCircle className="mr-1.5 h-3.5 w-3.5" /> {leaveApprovalsDict.approveButton}
-                        </Button>
-                      </div>
-                    </TableCell>
+            <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+              <Table>
+                <TableCaption>{leaveApprovalsDict.tableCaption}</TableCaption>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{leaveApprovalsDict.tableHeaders.employee}</TableHead>
+                    <TableHead>{leaveApprovalsDict.tableHeaders.leaveType}</TableHead>
+                    <TableHead>{leaveApprovalsDict.tableHeaders.dates}</TableHead>
+                    <TableHead>{leaveApprovalsDict.tableHeaders.reason}</TableHead>
+                    <TableHead className="text-right">{leaveApprovalsDict.tableHeaders.actions}</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {pendingRequests.map((req) => (
+                    <TableRow key={req.id}>
+                      <TableCell className="font-medium">{req.displayName || req.username}</TableCell>
+                      <TableCell>
+                         <Badge variant="outline">{getTranslatedLeaveType(req.leaveType)}</Badge>
+                      </TableCell>
+                      <TableCell>{formatDateRange(req.startDate, req.endDate)}</TableCell>
+                      <TableCell className="max-w-xs truncate">
+                         <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="link" size="sm" className="p-0 h-auto text-muted-foreground hover:text-primary">
+                                   <MessageSquareText className="mr-1 h-3.5 w-3.5"/> {leaveApprovalsDict.viewReason}
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md">
+                                <DialogHeader>
+                                    <DialogTitle>{leaveApprovalsDict.reasonDialogTitle.replace('{employee}', req.displayName || req.username)}</DialogTitle>
+                                </DialogHeader>
+                                <div className="py-4 text-sm text-foreground whitespace-pre-wrap">
+                                    {req.reason}
+                                </div>
+                                <DialogFooter>
+                                    <Button type="button" variant="outline" onClick={() => (document.querySelector('[data-radix-dialog-default-open="true"] [aria-label="Close"]') as HTMLElement)?.click()}>
+                                        {leaveApprovalsDict.closeButton}
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex flex-col sm:flex-row justify-end items-end sm:items-center gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openRejectDialog(req)}
+                            disabled={isProcessing === req.id}
+                            className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          >
+                            {isProcessing === req.id && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+                            <XCircle className="mr-1.5 h-3.5 w-3.5" /> {leaveApprovalsDict.rejectButton}
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleApprove(req.id)}
+                            disabled={isProcessing === req.id}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            {isProcessing === req.id && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+                            <CheckCircle className="mr-1.5 h-3.5 w-3.5" /> {leaveApprovalsDict.approveButton}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           )}
         </CardContent>
       </Card>

@@ -59,7 +59,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllWorkflows, deleteWorkflow, addWorkflow, updateWorkflow, type Workflow, type WorkflowStep, DEFAULT_STANDARD_WORKFLOW_STRUCTURE } from '@/services/workflow-service';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 const defaultDict = getDictionary('en');
 
@@ -374,7 +374,7 @@ export default function ManageWorkflowsPage() {
           </Dialog>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          <ScrollArea className="w-full whitespace-nowrap rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -414,7 +414,7 @@ export default function ManageWorkflowsPage() {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground hidden sm:table-cell truncate max-w-xs">{workflow.description}</TableCell>
                       <TableCell className="hidden md:table-cell">{workflow.steps?.length || 0}</TableCell>
-                      <TableCell className="text-right space-x-0 sm:space-x-1 whitespace-nowrap">
+                      <TableCell className="text-right space-x-0 sm:space-x-1">
                         <Button variant="ghost" size="icon" onClick={() => handleEditWorkflow(workflow)} title={workflowsDict.editAction} disabled={isLoading || isProcessing}>
                           <Edit className="h-4 w-4 text-blue-500" />
                         </Button>
@@ -449,7 +449,8 @@ export default function ManageWorkflowsPage() {
                 )}
               </TableBody>
             </Table>
-          </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
         </CardContent>
       </Card>
 
