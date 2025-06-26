@@ -1013,7 +1013,7 @@
     "projectId": "project_1750923884164_mtu12",
     "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
     "timestamp": "2025-06-26T14:43:31.859Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750949011872_mwn00_h9d",
@@ -1207,6 +1207,110 @@
     "projectId": "project_1750950968313_qtcnd",
     "message": "Faktur DP untuk proyek 'proyek villa di tanah lot' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
     "timestamp": "2025-06-26T16:37:23.001Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750955927272_xjb1e_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Berkas administrasi untuk 'proyek villa di tanah lot' lengkap. Mohon jadwalkan survei.",
+    "timestamp": "2025-06-26T16:38:47.269Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750955927279_hbmym_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Berkas administrasi untuk 'proyek villa di tanah lot' lengkap. Mohon jadwalkan survei.",
+    "timestamp": "2025-06-26T16:38:47.278Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750955927286_y5rg2_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Berkas administrasi untuk 'proyek villa di tanah lot' lengkap. Mohon jadwalkan survei.",
+    "timestamp": "2025-06-26T16:38:47.285Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750955975060_cs5c7_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada {surveyDate} oleh arsitek.",
+    "timestamp": "2025-06-26T16:39:35.059Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750955975064_42c7j_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada {surveyDate} oleh arsitek.",
+    "timestamp": "2025-06-26T16:39:35.064Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750955975069_4p2vt_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada {surveyDate} oleh arsitek.",
+    "timestamp": "2025-06-26T16:39:35.069Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750956303428_xiwv4_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T16:45:03.426Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750956303438_da19v_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T16:45:03.436Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750956303442_yukmi_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T16:45:03.441Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750956303450_0o4tt_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T16:45:03.447Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750956322788_jsokw_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Proyek 'proyek villa di tanah lot' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: gagal",
+    "timestamp": "2025-06-26T16:45:22.784Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750956322813_kdkwb_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Proyek 'proyek villa di tanah lot' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: gagal",
+    "timestamp": "2025-06-26T16:45:22.810Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750956322821_qea2d_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Proyek 'proyek villa di tanah lot' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: gagal",
+    "timestamp": "2025-06-26T16:45:22.820Z",
     "isRead": false
   }
 ]

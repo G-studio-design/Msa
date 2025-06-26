@@ -1183,10 +1183,10 @@
   {
     "id": "project_1750950968313_qtcnd",
     "title": "proyek villa di tanah lot",
-    "status": "Pending Admin Files",
-    "progress": 40,
+    "status": "Pending Survey Details",
+    "progress": 45,
     "assignedDivision": "Admin Proyek",
-    "nextAction": "Unggah Berkas Administrasi",
+    "nextAction": "Input Jadwal Survei",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -1219,6 +1219,29 @@
         "division": "Owner",
         "action": "sudina (Owner) approved: Setujui Faktur DP",
         "timestamp": "2025-06-26T16:37:22.998Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Berkas Administrasi\"",
+        "timestamp": "2025-06-26T16:38:47.250Z"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) submitted Survey Details for 2025-06-27 at 00:40",
+        "timestamp": "2025-06-26T16:39:35.051Z",
+        "note": "Survey Description: lokasi di ...."
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted Survey Details for 2025-06-27 at 00:40",
+        "timestamp": "2025-06-26T16:45:03.419Z",
+        "note": "Survey Description: lokasi di .... Note: survey telah dilakukan"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) reschedule_survey_from_parallel for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-26T16:45:22.769Z",
+        "note": "gagal"
       }
     ],
     "files": [
@@ -1233,10 +1256,22 @@
         "uploadedBy": "Akuntan",
         "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/faktur_dptxt",
         "timestamp": "2025-06-26T16:36:52.787Z"
+      },
+      {
+        "name": "berkas administrasi proyek .xlsx",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1750950968313_qtcnd-proyek_villa_di_tanah_lot/berkas_administrasi_proyek_xlsx",
+        "timestamp": "2025-06-26T16:38:47.250Z"
       }
     ],
     "createdAt": "2025-06-26T15:16:08.313Z",
-    "createdBy": "sudina"
+    "createdBy": "sudina",
+    "surveyDetails": {
+      "date": "2025-06-27",
+      "time": "00:40",
+      "description": "lokasi di ..."
+    },
+    "parallelUploadsCompletedBy": []
   },
   {
     "id": "project_1750955327988_zof0g",

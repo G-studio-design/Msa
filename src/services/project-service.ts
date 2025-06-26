@@ -3,6 +3,8 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { format, parseISO } from 'date-fns';
+import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 import { notifyUsersByRole } from './notification-service';
 import { sanitizeForPath } from '@/lib/path-utils';
 import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants';
@@ -423,6 +425,21 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
                 .replace('{newStatus}', updatedProject.status)
                 .replace('{actorUsername}', updaterUsername)
                 .replace('{reasonNote}', note || '');
+
+            // Format survey date if placeholder exists
+            if (message.includes('{surveyDate}') && surveyDetails?.date && surveyDetails?.time) {
+                try {
+                    const date = parseISO(`${surveyDetails.date}T${surveyDetails.time}`);
+                    // Format to "Rabu, 26 Juni 2025 pukul 14:00"
+                    const formattedDate = format(date, "EEEE, d MMMM yyyy 'pukul' HH:mm", { locale: IndonesianLocale });
+                    message = message.replace('{surveyDate}', formattedDate);
+                } catch (e) {
+                    console.error("[ProjectService] Error formatting surveyDate for notification:", e);
+                    // Fallback to just the date if formatting fails, to avoid sending the raw placeholder
+                    message = message.replace('{surveyDate}', surveyDetails.date);
+                }
+            }
+
 
             const targetDivisions = Array.isArray(notificationConfig.division) ? notificationConfig.division : [notificationConfig.division];
             for (const role of targetDivisions) {
