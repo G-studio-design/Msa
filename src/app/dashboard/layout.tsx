@@ -81,10 +81,18 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const showSystemNotification = (title: string, body: string) => {
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, {
-        body: body,
-        icon: '/msarch-logo.png', // Optional: adds an icon to the notification
-      });
+      // Use the Service Worker's registration to show the notification
+      // This is the modern, PWA-compliant way and avoids the "Illegal constructor" error
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then((registration) => {
+          registration.showNotification(title, {
+            body: body,
+            icon: '/msarch-logo.png',
+          });
+        }).catch(err => {
+            console.error("Service Worker registration not ready, cannot show notification:", err);
+        });
+      }
     }
   };
 
