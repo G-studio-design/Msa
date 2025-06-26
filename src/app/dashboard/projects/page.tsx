@@ -415,6 +415,21 @@ export default function ProjectsPage() {
     return <Badge variant={variant} className={className}><Icon className="mr-1 h-3 w-3" />{translatedStatus}</Badge>;
   }, [isClient, dashboardDict]);
 
+  const canPerformSelectedProjectAction = React.useMemo(() => {
+    if (!currentUser || !selectedProject) return false;
+    if (currentUser.role === 'Admin Developer') return true;
+    if (currentUser.role === 'Owner') return true;
+    
+    const userRole = currentUser.role.trim();
+    const isDesignDivision = ['Arsitek', 'Struktur', 'MEP'].includes(userRole);
+    
+    if (selectedProject.status === 'Pending Post-Sidang Revision' && isDesignDivision) return true;
+    if (selectedProject.status === 'Pending Survey Details' && userRole === 'Arsitek') return true;
+
+    const assignedDivisionCleaned = selectedProject.assignedDivision?.trim();
+    return userRole === assignedDivisionCleaned;
+  }, [currentUser, selectedProject]);
+
   const handleProgressSubmit = React.useCallback(async (actionTaken: string = 'submitted', filesToSubmit?: File[], descriptionForSubmit?: string) => {
     if (!currentUser || !selectedProject) {
       toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.notYourTurn });
@@ -559,64 +574,7 @@ export default function ProjectsPage() {
       }
   }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus, initialImageFiles, initialImageDescription, rescheduleDate, rescheduleTime]);
 
-  const handleDecision = React.useCallback((decision: 'approved' | 'rejected' | 'completed' | 'revise_offer' | 'revise_dp' | 'canceled_after_sidang' | 'revision_completed_and_finish' | 'mark_division_complete') => {
-    if (!currentUser || !selectedProject ) {
-      toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.notYourTurn });
-      return;
-    }
-    const isOwnerAction = ['approved', 'rejected', 'completed', 'revise_offer', 'revise_dp', 'canceled_after_sidang'].includes(decision);
-    if (isOwnerAction && currentUser.role !== 'Owner') {
-        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.onlyOwnerDecision });
-        return;
-    }
-    const isPostSidangAdminAction = decision === 'revision_completed_and_finish';
-     if (isPostSidangAdminAction && currentUser.role !== 'Admin Proyek') {
-        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: "Only Admin Proyek can complete post-sidang revisions." });
-        return;
-    }
-
-    // New logic for 'completed' action from final documents step
-    if (decision === 'completed' && selectedProject.status === 'Pending Final Documents' && currentUser.role !== 'Admin Proyek') {
-        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: "Only Admin Proyek can complete the project at this stage." });
-        return;
-    }
-
-
-    handleProgressSubmit(decision);
-  }, [currentUser, selectedProject, projectsDict, toast, handleProgressSubmit]);
-
-  const handlePostSidangRevisionSubmit = async () => {
-    if (!postSidangRevisionNote.trim()) {
-      toast({ variant: 'destructive', title: projectsDict.toast.error, description: projectsDict.toast.revisionNoteRequired || "A revision note is required." });
-      return;
-    }
-    await handleProgressSubmit('revise_after_sidang', undefined, postSidangRevisionNote);
-    setIsPostSidangRevisionDialogOpen(false);
-    setPostSidangRevisionNote('');
-  };
-
-  const handleScheduleSubmit = React.useCallback(() => {
-    if (!currentUser || !selectedProject) {
-        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.schedulingPermissionDenied });
-        return;
-    }
-    const canSchedule = selectedProject.status === 'Pending Scheduling' &&
-                        ( (currentUser.role === 'Admin Proyek' && selectedProject.assignedDivision === currentUser.role) ||
-                          currentUser.role === 'Owner' );
-
-     if (!canSchedule) {
-        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.schedulingPermissionDenied });
-        return;
-     }
-
-     if (!scheduleDate || !scheduleTime || !scheduleLocation.trim()) {
-         toast({ variant: 'destructive', title: projectsDict.toast.missingScheduleInfo, description: projectsDict.toast.provideDateTimeLoc });
-         return;
-     }
-     handleProgressSubmit('scheduled');
-  }, [currentUser, selectedProject, scheduleDate, scheduleTime, scheduleLocation, projectsDict, toast, handleProgressSubmit]);
-
-   const handleSurveySubmit = React.useCallback(async () => {
+  const handleSurveySubmit = React.useCallback(async () => {
         if (!currentUser || !selectedProject ) { 
             toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.notYourTurn });
             return;
@@ -678,6 +636,62 @@ export default function ProjectsPage() {
     }
   }, [selectedProject, currentUser, rescheduleFromParallelNote, projectsDict, toast, handleProgressSubmit]);
 
+  const handleDecision = React.useCallback((decision: 'approved' | 'rejected' | 'completed' | 'revise_offer' | 'revise_dp' | 'canceled_after_sidang' | 'revision_completed_and_finish' | 'mark_division_complete') => {
+    if (!currentUser || !selectedProject ) {
+      toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.notYourTurn });
+      return;
+    }
+    const isOwnerAction = ['approved', 'rejected', 'completed', 'revise_offer', 'revise_dp', 'canceled_after_sidang'].includes(decision);
+    if (isOwnerAction && currentUser.role !== 'Owner') {
+        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.onlyOwnerDecision });
+        return;
+    }
+    const isPostSidangAdminAction = decision === 'revision_completed_and_finish';
+     if (isPostSidangAdminAction && currentUser.role !== 'Admin Proyek') {
+        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: "Only Admin Proyek can complete post-sidang revisions." });
+        return;
+    }
+
+    // New logic for 'completed' action from final documents step
+    if (decision === 'completed' && selectedProject.status === 'Pending Final Documents' && currentUser.role !== 'Admin Proyek') {
+        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: "Only Admin Proyek can complete the project at this stage." });
+        return;
+    }
+
+
+    handleProgressSubmit(decision);
+  }, [currentUser, selectedProject, projectsDict, toast, handleProgressSubmit]);
+
+  const handlePostSidangRevisionSubmit = async () => {
+    if (!postSidangRevisionNote.trim()) {
+      toast({ variant: 'destructive', title: projectsDict.toast.error, description: projectsDict.toast.revisionNoteRequired || "A revision note is required." });
+      return;
+    }
+    await handleProgressSubmit('revise_after_sidang', undefined, postSidangRevisionNote);
+    setIsPostSidangRevisionDialogOpen(false);
+    setPostSidangRevisionNote('');
+  };
+
+  const handleScheduleSubmit = React.useCallback(() => {
+    if (!currentUser || !selectedProject) {
+        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.schedulingPermissionDenied });
+        return;
+    }
+    const canSchedule = selectedProject.status === 'Pending Scheduling' &&
+                        ( (currentUser.role === 'Admin Proyek' && canPerformSelectedProjectAction) ||
+                          currentUser.role === 'Owner' );
+
+     if (!canSchedule) {
+        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: projectsDict.toast.schedulingPermissionDenied });
+        return;
+     }
+
+     if (!scheduleDate || !scheduleTime || !scheduleLocation.trim()) {
+         toast({ variant: 'destructive', title: projectsDict.toast.missingScheduleInfo, description: projectsDict.toast.provideDateTimeLoc });
+         return;
+     }
+     handleProgressSubmit('scheduled');
+  }, [currentUser, selectedProject, scheduleDate, scheduleTime, scheduleLocation, projectsDict, toast, handleProgressSubmit, canPerformSelectedProjectAction]);
 
     const handleAddToCalendar = React.useCallback(async () => {
       if (!selectedProject || selectedProject.status !== 'Scheduled' || !currentUser) {
@@ -937,21 +951,6 @@ export default function ProjectsPage() {
         setIsRevising(false);
       }
     }, [currentUser, selectedProject, revisionNote, projectsDict, toast, getTranslatedStatus]);
-
-    const canPerformSelectedProjectAction = React.useMemo(() => {
-      if (!currentUser || !selectedProject) return false;
-      if (currentUser.role === 'Admin Developer') return true;
-      if (currentUser.role === 'Owner') return true;
-      
-      const userRole = currentUser.role.trim();
-      const isDesignDivision = ['Arsitek', 'Struktur', 'MEP'].includes(userRole);
-      
-      if (selectedProject.status === 'Pending Post-Sidang Revision' && isDesignDivision) return true;
-      if (selectedProject.status === 'Pending Survey Details' && userRole === 'Arsitek') return true;
-
-      const assignedDivisionCleaned = selectedProject.assignedDivision?.trim();
-      return userRole === assignedDivisionCleaned;
-    }, [currentUser, selectedProject]);
 
     const showUploadSection = React.useMemo(() => {
         if (!selectedProject || !currentUser) return false;
