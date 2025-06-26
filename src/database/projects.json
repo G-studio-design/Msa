@@ -1,1 +1,27 @@
-[]
+[
+  {
+    "id": "project_1750963984596_1k65q",
+    "title": "proyek test",
+    "status": "Pending Offer",
+    "progress": 10,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Unggah Dokumen Penawaran",
+    "workflowId": "msa_workflow",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project with workflow: msa_workflow",
+        "timestamp": "2025-06-26T18:53:04.596Z",
+        "note": "Initial files: 0"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
+        "timestamp": "2025-06-26T18:53:04.596Z"
+      }
+    ],
+    "files": [],
+    "createdAt": "2025-06-26T18:53:04.596Z",
+    "createdBy": "sudina"
+  }
+]

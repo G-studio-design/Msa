@@ -1215,7 +1215,7 @@
     "projectId": "project_1750950968313_qtcnd",
     "message": "Berkas administrasi untuk 'proyek villa di tanah lot' lengkap. Mohon jadwalkan survei.",
     "timestamp": "2025-06-26T16:38:47.269Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750955927279_hbmym_22a",
@@ -1239,7 +1239,7 @@
     "projectId": "project_1750950968313_qtcnd",
     "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada {surveyDate} oleh arsitek.",
     "timestamp": "2025-06-26T16:39:35.059Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750955975064_42c7j_22a",
@@ -1311,7 +1311,7 @@
     "projectId": "project_1750950968313_qtcnd",
     "message": "Proyek 'proyek villa di tanah lot' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: gagal",
     "timestamp": "2025-06-26T16:45:22.820Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750956607099_5s6hw_ult",
@@ -1319,7 +1319,7 @@
     "projectId": "project_1750950968313_qtcnd",
     "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada Jumat, 27 Juni 2025 pukul 00:51 oleh arsitek.",
     "timestamp": "2025-06-26T16:50:07.094Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750956607109_vacgo_22a",
@@ -1447,7 +1447,7 @@
     "projectId": "project_1750950968313_qtcnd",
     "message": "Sidang untuk proyek 'proyek villa di tanah lot' telah dijadwalkan oleh sudina. Mohon nyatakan hasilnya setelah selesai.",
     "timestamp": "2025-06-26T17:22:36.907Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750958591374_4x7ve_22a",
@@ -1623,7 +1623,7 @@
     "projectId": "project_1750955327988_zof0g",
     "message": "Berkas administrasi untuk 'proyek kuta' lengkap. Mohon jadwalkan survei.",
     "timestamp": "2025-06-26T18:08:46.132Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750961326142_9fl90_22a",
@@ -1647,7 +1647,7 @@
     "projectId": "project_1750955327988_zof0g",
     "message": "Survei untuk proyek 'proyek kuta' telah dijadwalkan pada Jumat, 27 Juni 2025 pukul 02:09 oleh sudina.",
     "timestamp": "2025-06-26T18:08:57.057Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750961337064_l10de_22a",
@@ -1751,7 +1751,7 @@
     "projectId": "project_1750955327988_zof0g",
     "message": "Sidang untuk proyek 'proyek kuta' telah dijadwalkan oleh sudina. Mohon nyatakan hasilnya setelah selesai.",
     "timestamp": "2025-06-26T18:16:53.146Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750961854648_wgby8_22a",
@@ -1767,7 +1767,7 @@
     "projectId": "project_1750955327988_zof0g",
     "message": "Sidang untuk proyek 'proyek kuta' telah dijadwalkan oleh sudina. Mohon nyatakan hasilnya setelah selesai.",
     "timestamp": "2025-06-26T18:18:32.428Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750961935619_a5d1v_22a",
@@ -1815,6 +1815,14 @@
     "projectId": "project_1750955327988_zof0g",
     "message": "Proyek 'proyek kuta' telah selesai dengan semua dokumen akhir terunggah oleh komangmerta.",
     "timestamp": "2025-06-26T18:22:40.837Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750963984635_7dvje_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750963984596_1k65q",
+    "message": "Proyek baru \"proyek test\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-26T18:53:04.634Z",
     "isRead": false
   }
 ]

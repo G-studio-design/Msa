@@ -10,7 +10,7 @@ import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar';
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
-  title: 'TaskTrackPro',
+  title: 'Msarch App',
   description: 'Employee task management application for various divisions.',
   icons: {
     icon: '/msarch-logo.png', // Ensure this uses hyphenated version

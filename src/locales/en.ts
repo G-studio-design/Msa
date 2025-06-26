@@ -3,7 +3,7 @@
 const en = {
   // Login Page
   login: {
-    title: 'TaskTrackPro Login',
+    title: 'Msarch App Login',
     description: 'Enter your credentials to access the dashboard.',
     usernameLabel: 'Username',
     usernamePlaceholder: 'Enter your username',
@@ -35,8 +35,8 @@ const en = {
     monthlyReport: 'Monthly Report',
     settings: 'Settings',
     logout: 'Logout',
-    appTitle: 'TaskTrackPro',
-    appTitleShort: 'TaskTrack',
+    appTitle: 'Msarch App',
+    appTitleShort: 'Msarch',
     toggleMenu: 'Toggle Menu Panel',
     roles: {
         owner: 'Owner',

@@ -3,7 +3,7 @@
 const id = {
   // Login Page
   login: {
-    title: 'Login TaskTrackPro',
+    title: 'Login Msarch App',
     description: 'Masukkan kredensial Anda untuk mengakses dasbor.',
     usernameLabel: 'Nama Pengguna',
     usernamePlaceholder: 'Masukkan nama pengguna Anda',
@@ -35,8 +35,8 @@ const id = {
     monthlyReport: 'Laporan Bulanan',
     settings: 'Pengaturan',
     logout: 'Keluar',
-    appTitle: 'TaskTrackPro',
-    appTitleShort: 'TaskTrack',
+    appTitle: 'Msarch App',
+    appTitleShort: 'Msarch',
     toggleMenu: 'Buka/Tutup Panel Menu',
     roles: {
         owner: 'Pemilik',
