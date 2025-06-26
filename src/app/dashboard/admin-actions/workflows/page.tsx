@@ -1,3 +1,4 @@
+
 // src/app/dashboard/admin-actions/workflows/page.tsx
 'use client';
 
@@ -374,7 +375,7 @@ export default function ManageWorkflowsPage() {
           </Dialog>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+          <ScrollArea className="w-full rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>

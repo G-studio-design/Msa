@@ -1,3 +1,4 @@
+
 // src/app/dashboard/admin-actions/leave-approvals/page.tsx
 'use client';
 
@@ -41,6 +42,7 @@ import { getAllLeaveRequests, approveLeaveRequest, rejectLeaveRequest, type Leav
 import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 const defaultDict = getDictionary('en');
 
@@ -201,7 +203,7 @@ export default function LeaveApprovalsPage() {
               <p className="text-sm">{leaveApprovalsDict.allCaughtUp}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <ScrollArea className="w-full rounded-md border">
               <Table>
                 <TableCaption>{leaveApprovalsDict.tableCaption}</TableCaption>
                 <TableHeader>
@@ -243,8 +245,8 @@ export default function LeaveApprovalsPage() {
                             </DialogContent>
                         </Dialog>
                       </TableCell>
-                      <TableCell className="text-right whitespace-nowrap">
-                        <div className="flex flex-col sm:flex-row justify-end gap-1">
+                      <TableCell className="text-right">
+                        <div className="flex flex-col sm:flex-row justify-end items-end sm:items-center gap-1">
                           <Button
                             variant="outline"
                             size="sm"
@@ -270,7 +272,8 @@ export default function LeaveApprovalsPage() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           )}
         </CardContent>
       </Card>
