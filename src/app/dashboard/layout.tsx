@@ -3,7 +3,7 @@
 
 import type { ReactNode } from 'react';
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import Image from 'next/image'; // Import Image
+import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Sheet,
@@ -24,7 +24,6 @@ import {
   ClipboardList,
   Settings,
   LogOut,
-  // Building, // Removed as it's replaced by Image
   UserCog,
   PanelRightOpen,
   User,
@@ -54,8 +53,6 @@ import { getNotificationsForUser, markNotificationAsRead, type Notification } fr
 
 type LayoutDictKeys = keyof ReturnType<typeof getDictionary>['dashboardLayout'];
 
-const defaultGlobalDict = getDictionary('en');
-
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { language } = useLanguage();
   const { currentUser, logout } = useAuth();
@@ -65,24 +62,39 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const searchParams = useSearchParams();
   const [isClient, setIsClient] = useState(false);
 
-  const defaultDict = useMemo(() => getDictionary('en'), []);
-  const layoutDict = useMemo(() => getDictionary(language).dashboardLayout, [language]);
-  const notificationsDict = useMemo(() => getDictionary(language).notifications, [language]);
-  const manageUsersDict = useMemo(() => getDictionary(language).manageUsersPage, [language]);
-
-
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const notifiedIds = useRef(new Set<string>()); // Ref to track shown system notifications
-
+  // This effect sets the isClient flag to true only after the component has mounted.
+  // This is the key to solving hydration errors.
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  // This useMemo block now safely handles server vs. client rendering for dictionaries.
+  const { layoutDict, notificationsDict, manageUsersDict } = useMemo(() => {
+    const defaultDict = getDictionary('en'); // Always have the default for server/initial render
+    if (!isClient) {
+      // On the server or during initial client render, use the default English dictionary.
+      return {
+        layoutDict: defaultDict.dashboardLayout,
+        notificationsDict: defaultDict.notifications,
+        manageUsersDict: defaultDict.manageUsersPage,
+      };
+    }
+    // After the component has mounted on the client, use the dictionary for the selected language.
+    const currentDict = getDictionary(language);
+    return {
+      layoutDict: currentDict.dashboardLayout,
+      notificationsDict: currentDict.notifications,
+      manageUsersDict: currentDict.manageUsersPage,
+    };
+  }, [isClient, language]);
+
+
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const notifiedIds = useRef(new Set<string>());
+
   const showSystemNotification = (title: string, body: string) => {
     if ('Notification' in window && Notification.permission === 'granted') {
-      // Use the Service Worker's registration to show the notification
-      // This is the modern, PWA-compliant way and avoids the "Illegal constructor" error
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then((registration) => {
           registration.showNotification(title, {
@@ -102,19 +114,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       try {
         const fetchedNotifications = await getNotificationsForUser(currentUser.id);
         
-        // Find new unread notifications that haven't had a system notification shown yet
         const newUnreadNotifications = fetchedNotifications.filter(n =>
             !n.isRead && !notifiedIds.current.has(n.id)
         );
 
         if (newUnreadNotifications.length > 0) {
             const firstNewNotif = newUnreadNotifications[0];
-            // Show a single system notification for the most recent new message
             showSystemNotification(
                 layoutDict.appTitle,
                 firstNewNotif.message
             );
-            // Add all new IDs to the tracked set to prevent re-notifying
             newUnreadNotifications.forEach(n => notifiedIds.current.add(n.id));
         }
 
@@ -127,22 +136,19 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     }
   }, [isClient, currentUser, layoutDict.appTitle]);
 
-
-  // Initial fetch on mount
   useEffect(() => {
     if (isClient && currentUser) {
       fetchAndProcessNotifications();
     }
   }, [isClient, currentUser, fetchAndProcessNotifications]);
 
-  // Polling for real-time notifications
   useEffect(() => {
     if (isClient && currentUser) {
       const intervalId = setInterval(() => {
         fetchAndProcessNotifications();
-      }, 15000); // Poll every 15 seconds
+      }, 15000); 
 
-      return () => clearInterval(intervalId); // Cleanup on unmount
+      return () => clearInterval(intervalId);
     }
   }, [isClient, currentUser, fetchAndProcessNotifications]);
 
@@ -152,7 +158,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [notifications]);
 
 
-  // Request permission for system notifications
   useEffect(() => {
       if (isClient && currentUser && notificationsDict) {
           if ('Notification' in window) {
@@ -201,7 +206,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
  const visibleMenuItems = useMemo(() => {
     if (isClient && currentUser && currentUser.role) {
-      const userRoleCleaned = currentUser.role.trim(); // Use original role, translation handled by getTranslatedRole
+      const userRoleCleaned = currentUser.role.trim();
       return menuItems.filter(item => item.roles.includes(userRoleCleaned));
     }
     return [];
@@ -237,15 +242,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
 
    const getTranslatedRole = useCallback((role: string): string => {
-       if (!isClient || !manageUsersDict?.roles || !role) {
-            const fallbackRoles = defaultGlobalDict.manageUsersPage.roles as Record<string, string>;
-            const roleKeyFallback = role?.trim().replace(/\s+/g, '').toLowerCase() || "";
-            return fallbackRoles?.[roleKeyFallback] || role;
+       const rolesDict = manageUsersDict.roles as Record<string, string>;
+       if (!isClient || !rolesDict || !role) {
+           return role;
        }
-       const rolesDict = manageUsersDict.roles;
-       const roleKey = role.trim().replace(/\s+/g, '').toLowerCase() as keyof NonNullable<typeof rolesDict>;
+       const roleKey = role.trim().replace(/\s+/g, '').toLowerCase() as keyof typeof rolesDict;
        return rolesDict?.[roleKey] || role;
-   }, [isClient, manageUsersDict, defaultGlobalDict.manageUsersPage.roles]);
+   }, [isClient, manageUsersDict]);
 
 
    const formatTimestamp = useCallback((timestamp: string): string => {
@@ -264,7 +267,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
        return `${diffDays}d ago`;
    }, [isClient]);
 
-   // FIX: Extract search param value outside useCallback
    const projectIdFromUrl = searchParams.get('projectId');
 
    const handleNotificationClick = useCallback(async (notification: Notification) => {
@@ -283,9 +285,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
            const targetPath = '/dashboard/projects';
            const targetProjectId = notification.projectId;
            
-           // Check if we are already on the target project page
            if (pathname === targetPath && projectIdFromUrl === targetProjectId) {
-               console.log('[NotificationClick] Already on target page. Forcing a reload.');
                window.location.reload();
            } else {
                router.push(`${targetPath}?projectId=${targetProjectId}`);
@@ -295,14 +295,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
            if (currentUser?.role.trim() === 'Owner') {
                const targetPath = "/dashboard/admin-actions/leave-approvals";
                if (pathname === targetPath) {
-                    console.log('[NotificationClick] Already on target page. Forcing a reload.');
                     window.location.reload();
                } else {
                    router.push(targetPath);
                }
            }
        }
-   }, [currentUser, router, pathname, projectIdFromUrl]); // FIX: Use extracted value in dependency array
+   }, [currentUser, router, pathname, projectIdFromUrl]);
 
 
   return (
@@ -311,10 +310,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
            <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b bg-background px-4 sm:px-6">
              <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-base sm:text-lg text-primary">
                 <Image src="/msarch-logo.png" alt="Msarch App Logo" width={24} height={24} className="h-5 w-5 sm:h-6 sm:w-6" />
-                 <span className="hidden sm:inline">{isClient ? layoutDict.appTitle : defaultDict.dashboardLayout.appTitle}</span>
-                 <span className="sm:hidden">{isClient ? (layoutDict.appTitleShort || layoutDict.appTitle) : (defaultDict.dashboardLayout.appTitleShort || defaultDict.dashboardLayout.appTitle)}</span>
+                {/* Simplified rendering logic to prevent hydration errors */}
+                 <span className="hidden sm:inline">{layoutDict.appTitle}</span>
+                 <span className="sm:hidden">{layoutDict.appTitleShort || layoutDict.appTitle}</span>
               </Link>
-
 
              <div className="flex items-center gap-2">
               <Popover>
@@ -330,15 +329,15 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                            </Badge>
                        )}
                         <span className="sr-only">
-                          {isClient ? notificationsDict.tooltip : defaultDict.notifications.tooltip}
+                          {notificationsDict.tooltip}
                         </span>
                    </Button>
                 </PopoverTrigger>
                  <PopoverContent className="w-80 p-0">
                   <div className="p-4 border-b">
-                      <h4 className="font-medium leading-none">{isClient ? notificationsDict.title : defaultDict.notifications.title}</h4>
+                      <h4 className="font-medium leading-none">{notificationsDict.title}</h4>
                       <p className="text-sm text-muted-foreground">
-                        {isClient ? notificationsDict.description : defaultDict.notifications.description}
+                        {notificationsDict.description}
                       </p>
                   </div>
                    <div className="max-h-60 overflow-y-auto">
@@ -365,29 +364,27 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                    ) : isClient ? ( 
                      <div className="p-4 text-center text-sm text-muted-foreground flex flex-col items-center gap-2">
                        <MessageSquareWarning className="h-6 w-6" />
-                       {isClient ? notificationsDict.empty : defaultDict.notifications.empty}
+                       {notificationsDict.empty}
                      </div>
                    ) : null }
                  </div>
                 </PopoverContent>
               </Popover>
 
-
               <Sheet>
                 <SheetTrigger asChild>
                    <Button variant="outline" size="icon" className="h-9 w-9 sm:h-10 sm:w-10">
                      <PanelRightOpen className="h-4 w-4 sm:h-5 sm:w-5" />
-                    <span className="sr-only">{isClient ? layoutDict.toggleMenu : defaultDict.dashboardLayout.toggleMenu}</span>
+                    <span className="sr-only">{layoutDict.toggleMenu}</span>
                   </Button>
                 </SheetTrigger>
                  <SheetContent side="right" className="bg-primary text-primary-foreground border-primary-foreground/20 w-[80vw] max-w-[300px] sm:max-w-[320px] flex flex-col p-4">
                   <SheetHeader className="mb-4 text-left">
-                     <SheetTitle className="text-primary-foreground text-lg sm:text-xl">{isClient ? layoutDict.menuTitle : defaultDict.dashboardLayout.menuTitle}</SheetTitle>
+                     <SheetTitle className="text-primary-foreground text-lg sm:text-xl">{layoutDict.menuTitle}</SheetTitle>
                     <SheetDescription className="text-primary-foreground/80">
-                     {isClient ? layoutDict.menuDescription : defaultDict.dashboardLayout.menuDescription}
+                     {layoutDict.menuDescription}
                     </SheetDescription>
                   </SheetHeader>
-
 
                    <nav className="flex-1 space-y-2 overflow-y-auto">
                      {isClient && currentUser && layoutDict ? (
@@ -414,7 +411,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                    </nav>
 
                    <Separator className="my-4 bg-primary-foreground/20" />
-
 
                    <div className="mt-auto space-y-4">
                      {isClient && currentUser ? (
@@ -455,7 +451,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                       disabled={!isClient || !currentUser}
                     >
                       <LogOut className="h-5 w-5" />
-                      <span>{isClient ? layoutDict.logout : defaultDict.dashboardLayout.logout}</span>
+                      <span>{layoutDict.logout}</span>
                     </Button>
                    </div>
                 </SheetContent>
