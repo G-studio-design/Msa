@@ -390,6 +390,7 @@ const id = {
       fileDeletedTitle: "File Dihapus",
       fileDeletedDesc: "File \"{filename}\" telah berhasil dihapus.",
       fileDeleteError: "Gagal menghapus file.",
+      deleteFileConfirmButton: "Ya, Hapus File",
     }
   },
   // Add Project Page

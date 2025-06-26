@@ -390,6 +390,7 @@ const en = {
       fileDeletedTitle: "File Deleted",
       fileDeletedDesc: "The file \"{filename}\" has been deleted successfully.",
       fileDeleteError: "Failed to delete file.",
+      deleteFileConfirmButton: "Yes, Delete File",
     }
   },
   // Add Project Page

@@ -868,6 +868,8 @@ export default function ProjectsPage() {
       if (currentUser.role === 'Admin Developer') return true;
       if (currentUser.role === 'Owner') return true;
       if (currentUser.role === 'Arsitek' && selectedProject.status === 'Pending Survey Details') return true;
+      if (selectedProject.status === 'Pending Post-Sidang Revision' && ['Arsitek', 'Struktur', 'MEP'].includes(currentUser.role)) return true;
+
       const currentUserRoleCleaned = currentUser.role.trim();
       const assignedDivisionCleaned = selectedProject.assignedDivision?.trim();
       return currentUserRoleCleaned === assignedDivisionCleaned;
@@ -1126,41 +1128,41 @@ export default function ProjectsPage() {
           const displayName = item.originalFileName || item.name;
 
           return (
-              <li key={item.name} className="flex items-center gap-3 text-sm">
-                  {item.uploaded ? <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" /> : <CircleIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
-                  <span className={cn("flex-1 truncate", item.uploaded ? "text-foreground" : "text-muted-foreground")}>
-                      {displayName}
-                  </span>
-                  {item.uploaded && item.filePath && (
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                          <Button variant="ghost" size="icon" onClick={() => handleDownloadFile({ name: item.originalFileName!, path: item.filePath!, uploadedBy: '', timestamp: '' })} disabled={isDownloading || !!isDeletingFile} title={projectsDict.downloadFileTooltip} className="h-7 w-7">
-                              {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4 text-primary" />}
-                          </Button>
-                          {canCurrentUserDelete && (
-                              <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                      <Button variant="ghost" size="icon" disabled={isDownloading || !!isDeletingFile} title={projectsDict.toast.deleteFileTooltip} className="h-7 w-7">
-                                          {isDeletingFile === item.filePath ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 text-destructive" />}
-                                      </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                          <AlertDialogTitle>{projectsDict.toast.confirmFileDeleteTitle}</AlertDialogTitle>
-                                          <AlertDialogDescription>{projectsDict.toast.confirmFileDeleteDesc.replace('{filename}', displayName)}</AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                          <AlertDialogCancel disabled={!!isDeletingFile}>{projectsDict.cancelButton}</AlertDialogCancel>
-                                          <AlertDialogAction onClick={() => handleDeleteFile(item.filePath!, displayName)} className="bg-destructive hover:bg-destructive/90" disabled={!!isDeletingFile}>
-                                              {isDeletingFile === item.filePath && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                              {projectsDict.deleteDialogConfirm.replace(' User', '')}
-                                          </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                  </AlertDialogContent>
-                              </AlertDialog>
-                          )}
-                      </div>
-                  )}
-              </li>
+            <li key={item.name} className="flex items-center text-sm p-2 border rounded-md hover:bg-secondary/50 gap-2">
+                {item.uploaded ? <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" /> : <CircleIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <span className={cn("truncate", item.uploaded ? "text-foreground" : "text-muted-foreground")}>{displayName}</span>
+                </div>
+                {item.uploaded && item.filePath && (
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                        <Button variant="ghost" size="icon" onClick={() => handleDownloadFile({ name: item.originalFileName!, path: item.filePath!, uploadedBy: '', timestamp: '' })} disabled={isDownloading || !!isDeletingFile} title={projectsDict.downloadFileTooltip} className="h-7 w-7">
+                            {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4 text-primary" />}
+                        </Button>
+                        {canCurrentUserDelete && (
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon" disabled={isDownloading || !!isDeletingFile} title={projectsDict.toast.deleteFileTooltip} className="h-7 w-7">
+                                        {isDeletingFile === item.filePath ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 text-destructive" />}
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>{projectsDict.toast.confirmFileDeleteTitle}</AlertDialogTitle>
+                                        <AlertDialogDescription>{projectsDict.toast.confirmFileDeleteDesc.replace('{filename}', displayName)}</AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel disabled={!!isDeletingFile}>{projectsDict.cancelButton}</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleDeleteFile(item.filePath!, displayName)} className="bg-destructive hover:bg-destructive/90" disabled={!!isDeletingFile}>
+                                            {isDeletingFile === item.filePath && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                            {projectsDict.toast.deleteFileConfirmButton}
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        )}
+                    </div>
+                )}
+            </li>
           );
       };
 
