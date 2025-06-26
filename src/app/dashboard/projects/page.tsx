@@ -90,6 +90,7 @@ import { cn } from '@/lib/utils';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { notifyUsersByRole } from '@/services/notification-service';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { ToastAction } from '@/components/ui/toast';
 
 
 const defaultGlobalDict = getDictionary('en');
@@ -134,6 +135,7 @@ export default function ProjectsPage() {
   const dict = React.useMemo(() => getDictionary(language), [language]);
   const projectsDict = React.useMemo(() => dict.projectsPage, [dict]);
   const dashboardDict = React.useMemo(() => dict.dashboardPage, [dict]);
+  const settingsDict = React.useMemo(() => dict.settingsPage, [dict]);
 
 
   const [allProjects, setAllProjects] = React.useState<Project[]>([]);
@@ -586,6 +588,23 @@ export default function ProjectsPage() {
         return;
       }
 
+      if (!currentUser.googleRefreshToken) {
+        toast({
+            variant: 'destructive',
+            title: settingsDict.googleCalendarError,
+            description: settingsDict.googleCalendarConnectDesc,
+            action: (
+                <ToastAction
+                    altText={settingsDict.title}
+                    onClick={() => router.push('/dashboard/settings')}
+                >
+                    {settingsDict.title}
+                </ToastAction>
+            ),
+        });
+        return;
+      }
+
       if (!selectedProject.scheduleDetails || !selectedProject.scheduleDetails.date || !selectedProject.scheduleDetails.time) {
         toast({ variant: 'destructive', title: projectsDict.toast.errorFindingSchedule, description: projectsDict.toast.couldNotFindSchedule });
         return;
@@ -642,7 +661,7 @@ export default function ProjectsPage() {
       } finally {
         setIsAddingToCalendar(false);
       }
-    }, [selectedProject, currentUser, projectsDict, toast]);
+    }, [selectedProject, currentUser, projectsDict, toast, router, settingsDict]);
 
     const roleFilteredProjects = React.useMemo(() => {
         if (!currentUser || !isClient || isLoadingProjects) return [];

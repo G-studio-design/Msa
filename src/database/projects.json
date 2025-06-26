@@ -490,10 +490,10 @@
   {
     "id": "project_1750762714162_h35ez",
     "title": "proyek Bali Merdeka",
-    "status": "Pending Parallel Design Uploads",
-    "progress": 50,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.",
+    "status": "Scheduled",
+    "progress": 95,
+    "assignedDivision": "Owner",
+    "nextAction": "Nyatakan Hasil Sidang",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -586,6 +586,33 @@
         "division": "Arsitek",
         "action": "arsitek (Arsitek) submitted for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
         "timestamp": "2025-06-26T04:18:32.064Z"
+      },
+      {
+        "division": "Struktur",
+        "action": "struktur (Struktur) submitted for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-26T04:46:05.229Z",
+        "note": "lengkap"
+      },
+      {
+        "division": "MEP",
+        "action": "agung (MEP) submitted for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-26T04:48:07.699Z"
+      },
+      {
+        "division": "MEP",
+        "action": "agung (MEP) submitted for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-26T04:48:48.157Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) all_files_confirmed for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-26T04:49:41.333Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) scheduled Sidang on 2025-06-26 at 12:51",
+        "timestamp": "2025-06-26T04:50:23.311Z",
+        "note": "Location: Ruang Konfrensi Puspem."
       }
     ],
     "files": [
@@ -660,6 +687,72 @@
         "uploadedBy": "Arsitek",
         "path": "project_1750762714162_h35ez-proyek_bali_merdeka/daftar_simak_proyek_bali_merdekapdf",
         "timestamp": "2025-06-26T04:18:32.064Z"
+      },
+      {
+        "name": "Analisa Laporan.pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/analisa_laporanpdf",
+        "timestamp": "2025-06-26T04:46:05.229Z"
+      },
+      {
+        "name": "Daftar SIMak Proyek Bali Merdeka.pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/daftar_simak_proyek_bali_merdekapdf",
+        "timestamp": "2025-06-26T04:46:05.229Z"
+      },
+      {
+        "name": "Gambar .pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/gambar_pdf",
+        "timestamp": "2025-06-26T04:46:05.229Z"
+      },
+      {
+        "name": "Hammer Test .pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/hammer_test_pdf",
+        "timestamp": "2025-06-26T04:46:05.229Z"
+      },
+      {
+        "name": "Spektek.pdf",
+        "uploadedBy": "Struktur",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/spektekpdf",
+        "timestamp": "2025-06-26T04:46:05.229Z"
+      },
+      {
+        "name": "Analisa Laporan.pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/analisa_laporanpdf",
+        "timestamp": "2025-06-26T04:48:07.699Z"
+      },
+      {
+        "name": "Daftar SIMak Proyek Bali Merdeka.pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/daftar_simak_proyek_bali_merdekapdf",
+        "timestamp": "2025-06-26T04:48:07.699Z"
+      },
+      {
+        "name": "Gambar .pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/gambar_pdf",
+        "timestamp": "2025-06-26T04:48:07.699Z"
+      },
+      {
+        "name": "Hammer Test .pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/hammer_test_pdf",
+        "timestamp": "2025-06-26T04:48:07.699Z"
+      },
+      {
+        "name": "Spektek.pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/spektekpdf",
+        "timestamp": "2025-06-26T04:48:07.699Z"
+      },
+      {
+        "name": "RAP MEp.pdf",
+        "uploadedBy": "MEP",
+        "path": "project_1750762714162_h35ez-proyek_bali_merdeka/rap_meppdf",
+        "timestamp": "2025-06-26T04:48:48.157Z"
       }
     ],
     "createdAt": "2025-06-24T10:58:34.162Z",
@@ -668,6 +761,11 @@
       "date": "2025-06-24",
       "time": "19:11",
       "description": "lokasi di: ..."
+    },
+    "scheduleDetails": {
+      "date": "2025-06-26",
+      "time": "12:51",
+      "location": "Ruang Konfrensi Puspem"
     }
   }
 ]

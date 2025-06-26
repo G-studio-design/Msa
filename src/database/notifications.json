@@ -373,7 +373,7 @@
     "projectId": "project_1748335034794_tx1vy",
     "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'proyek hotel ubud' telah diunggah. Anda bisa mulai melakukan perencanaan MEP awal.",
     "timestamp": "2025-05-27T10:52:15.621Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1748346866395_nxx1y_ubw",
@@ -397,7 +397,7 @@
     "projectId": "project_demo_aktif_001",
     "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'Proyek Renovasi Kantor Pusat' telah diunggah. Anda bisa mulai melakukan perencanaan MEP awal.",
     "timestamp": "2025-05-28T08:29:09.708Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1749471165963_nklxf_h9d",
@@ -413,7 +413,7 @@
     "projectId": "project_1748335034794_tx1vy",
     "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'proyek hotel ubud' telah diunggah. Anda bisa mulai melakukan perencanaan MEP awal.",
     "timestamp": "2025-06-09T12:12:45.972Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1749619498452_20jmw_22a",
@@ -509,7 +509,7 @@
     "projectId": "project_1749619498431_vp9jp",
     "message": "Hasil survei untuk 'proyek gapura tabanan' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
     "timestamp": "2025-06-11T05:32:51.499Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750738966247_fd59g_22a",
@@ -614,5 +614,21 @@
     "message": "Hasil survei untuk 'proyek Bali Merdeka' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
     "timestamp": "2025-06-24T11:12:10.586Z",
     "isRead": true
+  },
+  {
+    "id": "notif_1750913381340_0tp95_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Semua berkas desain untuk proyek 'proyek Bali Merdeka' telah dikonfirmasi terunggah oleh komangmerta. Mohon jadwalkan sidang.",
+    "timestamp": "2025-06-26T04:49:41.336Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750913423321_blbvq_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Sidang untuk proyek 'proyek Bali Merdeka' telah dijadwalkan oleh komangmerta. Mohon nyatakan hasilnya setelah selesai.",
+    "timestamp": "2025-06-26T04:50:23.319Z",
+    "isRead": false
   }
 ]
