@@ -182,6 +182,8 @@ export default function ProjectsPage() {
 
   const [isGenericRevisionDialogOpen, setIsGenericRevisionDialogOpen] = React.useState(false);
 
+  // FIX: Extract search param value outside useEffect
+  const projectIdFromUrl = searchParams.get('projectId');
 
   React.useEffect(() => {
     setIsClient(true);
@@ -214,7 +216,6 @@ export default function ProjectsPage() {
 
   React.useEffect(() => {
       if (isClient && allProjects.length > 0 && !isLoadingProjects) {
-          const projectIdFromUrl = searchParams.get('projectId');
           if (projectIdFromUrl) {
               const projectToSelect = allProjects.find(p => p.id === projectIdFromUrl);
               if (projectToSelect) {
@@ -242,7 +243,7 @@ export default function ProjectsPage() {
               setSelectedProject(null);
           }
       }
-  }, [searchParams, allProjects, isClient, isLoadingProjects, router, toast, projectsDict]);
+  }, [projectIdFromUrl, allProjects, isClient, isLoadingProjects, router, toast, projectsDict]); // FIX: Use extracted value in dependency array
 
     const getParallelChecklistStatus = React.useCallback((project: Project | null): ParallelUploadChecklist | null => {
         if (!project) return null;
@@ -1059,7 +1060,7 @@ export default function ProjectsPage() {
     }, [selectedProject, currentUser]);
 
 
-    if (!isClient || !currentUser || (isLoadingProjects && !selectedProject && !searchParams.get('projectId'))) {
+    if (!isClient || !currentUser || (isLoadingProjects && !selectedProject && !projectIdFromUrl)) {
         return (
             <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
                  <Card className="shadow-md animate-pulse">

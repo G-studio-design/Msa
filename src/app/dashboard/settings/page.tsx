@@ -56,6 +56,12 @@ export default function SettingsPage() {
 
    const [isDisconnectingGoogle, setIsDisconnectingGoogle] = React.useState(false);
 
+   // FIX: Extract search param values outside useEffect
+   const successParam = searchParams.get('success');
+   const errorParam = searchParams.get('error');
+   const emailParam = searchParams.get('email');
+
+
    React.useEffect(() => {
        if (currentUser) {
             setUsername(currentUser.username);
@@ -79,29 +85,25 @@ export default function SettingsPage() {
 
    // Effect to show toast messages based on URL query params from OAuth redirect
    React.useEffect(() => {
-       if (isClient && searchParams) {
-           const success = searchParams.get('success');
-           const error = searchParams.get('error');
-           const userEmail = searchParams.get('email');
-
-           if (success === 'google_linked') {
+       if (isClient) {
+           if (successParam === 'google_linked') {
                toast({ title: settingsDict.googleCalendarLinkSuccess, description: settingsDict.googleCalendarConnected });
                router.replace('/dashboard/settings', { scroll: false }); // Clean URL
            }
-           if (error) {
+           if (errorParam) {
                let description = settingsDict.googleCalendarOAuthFailed;
-               if (error === 'google_user_not_found' && userEmail) {
-                   description = (settingsDict.googleCalendarUserNotFound || 'User with email {email} not found.').replace('{email}', decodeURIComponent(userEmail));
-               } else if (settingsDict.toast[error as keyof typeof settingsDict.toast]) {
-                   description = settingsDict.toast[error as keyof typeof settingsDict.toast];
-               } else if (error) {
-                    description = decodeURIComponent(error);
+               if (errorParam === 'google_user_not_found' && emailParam) {
+                   description = (settingsDict.googleCalendarUserNotFound || 'User with email {email} not found.').replace('{email}', decodeURIComponent(emailParam));
+               } else if (settingsDict.toast[errorParam as keyof typeof settingsDict.toast]) {
+                   description = settingsDict.toast[errorParam as keyof typeof settingsDict.toast];
+               } else if (errorParam) {
+                    description = decodeURIComponent(errorParam);
                }
                toast({ variant: 'destructive', title: settingsDict.googleCalendarError, description: description });
                router.replace('/dashboard/settings', { scroll: false }); // Clean URL
            }
        }
-   }, [isClient, searchParams, router, toast, settingsDict]);
+   }, [isClient, successParam, errorParam, emailParam, router, toast, settingsDict]); // FIX: Use extracted values in dependency array
 
   const handleLanguageChange = (value: string) => {
     setLanguage(value as 'en' | 'id');

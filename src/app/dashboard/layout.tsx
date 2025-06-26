@@ -264,6 +264,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
        return `${diffDays}d ago`;
    }, [isClient]);
 
+   // FIX: Extract search param value outside useCallback
+   const projectIdFromUrl = searchParams.get('projectId');
 
    const handleNotificationClick = useCallback(async (notification: Notification) => {
        if (!notification.isRead) {
@@ -282,7 +284,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
            const targetProjectId = notification.projectId;
            
            // Check if we are already on the target project page
-           if (pathname === targetPath && searchParams.get('projectId') === targetProjectId) {
+           if (pathname === targetPath && projectIdFromUrl === targetProjectId) {
                console.log('[NotificationClick] Already on target page. Forcing a reload.');
                window.location.reload();
            } else {
@@ -300,7 +302,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                }
            }
        }
-   }, [currentUser, router, pathname, searchParams]);
+   }, [currentUser, router, pathname, projectIdFromUrl]); // FIX: Use extracted value in dependency array
 
 
   return (

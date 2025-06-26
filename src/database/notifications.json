@@ -765,7 +765,7 @@
     "projectId": "project_1750923884164_mtu12",
     "message": "Berkas administrasi untuk proyek 'proyek mega mendung' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
     "timestamp": "2025-06-26T12:09:21.361Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750939761388_gclrk_22a",
@@ -781,6 +781,38 @@
     "projectId": "project_1750923884164_mtu12",
     "message": "Berkas administrasi untuk proyek 'proyek mega mendung' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
     "timestamp": "2025-06-26T12:09:21.402Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750941218949_kv5h5_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Hasil survei untuk 'proyek mega mendung' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-26T12:33:38.946Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750941218962_y65ct_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Hasil survei untuk 'proyek mega mendung' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-26T12:33:38.960Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750941218971_07cqm_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Hasil survei untuk 'proyek mega mendung' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-26T12:33:38.969Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750941218983_3ah4c_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Hasil survei untuk 'proyek mega mendung' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-26T12:33:38.981Z",
     "isRead": false
   }
 ]

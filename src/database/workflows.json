@@ -130,7 +130,7 @@
           "submitted": {
             "targetStatus": "Pending Survey Details",
             "targetAssignedDivision": "Admin Proyek",
-            "targetNextActionDescription": "Input Jadwal Survei & Unggah Hasil",
+            "targetNextActionDescription": "Jadwal Survei (Ditentukan oleh Admin Proyek/Arsitek/Owner)",
             "targetProgress": 45,
             "notification": {
               "division": [
@@ -138,7 +138,7 @@
                 "Admin Proyek",
                 "Arsitek"
               ],
-              "message": "Berkas administrasi untuk proyek '{projectName}' oleh {actorUsername} lengkap. Mohon koordinasikan dan input jadwal survei."
+              "message": "Berkas administrasi untuk proyek '{projectName}' lengkap. Mohon Admin Proyek/Arsitek/Owner untuk menginput jadwal survei."
             }
           }
         }
@@ -148,7 +148,7 @@
         "status": "Pending Survey Details",
         "assignedDivision": "Admin Proyek",
         "progress": 45,
-        "nextActionDescription": "Input Jadwal Survei & Unggah Laporan Hasil Survei",
+        "nextActionDescription": "Jadwal Survei (Ditentukan oleh Admin Proyek/Arsitek/Owner)",
         "transitions": {
           "submitted": {
             "targetStatus": "Pending Architect Files",
@@ -445,7 +445,7 @@
           "submitted": {
             "targetStatus": "Pending Survey Details",
             "targetAssignedDivision": "Admin Proyek",
-            "targetNextActionDescription": "Input Jadwal Survei & Unggah Hasil",
+            "targetNextActionDescription": "Jadwal Survei (Ditentukan oleh Admin Proyek/Arsitek/Owner)",
             "targetProgress": 45,
             "notification": {
               "division": [
@@ -453,7 +453,7 @@
                 "Admin Proyek",
                 "Arsitek"
               ],
-              "message": "Berkas administrasi untuk proyek '{projectName}' oleh {actorUsername} lengkap. Mohon koordinasikan dan input jadwal survei."
+              "message": "Berkas administrasi untuk proyek '{projectName}' lengkap. Mohon Admin Proyek/Arsitek/Owner untuk menginput jadwal survei."
             }
           }
         }
@@ -463,7 +463,7 @@
         "status": "Pending Survey Details",
         "assignedDivision": "Admin Proyek",
         "progress": 45,
-        "nextActionDescription": "Input Jadwal Survei & Unggah Laporan Hasil Survei",
+        "nextActionDescription": "Jadwal Survei (Ditentukan oleh Admin Proyek/Arsitek/Owner)",
         "transitions": {
           "submitted": {
             "targetStatus": "Pending Parallel Design Uploads",
