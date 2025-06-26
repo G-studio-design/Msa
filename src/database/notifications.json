@@ -565,7 +565,7 @@
     "projectId": "project_1750762714162_h35ez",
     "message": "Berkas administrasi untuk proyek 'proyek Bali Merdeka' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
     "timestamp": "2025-06-24T11:11:27.255Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750763487281_u783p_22a",
@@ -669,7 +669,7 @@
     "projectId": "project_1750762714162_h35ez",
     "message": "Proyek 'proyek Bali Merdeka' telah berhasil diselesaikan setelah revisi oleh komangmerta.",
     "timestamp": "2025-06-26T07:20:57.799Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1750923884193_mo7nk_22a",
@@ -717,6 +717,22 @@
     "projectId": "project_1750923884164_mtu12",
     "message": "Faktur DP untuk proyek 'proyek mega mendung' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
     "timestamp": "2025-06-26T11:54:12.672Z",
-    "isRead": false
+    "isRead": true
+  },
+  {
+    "id": "notif_1750938937590_1866q_ue2",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Faktur DP untuk proyek 'proyek mega mendung' ditolak oleh sudina. Mohon direvisi.",
+    "timestamp": "2025-06-26T11:55:37.586Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750938993430_2igpo_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Faktur DP untuk proyek 'proyek mega mendung' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-26T11:56:33.427Z",
+    "isRead": true
   }
 ]

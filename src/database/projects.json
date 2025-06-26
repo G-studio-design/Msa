@@ -848,6 +848,17 @@
         "division": "Akuntan",
         "action": "oksi (Akuntan) submitted for \"Revisi dan Unggah Ulang Faktur DP berdasarkan masukan Owner.\"",
         "timestamp": "2025-06-26T11:54:12.665Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) requested revision (revise_dp). Project sent to Akuntan for Revisi dan Unggah Ulang Faktur DP berdasarkan masukan Owner..",
+        "timestamp": "2025-06-26T11:55:37.574Z",
+        "note": "revisi lagi"
+      },
+      {
+        "division": "Akuntan",
+        "action": "oksi (Akuntan) submitted for \"Revisi dan Unggah Ulang Faktur DP berdasarkan masukan Owner.\"",
+        "timestamp": "2025-06-26T11:56:33.416Z"
       }
     ],
     "files": [
@@ -874,6 +885,12 @@
         "uploadedBy": "Akuntan",
         "path": "project_1750923884164_mtu12-proyek_mega_mendung/faktur_dptxt",
         "timestamp": "2025-06-26T11:54:12.665Z"
+      },
+      {
+        "name": "faktur dp.txt",
+        "uploadedBy": "Akuntan",
+        "path": "project_1750923884164_mtu12-proyek_mega_mendung/faktur_dptxt",
+        "timestamp": "2025-06-26T11:56:33.416Z"
       }
     ],
     "createdAt": "2025-06-26T07:44:44.164Z",

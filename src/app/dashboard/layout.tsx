@@ -48,7 +48,7 @@ import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { getNotificationsForUser, markNotificationAsRead, type Notification } from '@/services/notification-service';
 
@@ -61,6 +61,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { currentUser, logout } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isClient, setIsClient] = useState(false);
 
   const defaultDict = useMemo(() => getDictionary('en'), []);
@@ -239,13 +241,29 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
        }
 
        if (notification.projectId) {
-           router.push(`/dashboard/projects?projectId=${notification.projectId}`);
+           const targetPath = '/dashboard/projects';
+           const targetProjectId = notification.projectId;
+           
+           // Check if we are already on the target project page
+           if (pathname === targetPath && searchParams.get('projectId') === targetProjectId) {
+               console.log('[NotificationClick] Already on target page. Forcing a reload.');
+               window.location.reload();
+           } else {
+               router.push(`${targetPath}?projectId=${targetProjectId}`);
+           }
+
        } else if (notification.message.toLowerCase().includes("izin") || notification.message.toLowerCase().includes("leave")) {
            if (currentUser?.role.trim() === 'Owner') {
-               router.push("/dashboard/admin-actions/leave-approvals");
+               const targetPath = "/dashboard/admin-actions/leave-approvals";
+               if (pathname === targetPath) {
+                    console.log('[NotificationClick] Already on target page. Forcing a reload.');
+                    window.location.reload();
+               } else {
+                   router.push(targetPath);
+               }
            }
        }
-   }, [currentUser, router]);
+   }, [currentUser, router, pathname, searchParams]);
 
 
   return (
