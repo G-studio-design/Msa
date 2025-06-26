@@ -73,6 +73,7 @@ import {
     updateProject,
     reviseProject,
     getProjectById as fetchProjectByIdInternal,
+    deleteProjectFile,
     type Project,
     type WorkflowHistoryEntry,
     type FileEntry,
@@ -108,7 +109,9 @@ const MAX_FILES_UPLOAD = 10;
 interface ChecklistItem {
     name: string;
     uploaded: boolean;
-    filePath?: string; // Optional: store path if needed
+    filePath?: string;
+    uploadedBy?: string;
+    originalFileName?: string;
 }
 interface ParallelUploadChecklist {
     [key: string]: ChecklistItem[] | undefined; // Make it indexable by string
@@ -284,6 +287,8 @@ export default function ProjectsPage() {
                         ...item,
                         uploaded: !!uploadedFile,
                         filePath: uploadedFile ? uploadedFile.path : undefined,
+                        uploadedBy: uploadedFile ? uploadedFile.uploadedBy : undefined,
+                        originalFileName: uploadedFile ? uploadedFile.name : undefined,
                     };
                 });
             }
@@ -488,13 +493,15 @@ export default function ProjectsPage() {
                 toastMessage = projectsDict.toast.allDesignsConfirmedDesc.replace('{projectName}', newlyUpdatedProjectResult?.title || '');
                 break;
             case 'submitted':
-                if(selectedProject.status === 'Pending Parallel Design Uploads') {
+                if (selectedProject.status === 'Pending Parallel Design Uploads') {
                     toastMessage = projectsDict.toast.parallelUploadSubmittedDesc.replace('{uploaderRole}', getTranslatedStatus(currentUser.role)).replace('{projectName}', newlyUpdatedProjectResult?.title || '');
+                } else if (selectedProject.status === 'Pending Post-Sidang Revision') {
+                    toastMessage = (projectsDict.toast.revisionFilesUploadedDesc || "Your revised files for project '{projectName}' have been uploaded successfully. Admin Proyek has been notified.")
+                        .replace('{projectName}', newlyUpdatedProject?.title || '');
                 } else {
                     toastMessage = projectsDict.toast.notifiedNextStep.replace('{division}', getTranslatedStatus(newlyUpdatedProjectResult?.assignedDivision || ''));
                 }
                 break;
-            // Other cases remain the same...
             default:
                 if (newlyUpdatedProjectResult?.status === 'Completed') {
                     toastMessage = projectsDict.toast.projectCompletedSuccessfully.replace('{title}', newlyUpdatedProjectResult?.title || '');
@@ -871,8 +878,9 @@ export default function ProjectsPage() {
         
         const userRole = currentUser.role.trim();
     
-        // Only design divisions can upload in parallel stage
-        if (selectedProject.workflowId === 'msa_workflow' && selectedProject.status === 'Pending Parallel Design Uploads') {
+        // Only design divisions can upload in parallel stage or revision stage
+        if (selectedProject.workflowId === 'msa_workflow' &&
+            (selectedProject.status === 'Pending Parallel Design Uploads' || selectedProject.status === 'Pending Post-Sidang Revision')) {
             return ['Arsitek', 'Struktur', 'MEP'].includes(userRole);
         }
     
@@ -964,9 +972,7 @@ export default function ProjectsPage() {
         if (!selectedProject || !currentUser) return false;
         const userRole = currentUser.role.trim();
         const isAdminRole = ['Admin Proyek', 'Owner', 'Admin Developer'].includes(userRole);
-        const isDesignRole = ['Arsitek', 'Struktur', 'MEP'].includes(userRole);
-
-        return selectedProject.status === 'Pending Post-Sidang Revision' && (isAdminRole || isDesignRole);
+        return selectedProject.status === 'Pending Post-Sidang Revision' && isAdminRole;
     }, [selectedProject, currentUser]);
 
     const handleNotifyDivisionForRevision = React.useCallback(async (targetDivision: 'Arsitek' | 'Struktur' | 'MEP') => {
@@ -1113,43 +1119,47 @@ export default function ProjectsPage() {
             </div>
        );
 
-       const renderChecklistItem = (item: ChecklistItem, fileName: string) => {
-          const canCurrentUserDelete = currentUser?.role === 'Admin Proyek' || currentUser?.role === 'Owner' || currentUser?.role === 'Admin Developer';
+       const renderChecklistItem = (item: ChecklistItem) => {
+          const canAdminDelete = currentUser?.role === 'Admin Proyek' || currentUser?.role === 'Owner' || currentUser?.role === 'Admin Developer';
+          const canUploaderDelete = currentUser?.role === item.uploadedBy;
+          const canCurrentUserDelete = canAdminDelete || canUploaderDelete;
+          const displayName = item.originalFileName || item.name;
+
           return (
-              <li key={item.name} className="flex items-center gap-2 text-sm">
+              <li key={item.name} className="flex items-center gap-3 text-sm">
                   {item.uploaded ? <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" /> : <CircleIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
-                  <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <span className={cn("truncate", item.uploaded ? "text-foreground" : "text-muted-foreground")}>{item.name}</span>
-                      {item.uploaded && item.filePath && (
-                          <>
-                              <Button variant="ghost" size="icon" onClick={() => handleDownloadFile({ name: fileName, path: item.filePath!, uploadedBy: '', timestamp: '' })} disabled={isDownloading || !!isDeletingFile} title={projectsDict.downloadFileTooltip} className="h-7 w-7 flex-shrink-0">
-                                  {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4 text-primary" />}
-                              </Button>
-                              {canCurrentUserDelete && (
-                                  <AlertDialog>
-                                      <AlertDialogTrigger asChild>
-                                          <Button variant="ghost" size="icon" disabled={isDownloading || !!isDeletingFile} title={projectsDict.toast.deleteFileTooltip} className="h-7 w-7 flex-shrink-0">
-                                              {isDeletingFile === item.filePath ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 text-destructive" />}
-                                          </Button>
-                                      </AlertDialogTrigger>
-                                      <AlertDialogContent>
-                                          <AlertDialogHeader>
-                                              <AlertDialogTitle>{projectsDict.toast.confirmFileDeleteTitle}</AlertDialogTitle>
-                                              <AlertDialogDescription>{projectsDict.toast.confirmFileDeleteDesc.replace('{filename}', fileName)}</AlertDialogDescription>
-                                          </AlertDialogHeader>
-                                          <AlertDialogFooter>
-                                              <AlertDialogCancel disabled={!!isDeletingFile}>{projectsDict.cancelButton}</AlertDialogCancel>
-                                              <AlertDialogAction onClick={() => handleDeleteFile(item.filePath!, fileName)} className="bg-destructive hover:bg-destructive/90" disabled={!!isDeletingFile}>
-                                                  {isDeletingFile === item.filePath && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                                  {projectsDict.deleteDialogConfirm.replace(' User', '')}
-                                              </AlertDialogAction>
-                                          </AlertDialogFooter>
-                                      </AlertDialogContent>
-                                  </AlertDialog>
-                              )}
-                          </>
-                      )}
-                  </div>
+                  <span className={cn("flex-1 truncate", item.uploaded ? "text-foreground" : "text-muted-foreground")}>
+                      {displayName}
+                  </span>
+                  {item.uploaded && item.filePath && (
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                          <Button variant="ghost" size="icon" onClick={() => handleDownloadFile({ name: item.originalFileName!, path: item.filePath!, uploadedBy: '', timestamp: '' })} disabled={isDownloading || !!isDeletingFile} title={projectsDict.downloadFileTooltip} className="h-7 w-7">
+                              {isDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4 text-primary" />}
+                          </Button>
+                          {canCurrentUserDelete && (
+                              <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                      <Button variant="ghost" size="icon" disabled={isDownloading || !!isDeletingFile} title={projectsDict.toast.deleteFileTooltip} className="h-7 w-7">
+                                          {isDeletingFile === item.filePath ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 text-destructive" />}
+                                      </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                          <AlertDialogTitle>{projectsDict.toast.confirmFileDeleteTitle}</AlertDialogTitle>
+                                          <AlertDialogDescription>{projectsDict.toast.confirmFileDeleteDesc.replace('{filename}', displayName)}</AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                          <AlertDialogCancel disabled={!!isDeletingFile}>{projectsDict.cancelButton}</AlertDialogCancel>
+                                          <AlertDialogAction onClick={() => handleDeleteFile(item.filePath!, displayName)} className="bg-destructive hover:bg-destructive/90" disabled={!!isDeletingFile}>
+                                              {isDeletingFile === item.filePath && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                              {projectsDict.deleteDialogConfirm.replace(' User', '')}
+                                          </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                  </AlertDialogContent>
+                              </AlertDialog>
+                          )}
+                      </div>
+                  )}
               </li>
           );
       };
@@ -1181,10 +1191,7 @@ export default function ProjectsPage() {
                                 <div key={division}>
                                     <h4 className="font-semibold mb-2">{getTranslatedStatus(division)}</h4>
                                     <ul className="space-y-2">
-                                        {items?.map((item) => {
-                                            const fileEntry = project.files.find(f => f.path === item.filePath);
-                                            return renderChecklistItem(item, fileEntry?.name || item.name);
-                                        })}
+                                        {items?.map((item) => renderChecklistItem(item))}
                                     </ul>
                                 </div>
                             ))}
@@ -1318,7 +1325,7 @@ export default function ProjectsPage() {
                         <CardDescription>{project.nextAction || projectsDict.none}</CardDescription>
                     </CardHeader>
                    <CardContent className="p-4 sm:p-6 pt-0">
-                      {(showUploadSection || (project.status === 'Pending Post-Sidang Revision' && ['Arsitek', 'Struktur', 'MEP'].includes(currentUser!.role))) && (
+                      {showUploadSection && (
                          <div className="space-y-4 border-t pt-4 mt-4">
                            <h3 className="text-lg font-semibold">{project.status === 'Pending Post-Sidang Revision' ? projectsDict.uploadRevisedFilesTitle : projectsDict.uploadProgressTitle.replace('{role}', getTranslatedStatus(currentUser!.role))}</h3>
                            <div className="grid w-full items-center gap-1.5"><Label htmlFor="description">{projectsDict.descriptionLabel}</Label><Textarea id="description" placeholder={projectsDict.descriptionPlaceholder.replace('{division}', getTranslatedStatus(project.assignedDivision))} value={description} onChange={(e) => setDescription(e.target.value)} disabled={isSubmitting}/></div>

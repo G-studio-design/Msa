@@ -317,6 +317,7 @@ const id = {
       provideOfferFile: 'Harap unggah file penawaran.',
       progressSubmitted: 'Progres Terkirim',
       notifiedNextStep: 'Memberitahu {division} untuk langkah selanjutnya.',
+      revisionFilesUploadedDesc: "File revisi Anda untuk proyek '{projectName}' telah berhasil diunggah. Admin Proyek telah diberitahu.",
       actionDidNotChangeStatusTitle: "Tindakan Diproses",
       actionDidNotChangeStatusDesc: "Tindakan telah diproses, tetapi status atau penugasan proyek tidak berubah berdasarkan definisi alur kerja saat ini.",
       revisionNotApplicableShort: 'Revisi Tidak Berlaku',

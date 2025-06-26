@@ -317,6 +317,7 @@ const en = {
       provideOfferFile: 'Please upload offer files.',
       progressSubmitted: 'Progress Submitted',
       notifiedNextStep: 'Notified {division} for next step.',
+      revisionFilesUploadedDesc: "Your revised files for project '{projectName}' have been uploaded successfully. Admin Proyek has been notified.",
       actionDidNotChangeStatusTitle: "Action Processed",
       actionDidNotChangeStatusDesc: "The action was processed, but the project status or assignment did not change based on the current workflow definition.",
       revisionNotApplicableShort: 'Revision Not Applicable',
