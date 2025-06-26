@@ -894,5 +894,61 @@
     "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh sudina untuk dijadwalkan ulang. Alasan: hujan",
     "timestamp": "2025-06-26T14:19:22.252Z",
     "isRead": false
+  },
+  {
+    "id": "notif_1750948555244_55h3m_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survei untuk proyek 'proyek mega mendung' telah dijadwalkan pada {surveyDate} oleh komangmerta.",
+    "timestamp": "2025-06-26T14:35:55.241Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750948555258_dsxrt_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survei untuk proyek 'proyek mega mendung' telah dijadwalkan pada {surveyDate} oleh komangmerta.",
+    "timestamp": "2025-06-26T14:35:55.250Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750948555265_godid_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survei untuk proyek 'proyek mega mendung' telah dijadwalkan pada {surveyDate} oleh komangmerta.",
+    "timestamp": "2025-06-26T14:35:55.264Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750948628497_wei3m_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:37:08.490Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750948628506_4y2dp_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:37:08.504Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750948628516_dxm8c_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:37:08.514Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750948628524_wp435_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:37:08.523Z",
+    "isRead": false
   }
 ]

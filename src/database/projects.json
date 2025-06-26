@@ -776,10 +776,10 @@
   {
     "id": "project_1750923884164_mtu12",
     "title": "proyek mega mendung",
-    "status": "Pending Survey Details",
-    "progress": 45,
+    "status": "Pending Parallel Design Uploads",
+    "progress": 50,
     "assignedDivision": "Admin Proyek",
-    "nextAction": "Input Jadwal Survei & Unggah Hasil (Opsional)",
+    "nextAction": "Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -879,6 +879,18 @@
         "action": "sudina (Owner) reschedule_survey_from_parallel for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
         "timestamp": "2025-06-26T14:19:22.228Z",
         "note": "hujan"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted Survey Details for 2025-06-26 at 22:37",
+        "timestamp": "2025-06-26T14:35:55.219Z",
+        "note": "Survey Description: kantor pertanahan ."
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) submitted Survey Details for 2025-06-26 at 22:37",
+        "timestamp": "2025-06-26T14:37:08.485Z",
+        "note": "Survey Description: kantor pertanahan . Note: Survey telah diselesaikan"
       }
     ],
     "files": [
@@ -930,7 +942,7 @@
     "parallelUploadsCompletedBy": [],
     "surveyDetails": {
       "date": "2025-06-26",
-      "time": "22:07",
+      "time": "22:37",
       "description": "kantor pertanahan "
     }
   }
