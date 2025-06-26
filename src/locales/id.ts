@@ -1,3 +1,4 @@
+
 // src/locales/id.ts
 const id = {
   // Login Page
@@ -87,6 +88,7 @@ const id = {
       pendingmepfiles: 'Menunggu Berkas MEP',
       pendingfinalcheck: 'Menunggu Pemeriksaan Akhir',
       pendingscheduling: 'Menunggu Penjadwalan',
+      pendingfinaldocuments: 'Menunggu Dokumen Akhir',
       owner: 'Pemilik',
       akuntan: 'Akuntan', // Changed from Admin Umum
       adminproyek: 'Admin Proyek',
@@ -243,6 +245,10 @@ const id = {
     revisionChecklistTitle: "Checklist Revisi Pasca-Sidang",
     revisionChecklistDesc: "Unggah file revisi sesuai permintaan. Admin Proyek akan menyelesaikan proyek setelah semua revisi selesai.",
     uploadRevisedFilesTitle: "Unggah File Revisi Anda",
+    finalDocsSectionTitle: "Unggah Dokumen Akhir",
+    finalDocsSectionDesc: "Unggah semua dokumen akhir yang diperlukan untuk menyelesaikan proyek.",
+    finalDocsChecklistTitle: "Checklist Dokumen Akhir",
+    completeProjectButton: "Selesaikan Proyek",
     nextActionDescriptions: {
         uploadOfferDocument: "Unggah Dokumen Penawaran",
         approveOfferDocument: "Setujui Dokumen Penawaran",

@@ -101,7 +101,7 @@ const projectStatuses = [
     'Pending Offer', 'Pending Approval', 'Pending DP Invoice',
     'Pending Admin Files', 'Pending Survey Details', 'Pending Architect Files', 'Pending Structure Files', 'Pending MEP Files',
     'Pending Scheduling', 'Scheduled', 'Pending Post-Sidang Revision', 'Pending Parallel Design Uploads',
-    'In Progress', 'Completed', 'Canceled', 'Pending Consultation Docs', 'Pending Review'
+    'In Progress', 'Completed', 'Canceled', 'Pending Consultation Docs', 'Pending Review', 'Pending Final Documents'
 ];
 
 const MAX_FILES_UPLOAD = 10;
@@ -126,6 +126,8 @@ interface GroupedHistoryItem {
     entries: WorkflowHistoryEntry[];
     files: FileEntry[];
 }
+
+const finalDocRequirements = ['Berita Acara', 'SKRD', 'Ijin Terbit', 'Susunan Dokumen Final', 'Tanda Terima'];
 
 
 export default function ProjectsPage() {
@@ -391,7 +393,7 @@ export default function ProjectsPage() {
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = Clock; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Clock; break;
-        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles':  case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': variant = 'secondary'; Icon = Clock; break;
+        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles':  case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': case 'pendingfinaldocuments': variant = 'secondary'; Icon = Clock; break;
         case 'pendingparalleldesignuploads': variant = 'secondary'; className = `${className} bg-indigo-500 text-white dark:bg-indigo-600 dark:text-primary-foreground hover:bg-indigo-600 dark:hover:bg-indigo-700`; Icon = Shield; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarClock; break;
         default: variant = 'secondary'; Icon = Clock;
@@ -499,7 +501,10 @@ export default function ProjectsPage() {
                 } else if (selectedProject.status === 'Pending Post-Sidang Revision') {
                     toastMessage = (projectsDict.toast.revisionFilesUploadedDesc || "Your revised files for project '{projectName}' have been uploaded successfully. Admin Proyek has been notified.")
                         .replace('{projectName}', newlyUpdatedProject?.title || '');
-                } else {
+                } else if (selectedProject.status === 'Pending Final Documents') {
+                    toastMessage = `Dokumen baru untuk proyek '${newlyUpdatedProject?.title || ''}' telah diunggah.`;
+                }
+                else {
                     toastMessage = projectsDict.toast.notifiedNextStep.replace('{division}', getTranslatedStatus(newlyUpdatedProjectResult?.assignedDivision || ''));
                 }
                 break;
@@ -545,10 +550,17 @@ export default function ProjectsPage() {
         return;
     }
     const isPostSidangAdminAction = decision === 'revision_completed_and_finish';
-    if (isPostSidangAdminAction && currentUser.role !== 'Admin Proyek') {
+     if (isPostSidangAdminAction && currentUser.role !== 'Admin Proyek') {
         toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: "Only Admin Proyek can complete post-sidang revisions." });
         return;
     }
+
+    // New logic for 'completed' action from final documents step
+    if (decision === 'completed' && selectedProject.status === 'Pending Final Documents' && currentUser.role !== 'Admin Proyek') {
+        toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: "Only Admin Proyek can complete the project at this stage." });
+        return;
+    }
+
 
     handleProgressSubmit(decision);
   }, [currentUser, selectedProject, projectsDict, toast, handleProgressSubmit]);
@@ -1029,6 +1041,30 @@ export default function ProjectsPage() {
 
     }, [selectedProject]);
 
+    const finalDocsChecklistStatus = React.useMemo(() => {
+        if (selectedProject?.status !== 'Pending Final Documents') return null;
+
+        const projectFiles = selectedProject.files || [];
+        return finalDocRequirements.map(reqName => {
+            const uploadedFile = projectFiles.find(file => {
+                const fileNameClean = file.name.replace(/\.[^/.]+$/, "").replace(/ /g, '').toLowerCase();
+                const itemNameClean = reqName.replace(/ /g, '').toLowerCase();
+                return fileNameClean.includes(itemNameClean) && file.uploadedBy === 'Admin Proyek';
+            });
+            return { name: reqName, uploaded: !!uploadedFile, filePath: uploadedFile?.path, originalFileName: uploadedFile?.name };
+        });
+    }, [selectedProject]);
+
+    const allFinalDocsUploaded = React.useMemo(() => {
+        if (!finalDocsChecklistStatus) return false;
+        return finalDocsChecklistStatus.every(item => item.uploaded);
+    }, [finalDocsChecklistStatus]);
+
+    const showFinalDocumentUploadSection = React.useMemo(() => {
+        if (!selectedProject || !currentUser) return false;
+        return selectedProject.status === 'Pending Final Documents' && currentUser.role === 'Admin Proyek';
+    }, [selectedProject, currentUser]);
+
 
     if (!isClient || !currentUser || (isLoadingProjects && !selectedProject && !searchParams.get('projectId'))) {
         return (
@@ -1374,6 +1410,55 @@ export default function ProjectsPage() {
                             </Button>
                          </div>
                        )}
+                        {showFinalDocumentUploadSection && (
+                            <Card className="mb-6 shadow-md border-primary/20">
+                                <CardHeader className="p-4 sm:p-6">
+                                    <CardTitle>{projectsDict.finalDocsSectionTitle}</CardTitle>
+                                    <CardDescription>{projectsDict.finalDocsSectionDesc}</CardDescription>
+                                </CardHeader>
+                                <CardContent className="p-4 sm:p-6 pt-0 space-y-4">
+                                    <div>
+                                        <h4 className="font-semibold mb-2">{projectsDict.finalDocsChecklistTitle}</h4>
+                                        <ul className="space-y-2">
+                                            {finalDocsChecklistStatus?.map(item => (
+                                                <li key={item.name} className="flex items-center gap-3 text-sm">
+                                                    {item.uploaded ? <CheckCircle className="h-5 w-5 text-green-500" /> : <CircleIcon className="h-5 w-5 text-muted-foreground" />}
+                                                    <span className={cn(item.uploaded ? "text-foreground" : "text-muted-foreground")}>{item.name}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                    <div className="space-y-4 border-t pt-4">
+                                        <h4 className="text-md font-semibold">{projectsDict.attachFilesLabel}</h4>
+                                        <div className="grid w-full items-center gap-1.5"><Label htmlFor="description">{projectsDict.descriptionLabel}</Label><Textarea id="description" placeholder={projectsDict.descriptionPlaceholder.replace('{division}', getTranslatedStatus(project.assignedDivision))} value={description} onChange={(e) => setDescription(e.target.value)} disabled={isSubmitting}/></div>
+                                        <div className="grid w-full items-center gap-1.5">
+                                            <div className="flex flex-col sm:flex-row items-center gap-2">
+                                                <Input id="project-files" type="file" multiple onChange={handleFileChange} disabled={isSubmitting || uploadedFiles.length >= MAX_FILES_UPLOAD} className="flex-grow"/>
+                                                <Upload className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                                            </div>
+                                        </div>
+                                        {uploadedFiles.length > 0 && (
+                                            <div className="space-y-2 rounded-md border p-3">
+                                            <Label>{projectsDict.selectedFilesLabel} ({uploadedFiles.length}/{MAX_FILES_UPLOAD})</Label>
+                                            <ul className="list-disc list-inside text-sm space-y-1 max-h-32 overflow-y-auto">
+                                                {uploadedFiles.map((file, index) => ( <li key={index} className="flex items-center justify-between group"><span className="truncate max-w-[calc(100%-4rem)] sm:max-w-xs text-muted-foreground group-hover:text-foreground">{file.name} <span className="text-xs">({(file.size / 1024).toFixed(1)} KB)</span></span><Button variant="ghost" size="sm" type="button" onClick={() => removeFile(index)} disabled={isSubmitting} className="opacity-50 group-hover:opacity-100 flex-shrink-0"><Trash2 className="h-4 w-4 text-destructive" /></Button></li>))}
+                                            </ul>
+                                            </div>
+                                        )}
+                                        <Button onClick={() => handleProgressSubmit('submitted')} disabled={isSubmitting || uploadedFiles.length === 0} className="w-full sm:w-auto">
+                                            {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                                            {isSubmitting ? projectsDict.submittingButton : projectsDict.submitButton}
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                                <CardFooter className="p-4 sm:p-6 border-t">
+                                    <Button onClick={() => handleDecision('completed')} disabled={isSubmitting || !allFinalDocsUploaded} className="w-full sm:w-auto accent-teal">
+                                        {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                                        {projectsDict.completeProjectButton}
+                                    </Button>
+                                </CardFooter>
+                            </Card>
+                        )}
                         {showSurveyDetailsInputSection && (
                             <div className="space-y-4 border-t pt-4 mt-4">
                                 <h3 className="text-lg font-semibold">{projectsDict.nextActionDescriptions.inputSurveyDetails}</h3>

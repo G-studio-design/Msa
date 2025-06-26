@@ -1,3 +1,4 @@
+
 // src/locales/en.ts
 const en = {
   // Login Page
@@ -87,6 +88,7 @@ const en = {
       pendingmepfiles: 'Pending MEP Files',
       pendingfinalcheck: 'Pending Final Check',
       pendingscheduling: 'Pending Scheduling',
+      pendingfinaldocuments: 'Pending Final Documents',
       owner: 'Owner',
       akuntan: 'Accountant', // Changed from General Admin
       adminproyek: 'Project Admin',
@@ -243,6 +245,10 @@ const en = {
     revisionChecklistTitle: "Post-Sidang Revision Checklist",
     revisionChecklistDesc: "Upload revised files as requested. Admin Proyek will finalize the project once all revisions are complete.",
     uploadRevisedFilesTitle: "Upload Your Revised Files",
+    finalDocsSectionTitle: "Final Document Upload",
+    finalDocsSectionDesc: "Upload all required final documents to complete the project.",
+    finalDocsChecklistTitle: "Final Document Checklist",
+    completeProjectButton: "Complete Project",
     nextActionDescriptions: {
         uploadOfferDocument: "Upload Offer Document",
         approveOfferDocument: "Approve Offer Document",

@@ -388,9 +388,6 @@ const MSA_WORKFLOW_STEPS: WorkflowStep[] = [
       progress: 50,
       nextActionDescription: "Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.",
       transitions: {
-        // Individual uploads by Arsitek, Struktur, MEP won't change overall project status directly here.
-        // They will submit files, and Admin Proyek will confirm all are done.
-        // We could add specific transitions for each division's upload if needed for finer tracking later.
         "all_files_confirmed": { // Action by Admin Proyek
           targetStatus: "Pending Scheduling",
           targetAssignedDivision: "Admin Proyek",
@@ -419,7 +416,37 @@ const MSA_WORKFLOW_STEPS: WorkflowStep[] = [
     },
     {
       stepName: "Post-Sidang Revision", status: "Pending Post-Sidang Revision", assignedDivision: "Admin Proyek", progress: 85, nextActionDescription: "Lakukan revisi, notifikasi Arsitek/Struktur jika perlu, lalu selesaikan proyek.",
-      transitions: { "revision_completed_and_finish": { targetStatus: "Completed", targetAssignedDivision: "", targetNextActionDescription: null, targetProgress: 100, notification: { division: "Owner", message: "Proyek '{projectName}' telah berhasil diselesaikan setelah revisi oleh {actorUsername}." } } }
+      transitions: {
+        "revision_completed_and_finish": { 
+          targetStatus: "Pending Final Documents",
+          targetAssignedDivision: "Admin Proyek",
+          targetNextActionDescription: "Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.",
+          targetProgress: 98,
+          notification: {
+            division: "Admin Proyek",
+            message: "Revisi pasca-sidang untuk proyek '{projectName}' telah selesai. Mohon unggah dokumen akhir."
+          }
+        }
+      }
+    },
+    {
+      stepName: "Final Document Upload",
+      status: "Pending Final Documents",
+      assignedDivision: "Admin Proyek",
+      progress: 98,
+      nextActionDescription: "Unggah dokumen penyelesaian proyek: Berita Acara, SKRD, Ijin Terbit, Susunan Dokumen Final, Tanda Terima.",
+      transitions: {
+        "completed": {
+          targetStatus: "Completed",
+          targetAssignedDivision: "",
+          targetNextActionDescription: null,
+          targetProgress: 100,
+          notification: {
+            division: "Owner",
+            message: "Proyek '{projectName}' telah selesai dengan semua dokumen akhir terunggah oleh {actorUsername}."
+          }
+        }
+      }
     },
     { stepName: "Project Completed", status: "Completed", assignedDivision: "", progress: 100, nextActionDescription: null, transitions: null },
     { stepName: "Project Canceled", status: "Canceled", assignedDivision: "", progress: 0, nextActionDescription: null, transitions: null }
