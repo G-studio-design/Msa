@@ -1029,12 +1029,14 @@ export default function ProjectsPage() {
                                                 ) : (
                                                     <CircleIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                                 )}
-                                                <span className={cn("flex-grow", item.uploaded ? "text-foreground" : "text-muted-foreground")}>{item.name}</span>
-                                                {item.uploaded && item.filePath && (
-                                                    <Button variant="ghost" size="icon" onClick={() => handleDownloadFile({ name: item.name, path: item.filePath!, uploadedBy: '', timestamp: '' })} disabled={isDownloading} title={projectsDict.downloadFileTooltip} className="h-7 w-7 flex-shrink-0">
-                                                        {isDownloading ? <Loader2 className="h-4 w-4 animate-spin"/> : <Download className="h-4 w-4 text-primary" />}
-                                                    </Button>
-                                                )}
+                                                <div className="flex items-center justify-between flex-1 min-w-0">
+                                                  <span className={cn("truncate", item.uploaded ? "text-foreground" : "text-muted-foreground")}>{item.name}</span>
+                                                  {item.uploaded && item.filePath && (
+                                                      <Button variant="ghost" size="icon" onClick={() => handleDownloadFile({ name: item.name, path: item.filePath!, uploadedBy: '', timestamp: '' })} disabled={isDownloading} title={projectsDict.downloadFileTooltip} className="h-7 w-7 flex-shrink-0">
+                                                          {isDownloading ? <Loader2 className="h-4 w-4 animate-spin"/> : <Download className="h-4 w-4 text-primary" />}
+                                                      </Button>
+                                                  )}
+                                                </div>
                                             </li>
                                         ))}
                                     </ul>
