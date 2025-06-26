@@ -202,49 +202,49 @@ export default function LeaveApprovalsPage() {
               <p className="text-sm">{leaveApprovalsDict.allCaughtUp}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableCaption>{leaveApprovalsDict.tableCaption}</TableCaption>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{leaveApprovalsDict.tableHeaders.employee}</TableHead>
-                    <TableHead>{leaveApprovalsDict.tableHeaders.leaveType}</TableHead>
-                    <TableHead>{leaveApprovalsDict.tableHeaders.dates}</TableHead>
-                    <TableHead>{leaveApprovalsDict.tableHeaders.reason}</TableHead>
-                    <TableHead className="text-right">{leaveApprovalsDict.tableHeaders.actions}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pendingRequests.map((req) => (
-                    <TableRow key={req.id}>
-                      <TableCell className="font-medium">{req.displayName || req.username}</TableCell>
-                      <TableCell>
-                         <Badge variant="outline">{getTranslatedLeaveType(req.leaveType)}</Badge>
-                      </TableCell>
-                      <TableCell>{formatDateRange(req.startDate, req.endDate)}</TableCell>
-                      <TableCell className="max-w-xs truncate">
-                         <Dialog>
-                            <DialogTrigger asChild>
-                                <Button variant="link" size="sm" className="p-0 h-auto text-muted-foreground hover:text-primary">
-                                   <MessageSquareText className="mr-1 h-3.5 w-3.5"/> {leaveApprovalsDict.viewReason}
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-md">
-                                <DialogHeader>
-                                    <DialogTitle>{leaveApprovalsDict.reasonDialogTitle.replace('{employee}', req.displayName || req.username)}</DialogTitle>
-                                </DialogHeader>
-                                <div className="py-4 text-sm text-foreground whitespace-pre-wrap">
-                                    {req.reason}
-                                </div>
-                                <DialogFooter>
-                                    <Button type="button" variant="outline" onClick={() => (document.querySelector('[data-radix-dialog-default-open="true"] [aria-label="Close"]') as HTMLElement)?.click()}>
-                                        {leaveApprovalsDict.closeButton}
-                                    </Button>
-                                </DialogFooter>
-                            </DialogContent>
-                        </Dialog>
-                      </TableCell>
-                      <TableCell className="text-right space-x-1 whitespace-nowrap">
+            <Table>
+              <TableCaption>{leaveApprovalsDict.tableCaption}</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{leaveApprovalsDict.tableHeaders.employee}</TableHead>
+                  <TableHead>{leaveApprovalsDict.tableHeaders.leaveType}</TableHead>
+                  <TableHead>{leaveApprovalsDict.tableHeaders.dates}</TableHead>
+                  <TableHead>{leaveApprovalsDict.tableHeaders.reason}</TableHead>
+                  <TableHead className="text-right">{leaveApprovalsDict.tableHeaders.actions}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pendingRequests.map((req) => (
+                  <TableRow key={req.id}>
+                    <TableCell className="font-medium">{req.displayName || req.username}</TableCell>
+                    <TableCell>
+                        <Badge variant="outline">{getTranslatedLeaveType(req.leaveType)}</Badge>
+                    </TableCell>
+                    <TableCell>{formatDateRange(req.startDate, req.endDate)}</TableCell>
+                    <TableCell className="max-w-xs truncate">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                              <Button variant="link" size="sm" className="p-0 h-auto text-muted-foreground hover:text-primary">
+                                  <MessageSquareText className="mr-1 h-3.5 w-3.5"/> {leaveApprovalsDict.viewReason}
+                              </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-md">
+                              <DialogHeader>
+                                  <DialogTitle>{leaveApprovalsDict.reasonDialogTitle.replace('{employee}', req.displayName || req.username)}</DialogTitle>
+                              </DialogHeader>
+                              <div className="py-4 text-sm text-foreground whitespace-pre-wrap">
+                                  {req.reason}
+                              </div>
+                              <DialogFooter>
+                                  <Button type="button" variant="outline" onClick={() => (document.querySelector('[data-radix-dialog-default-open="true"] [aria-label="Close"]') as HTMLElement)?.click()}>
+                                      {leaveApprovalsDict.closeButton}
+                                  </Button>
+                              </DialogFooter>
+                          </DialogContent>
+                      </Dialog>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex flex-col sm:flex-row justify-end items-end sm:items-center gap-1">
                         <Button
                           variant="outline"
                           size="sm"
@@ -264,12 +264,12 @@ export default function LeaveApprovalsPage() {
                           {isProcessing === req.id && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                           <CheckCircle className="mr-1.5 h-3.5 w-3.5" /> {leaveApprovalsDict.approveButton}
                         </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
