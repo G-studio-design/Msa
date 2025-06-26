@@ -1,46 +1,42 @@
 // public/sw.js
 
-// This event listener is fired when the service worker is first installed.
 self.addEventListener('install', (event) => {
-  // The skipWaiting() method allows this service worker to activate
-  // as soon as it's finished installing.
+  console.log('Service Worker: Installing...');
+  // Force the waiting service worker to become the active service worker.
   self.skipWaiting();
-  console.log('[Service Worker] Installed');
 });
 
-// This event listener is fired when the service worker is activated.
 self.addEventListener('activate', (event) => {
-  // The clients.claim() method allows an active service worker to set itself
-  // as the controller for all clients within its scope.
-  event.waitUntil(self.clients.claim());
-  console.log('[Service Worker] Activated');
+  console.log('Service Worker: Activating...');
+  // Ensure the new service worker takes control of the page immediately.
+  event.waitUntil(clients.claim());
 });
 
-// This event listener is fired when a user clicks on a notification.
 self.addEventListener('notificationclick', (event) => {
-  console.log('[Service Worker] Notification click Received.');
-
-  // Close the notification
+  console.log('Service Worker: Notification clicked.');
   event.notification.close();
 
-  // Logic to focus an existing window or open a new one
+  // This code attempts to focus on an existing window/tab for your app,
+  // or open a new one if none exists.
   event.waitUntil(
-    clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true, // Important to find clients immediately after activation
-    }).then((clientList) => {
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       // If a window for the app is already open, focus it.
       for (const client of clientList) {
-        // You can add more complex URL matching here if needed.
-        // For now, focusing any open client is sufficient.
         if ('focus' in client) {
+          // You could add logic here to check if the client's URL matches
+          // a specific path if you want more control.
           return client.focus();
         }
       }
-      // If no window is open, open a new one to the dashboard.
+      // If no window is open, open a new one.
       if (clients.openWindow) {
+        // Change '/dashboard' to your app's main page if different
         return clients.openWindow('/dashboard');
       }
     })
   );
 });
+
+// The fetch event listener is commented out as we are not implementing
+// a full offline-first strategy at this moment. It can be added later.
+// self.addEventListener('fetch', (event) => { ... });

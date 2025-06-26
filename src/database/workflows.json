@@ -313,6 +313,16 @@
               "division": "Admin Proyek",
               "message": "Proyek '{projectName}' telah dibatalkan oleh {actorUsername} setelah sidang."
             }
+          },
+          "reschedule_sidang": {
+            "targetStatus": "Pending Scheduling",
+            "targetAssignedDivision": "Admin Proyek",
+            "targetNextActionDescription": "Jadwalkan Ulang Sidang karena sidang sebelumnya dibatalkan/ditunda.",
+            "targetProgress": 90,
+            "notification": {
+              "division": "Admin Proyek",
+              "message": "Sidang untuk proyek '{projectName}' perlu dijadwalkan ulang oleh Anda atas permintaan dari {actorUsername}."
+            }
           }
         }
       },
@@ -664,6 +674,16 @@
             "notification": {
               "division": "Admin Proyek",
               "message": "Proyek '{projectName}' telah dibatalkan oleh {actorUsername} setelah sidang."
+            }
+          },
+          "reschedule_sidang": {
+            "targetStatus": "Pending Scheduling",
+            "targetAssignedDivision": "Admin Proyek",
+            "targetNextActionDescription": "Jadwalkan Ulang Sidang karena sidang sebelumnya dibatalkan/ditunda.",
+            "targetProgress": 90,
+            "notification": {
+              "division": "Admin Proyek",
+              "message": "Sidang untuk proyek '{projectName}' perlu dijadwalkan ulang oleh Anda atas permintaan dari {actorUsername}."
             }
           }
         }

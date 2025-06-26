@@ -1102,5 +1102,20 @@
     "message": "Sidang untuk proyek 'proyek mega mendung' telah dijadwalkan oleh sudina. Mohon nyatakan hasilnya setelah selesai.",
     "timestamp": "2025-06-26T14:57:53.005Z",
     "isRead": true
+  },
+  {
+    "id": "notif_1750950968334_q94un_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Proyek baru \"proyek villa di tanah lot\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-26T15:16:08.331Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750951294442_i7n1s_ult",
+    "userId": "usr_owner_default",
+    "message": "Permintaan izin baru dari Komang Merta (Sakit) dari tanggal 2025-06-27 hingga 2025-06-28.",
+    "timestamp": "2025-06-26T15:21:34.439Z",
+    "isRead": true
   }
 ]

@@ -1114,5 +1114,30 @@
       "time": "22:58",
       "location": "bali"
     }
+  },
+  {
+    "id": "project_1750950968313_qtcnd",
+    "title": "proyek villa di tanah lot",
+    "status": "Pending Offer",
+    "progress": 10,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Unggah Dokumen Penawaran",
+    "workflowId": "msa_workflow",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project with workflow: msa_workflow",
+        "timestamp": "2025-06-26T15:16:08.313Z",
+        "note": "Initial files: 0"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
+        "timestamp": "2025-06-26T15:16:08.313Z"
+      }
+    ],
+    "files": [],
+    "createdAt": "2025-06-26T15:16:08.313Z",
+    "createdBy": "sudina"
   }
 ]

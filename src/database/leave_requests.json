@@ -1,2 +1,14 @@
-
-[]
+[
+  {
+    "id": "leave_1750951294436_oucav",
+    "userId": "usr_1747799008584_4r22a",
+    "username": "komangmerta",
+    "displayName": "Komang Merta",
+    "requestDate": "2025-06-26T15:21:34.436Z",
+    "leaveType": "Sakit",
+    "startDate": "2025-06-27",
+    "endDate": "2025-06-28",
+    "reason": "sakit panas demam",
+    "status": "Pending"
+  }
+]
