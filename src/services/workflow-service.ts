@@ -134,14 +134,24 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
             message: "Faktur DP untuk proyek '{projectName}' telah disetujui oleh {actorUsername}. Mohon unggah berkas administrasi."
           }
         },
-        "rejected": {
+        "revise_dp": {
           targetStatus: "Pending DP Invoice",
           targetAssignedDivision: "Akuntan",
-          targetNextActionDescription: "Revisi dan Unggah Ulang Faktur DP",
+          targetNextActionDescription: "Revisi dan Unggah Ulang Faktur DP berdasarkan masukan Owner.",
           targetProgress: 25,
           notification: {
             division: "Akuntan",
             message: "Faktur DP untuk proyek '{projectName}' ditolak oleh {actorUsername}. Mohon direvisi."
+          }
+        },
+        "rejected": {
+          targetStatus: "Canceled",
+          targetAssignedDivision: "",
+          targetNextActionDescription: null,
+          targetProgress: 30,
+          notification: {
+            division: "Admin Proyek",
+            message: "Proyek '{projectName}' dibatalkan oleh {actorUsername} pada tahap persetujuan faktur DP."
           }
         }
       }
@@ -358,7 +368,26 @@ const MSA_WORKFLOW_STEPS: WorkflowStep[] = [
       stepName: "DP Invoice Approval", status: "Pending Approval", assignedDivision: "Owner", progress: 30, nextActionDescription: "Tinjau dan setujui/tolak Faktur DP",
       transitions: {
         "approved": { targetStatus: "Pending Admin Files", targetAssignedDivision: "Admin Proyek", targetNextActionDescription: "Unggah Berkas Administrasi", targetProgress: 40, notification: { division: "Admin Proyek", message: "Faktur DP untuk proyek '{projectName}' telah disetujui oleh {actorUsername}. Mohon unggah berkas administrasi." } },
-        "rejected": { targetStatus: "Pending DP Invoice", targetAssignedDivision: "Akuntan", targetNextActionDescription: "Revisi dan Unggah Ulang Faktur DP", targetProgress: 25, notification: { division: "Akuntan", message: "Faktur DP untuk proyek '{projectName}' ditolak oleh {actorUsername}. Mohon direvisi." } }
+        "revise_dp": {
+          targetStatus: "Pending DP Invoice",
+          targetAssignedDivision: "Akuntan",
+          targetNextActionDescription: "Revisi dan Unggah Ulang Faktur DP berdasarkan masukan Owner.",
+          targetProgress: 25,
+          notification: {
+            division: "Akuntan",
+            message: "Faktur DP untuk proyek '{projectName}' ditolak oleh {actorUsername}. Mohon direvisi."
+          }
+        },
+        "rejected": {
+            targetStatus: "Canceled",
+            targetAssignedDivision: "",
+            targetNextActionDescription: null,
+            targetProgress: 30,
+            notification: {
+              division: "Admin Proyek",
+              message: "Proyek '{projectName}' dibatalkan oleh {actorUsername} pada tahap persetujuan faktur DP."
+            }
+        }
       }
     },
     {
@@ -816,5 +845,6 @@ export async function getAllUniqueStatuses(): Promise<string[]> {
     });
     return Array.from(allStatuses);
 }
+
 
 

@@ -98,24 +98,14 @@
               "message": "Faktur DP untuk proyek '{projectName}' telah disetujui oleh {actorUsername}. Mohon unggah berkas administrasi."
             }
           },
-          "revise_dp": {
+          "rejected": {
             "targetStatus": "Pending DP Invoice",
             "targetAssignedDivision": "Akuntan",
-            "targetNextActionDescription": "Revisi dan Unggah Ulang Faktur DP berdasarkan masukan dari Owner.",
+            "targetNextActionDescription": "Revisi dan Unggah Ulang Faktur DP",
             "targetProgress": 25,
             "notification": {
               "division": "Akuntan",
-              "message": "Faktur DP untuk proyek '{projectName}' perlu direvisi berdasarkan masukan dari {actorUsername}."
-            }
-          },
-          "rejected": {
-            "targetStatus": "Canceled",
-            "targetAssignedDivision": "",
-            "targetNextActionDescription": null,
-            "targetProgress": 30,
-            "notification": {
-              "division": "Admin Proyek",
-              "message": "Proyek '{projectName}' telah dibatalkan oleh {actorUsername} pada tahap persetujuan faktur DP."
+              "message": "Faktur DP untuk proyek '{projectName}' ditolak oleh {actorUsername}. Mohon direvisi."
             }
           }
         }
@@ -413,24 +403,14 @@
               "message": "Faktur DP untuk proyek '{projectName}' telah disetujui oleh {actorUsername}. Mohon unggah berkas administrasi."
             }
           },
-          "revise_dp": {
+          "rejected": {
             "targetStatus": "Pending DP Invoice",
             "targetAssignedDivision": "Akuntan",
-            "targetNextActionDescription": "Revisi dan Unggah Ulang Faktur DP berdasarkan masukan dari Owner.",
+            "targetNextActionDescription": "Revisi dan Unggah Ulang Faktur DP",
             "targetProgress": 25,
             "notification": {
               "division": "Akuntan",
-              "message": "Faktur DP untuk proyek '{projectName}' perlu direvisi berdasarkan masukan dari {actorUsername}."
-            }
-          },
-          "rejected": {
-            "targetStatus": "Canceled",
-            "targetAssignedDivision": "",
-            "targetNextActionDescription": null,
-            "targetProgress": 30,
-            "notification": {
-              "division": "Admin Proyek",
-              "message": "Proyek '{projectName}' telah dibatalkan oleh {actorUsername} pada tahap persetujuan faktur DP."
+              "message": "Faktur DP untuk proyek '{projectName}' ditolak oleh {actorUsername}. Mohon direvisi."
             }
           }
         }
@@ -615,5 +595,4 @@
       }
     ]
   }
-
-    
+]
