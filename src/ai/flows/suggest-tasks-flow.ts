@@ -7,7 +7,7 @@
  * - SuggestTasksOutput - The return type for the suggestTasks function.
  */
 
-import {ai} from '@/ai/instance';
+import {ai} from '@/ai/ai-instance';
 import {z} from 'zod';
 
 export const SuggestTasksInputSchema = z.object({
