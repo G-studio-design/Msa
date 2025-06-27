@@ -1832,5 +1832,13 @@
     "message": "Proyek baru \"proyek test 2\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
     "timestamp": "2025-06-26T18:59:35.262Z",
     "isRead": false
+  },
+  {
+    "id": "notif_1751040339906_7yvf9_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1751040339851_2785s",
+    "message": "Proyek baru \"proyek kesambi\" telah dibuat oleh komangmerta dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-27T16:05:39.904Z",
+    "isRead": false
   }
 ]

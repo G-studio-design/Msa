@@ -48,5 +48,30 @@
     "files": [],
     "createdAt": "2025-06-26T18:59:35.228Z",
     "createdBy": "sudina"
+  },
+  {
+    "id": "project_1751040339851_2785s",
+    "title": "proyek kesambi",
+    "status": "Pending Offer",
+    "progress": 10,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Unggah Dokumen Penawaran",
+    "workflowId": "msa_workflow",
+    "workflowHistory": [
+      {
+        "division": "komangmerta",
+        "action": "Created Project with workflow: msa_workflow",
+        "timestamp": "2025-06-27T16:05:39.851Z",
+        "note": "Initial files: 0"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
+        "timestamp": "2025-06-27T16:05:39.851Z"
+      }
+    ],
+    "files": [],
+    "createdAt": "2025-06-27T16:05:39.851Z",
+    "createdBy": "komangmerta"
   }
 ]

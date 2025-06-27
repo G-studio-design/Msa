@@ -43,7 +43,6 @@ import {
   Check,
   FileLock,
   Sparkles,
-  ListChecks,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -97,7 +96,6 @@ import { cn } from '@/lib/utils';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ToastAction } from '@/components/ui/toast';
-import { suggestTasks } from '@/ai/flows/suggest-tasks-flow';
 
 
 const defaultGlobalDict = getDictionary('en');
@@ -132,7 +130,7 @@ interface GroupedHistoryItem {
     files: FileEntry[];
 }
 
-const finalDocRequirements = ['Berita Acara', 'SKRD', 'Ijin Terbit', 'Dokumen Final', 'Tanda Terima'];
+const finalDocRequirements = ['Dokumen Final', 'Berita Acara', 'SKRD', 'Ijin Terbit', 'Tanda Terima'];
 
 
 export default function ProjectsPage() {
@@ -194,9 +192,6 @@ export default function ProjectsPage() {
   const [isRescheduleFromParallelDialogOpen, setIsRescheduleFromParallelDialogOpen] = React.useState(false);
   const [rescheduleFromParallelNote, setRescheduleFromParallelNote] = React.useState('');
   
-  const [isSuggestingTasks, setIsSuggestingTasks] = React.useState(false);
-  const [suggestedTasks, setSuggestedTasks] = React.useState<string[] | null>(null);
-
 
   // FIX: Extract search param value outside useEffect
   const projectIdFromUrl = searchParams.get('projectId');
@@ -248,7 +243,6 @@ export default function ProjectsPage() {
                   setRevisionNote('');
                   setInitialImageFiles([]);
                   setInitialImageDescription('');
-                  setSuggestedTasks(null); // Clear AI suggestions
               } else {
                   console.warn(`Project with ID "${projectIdFromUrl}" from URL not found.`);
                   if(isClient && projectsDict?.toast?.error && projectsDict?.toast?.projectNotFound) {
@@ -416,7 +410,7 @@ export default function ProjectsPage() {
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = Clock; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Clock; break;
-        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles':  case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs':  case 'menungudokkonsultasi': case 'pendingreview':  case 'menunggutinjauan': case 'pendingfinaldocuments': variant = 'secondary'; Icon = Clock; break;
+        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles': case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs': case 'menungudokkonsultasi': case 'pendingreview': case 'menunggutinjauan': case 'pendingfinaldocuments': variant = 'secondary'; Icon = Clock; break;
         case 'pendingparalleldesignuploads': variant = 'secondary'; className = `${className} bg-indigo-500 text-white dark:bg-indigo-600 dark:text-primary-foreground hover:bg-indigo-600 dark:hover:bg-indigo-700`; Icon = Shield; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarClock; break;
         case 'surveyscheduled': variant = 'secondary'; className = `${className} bg-cyan-500 text-white dark:bg-cyan-600 dark:text-primary-foreground hover:bg-cyan-600 dark:hover:bg-cyan-700`; Icon = MapPin; break;
@@ -1205,28 +1199,6 @@ export default function ProjectsPage() {
         return selectedProject.status === 'Pending Final Documents' && (currentUser.role === 'Admin Proyek' || currentUser.role === 'Owner');
     }, [selectedProject, currentUser]);
 
-    const handleSuggestTasks = React.useCallback(async () => {
-        if (!selectedProject) return;
-        setIsSuggestingTasks(true);
-        setSuggestedTasks(null);
-        try {
-            const result = await suggestTasks({
-                projectTitle: selectedProject.title,
-                projectStatus: selectedProject.status,
-            });
-            setSuggestedTasks(result.tasks);
-        } catch (error) {
-            console.error("Error suggesting tasks:", error);
-            toast({
-                variant: 'destructive',
-                title: projectsDict.toast.error,
-                description: "Failed to get AI task suggestions."
-            });
-        } finally {
-            setIsSuggestingTasks(false);
-        }
-    }, [selectedProject, toast, projectsDict]);
-
     if (!isClient || !currentUser || (isLoadingProjects && !selectedProject && !projectIdFromUrl)) {
         return (
             <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
@@ -1612,32 +1584,6 @@ export default function ProjectsPage() {
                         </CardContent>
                     </Card>
                   )}
-                
-                {(suggestedTasks || isSuggestingTasks) && (
-                    <Card className="mb-6 shadow-md">
-                        <CardHeader className="p-4 sm:p-6">
-                            <CardTitle>AI Task Suggestions</CardTitle>
-                            <CardDescription>Here are some tasks AI suggests for the '{project.status}' stage.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-4 sm:p-6 pt-0">
-                            {isSuggestingTasks ? (
-                                <div className="flex items-center gap-2 text-muted-foreground">
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                    <span>Generating suggestions...</span>
-                                </div>
-                            ) : (
-                                <ul className="space-y-2">
-                                    {suggestedTasks?.map((task, index) => (
-                                        <li key={index} className="flex items-center gap-2">
-                                            <ListChecks className="h-4 w-4 text-primary" />
-                                            <span>{task}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </CardContent>
-                    </Card>
-                )}
 
 
                 <Card className="shadow-md">
@@ -1646,14 +1592,6 @@ export default function ProjectsPage() {
                         <CardDescription>{project.nextAction || projectsDict.none}</CardDescription>
                     </CardHeader>
                    <CardContent className="p-4 sm:p-6 pt-0">
-                        {canPerformSelectedProjectAction && !['Completed', 'Canceled'].includes(project.status) && (
-                            <div className="border-b pb-4 mb-4">
-                                <Button onClick={handleSuggestTasks} disabled={isSuggestingTasks} variant="outline">
-                                    <Sparkles className="mr-2 h-4 w-4" />
-                                    {isSuggestingTasks ? "Generating..." : "Suggest Tasks with AI"}
-                                </Button>
-                            </div>
-                        )}
                       {showDivisionalChecklist && (
                         <div className="space-y-4 border-t pt-4 mt-4">
                             <h3 className="text-lg font-semibold">{`Checklist Unggahan Divisi Anda (${getTranslatedStatus(currentUser.role)})`}</h3>
