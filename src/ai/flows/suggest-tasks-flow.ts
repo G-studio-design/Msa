@@ -3,25 +3,15 @@
  * @fileOverview An AI flow to suggest tasks for a project stage.
  *
  * - suggestTasks - A function that suggests actionable tasks based on the project's title and status.
- * - SuggestTasksInput - The input type for the suggestTasks function.
- * - SuggestTasksOutput - The return type for the suggestTasks function.
  */
 
 import {ai} from '@/ai/ai-instance';
-import {z} from 'zod';
-
-export const SuggestTasksInputSchema = z.object({
-  projectTitle: z.string().describe('The title of the project.'),
-  projectStatus: z.string().describe('The current status or stage of the project.'),
-});
-export type SuggestTasksInput = z.infer<typeof SuggestTasksInputSchema>;
-
-export const SuggestTasksOutputSchema = z.object({
-  tasks: z
-    .array(z.string().describe('A single, actionable task suggestion.'))
-    .describe('A list of suggested tasks.'),
-});
-export type SuggestTasksOutput = z.infer<typeof SuggestTasksOutputSchema>;
+import {
+  SuggestTasksInputSchema,
+  SuggestTasksOutputSchema,
+  type SuggestTasksInput,
+  type SuggestTasksOutput,
+} from '@/ai/types/suggest-tasks-types'; // Import from the new types file
 
 const suggestTasksPrompt = ai.definePrompt({
   name: 'suggestTasksPrompt',
@@ -47,6 +37,7 @@ const suggestTasksFlow = ai.defineFlow(
   }
 );
 
+// This is now the ONLY export from this file.
 export async function suggestTasks(input: SuggestTasksInput): Promise<SuggestTasksOutput> {
     return suggestTasksFlow(input);
 }
