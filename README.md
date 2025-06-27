@@ -4,6 +4,19 @@ This is a NextJS starter in Firebase Studio.
 
 To get started, take a look at src/app/page.tsx.
 
+## Prerequisites
+
+Before you can run this application locally, you'll need to have a few essential tools installed on your computer.
+
+1.  **Node.js**: This is the runtime environment that allows you to run JavaScript code outside of a web browser. This project requires it to build and run.
+    *   **Recommendation**: Download and install the **LTS (Long-Term Support)** version from the official [Node.js website](https://nodejs.org/). The LTS version is the most stable and is recommended for most users.
+
+2.  **npm (Node Package Manager)**: npm is the package manager for Node.js. It's used to install the libraries and tools this project depends on.
+    *   **Installation**: npm is automatically installed when you install Node.js, so you don't need to install it separately.
+
+3.  **A Code Editor**: While you can use any text editor, a modern code editor will provide features like syntax highlighting and code completion, making development much easier.
+    *   **Recommendation**: We highly recommend using [Visual Studio Code](https://code.visualstudio.com/), which is a free and powerful editor popular for web development.
+
 ## Running Locally
 
 To run this application on your local machine, follow these steps:
