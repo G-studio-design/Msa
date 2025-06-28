@@ -1,5 +1,77 @@
 [
   {
+    "id": "notif_1751112735874_dt4q4_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan ulang oleh arsitek. Alasan: klien tidak ada. Mohon periksa jadwal baru.",
+    "timestamp": "2025-06-28T12:12:15.872Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1751112735855_isubt_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan ulang oleh arsitek. Alasan: klien tidak ada. Mohon periksa jadwal baru.",
+    "timestamp": "2025-06-28T12:12:15.854Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1751112735839_muk44_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan ulang oleh arsitek. Alasan: klien tidak ada. Mohon periksa jadwal baru.",
+    "timestamp": "2025-06-28T12:12:15.836Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1751110700956_7rty5_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan pada Sabtu, 28 Juni 2025 pukul 19:39 oleh arsitek.",
+    "timestamp": "2025-06-28T11:38:20.955Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1751110700946_27dor_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan pada Sabtu, 28 Juni 2025 pukul 19:39 oleh arsitek.",
+    "timestamp": "2025-06-28T11:38:20.945Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1751110700936_qhy16_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan pada Sabtu, 28 Juni 2025 pukul 19:39 oleh arsitek.",
+    "timestamp": "2025-06-28T11:38:20.933Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1751109487919_62tgk_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan ulang oleh arsitek. Alasan: bad wheather. Mohon periksa jadwal baru.",
+    "timestamp": "2025-06-28T11:18:07.916Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1751109487907_lycoz_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan ulang oleh arsitek. Alasan: bad wheather. Mohon periksa jadwal baru.",
+    "timestamp": "2025-06-28T11:18:07.906Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1751109487892_7furp_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan ulang oleh arsitek. Alasan: bad wheather. Mohon periksa jadwal baru.",
+    "timestamp": "2025-06-28T11:18:07.890Z",
+    "isRead": false
+  },
+  {
     "id": "notif_1751108435552_aiyg1_ubw",
     "userId": "usr_1747633709593_uxubw",
     "projectId": "project_1751102866774_5uayv",

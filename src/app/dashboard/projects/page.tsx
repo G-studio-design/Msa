@@ -96,6 +96,12 @@ import { cn } from '@/lib/utils';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ToastAction } from '@/components/ui/toast';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 
 const defaultGlobalDict = getDictionary('en');
@@ -1031,10 +1037,19 @@ export default function ProjectsPage() {
     }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
 
    const showOwnerDecisionSection = React.useMemo(() => {
-    if (!selectedProject || !currentUser || !canPerformSelectedProjectAction) return false;
-    return selectedProject.status === 'Pending Approval' && currentUser.role === 'Owner' && 
-           (selectedProject.progress === 20 || selectedProject.progress === 30); 
-   },[selectedProject, currentUser, canPerformSelectedProjectAction]);
+    if (!selectedProject || !currentUser) return false;
+    
+    // Check if the user is an Owner and can perform the action
+    if (currentUser.role !== 'Owner' || !canPerformSelectedProjectAction) {
+        return false;
+    }
+    
+    // Check if the project is in the specific "Pending Approval" state
+    const isOfferApproval = selectedProject.status === 'Pending Approval' && selectedProject.progress === 20;
+    const isDPInvoiceApproval = selectedProject.status === 'Pending Approval' && selectedProject.progress === 30;
+    
+    return isOfferApproval || isDPInvoiceApproval;
+},[selectedProject, currentUser, canPerformSelectedProjectAction]);
 
    const showSchedulingSection = React.useMemo(() => {
         if (!selectedProject || !currentUser) return false;
@@ -1046,28 +1061,17 @@ export default function ProjectsPage() {
     },[selectedProject, currentUser, canPerformSelectedProjectAction]);
 
     const showSurveyDetailsInputSection = React.useMemo(() => {
-        if (!selectedProject || !currentUser) return false;
-        const userRoleCleaned = currentUser.role.trim();
-        return selectedProject.status === 'Pending Survey Details' &&
-               (
-                   userRoleCleaned === 'Admin Proyek' ||
-                   userRoleCleaned === 'Arsitek'
-               );
+      if (!selectedProject || !currentUser) return false;
+      const userRoleCleaned = currentUser.role.trim();
+      const canTakeAction = userRoleCleaned === 'Admin Proyek' || userRoleCleaned === 'Arsitek';
+      return selectedProject.status === 'Pending Survey Details' && canTakeAction;
     }, [selectedProject, currentUser]);
 
     const showSurveyCompletionSection = React.useMemo(() => {
         if (!selectedProject || !currentUser) return false;
         const userRoleCleaned = currentUser.role.trim();
-        const now = new Date();
-        const surveyDate = selectedProject.surveyDetails?.date ? new Date(`${selectedProject.surveyDetails.date}T${selectedProject.surveyDetails.time || '00:00:00'}`) : null;
-        
-        // According to the workflow, Admin Proyek is responsible for confirming the survey.
-        // Architect might also be involved in uploading reports.
-        const canCompleteSurvey = userRoleCleaned === 'Admin Proyek' || userRoleCleaned === 'Arsitek';
-
-        return selectedProject.status === 'Survey Scheduled' &&
-               (surveyDate && now >= surveyDate) && 
-               canCompleteSurvey;
+        const canTakeAction = userRoleCleaned === 'Admin Proyek' || userRoleCleaned === 'Arsitek';
+        return selectedProject.status === 'Survey Scheduled' && canTakeAction;
     }, [selectedProject, currentUser]);
 
 
@@ -1368,6 +1372,10 @@ export default function ProjectsPage() {
                 </Card>
             </div>
        );
+       
+       const surveyDate = project.surveyDetails?.date ? new Date(`${project.surveyDetails.date}T${project.surveyDetails.time || '00:00:00'}`) : null;
+       const isSurveyDatePassed = surveyDate && new Date() >= surveyDate;
+
 
        const renderChecklistItem = (item: ChecklistItem) => {
           const canAdminDelete = currentUser?.role === 'Admin Proyek' || currentUser?.role === 'Owner' || currentUser?.role === 'Admin Developer';
@@ -1764,40 +1772,56 @@ export default function ProjectsPage() {
                                      </div>
                                   )}
                                 <div className="flex flex-col sm:flex-row gap-2">
-                                  <Button onClick={handleSurveyCompletionSubmit} disabled={isSubmitting} className="w-full sm:w-auto accent-teal">
-                                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
-                                      {isSubmitting ? projectsDict.submittingButton : projectsDict.surveyCompletion.confirmButton}
-                                  </Button>
-                                  {project.status === 'Survey Scheduled' && (
-                                    <Dialog open={isRescheduleDialogOpen} onOpenChange={setIsRescheduleDialogOpen}>
-                                        <DialogTrigger asChild>
-                                            <Button variant="outline" disabled={isSubmitting}><RefreshCw className="mr-2 h-4 w-4"/>{projectsDict.rescheduleSurveyDialog.buttonText}</Button>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                            <DialogHeader>
-                                                <DialogTitle>{projectsDict.rescheduleSurveyDialog.title}</DialogTitle>
-                                                <DialogDescription>{projectsDict.rescheduleSurveyDialog.description}</DialogDescription>
-                                            </DialogHeader>
-                                            <div className="grid gap-4 py-4">
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div><Label htmlFor="reschedule-date">{projectsDict.dateLabel}</Label><Input id="reschedule-date" type="date" value={rescheduleDate} onChange={(e) => setRescheduleDate(e.target.value)} disabled={isSubmitting}/></div>
-                                                    <div><Label htmlFor="reschedule-time">{projectsDict.timeLabel}</Label><Input id="reschedule-time" type="time" value={rescheduleTime} onChange={(e) => setRescheduleTime(e.target.value)} disabled={isSubmitting}/></div>
-                                                </div>
-                                                <div>
-                                                    <Label htmlFor="reschedule-note">{projectsDict.rescheduleSurveyDialog.reasonLabel}</Label>
-                                                    <Textarea id="reschedule-note" placeholder={projectsDict.rescheduleSurveyDialog.reasonPlaceholder} value={rescheduleNote} onChange={(e) => setRescheduleNote(e.target.value)} disabled={isSubmitting}/>
-                                                </div>
-                                            </div>
-                                            <DialogFooter>
-                                                <Button variant="outline" onClick={() => setIsRescheduleDialogOpen(false)} disabled={isSubmitting}>{projectsDict.cancelButton}</Button>
-                                                <Button onClick={handleRescheduleSurveySubmit} disabled={isSubmitting || !rescheduleDate || !rescheduleTime || !rescheduleNote.trim()} className="accent-teal">
-                                                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
-                                                  {projectsDict.rescheduleSurveyDialog.confirmButton}
+                                  <TooltipProvider>
+                                    <Tooltip delayDuration={100}>
+                                        <TooltipTrigger asChild>
+                                            <div className="w-full sm:w-auto"> {/* Tooltip needs a non-disabled element wrapper for disabled state */}
+                                                <Button 
+                                                    onClick={handleSurveyCompletionSubmit} 
+                                                    disabled={isSubmitting || !isSurveyDatePassed} 
+                                                    className="w-full accent-teal"
+                                                >
+                                                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                                                    {isSubmitting ? projectsDict.submittingButton : projectsDict.surveyCompletion.confirmButton}
                                                 </Button>
-                                            </DialogFooter>
-                                        </DialogContent>
-                                    </Dialog>
-                                  )}
+                                            </div>
+                                        </TooltipTrigger>
+                                        {!isSurveyDatePassed && (
+                                            <TooltipContent>
+                                                <p>{`Tidak dapat konfirmasi sebelum tanggal survei: ${formatDateOnly(project.surveyDetails?.date)} @ ${project.surveyDetails?.time}`}</p>
+                                            </TooltipContent>
+                                        )}
+                                    </Tooltip>
+                                  </TooltipProvider>
+
+                                  <Dialog open={isRescheduleDialogOpen} onOpenChange={setIsRescheduleDialogOpen}>
+                                      <DialogTrigger asChild>
+                                          <Button variant="outline" disabled={isSubmitting}><RefreshCw className="mr-2 h-4 w-4"/>{projectsDict.rescheduleSurveyDialog.buttonText}</Button>
+                                      </DialogTrigger>
+                                      <DialogContent>
+                                          <DialogHeader>
+                                              <DialogTitle>{projectsDict.rescheduleSurveyDialog.title}</DialogTitle>
+                                              <DialogDescription>{projectsDict.rescheduleSurveyDialog.description}</DialogDescription>
+                                          </DialogHeader>
+                                          <div className="grid gap-4 py-4">
+                                              <div className="grid grid-cols-2 gap-4">
+                                                  <div><Label htmlFor="reschedule-date">{projectsDict.dateLabel}</Label><Input id="reschedule-date" type="date" value={rescheduleDate} onChange={(e) => setRescheduleDate(e.target.value)} disabled={isSubmitting}/></div>
+                                                  <div><Label htmlFor="reschedule-time">{projectsDict.timeLabel}</Label><Input id="reschedule-time" type="time" value={rescheduleTime} onChange={(e) => setRescheduleTime(e.target.value)} disabled={isSubmitting}/></div>
+                                              </div>
+                                              <div>
+                                                  <Label htmlFor="reschedule-note">{projectsDict.rescheduleSurveyDialog.reasonLabel}</Label>
+                                                  <Textarea id="reschedule-note" placeholder={projectsDict.rescheduleSurveyDialog.reasonPlaceholder} value={rescheduleNote} onChange={(e) => setRescheduleNote(e.target.value)} disabled={isSubmitting}/>
+                                              </div>
+                                          </div>
+                                          <DialogFooter>
+                                              <Button variant="outline" onClick={() => setIsRescheduleDialogOpen(false)} disabled={isSubmitting}>{projectsDict.cancelButton}</Button>
+                                              <Button onClick={handleRescheduleSurveySubmit} disabled={isSubmitting || !rescheduleDate || !rescheduleTime || !rescheduleNote.trim()} className="accent-teal">
+                                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin"/>}
+                                                {projectsDict.rescheduleSurveyDialog.confirmButton}
+                                              </Button>
+                                          </DialogFooter>
+                                      </DialogContent>
+                                  </Dialog>
                                 </div>
                             </div>
                         )}
