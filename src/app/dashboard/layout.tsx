@@ -93,13 +93,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const notifiedIds = useRef(new Set<string>());
 
-  const showSystemNotification = (title: string, body: string) => {
+  const showSystemNotification = (title: string, body: string, url: string) => {
     if ('Notification' in window && Notification.permission === 'granted') {
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then((registration) => {
           registration.showNotification(title, {
             body: body,
             icon: '/msarch-logo.png',
+            data: { url: url } // Pass the URL in the data payload
           });
         }).catch(err => {
             console.error("Service Worker registration not ready, cannot show notification:", err);
@@ -120,9 +121,20 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
         if (newUnreadNotifications.length > 0) {
             const firstNewNotif = newUnreadNotifications[0];
+
+            let targetUrl = '/dashboard';
+            if (firstNewNotif.projectId) {
+              targetUrl = `/dashboard/projects?projectId=${firstNewNotif.projectId}`;
+            } else if (firstNewNotif.message.toLowerCase().includes("izin") || firstNewNotif.message.toLowerCase().includes("leave")) {
+                if (currentUser?.role.trim() === 'Owner') {
+                    targetUrl = "/dashboard/admin-actions/leave-approvals";
+                }
+            }
+            
             showSystemNotification(
                 layoutDict.appTitle,
-                firstNewNotif.message
+                firstNewNotif.message,
+                targetUrl
             );
             newUnreadNotifications.forEach(n => notifiedIds.current.add(n.id));
         }

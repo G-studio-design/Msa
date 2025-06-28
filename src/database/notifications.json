@@ -1,5 +1,13 @@
 [
   {
+    "id": "notif_1751105691568_ffzkm_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Faktur DP untuk proyek 'proyek batur' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-28T10:14:51.567Z",
+    "isRead": false
+  },
+  {
     "id": "notif_1751102967363_az7bb_ue2",
     "userId": "usr_1747925369552_66ue2",
     "projectId": "project_1751102866774_5uayv",

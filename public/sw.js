@@ -1,43 +1,54 @@
 // public/sw.js
-'use strict';
 
-/**
- * A simple, robust service worker for handling client-side notifications.
- */
-
-// On install, activate immediately.
+// This event is fired when the service worker is installed.
 self.addEventListener('install', (event) => {
-  console.log('[SW] Service Worker installing.');
-  // Activate the new service worker as soon as it's installed.
+  console.log('[Service Worker] Install event fired.');
+  // The skipWaiting() method allows this service worker to activate
+  // as soon as it's finished installing.
   self.skipWaiting();
 });
 
-// On activation, take control of all open pages.
+// This event is fired when the service worker is activated.
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Service Worker activated.');
-  // Allows the activated service worker to take control of the page immediately.
+  console.log('[Service Worker] Activate event fired.');
+  // The clients.claim() method allows an active service worker to set itself
+  // as the controller for all clients within its scope.
   event.waitUntil(self.clients.claim());
 });
 
-// Handle notification clicks.
+// This is the core logic for handling notification clicks.
 self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] Notification click received.', event);
-  
+  console.log('[Service Worker] Notification click received.', event.notification);
+
   // Close the notification pop-up.
   event.notification.close();
 
-  // Focus the existing app window/tab or open a new one.
+  // Retrieve the URL from the notification's data payload.
+  // Fallback to the root if no URL is provided.
+  const urlToOpen = new URL(event.notification.data?.url || '/', self.location.origin).href;
+
+  // This function searches for an existing window/tab with the app's URL
+  // and focuses it if found. If not, it opens a new one.
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // If there's an open window for this app, focus it.
+    self.clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true,
+    }).then((clientList) => {
+      // If a window for the app is already open, focus it and navigate to the URL.
       for (const client of clientList) {
-        if (client.url === '/' && 'focus' in client) {
+        if (client.url.startsWith(self.location.origin) && 'focus' in client) {
+          console.log('[Service Worker] Found an existing client, focusing and navigating.');
+          // Navigate the existing client to the correct URL before focusing.
+          if (client.navigate) {
+            client.navigate(urlToOpen);
+          }
           return client.focus();
         }
       }
-      // Otherwise, open a new window.
-      if (clients.openWindow) {
-        return clients.openWindow('/');
+      // If no window is found, open a new one to the correct URL.
+      console.log('[Service Worker] No existing client found, opening a new one to:', urlToOpen);
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(urlToOpen);
       }
     })
   );
