@@ -1,186 +1,1684 @@
 [
   {
-    "id": "notif_1747634871386_d0245",
-    "userId": "usr_owner_default",
-    "projectId": "project_1747634871321_k9863",
-    "message": "Penawaran untuk proyek 'proyek A' telah diajukan dan menunggu persetujuan Anda.",
-    "timestamp": "2025-05-19T06:07:51.385Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1747635360419_jdhcn",
-    "userId": "usr_owner_default",
-    "projectId": "project_1747634871321_k9863",
-    "message": "Penawaran untuk proyek 'proyek A' telah diajukan dan menunggu persetujuan Anda.",
-    "timestamp": "2025-05-19T06:16:00.419Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1747798488030_1sls8",
-    "userId": "usr_owner_default",
-    "projectId": "project_1747798488006_76uua",
-    "message": "Penawaran untuk proyek 'proyek B' telah diajukan dan menunggu persetujuan Anda.",
-    "timestamp": "2025-05-21T03:34:48.029Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1747799510111_k0v9h",
-    "userId": "usr_owner_default",
-    "projectId": "project_1747798488006_76uua",
-    "message": "Penawaran untuk proyek 'proyek B' telah diajukan dan menunggu persetujuan Anda.",
-    "timestamp": "2025-05-21T03:51:50.111Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1747803291042_obqo9",
-    "userId": "usr_admin_akuntan_default",
-    "projectId": "project_1747798488006_76uua",
-    "message": "Penawaran untuk proyek 'proyek B' telah disetujui. Mohon buat faktur DP.",
-    "timestamp": "2025-05-21T04:54:51.041Z",
+    "id": "notif_1751102967363_az7bb_ue2",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Penawaran untuk proyek 'proyek batur' telah disetujui oleh sudina. Mohon buat faktur DP.",
+    "timestamp": "2025-06-28T09:29:27.362Z",
     "isRead": false
   },
   {
-    "id": "notif_1747804014905_aouks",
+    "id": "notif_1751102926090_7coi6_ult",
     "userId": "usr_owner_default",
-    "projectId": "project_1747798488006_76uua",
-    "message": "Faktur DP untuk proyek 'proyek B' telah diajukan dan menunggu persetujuan Anda.",
-    "timestamp": "2025-05-21T05:06:54.904Z",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Penawaran untuk proyek 'proyek batur' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-28T09:28:46.086Z",
     "isRead": true
   },
   {
-    "id": "notif_1747804067200_64pvx",
-    "userId": "usr_admin_proyek_default",
-    "projectId": "project_1747798488006_76uua",
-    "message": "Faktur DP untuk proyek 'proyek B' telah disetujui. Mohon unggah berkas administrasi.",
-    "timestamp": "2025-05-21T05:07:47.200Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1747804067201_z047g",
+    "id": "notif_1751102866816_vellu_22a",
     "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1747798488006_76uua",
-    "message": "Faktur DP untuk proyek 'proyek B' telah disetujui. Mohon unggah berkas administrasi.",
-    "timestamp": "2025-05-21T05:07:47.200Z",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Proyek baru \"proyek batur\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-28T09:27:46.813Z",
     "isRead": true
   },
   {
-    "id": "notif_1747804132884_lojjn",
+    "id": "notif_1751102097510_n0u0j_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1751040339851_2785s",
+    "message": "Penawaran untuk proyek 'proyek kesambi' telah dibatalkan oleh sudina.",
+    "timestamp": "2025-06-28T09:14:57.497Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1751101783100_mssnd_ult",
     "userId": "usr_owner_default",
-    "projectId": "project_1747804132877_ydc0n",
-    "message": "Penawaran untuk proyek 'proyek c' telah diajukan dan menunggu persetujuan Anda.",
-    "timestamp": "2025-05-21T05:08:52.884Z",
+    "projectId": "project_1751040339851_2785s",
+    "message": "Penawaran untuk proyek 'proyek kesambi' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-28T09:09:43.098Z",
     "isRead": true
   },
   {
-    "id": "notif_1747804168605_newbx",
+    "id": "notif_1751040339906_7yvf9_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1751040339851_2785s",
+    "message": "Proyek baru \"proyek kesambi\" telah dibuat oleh komangmerta dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-27T16:05:39.904Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750964375265_tai5u_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750964375228_tepdu",
+    "message": "Proyek baru \"proyek test 2\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-26T18:59:35.262Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750963984635_7dvje_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750963984596_1k65q",
+    "message": "Proyek baru \"proyek test\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-26T18:53:04.634Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750962160839_az806_ult",
     "userId": "usr_owner_default",
-    "projectId": "project_1747804168591_0o9yj",
-    "message": "Penawaran untuk proyek 'proyek d' telah diajukan dan menunggu persetujuan Anda.",
-    "timestamp": "2025-05-21T05:09:28.605Z",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Proyek 'proyek kuta' telah selesai dengan semua dokumen akhir terunggah oleh komangmerta.",
+    "timestamp": "2025-06-26T18:22:40.837Z",
     "isRead": true
   },
   {
-    "id": "notif_1747804235932_m5cuv",
+    "id": "notif_1750962076783_n6i8x_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Revisi pasca-sidang untuk proyek 'proyek kuta' telah selesai. Mohon unggah dokumen akhir.",
+    "timestamp": "2025-06-26T18:21:16.782Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750962055207_jhbh9_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Divisi Struktur telah menyelesaikan unggahan mereka untuk proyek \"proyek kuta\".",
+    "timestamp": "2025-06-26T18:20:55.205Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750962039447_6lyog_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek kuta\".",
+    "timestamp": "2025-06-26T18:20:39.446Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750962003127_1y8rz_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Divisi Struktur telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek kuta\" oleh komangmerta.",
+    "timestamp": "2025-06-26T18:20:03.125Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750961935619_a5d1v_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Proyek 'proyek kuta' memerlukan revisi setelah sidang yang dinyatakan oleh sudina.",
+    "timestamp": "2025-06-26T18:18:55.618Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750961912429_1bnt2_ult",
     "userId": "usr_owner_default",
-    "projectId": "project_1747804235922_s7npg",
-    "message": "Penawaran untuk proyek 'proyek f' telah diajukan dan menunggu persetujuan Anda.",
-    "timestamp": "2025-05-21T05:10:35.932Z",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Sidang untuk proyek 'proyek kuta' telah dijadwalkan oleh sudina. Mohon nyatakan hasilnya setelah selesai.",
+    "timestamp": "2025-06-26T18:18:32.428Z",
     "isRead": true
   },
   {
-    "id": "notif_1747805204691_tfrgs",
-    "userId": "usr_admin_proyek_default",
-    "projectId": "project_1747805204677_u0k9e",
-    "message": "Proyek baru 'proyek g' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-05-21T05:26:44.691Z",
+    "id": "notif_1750961854648_wgby8_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Sidang untuk proyek 'proyek kuta' perlu dijadwalkan ulang oleh Anda atas permintaan dari sudina.",
+    "timestamp": "2025-06-26T18:17:34.646Z",
     "isRead": false
   },
   {
-    "id": "notif_1747805204691_jxdap",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1747805204677_u0k9e",
-    "message": "Proyek baru 'proyek g' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-05-21T05:26:44.691Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1747806999723_3ryhb",
-    "userId": "usr_admin_proyek_default",
-    "projectId": "project_1747806999711_8ultt",
-    "message": "Proyek baru 'proyek h' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-05-21T05:56:39.722Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1747806999723_4qupe",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1747806999711_8ultt",
-    "message": "Proyek baru 'proyek h' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-05-21T05:56:39.722Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1747807865003_6qkih",
-    "userId": "usr_admin_proyek_default",
-    "projectId": "project_1747807864992_pn1cp",
-    "message": "Proyek baru 'proyek I' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-05-21T06:11:05.003Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1747807865003_9ipfw",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1747807864992_pn1cp",
-    "message": "Proyek baru 'proyek I' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-05-21T06:11:05.003Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1747808480683_c55ly",
-    "userId": "usr_admin_proyek_default",
-    "projectId": "project_1747808480674_o5ldl",
-    "message": "Proyek baru 'proyek villa canggu' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-05-21T06:21:20.683Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1747808480683_5741o",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1747808480674_o5ldl",
-    "message": "Proyek baru 'proyek villa canggu' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-05-21T06:21:20.683Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1747808596365_7qu0r",
+    "id": "notif_1750961813146_esjji_ult",
     "userId": "usr_owner_default",
-    "projectId": "project_1747808480674_o5ldl",
-    "message": "Penawaran untuk proyek 'proyek villa canggu' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
-    "timestamp": "2025-05-21T06:23:16.364Z",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Sidang untuk proyek 'proyek kuta' telah dijadwalkan oleh sudina. Mohon nyatakan hasilnya setelah selesai.",
+    "timestamp": "2025-06-26T18:16:53.146Z",
     "isRead": true
   },
   {
-    "id": "notif_1748064025991_cbzmb",
-    "userId": "usr_admin_proyek_default",
-    "projectId": "project_1748064025980_k6s3m",
-    "message": "Proyek baru 'proyek hotel seminyak' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-05-24T05:20:25.991Z",
+    "id": "notif_1750961631630_cgdw7_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Semua berkas desain untuk proyek 'proyek kuta' telah dikonfirmasi terunggah oleh komangmerta. Mohon jadwalkan sidang.",
+    "timestamp": "2025-06-26T18:13:51.629Z",
     "isRead": false
   },
   {
-    "id": "notif_1748064025991_leket",
+    "id": "notif_1750961614518_dy5v4_22a",
     "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1748064025980_k6s3m",
-    "message": "Proyek baru 'proyek hotel seminyak' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-05-24T05:20:25.991Z",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Divisi MEP telah menyelesaikan unggahan mereka untuk proyek \"proyek kuta\".",
+    "timestamp": "2025-06-26T18:13:34.516Z",
     "isRead": true
   },
   {
-    "id": "notif_1748064089626_eka88",
+    "id": "notif_1750961607751_bbkpy_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "MEP baru saja mengunggah file untuk proyek \"proyek kuta\".",
+    "timestamp": "2025-06-26T18:13:27.749Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750961554271_w0jv8_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek kuta\".",
+    "timestamp": "2025-06-26T18:12:34.266Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750961516971_fq7ri_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Arsitek baru saja mengunggah file untuk proyek \"proyek kuta\".",
+    "timestamp": "2025-06-26T18:11:56.967Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750961489238_yor67_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Survey proyek 'proyek kuta' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T18:11:29.236Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750961489231_klfje_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Survey proyek 'proyek kuta' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T18:11:29.229Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750961489223_6rq0w_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Survey proyek 'proyek kuta' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T18:11:29.221Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750961489214_qiog8_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Survey proyek 'proyek kuta' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T18:11:29.213Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750961429736_rdu09_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Proyek 'proyek villa di tanah lot' telah selesai dengan semua dokumen akhir terunggah oleh komangmerta.",
+    "timestamp": "2025-06-26T18:10:29.734Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750961337075_3tdw2_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Survei untuk proyek 'proyek kuta' telah dijadwalkan pada Jumat, 27 Juni 2025 pukul 02:09 oleh sudina.",
+    "timestamp": "2025-06-26T18:08:57.074Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750961337064_l10de_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Survei untuk proyek 'proyek kuta' telah dijadwalkan pada Jumat, 27 Juni 2025 pukul 02:09 oleh sudina.",
+    "timestamp": "2025-06-26T18:08:57.063Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750961337059_p9lpo_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Survei untuk proyek 'proyek kuta' telah dijadwalkan pada Jumat, 27 Juni 2025 pukul 02:09 oleh sudina.",
+    "timestamp": "2025-06-26T18:08:57.057Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750961326154_utkq3_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Berkas administrasi untuk 'proyek kuta' lengkap. Mohon jadwalkan survei.",
+    "timestamp": "2025-06-26T18:08:46.152Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750961326142_9fl90_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Berkas administrasi untuk 'proyek kuta' lengkap. Mohon jadwalkan survei.",
+    "timestamp": "2025-06-26T18:08:46.141Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750961326136_lsnz0_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Berkas administrasi untuk 'proyek kuta' lengkap. Mohon jadwalkan survei.",
+    "timestamp": "2025-06-26T18:08:46.132Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750961171193_oj5r3_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Faktur DP untuk proyek 'proyek kuta' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-06-26T18:06:11.192Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750961159224_69zaa_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Faktur DP untuk proyek 'proyek kuta' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-26T18:05:59.223Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750961116938_8x2ge_ue2",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Penawaran untuk proyek 'proyek kuta' telah disetujui oleh sudina. Mohon buat faktur DP.",
+    "timestamp": "2025-06-26T18:05:16.937Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750961048619_369j4_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Penawaran untuk proyek 'proyek kuta' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-26T18:04:08.617Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750960484990_cespm_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Revisi pasca-sidang untuk proyek 'proyek villa di tanah lot' telah selesai. Mohon unggah dokumen akhir.",
+    "timestamp": "2025-06-26T17:54:44.988Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750960471291_ltj24_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:54:31.289Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750960410168_99m54_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Divisi Struktur telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek villa di tanah lot\" oleh komangmerta.",
+    "timestamp": "2025-06-26T17:53:30.167Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750960293042_ohqvy_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "MEP baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:51:33.041Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750960266799_h6k31_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:51:06.798Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750960235054_z71bp_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Arsitek baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:50:35.052Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750959781566_zqddz_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "MEP baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:43:01.565Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750959764882_9fcgy_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:42:44.881Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750959750267_370vu_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Arsitek baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:42:30.265Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750959612940_ezy1b_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_demo_aktif_001",
+    "message": "Proyek \"Proyek Renovasi Kantor Pusat\" telah diperbarui secara manual oleh komangmerta. Status baru: \"Pending Admin Files\", Ditugaskan ke: \"Admin Proyek\". Tindakan berikutnya: Unggah Berkas Administrasi. Alasan: untuk demo",
+    "timestamp": "2025-06-26T17:40:12.939Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958934109_dfv5r_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Divisi MEP telah menyelesaikan unggahan mereka untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:28:54.103Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750958929279_499ol_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Divisi Struktur telah menyelesaikan unggahan mereka untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:28:49.278Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958924480_l3do9_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Divisi Arsitek telah menyelesaikan unggahan mereka untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:28:44.479Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958921228_celko_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Arsitek baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:28:41.226Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958902772_zvzcy_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:28:22.771Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958886440_56cyd_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "MEP baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:28:06.439Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958591374_4x7ve_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Proyek 'proyek villa di tanah lot' memerlukan revisi setelah sidang yang dinyatakan oleh sudina.",
+    "timestamp": "2025-06-26T17:23:11.371Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750958556912_aeeqx_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Sidang untuk proyek 'proyek villa di tanah lot' telah dijadwalkan oleh sudina. Mohon nyatakan hasilnya setelah selesai.",
+    "timestamp": "2025-06-26T17:22:36.907Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750958542141_d98q5_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Sidang untuk proyek 'proyek villa di tanah lot' perlu dijadwalkan ulang oleh Anda atas permintaan dari sudina.",
+    "timestamp": "2025-06-26T17:22:22.140Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958483654_llfmf_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Sidang untuk proyek 'proyek villa di tanah lot' telah dijadwalkan oleh komangmerta. Mohon nyatakan hasilnya setelah selesai.",
+    "timestamp": "2025-06-26T17:21:23.652Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750958464204_58ig1_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Semua berkas desain untuk proyek 'proyek villa di tanah lot' telah dikonfirmasi terunggah oleh komangmerta. Mohon jadwalkan sidang.",
+    "timestamp": "2025-06-26T17:21:04.204Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958443035_a8in6_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Divisi MEP telah menyelesaikan unggahan mereka untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:20:43.028Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750958436522_6ff9d_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "MEP baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:20:36.522Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750957516731_snl4h_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Divisi Arsitek telah menyelesaikan unggahan mereka untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:05:16.727Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750957384791_x3vor_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Divisi Struktur telah menyelesaikan unggahan mereka untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:03:04.789Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750957383108_vsduh_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:03:03.104Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750957302846_vfwy7_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Arsitek baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
+    "timestamp": "2025-06-26T17:01:42.843Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750957141782_y2gj8_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T16:59:01.780Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750957141773_agyad_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T16:59:01.770Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750957141756_s57k9_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T16:59:01.752Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750957141740_b3fjw_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T16:59:01.736Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750956607115_ulkkf_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada Jumat, 27 Juni 2025 pukul 00:51 oleh arsitek.",
+    "timestamp": "2025-06-26T16:50:07.114Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750956607109_vacgo_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada Jumat, 27 Juni 2025 pukul 00:51 oleh arsitek.",
+    "timestamp": "2025-06-26T16:50:07.105Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750956607099_5s6hw_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada Jumat, 27 Juni 2025 pukul 00:51 oleh arsitek.",
+    "timestamp": "2025-06-26T16:50:07.094Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750956322821_qea2d_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Proyek 'proyek villa di tanah lot' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: gagal",
+    "timestamp": "2025-06-26T16:45:22.820Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750956322813_kdkwb_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Proyek 'proyek villa di tanah lot' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: gagal",
+    "timestamp": "2025-06-26T16:45:22.810Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750956322788_jsokw_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Proyek 'proyek villa di tanah lot' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: gagal",
+    "timestamp": "2025-06-26T16:45:22.784Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750956303450_0o4tt_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T16:45:03.447Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750956303442_yukmi_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T16:45:03.441Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750956303438_da19v_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T16:45:03.436Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750956303428_xiwv4_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T16:45:03.426Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750955975069_4p2vt_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada {surveyDate} oleh arsitek.",
+    "timestamp": "2025-06-26T16:39:35.069Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750955975064_42c7j_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada {surveyDate} oleh arsitek.",
+    "timestamp": "2025-06-26T16:39:35.064Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750955975060_cs5c7_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada {surveyDate} oleh arsitek.",
+    "timestamp": "2025-06-26T16:39:35.059Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750955927286_y5rg2_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Berkas administrasi untuk 'proyek villa di tanah lot' lengkap. Mohon jadwalkan survei.",
+    "timestamp": "2025-06-26T16:38:47.285Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750955927279_hbmym_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Berkas administrasi untuk 'proyek villa di tanah lot' lengkap. Mohon jadwalkan survei.",
+    "timestamp": "2025-06-26T16:38:47.278Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750955927272_xjb1e_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Berkas administrasi untuk 'proyek villa di tanah lot' lengkap. Mohon jadwalkan survei.",
+    "timestamp": "2025-06-26T16:38:47.269Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750955843004_7reo2_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Faktur DP untuk proyek 'proyek villa di tanah lot' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-06-26T16:37:23.001Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750955812797_xfjth_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Faktur DP untuk proyek 'proyek villa di tanah lot' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-26T16:36:52.794Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750955778044_4s7sz_ue2",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Penawaran untuk proyek 'proyek villa di tanah lot' telah disetujui oleh sudina. Mohon buat faktur DP.",
+    "timestamp": "2025-06-26T16:36:18.042Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750955751290_ujv9r_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Penawaran untuk proyek 'proyek villa di tanah lot' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-26T16:35:51.288Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750955328012_9e1cp_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750955327988_zof0g",
+    "message": "Proyek baru \"proyek kuta\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-26T16:28:48.008Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750955030806_qgqyv_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek 'proyek mega mendung' telah selesai dengan semua dokumen akhir terunggah oleh komangmerta.",
+    "timestamp": "2025-06-26T16:23:50.797Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750954263903_p5ess",
+    "userId": "usr_1747633745993_u8h9d",
+    "message": "Permintaan izin Anda (Keperluan Pribadi) dari 2025-06-27 hingga 2025-06-27 telah disetujui oleh sudina.",
+    "timestamp": "2025-06-26T16:11:03.903Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750953612453_03x9x_ult",
+    "userId": "usr_owner_default",
+    "message": "Permintaan izin baru dari Struktur Default (Keperluan Pribadi) dari tanggal 2025-06-27 hingga 2025-06-27.",
+    "timestamp": "2025-06-26T16:00:12.451Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750953112386_2i5wg",
+    "userId": "usr_1747799008584_4r22a",
+    "message": "Permintaan izin Anda (Keperluan Pribadi) dari 2025-06-30 hingga 2025-06-30 telah disetujui oleh sudina.",
+    "timestamp": "2025-06-26T15:51:52.386Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750952234228_s2gs3_ult",
+    "userId": "usr_owner_default",
+    "message": "Permintaan izin baru dari Komang Merta (Keperluan Pribadi) dari tanggal 2025-06-30 hingga 2025-06-30.",
+    "timestamp": "2025-06-26T15:37:14.227Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750951992716_v152p_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Sidang proyek 'proyek mega mendung' telah dinyatakan sukses oleh sudina. Mohon unggah dokumen akhir.",
+    "timestamp": "2025-06-26T15:33:12.713Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750951910019_ce5g2",
+    "userId": "usr_1747799008584_4r22a",
+    "message": "Permintaan izin Anda (Sakit) dari 2025-06-27 hingga 2025-06-28 telah disetujui oleh sudina.",
+    "timestamp": "2025-06-26T15:31:50.018Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750951294442_i7n1s_ult",
+    "userId": "usr_owner_default",
+    "message": "Permintaan izin baru dari Komang Merta (Sakit) dari tanggal 2025-06-27 hingga 2025-06-28.",
+    "timestamp": "2025-06-26T15:21:34.439Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750950968334_q94un_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750950968313_qtcnd",
+    "message": "Proyek baru \"proyek villa di tanah lot\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-26T15:16:08.331Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750949873012_bw03c_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Sidang untuk proyek 'proyek mega mendung' telah dijadwalkan oleh sudina. Mohon nyatakan hasilnya setelah selesai.",
+    "timestamp": "2025-06-26T14:57:53.005Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750949733577_1inco_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Semua berkas desain untuk proyek 'proyek mega mendung' telah dikonfirmasi terunggah oleh komangmerta. Mohon jadwalkan sidang.",
+    "timestamp": "2025-06-26T14:55:33.575Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750949680694_ryg8b_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Divisi MEP telah menyelesaikan unggahan mereka untuk proyek \"proyek mega mendung\".",
+    "timestamp": "2025-06-26T14:54:40.691Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750949676381_b97nj_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "MEP baru saja mengunggah file untuk proyek \"proyek mega mendung\".",
+    "timestamp": "2025-06-26T14:54:36.379Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750949544160_sgg6v_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Divisi Struktur telah menyelesaikan unggahan mereka untuk proyek \"proyek mega mendung\".",
+    "timestamp": "2025-06-26T14:52:24.159Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750949529471_ve807_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek mega mendung\".",
+    "timestamp": "2025-06-26T14:52:09.469Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750949370326_8xcv0_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750738966127_dn9n5",
+    "message": "Penawaran untuk proyek 'proyek kesambi' perlu direvisi oleh Anda berdasarkan masukan dari sudina.",
+    "timestamp": "2025-06-26T14:49:30.323Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750949258567_kbn04_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750738966127_dn9n5",
+    "message": "Penawaran untuk proyek 'proyek kesambi' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-26T14:47:38.565Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750949110331_lhuz8_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Arsitek baru saja mengunggah file untuk proyek \"proyek mega mendung\".",
+    "timestamp": "2025-06-26T14:45:10.330Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750949011886_nb4y0_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:43:31.884Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750949011872_mwn00_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:43:31.868Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750949011862_45226_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:43:31.859Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750949011852_pxiqu_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:43:31.849Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750948910872_2x9ze_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survei untuk proyek 'proyek mega mendung' telah dijadwalkan pada {surveyDate} oleh arsitek.",
+    "timestamp": "2025-06-26T14:41:50.871Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750948910865_2zn3d_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survei untuk proyek 'proyek mega mendung' telah dijadwalkan pada {surveyDate} oleh arsitek.",
+    "timestamp": "2025-06-26T14:41:50.864Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750948910859_j5c1j_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survei untuk proyek 'proyek mega mendung' telah dijadwalkan pada {surveyDate} oleh arsitek.",
+    "timestamp": "2025-06-26T14:41:50.858Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750948782235_hfn18_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh sudina untuk dijadwalkan ulang. Alasan: masih gagal survey nya",
+    "timestamp": "2025-06-26T14:39:42.233Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750948782223_mx81g_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh sudina untuk dijadwalkan ulang. Alasan: masih gagal survey nya",
+    "timestamp": "2025-06-26T14:39:42.219Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750948782213_uwbjw_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh sudina untuk dijadwalkan ulang. Alasan: masih gagal survey nya",
+    "timestamp": "2025-06-26T14:39:42.209Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750948628524_wp435_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:37:08.523Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750948628516_dxm8c_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:37:08.514Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750948628506_4y2dp_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:37:08.504Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750948628497_wei3m_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:37:08.490Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750948555265_godid_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survei untuk proyek 'proyek mega mendung' telah dijadwalkan pada {surveyDate} oleh komangmerta.",
+    "timestamp": "2025-06-26T14:35:55.264Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750948555258_dsxrt_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survei untuk proyek 'proyek mega mendung' telah dijadwalkan pada {surveyDate} oleh komangmerta.",
+    "timestamp": "2025-06-26T14:35:55.250Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750948555244_55h3m_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survei untuk proyek 'proyek mega mendung' telah dijadwalkan pada {surveyDate} oleh komangmerta.",
+    "timestamp": "2025-06-26T14:35:55.241Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750947562253_0do19_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh sudina untuk dijadwalkan ulang. Alasan: hujan",
+    "timestamp": "2025-06-26T14:19:22.252Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750947562244_0pw35_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh sudina untuk dijadwalkan ulang. Alasan: hujan",
+    "timestamp": "2025-06-26T14:19:22.243Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750947562235_h56vw_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh sudina untuk dijadwalkan ulang. Alasan: hujan",
+    "timestamp": "2025-06-26T14:19:22.234Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750946744309_q6rff_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:05:44.309Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750946744303_vy8xh_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:05:44.302Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750946744295_jpdj4_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:05:44.290Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750946744286_ua06q_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
+    "timestamp": "2025-06-26T14:05:44.284Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750946315081_1mt02_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: survey gagal karena hujan",
+    "timestamp": "2025-06-26T13:58:35.080Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750946315072_7erja_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: survey gagal karena hujan",
+    "timestamp": "2025-06-26T13:58:35.069Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750946315059_owcgj_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: survey gagal karena hujan",
+    "timestamp": "2025-06-26T13:58:35.058Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750941218983_3ah4c_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Hasil survei untuk 'proyek mega mendung' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-26T12:33:38.981Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750941218971_07cqm_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Hasil survei untuk 'proyek mega mendung' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-26T12:33:38.969Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750941218962_y65ct_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Hasil survei untuk 'proyek mega mendung' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-26T12:33:38.960Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750941218949_kv5h5_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Hasil survei untuk 'proyek mega mendung' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-26T12:33:38.946Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750939761409_15as0_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Berkas administrasi untuk proyek 'proyek mega mendung' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-26T12:09:21.402Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750939761388_gclrk_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Berkas administrasi untuk proyek 'proyek mega mendung' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-26T12:09:21.386Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750939761366_8nlil_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Berkas administrasi untuk proyek 'proyek mega mendung' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-26T12:09:21.361Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750939540988_z84ar_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Faktur DP untuk proyek 'proyek mega mendung' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-06-26T12:05:40.985Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750939400345_ytgg4_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Faktur DP untuk proyek 'proyek mega mendung' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-26T12:03:20.342Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750939363138_j0qdt_ue2",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Faktur DP untuk proyek 'proyek mega mendung' ditolak oleh sudina. Mohon direvisi.",
+    "timestamp": "2025-06-26T12:02:43.136Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750938993430_2igpo_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Faktur DP untuk proyek 'proyek mega mendung' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-26T11:56:33.427Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750938937590_1866q_ue2",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Faktur DP untuk proyek 'proyek mega mendung' ditolak oleh sudina. Mohon direvisi.",
+    "timestamp": "2025-06-26T11:55:37.586Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750938852675_nrk06_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Faktur DP untuk proyek 'proyek mega mendung' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-26T11:54:12.672Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750938737359_k8ayv_ue2",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Faktur DP untuk proyek 'proyek mega mendung' ditolak oleh sudina. Mohon direvisi.",
+    "timestamp": "2025-06-26T11:52:17.358Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750936815551_zu68r_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Faktur DP untuk proyek 'proyek mega mendung' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-26T11:20:15.546Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750925690657_5ejb2_ue2",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Penawaran untuk proyek 'proyek mega mendung' telah disetujui oleh sudina. Mohon buat faktur DP.",
+    "timestamp": "2025-06-26T08:14:50.654Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750923967132_7ivfv_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Penawaran untuk proyek 'proyek mega mendung' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-26T07:46:07.131Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750923884193_mo7nk_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750923884164_mtu12",
+    "message": "Proyek baru \"proyek mega mendung\" telah dibuat oleh komangmerta dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-26T07:44:44.192Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750922457801_yq8mo_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Proyek 'proyek Bali Merdeka' telah berhasil diselesaikan setelah revisi oleh komangmerta.",
+    "timestamp": "2025-06-26T07:20:57.799Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750917853391_dmeif_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Divisi Insinyur MEP telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek Bali Merdeka\" oleh komangmerta.",
+    "timestamp": "2025-06-26T06:04:13.385Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1750915623180_z5fja_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Divisi Struktur telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek Bali Merdeka\" oleh komangmerta.",
+    "timestamp": "2025-06-26T05:27:03.180Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750915620895_emw4c_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Divisi Arsitek telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek Bali Merdeka\" oleh komangmerta.",
+    "timestamp": "2025-06-26T05:27:00.895Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750915468977_ypsam_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Proyek 'proyek Bali Merdeka' memerlukan revisi setelah sidang yang dinyatakan oleh sudina.",
+    "timestamp": "2025-06-26T05:24:28.974Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750913423321_blbvq_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Sidang untuk proyek 'proyek Bali Merdeka' telah dijadwalkan oleh komangmerta. Mohon nyatakan hasilnya setelah selesai.",
+    "timestamp": "2025-06-26T04:50:23.319Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750913381340_0tp95_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Semua berkas desain untuk proyek 'proyek Bali Merdeka' telah dikonfirmasi terunggah oleh komangmerta. Mohon jadwalkan sidang.",
+    "timestamp": "2025-06-26T04:49:41.336Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750763530590_xdi08_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Hasil survei untuk 'proyek Bali Merdeka' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-24T11:12:10.586Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750763530575_kb7b4_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Hasil survei untuk 'proyek Bali Merdeka' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-24T11:12:10.573Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750763530562_p7ewr_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Hasil survei untuk 'proyek Bali Merdeka' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-24T11:12:10.557Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750763530549_d7sbe_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Hasil survei untuk 'proyek Bali Merdeka' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-24T11:12:10.544Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750763487301_pepzv_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Berkas administrasi untuk proyek 'proyek Bali Merdeka' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-24T11:11:27.299Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750763487281_u783p_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Berkas administrasi untuk proyek 'proyek Bali Merdeka' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-24T11:11:27.278Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750763487262_jpxqr_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Berkas administrasi untuk proyek 'proyek Bali Merdeka' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-24T11:11:27.255Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750763428614_vp5ny_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Faktur DP untuk proyek 'proyek Bali Merdeka' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-06-24T11:10:28.612Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750763403989_wudhi_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Faktur DP untuk proyek 'proyek Bali Merdeka' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-24T11:10:03.988Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750762823288_kwybh_ue2",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Penawaran untuk proyek 'proyek Bali Merdeka' telah disetujui oleh sudina. Mohon buat faktur DP.",
+    "timestamp": "2025-06-24T11:00:23.287Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750762781567_s4hrn_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Penawaran untuk proyek 'proyek Bali Merdeka' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-24T10:59:41.566Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750762714236_ymd75_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750762714162_h35ez",
+    "message": "Proyek baru \"proyek Bali Merdeka\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-24T10:58:34.229Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1750738966247_fd59g_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1750738966127_dn9n5",
+    "message": "Proyek baru \"proyek kesambi\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-24T04:22:46.241Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619971501_eev26_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Hasil survei untuk 'proyek gapura tabanan' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-11T05:32:51.499Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619971497_eux8o_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Hasil survei untuk 'proyek gapura tabanan' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-11T05:32:51.495Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1749619971491_nizq0_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Hasil survei untuk 'proyek gapura tabanan' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-11T05:32:51.491Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619971487_3kjzv_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Hasil survei untuk 'proyek gapura tabanan' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
+    "timestamp": "2025-06-11T05:32:51.486Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619814537_4o2r1_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Berkas administrasi untuk proyek 'proyek gapura tabanan' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-11T05:30:14.537Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619814530_gwnce_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Berkas administrasi untuk proyek 'proyek gapura tabanan' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-11T05:30:14.529Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619814525_jm72h_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Berkas administrasi untuk proyek 'proyek gapura tabanan' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-06-11T05:30:14.524Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619716013_h1udy_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Faktur DP untuk proyek 'proyek gapura tabanan' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-06-11T05:28:36.012Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619681464_d8a01_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Faktur DP untuk proyek 'proyek gapura tabanan' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-11T05:28:01.463Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619625702_jipdu_ue2",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Penawaran untuk proyek 'proyek gapura tabanan' telah disetujui oleh sudina. Mohon buat faktur DP.",
+    "timestamp": "2025-06-11T05:27:05.701Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619596672_3plrs_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Penawaran untuk proyek 'proyek gapura tabanan' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-06-11T05:26:36.671Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749619498452_20jmw_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1749619498431_vp9jp",
+    "message": "Proyek baru \"proyek gapura tabanan\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-06-11T05:24:58.449Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749471165973_pdivx_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'proyek hotel ubud' telah diunggah. Anda bisa mulai melakukan perencanaan MEP awal.",
+    "timestamp": "2025-06-09T12:12:45.972Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1749471165963_nklxf_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'proyek hotel ubud' telah diunggah. Anda bisa mulai merencanakan struktur.",
+    "timestamp": "2025-06-09T12:12:45.960Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1748420949711_9mzm6_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_demo_aktif_001",
+    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'Proyek Renovasi Kantor Pusat' telah diunggah. Anda bisa mulai melakukan perencanaan MEP awal.",
+    "timestamp": "2025-05-28T08:29:09.708Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748420949704_y6noh_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_demo_aktif_001",
+    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'Proyek Renovasi Kantor Pusat' telah diunggah. Anda bisa mulai merencanakan struktur.",
+    "timestamp": "2025-05-28T08:29:09.700Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748346866395_nxx1y_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_demo_aktif_001",
+    "message": "Hasil survei untuk 'Proyek Renovasi Kantor Pusat' telah diunggah oleh komangmerta. Mohon unggah berkas arsitektur.",
+    "timestamp": "2025-05-27T11:54:26.391Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748343135626_1mo24_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'proyek hotel ubud' telah diunggah. Anda bisa mulai melakukan perencanaan MEP awal.",
+    "timestamp": "2025-05-27T10:52:15.621Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748343135595_5k2jx_h9d",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'proyek hotel ubud' telah diunggah. Anda bisa mulai merencanakan struktur.",
+    "timestamp": "2025-05-27T10:52:15.582Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1748339996963_jnrwg_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Hasil survei untuk 'proyek hotel ubud' telah diunggah oleh arsitek. Mohon unggah berkas arsitektur.",
+    "timestamp": "2025-05-27T09:59:56.957Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748335248029_dfndy_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Berkas administrasi untuk proyek 'proyek hotel ubud' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-05-27T08:40:48.027Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748335248019_uw2ge_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Berkas administrasi untuk proyek 'proyek hotel ubud' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-05-27T08:40:48.017Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748335248011_gfbhl_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Berkas administrasi untuk proyek 'proyek hotel ubud' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
+    "timestamp": "2025-05-27T08:40:48.010Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748335184893_1ucz1_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Faktur DP untuk proyek 'proyek hotel ubud' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-05-27T08:39:44.893Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748335158559_v1fvm_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Faktur DP untuk proyek 'proyek hotel ubud' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-27T08:39:18.554Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748335115959_8zho7_ue2",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Penawaran untuk proyek 'proyek hotel ubud' telah disetujui oleh sudina. Mohon buat faktur DP.",
+    "timestamp": "2025-05-27T08:38:35.955Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748335092673_du2c1_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Penawaran untuk proyek 'proyek hotel ubud' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-27T08:38:12.667Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748335034827_qsunx_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1748335034794_tx1vy",
+    "message": "Proyek baru \"proyek hotel ubud\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-27T08:37:14.808Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748081968524_dquv8",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_demo_aktif_001",
+    "message": "Berkas administrasi untuk 'Proyek Renovasi Kantor Pusat' oleh komangmerta lengkap. Mohon jadwalkan survei dan unggah hasilnya.",
+    "timestamp": "2025-05-24T10:19:28.523Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748080165055_d5nla",
+    "userId": "usr_1747633745993_u8h9d",
+    "projectId": "project_demo_menunggu_dp_003",
+    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'Pembangunan Villa Ubud' telah diunggah. Anda bisa mulai merencanakan struktur.",
+    "timestamp": "2025-05-24T09:49:25.055Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1748080087174_jvjo1",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_demo_aktif_001",
+    "message": "Faktur DP untuk proyek 'Proyek Renovasi Kantor Pusat' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-05-24T09:48:07.174Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748080062244_9ggvg",
+    "userId": "usr_owner_default",
+    "projectId": "project_demo_aktif_001",
+    "message": "Faktur DP untuk proyek 'Proyek Renovasi Kantor Pusat' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-24T09:47:42.244Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748079991672_9512n",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_demo_aktif_001",
+    "message": "Penawaran untuk proyek 'Proyek Renovasi Kantor Pusat' telah disetujui oleh sudina. Mohon buat faktur DP.",
+    "timestamp": "2025-05-24T09:46:31.672Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748079945218_chemy",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_demo_menunggu_dp_003",
+    "message": "Hasil survei untuk 'Pembangunan Villa Ubud' telah diunggah oleh komangmerta. Mohon unggah berkas arsitektur.",
+    "timestamp": "2025-05-24T09:45:45.218Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748079880914_6zj86",
+    "userId": "usr_owner_default",
+    "projectId": "project_demo_aktif_001",
+    "message": "Penawaran untuk proyek 'Proyek Renovasi Kantor Pusat' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-24T09:44:40.914Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748079739184_gsfjq",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_demo_menunggu_dp_003",
+    "message": "Berkas administrasi untuk 'Pembangunan Villa Ubud' oleh komangmerta lengkap. Mohon jadwalkan survei dan unggah hasilnya.",
+    "timestamp": "2025-05-24T09:42:19.183Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748079684637_9kx5e",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_demo_menunggu_dp_003",
+    "message": "Faktur DP untuk proyek 'Pembangunan Villa Ubud' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-05-24T09:41:24.637Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748079503672_6u93f",
+    "userId": "usr_owner_default",
+    "projectId": "project_demo_menunggu_dp_003",
+    "message": "Faktur DP untuk proyek 'Pembangunan Villa Ubud' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-24T09:38:23.672Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1748067701763_dwzch",
     "userId": "usr_owner_default",
     "projectId": "project_1748064025980_k6s3m",
     "message": "Penawaran untuk proyek 'proyek hotel seminyak' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
-    "timestamp": "2025-05-24T05:21:29.626Z",
+    "timestamp": "2025-05-24T06:21:41.763Z",
     "isRead": true
   },
   {
@@ -200,1645 +1698,187 @@
     "isRead": true
   },
   {
-    "id": "notif_1748067701763_dwzch",
+    "id": "notif_1748064089626_eka88",
     "userId": "usr_owner_default",
     "projectId": "project_1748064025980_k6s3m",
     "message": "Penawaran untuk proyek 'proyek hotel seminyak' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
-    "timestamp": "2025-05-24T06:21:41.763Z",
+    "timestamp": "2025-05-24T05:21:29.626Z",
     "isRead": true
   },
   {
-    "id": "notif_1748079503672_6u93f",
+    "id": "notif_1748064025991_cbzmb",
+    "userId": "usr_admin_proyek_default",
+    "projectId": "project_1748064025980_k6s3m",
+    "message": "Proyek baru 'proyek hotel seminyak' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-24T05:20:25.991Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1748064025991_leket",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1748064025980_k6s3m",
+    "message": "Proyek baru 'proyek hotel seminyak' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-24T05:20:25.991Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747808596365_7qu0r",
     "userId": "usr_owner_default",
-    "projectId": "project_demo_menunggu_dp_003",
-    "message": "Faktur DP untuk proyek 'Pembangunan Villa Ubud' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
-    "timestamp": "2025-05-24T09:38:23.672Z",
+    "projectId": "project_1747808480674_o5ldl",
+    "message": "Penawaran untuk proyek 'proyek villa canggu' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-21T06:23:16.364Z",
     "isRead": true
   },
   {
-    "id": "notif_1748079684637_9kx5e",
+    "id": "notif_1747808480683_c55ly",
+    "userId": "usr_admin_proyek_default",
+    "projectId": "project_1747808480674_o5ldl",
+    "message": "Proyek baru 'proyek villa canggu' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-21T06:21:20.683Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747808480683_5741o",
     "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_demo_menunggu_dp_003",
-    "message": "Faktur DP untuk proyek 'Pembangunan Villa Ubud' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
-    "timestamp": "2025-05-24T09:41:24.637Z",
+    "projectId": "project_1747808480674_o5ldl",
+    "message": "Proyek baru 'proyek villa canggu' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-21T06:21:20.683Z",
     "isRead": true
   },
   {
-    "id": "notif_1748079739184_gsfjq",
+    "id": "notif_1747807865003_6qkih",
+    "userId": "usr_admin_proyek_default",
+    "projectId": "project_1747807864992_pn1cp",
+    "message": "Proyek baru 'proyek I' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-21T06:11:05.003Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747807865003_9ipfw",
     "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_demo_menunggu_dp_003",
-    "message": "Berkas administrasi untuk 'Pembangunan Villa Ubud' oleh komangmerta lengkap. Mohon jadwalkan survei dan unggah hasilnya.",
-    "timestamp": "2025-05-24T09:42:19.183Z",
+    "projectId": "project_1747807864992_pn1cp",
+    "message": "Proyek baru 'proyek I' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-21T06:11:05.003Z",
     "isRead": true
   },
   {
-    "id": "notif_1748079880914_6zj86",
+    "id": "notif_1747806999723_3ryhb",
+    "userId": "usr_admin_proyek_default",
+    "projectId": "project_1747806999711_8ultt",
+    "message": "Proyek baru 'proyek h' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-21T05:56:39.722Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747806999723_4qupe",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1747806999711_8ultt",
+    "message": "Proyek baru 'proyek h' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-21T05:56:39.722Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747805204691_tfrgs",
+    "userId": "usr_admin_proyek_default",
+    "projectId": "project_1747805204677_u0k9e",
+    "message": "Proyek baru 'proyek g' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-21T05:26:44.691Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747805204691_jxdap",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1747805204677_u0k9e",
+    "message": "Proyek baru 'proyek g' telah dibuat oleh sudina dan ditugaskan kepada Anda untuk: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-05-21T05:26:44.691Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1747804235932_m5cuv",
     "userId": "usr_owner_default",
-    "projectId": "project_demo_aktif_001",
-    "message": "Penawaran untuk proyek 'Proyek Renovasi Kantor Pusat' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
-    "timestamp": "2025-05-24T09:44:40.914Z",
+    "projectId": "project_1747804235922_s7npg",
+    "message": "Penawaran untuk proyek 'proyek f' telah diajukan dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-21T05:10:35.932Z",
     "isRead": true
   },
   {
-    "id": "notif_1748079945218_chemy",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_demo_menunggu_dp_003",
-    "message": "Hasil survei untuk 'Pembangunan Villa Ubud' telah diunggah oleh komangmerta. Mohon unggah berkas arsitektur.",
-    "timestamp": "2025-05-24T09:45:45.218Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1748079991672_9512n",
-    "userId": "usr_1747925369552_66ue2",
-    "projectId": "project_demo_aktif_001",
-    "message": "Penawaran untuk proyek 'Proyek Renovasi Kantor Pusat' telah disetujui oleh sudina. Mohon buat faktur DP.",
-    "timestamp": "2025-05-24T09:46:31.672Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1748080062244_9ggvg",
+    "id": "notif_1747804168605_newbx",
     "userId": "usr_owner_default",
-    "projectId": "project_demo_aktif_001",
-    "message": "Faktur DP untuk proyek 'Proyek Renovasi Kantor Pusat' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
-    "timestamp": "2025-05-24T09:47:42.244Z",
+    "projectId": "project_1747804168591_0o9yj",
+    "message": "Penawaran untuk proyek 'proyek d' telah diajukan dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-21T05:09:28.605Z",
     "isRead": true
   },
   {
-    "id": "notif_1748080087174_jvjo1",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_demo_aktif_001",
-    "message": "Faktur DP untuk proyek 'Proyek Renovasi Kantor Pusat' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
-    "timestamp": "2025-05-24T09:48:07.174Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1748080165055_d5nla",
-    "userId": "usr_1747633745993_u8h9d",
-    "projectId": "project_demo_menunggu_dp_003",
-    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'Pembangunan Villa Ubud' telah diunggah. Anda bisa mulai merencanakan struktur.",
-    "timestamp": "2025-05-24T09:49:25.055Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1748081968524_dquv8",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_demo_aktif_001",
-    "message": "Berkas administrasi untuk 'Proyek Renovasi Kantor Pusat' oleh komangmerta lengkap. Mohon jadwalkan survei dan unggah hasilnya.",
-    "timestamp": "2025-05-24T10:19:28.523Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1748335034827_qsunx_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1748335034794_tx1vy",
-    "message": "Proyek baru \"proyek hotel ubud\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-05-27T08:37:14.808Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1748335092673_du2c1_ult",
+    "id": "notif_1747804132884_lojjn",
     "userId": "usr_owner_default",
-    "projectId": "project_1748335034794_tx1vy",
-    "message": "Penawaran untuk proyek 'proyek hotel ubud' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
-    "timestamp": "2025-05-27T08:38:12.667Z",
+    "projectId": "project_1747804132877_ydc0n",
+    "message": "Penawaran untuk proyek 'proyek c' telah diajukan dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-21T05:08:52.884Z",
     "isRead": true
   },
   {
-    "id": "notif_1748335115959_8zho7_ue2",
-    "userId": "usr_1747925369552_66ue2",
-    "projectId": "project_1748335034794_tx1vy",
-    "message": "Penawaran untuk proyek 'proyek hotel ubud' telah disetujui oleh sudina. Mohon buat faktur DP.",
-    "timestamp": "2025-05-27T08:38:35.955Z",
+    "id": "notif_1747804067200_64pvx",
+    "userId": "usr_admin_proyek_default",
+    "projectId": "project_1747798488006_76uua",
+    "message": "Faktur DP untuk proyek 'proyek B' telah disetujui. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-05-21T05:07:47.200Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1747804067201_z047g",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1747798488006_76uua",
+    "message": "Faktur DP untuk proyek 'proyek B' telah disetujui. Mohon unggah berkas administrasi.",
+    "timestamp": "2025-05-21T05:07:47.200Z",
     "isRead": true
   },
   {
-    "id": "notif_1748335158559_v1fvm_ult",
+    "id": "notif_1747804014905_aouks",
     "userId": "usr_owner_default",
-    "projectId": "project_1748335034794_tx1vy",
-    "message": "Faktur DP untuk proyek 'proyek hotel ubud' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
-    "timestamp": "2025-05-27T08:39:18.554Z",
+    "projectId": "project_1747798488006_76uua",
+    "message": "Faktur DP untuk proyek 'proyek B' telah diajukan dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-21T05:06:54.904Z",
     "isRead": true
   },
   {
-    "id": "notif_1748335184893_1ucz1_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1748335034794_tx1vy",
-    "message": "Faktur DP untuk proyek 'proyek hotel ubud' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
-    "timestamp": "2025-05-27T08:39:44.893Z",
-    "isRead": true
+    "id": "notif_1747803291042_obqo9",
+    "userId": "usr_admin_akuntan_default",
+    "projectId": "project_1747798488006_76uua",
+    "message": "Penawaran untuk proyek 'proyek B' telah disetujui. Mohon buat faktur DP.",
+    "timestamp": "2025-05-21T04:54:51.041Z",
+    "isRead": false
   },
   {
-    "id": "notif_1748335248011_gfbhl_ult",
+    "id": "notif_1747799510111_k0v9h",
     "userId": "usr_owner_default",
-    "projectId": "project_1748335034794_tx1vy",
-    "message": "Berkas administrasi untuk proyek 'proyek hotel ubud' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
-    "timestamp": "2025-05-27T08:40:48.010Z",
+    "projectId": "project_1747798488006_76uua",
+    "message": "Penawaran untuk proyek 'proyek B' telah diajukan dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-21T03:51:50.111Z",
     "isRead": true
   },
   {
-    "id": "notif_1748335248019_uw2ge_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1748335034794_tx1vy",
-    "message": "Berkas administrasi untuk proyek 'proyek hotel ubud' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
-    "timestamp": "2025-05-27T08:40:48.017Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1748335248029_dfndy_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1748335034794_tx1vy",
-    "message": "Berkas administrasi untuk proyek 'proyek hotel ubud' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
-    "timestamp": "2025-05-27T08:40:48.027Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1748339996963_jnrwg_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1748335034794_tx1vy",
-    "message": "Hasil survei untuk 'proyek hotel ubud' telah diunggah oleh arsitek. Mohon unggah berkas arsitektur.",
-    "timestamp": "2025-05-27T09:59:56.957Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1748343135595_5k2jx_h9d",
-    "userId": "usr_1747633745993_u8h9d",
-    "projectId": "project_1748335034794_tx1vy",
-    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'proyek hotel ubud' telah diunggah. Anda bisa mulai merencanakan struktur.",
-    "timestamp": "2025-05-27T10:52:15.582Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1748343135626_1mo24_ls1",
-    "userId": "usr_1748081668166_rkls1",
-    "projectId": "project_1748335034794_tx1vy",
-    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'proyek hotel ubud' telah diunggah. Anda bisa mulai melakukan perencanaan MEP awal.",
-    "timestamp": "2025-05-27T10:52:15.621Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1748346866395_nxx1y_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_demo_aktif_001",
-    "message": "Hasil survei untuk 'Proyek Renovasi Kantor Pusat' telah diunggah oleh komangmerta. Mohon unggah berkas arsitektur.",
-    "timestamp": "2025-05-27T11:54:26.391Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1748420949704_y6noh_h9d",
-    "userId": "usr_1747633745993_u8h9d",
-    "projectId": "project_demo_aktif_001",
-    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'Proyek Renovasi Kantor Pusat' telah diunggah. Anda bisa mulai merencanakan struktur.",
-    "timestamp": "2025-05-28T08:29:09.700Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1748420949711_9mzm6_ls1",
-    "userId": "usr_1748081668166_rkls1",
-    "projectId": "project_demo_aktif_001",
-    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'Proyek Renovasi Kantor Pusat' telah diunggah. Anda bisa mulai melakukan perencanaan MEP awal.",
-    "timestamp": "2025-05-28T08:29:09.708Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1749471165963_nklxf_h9d",
-    "userId": "usr_1747633745993_u8h9d",
-    "projectId": "project_1748335034794_tx1vy",
-    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'proyek hotel ubud' telah diunggah. Anda bisa mulai merencanakan struktur.",
-    "timestamp": "2025-06-09T12:12:45.960Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1749471165973_pdivx_ls1",
-    "userId": "usr_1748081668166_rkls1",
-    "projectId": "project_1748335034794_tx1vy",
-    "message": "Gambar referensi awal dari Arsitek (arsitek) untuk proyek 'proyek hotel ubud' telah diunggah. Anda bisa mulai melakukan perencanaan MEP awal.",
-    "timestamp": "2025-06-09T12:12:45.972Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1749619498452_20jmw_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1749619498431_vp9jp",
-    "message": "Proyek baru \"proyek gapura tabanan\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-06-11T05:24:58.449Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1749619596672_3plrs_ult",
+    "id": "notif_1747798488030_1sls8",
     "userId": "usr_owner_default",
-    "projectId": "project_1749619498431_vp9jp",
-    "message": "Penawaran untuk proyek 'proyek gapura tabanan' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
-    "timestamp": "2025-06-11T05:26:36.671Z",
+    "projectId": "project_1747798488006_76uua",
+    "message": "Penawaran untuk proyek 'proyek B' telah diajukan dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-21T03:34:48.029Z",
     "isRead": true
   },
   {
-    "id": "notif_1749619625702_jipdu_ue2",
-    "userId": "usr_1747925369552_66ue2",
-    "projectId": "project_1749619498431_vp9jp",
-    "message": "Penawaran untuk proyek 'proyek gapura tabanan' telah disetujui oleh sudina. Mohon buat faktur DP.",
-    "timestamp": "2025-06-11T05:27:05.701Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1749619681464_d8a01_ult",
+    "id": "notif_1747635360419_jdhcn",
     "userId": "usr_owner_default",
-    "projectId": "project_1749619498431_vp9jp",
-    "message": "Faktur DP untuk proyek 'proyek gapura tabanan' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
-    "timestamp": "2025-06-11T05:28:01.463Z",
+    "projectId": "project_1747634871321_k9863",
+    "message": "Penawaran untuk proyek 'proyek A' telah diajukan dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-19T06:16:00.419Z",
     "isRead": true
   },
   {
-    "id": "notif_1749619716013_h1udy_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1749619498431_vp9jp",
-    "message": "Faktur DP untuk proyek 'proyek gapura tabanan' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
-    "timestamp": "2025-06-11T05:28:36.012Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1749619814525_jm72h_ult",
+    "id": "notif_1747634871386_d0245",
     "userId": "usr_owner_default",
-    "projectId": "project_1749619498431_vp9jp",
-    "message": "Berkas administrasi untuk proyek 'proyek gapura tabanan' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
-    "timestamp": "2025-06-11T05:30:14.524Z",
+    "projectId": "project_1747634871321_k9863",
+    "message": "Penawaran untuk proyek 'proyek A' telah diajukan dan menunggu persetujuan Anda.",
+    "timestamp": "2025-05-19T06:07:51.385Z",
     "isRead": true
-  },
-  {
-    "id": "notif_1749619814530_gwnce_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1749619498431_vp9jp",
-    "message": "Berkas administrasi untuk proyek 'proyek gapura tabanan' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
-    "timestamp": "2025-06-11T05:30:14.529Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1749619814537_4o2r1_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1749619498431_vp9jp",
-    "message": "Berkas administrasi untuk proyek 'proyek gapura tabanan' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
-    "timestamp": "2025-06-11T05:30:14.537Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1749619971487_3kjzv_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1749619498431_vp9jp",
-    "message": "Hasil survei untuk 'proyek gapura tabanan' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
-    "timestamp": "2025-06-11T05:32:51.486Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1749619971491_nizq0_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1749619498431_vp9jp",
-    "message": "Hasil survei untuk 'proyek gapura tabanan' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
-    "timestamp": "2025-06-11T05:32:51.491Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1749619971497_eux8o_h9d",
-    "userId": "usr_1747633745993_u8h9d",
-    "projectId": "project_1749619498431_vp9jp",
-    "message": "Hasil survei untuk 'proyek gapura tabanan' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
-    "timestamp": "2025-06-11T05:32:51.495Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1749619971501_eev26_ls1",
-    "userId": "usr_1748081668166_rkls1",
-    "projectId": "project_1749619498431_vp9jp",
-    "message": "Hasil survei untuk 'proyek gapura tabanan' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
-    "timestamp": "2025-06-11T05:32:51.499Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750738966247_fd59g_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750738966127_dn9n5",
-    "message": "Proyek baru \"proyek kesambi\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-06-24T04:22:46.241Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750762714236_ymd75_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Proyek baru \"proyek Bali Merdeka\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-06-24T10:58:34.229Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750762781567_s4hrn_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Penawaran untuk proyek 'proyek Bali Merdeka' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
-    "timestamp": "2025-06-24T10:59:41.566Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750762823288_kwybh_ue2",
-    "userId": "usr_1747925369552_66ue2",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Penawaran untuk proyek 'proyek Bali Merdeka' telah disetujui oleh sudina. Mohon buat faktur DP.",
-    "timestamp": "2025-06-24T11:00:23.287Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750763403989_wudhi_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Faktur DP untuk proyek 'proyek Bali Merdeka' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
-    "timestamp": "2025-06-24T11:10:03.988Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750763428614_vp5ny_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Faktur DP untuk proyek 'proyek Bali Merdeka' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
-    "timestamp": "2025-06-24T11:10:28.612Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750763487262_jpxqr_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Berkas administrasi untuk proyek 'proyek Bali Merdeka' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
-    "timestamp": "2025-06-24T11:11:27.255Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750763487281_u783p_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Berkas administrasi untuk proyek 'proyek Bali Merdeka' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
-    "timestamp": "2025-06-24T11:11:27.278Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750763487301_pepzv_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Berkas administrasi untuk proyek 'proyek Bali Merdeka' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
-    "timestamp": "2025-06-24T11:11:27.299Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750763530549_d7sbe_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Hasil survei untuk 'proyek Bali Merdeka' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
-    "timestamp": "2025-06-24T11:12:10.544Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750763530562_p7ewr_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Hasil survei untuk 'proyek Bali Merdeka' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
-    "timestamp": "2025-06-24T11:12:10.557Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750763530575_kb7b4_h9d",
-    "userId": "usr_1747633745993_u8h9d",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Hasil survei untuk 'proyek Bali Merdeka' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
-    "timestamp": "2025-06-24T11:12:10.573Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750763530590_xdi08_ls1",
-    "userId": "usr_1748081668166_rkls1",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Hasil survei untuk 'proyek Bali Merdeka' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
-    "timestamp": "2025-06-24T11:12:10.586Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750913381340_0tp95_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Semua berkas desain untuk proyek 'proyek Bali Merdeka' telah dikonfirmasi terunggah oleh komangmerta. Mohon jadwalkan sidang.",
-    "timestamp": "2025-06-26T04:49:41.336Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750913423321_blbvq_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Sidang untuk proyek 'proyek Bali Merdeka' telah dijadwalkan oleh komangmerta. Mohon nyatakan hasilnya setelah selesai.",
-    "timestamp": "2025-06-26T04:50:23.319Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750915468977_ypsam_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Proyek 'proyek Bali Merdeka' memerlukan revisi setelah sidang yang dinyatakan oleh sudina.",
-    "timestamp": "2025-06-26T05:24:28.974Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750915620895_emw4c_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Divisi Arsitek telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek Bali Merdeka\" oleh komangmerta.",
-    "timestamp": "2025-06-26T05:27:00.895Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750915623180_z5fja_h9d",
-    "userId": "usr_1747633745993_u8h9d",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Divisi Struktur telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek Bali Merdeka\" oleh komangmerta.",
-    "timestamp": "2025-06-26T05:27:03.180Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750917853391_dmeif_ls1",
-    "userId": "usr_1748081668166_rkls1",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Divisi Insinyur MEP telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek Bali Merdeka\" oleh komangmerta.",
-    "timestamp": "2025-06-26T06:04:13.385Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750922457801_yq8mo_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750762714162_h35ez",
-    "message": "Proyek 'proyek Bali Merdeka' telah berhasil diselesaikan setelah revisi oleh komangmerta.",
-    "timestamp": "2025-06-26T07:20:57.799Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750923884193_mo7nk_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Proyek baru \"proyek mega mendung\" telah dibuat oleh komangmerta dan memerlukan tindakan: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-06-26T07:44:44.192Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750923967132_7ivfv_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Penawaran untuk proyek 'proyek mega mendung' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
-    "timestamp": "2025-06-26T07:46:07.131Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750925690657_5ejb2_ue2",
-    "userId": "usr_1747925369552_66ue2",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Penawaran untuk proyek 'proyek mega mendung' telah disetujui oleh sudina. Mohon buat faktur DP.",
-    "timestamp": "2025-06-26T08:14:50.654Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750936815551_zu68r_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Faktur DP untuk proyek 'proyek mega mendung' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
-    "timestamp": "2025-06-26T11:20:15.546Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750938737359_k8ayv_ue2",
-    "userId": "usr_1747925369552_66ue2",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Faktur DP untuk proyek 'proyek mega mendung' ditolak oleh sudina. Mohon direvisi.",
-    "timestamp": "2025-06-26T11:52:17.358Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750938852675_nrk06_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Faktur DP untuk proyek 'proyek mega mendung' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
-    "timestamp": "2025-06-26T11:54:12.672Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750938937590_1866q_ue2",
-    "userId": "usr_1747925369552_66ue2",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Faktur DP untuk proyek 'proyek mega mendung' ditolak oleh sudina. Mohon direvisi.",
-    "timestamp": "2025-06-26T11:55:37.586Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750938993430_2igpo_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Faktur DP untuk proyek 'proyek mega mendung' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
-    "timestamp": "2025-06-26T11:56:33.427Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750939363138_j0qdt_ue2",
-    "userId": "usr_1747925369552_66ue2",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Faktur DP untuk proyek 'proyek mega mendung' ditolak oleh sudina. Mohon direvisi.",
-    "timestamp": "2025-06-26T12:02:43.136Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750939400345_ytgg4_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Faktur DP untuk proyek 'proyek mega mendung' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
-    "timestamp": "2025-06-26T12:03:20.342Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750939540988_z84ar_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Faktur DP untuk proyek 'proyek mega mendung' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
-    "timestamp": "2025-06-26T12:05:40.985Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750939761366_8nlil_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Berkas administrasi untuk proyek 'proyek mega mendung' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
-    "timestamp": "2025-06-26T12:09:21.361Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750939761388_gclrk_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Berkas administrasi untuk proyek 'proyek mega mendung' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
-    "timestamp": "2025-06-26T12:09:21.386Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750939761409_15as0_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Berkas administrasi untuk proyek 'proyek mega mendung' oleh komangmerta lengkap. Mohon koordinasikan dan input jadwal survei.",
-    "timestamp": "2025-06-26T12:09:21.402Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750941218949_kv5h5_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Hasil survei untuk 'proyek mega mendung' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
-    "timestamp": "2025-06-26T12:33:38.946Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750941218962_y65ct_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Hasil survei untuk 'proyek mega mendung' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
-    "timestamp": "2025-06-26T12:33:38.960Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750941218971_07cqm_h9d",
-    "userId": "usr_1747633745993_u8h9d",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Hasil survei untuk 'proyek mega mendung' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
-    "timestamp": "2025-06-26T12:33:38.969Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750941218983_3ah4c_ls1",
-    "userId": "usr_1748081668166_rkls1",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Hasil survei untuk 'proyek mega mendung' telah diunggah. Proyek memasuki tahap pembuatan berkas paralel.",
-    "timestamp": "2025-06-26T12:33:38.981Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750946315059_owcgj_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: survey gagal karena hujan",
-    "timestamp": "2025-06-26T13:58:35.058Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750946315072_7erja_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: survey gagal karena hujan",
-    "timestamp": "2025-06-26T13:58:35.069Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750946315081_1mt02_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: survey gagal karena hujan",
-    "timestamp": "2025-06-26T13:58:35.080Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750946744286_ua06q_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T14:05:44.284Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750946744295_jpdj4_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T14:05:44.290Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750946744303_vy8xh_h9d",
-    "userId": "usr_1747633745993_u8h9d",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T14:05:44.302Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750946744309_q6rff_ls1",
-    "userId": "usr_1748081668166_rkls1",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T14:05:44.309Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750947562235_h56vw_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh sudina untuk dijadwalkan ulang. Alasan: hujan",
-    "timestamp": "2025-06-26T14:19:22.234Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750947562244_0pw35_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh sudina untuk dijadwalkan ulang. Alasan: hujan",
-    "timestamp": "2025-06-26T14:19:22.243Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750947562253_0do19_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh sudina untuk dijadwalkan ulang. Alasan: hujan",
-    "timestamp": "2025-06-26T14:19:22.252Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750948555244_55h3m_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survei untuk proyek 'proyek mega mendung' telah dijadwalkan pada {surveyDate} oleh komangmerta.",
-    "timestamp": "2025-06-26T14:35:55.241Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750948555258_dsxrt_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survei untuk proyek 'proyek mega mendung' telah dijadwalkan pada {surveyDate} oleh komangmerta.",
-    "timestamp": "2025-06-26T14:35:55.250Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750948555265_godid_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survei untuk proyek 'proyek mega mendung' telah dijadwalkan pada {surveyDate} oleh komangmerta.",
-    "timestamp": "2025-06-26T14:35:55.264Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750948628497_wei3m_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T14:37:08.490Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750948628506_4y2dp_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T14:37:08.504Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750948628516_dxm8c_h9d",
-    "userId": "usr_1747633745993_u8h9d",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T14:37:08.514Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750948628524_wp435_ls1",
-    "userId": "usr_1748081668166_rkls1",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T14:37:08.523Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750948782213_uwbjw_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh sudina untuk dijadwalkan ulang. Alasan: masih gagal survey nya",
-    "timestamp": "2025-06-26T14:39:42.209Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750948782223_mx81g_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh sudina untuk dijadwalkan ulang. Alasan: masih gagal survey nya",
-    "timestamp": "2025-06-26T14:39:42.219Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750948782235_hfn18_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Proyek 'proyek mega mendung' dikembalikan ke tahap survei oleh sudina untuk dijadwalkan ulang. Alasan: masih gagal survey nya",
-    "timestamp": "2025-06-26T14:39:42.233Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750948910859_j5c1j_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survei untuk proyek 'proyek mega mendung' telah dijadwalkan pada {surveyDate} oleh arsitek.",
-    "timestamp": "2025-06-26T14:41:50.858Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750948910865_2zn3d_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survei untuk proyek 'proyek mega mendung' telah dijadwalkan pada {surveyDate} oleh arsitek.",
-    "timestamp": "2025-06-26T14:41:50.864Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750948910872_2x9ze_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survei untuk proyek 'proyek mega mendung' telah dijadwalkan pada {surveyDate} oleh arsitek.",
-    "timestamp": "2025-06-26T14:41:50.871Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750949011852_pxiqu_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T14:43:31.849Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750949011862_45226_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T14:43:31.859Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750949011872_mwn00_h9d",
-    "userId": "usr_1747633745993_u8h9d",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T14:43:31.868Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750949011886_nb4y0_ls1",
-    "userId": "usr_1748081668166_rkls1",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Survey proyek 'proyek mega mendung' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T14:43:31.884Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750949110331_lhuz8_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Arsitek baru saja mengunggah file untuk proyek \"proyek mega mendung\".",
-    "timestamp": "2025-06-26T14:45:10.330Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750949258567_kbn04_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750738966127_dn9n5",
-    "message": "Penawaran untuk proyek 'proyek kesambi' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
-    "timestamp": "2025-06-26T14:47:38.565Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750949370326_8xcv0_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750738966127_dn9n5",
-    "message": "Penawaran untuk proyek 'proyek kesambi' perlu direvisi oleh Anda berdasarkan masukan dari sudina.",
-    "timestamp": "2025-06-26T14:49:30.323Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750949529471_ve807_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek mega mendung\".",
-    "timestamp": "2025-06-26T14:52:09.469Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750949544160_sgg6v_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Divisi Struktur telah menyelesaikan unggahan mereka untuk proyek \"proyek mega mendung\".",
-    "timestamp": "2025-06-26T14:52:24.159Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750949676381_b97nj_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "MEP baru saja mengunggah file untuk proyek \"proyek mega mendung\".",
-    "timestamp": "2025-06-26T14:54:36.379Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750949680694_ryg8b_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Divisi MEP telah menyelesaikan unggahan mereka untuk proyek \"proyek mega mendung\".",
-    "timestamp": "2025-06-26T14:54:40.691Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750949733577_1inco_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Semua berkas desain untuk proyek 'proyek mega mendung' telah dikonfirmasi terunggah oleh komangmerta. Mohon jadwalkan sidang.",
-    "timestamp": "2025-06-26T14:55:33.575Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750949873012_bw03c_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Sidang untuk proyek 'proyek mega mendung' telah dijadwalkan oleh sudina. Mohon nyatakan hasilnya setelah selesai.",
-    "timestamp": "2025-06-26T14:57:53.005Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750950968334_q94un_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Proyek baru \"proyek villa di tanah lot\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-06-26T15:16:08.331Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750951294442_i7n1s_ult",
-    "userId": "usr_owner_default",
-    "message": "Permintaan izin baru dari Komang Merta (Sakit) dari tanggal 2025-06-27 hingga 2025-06-28.",
-    "timestamp": "2025-06-26T15:21:34.439Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750951910019_ce5g2",
-    "userId": "usr_1747799008584_4r22a",
-    "message": "Permintaan izin Anda (Sakit) dari 2025-06-27 hingga 2025-06-28 telah disetujui oleh sudina.",
-    "timestamp": "2025-06-26T15:31:50.018Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750951992716_v152p_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Sidang proyek 'proyek mega mendung' telah dinyatakan sukses oleh sudina. Mohon unggah dokumen akhir.",
-    "timestamp": "2025-06-26T15:33:12.713Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750952234228_s2gs3_ult",
-    "userId": "usr_owner_default",
-    "message": "Permintaan izin baru dari Komang Merta (Keperluan Pribadi) dari tanggal 2025-06-30 hingga 2025-06-30.",
-    "timestamp": "2025-06-26T15:37:14.227Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750953112386_2i5wg",
-    "userId": "usr_1747799008584_4r22a",
-    "message": "Permintaan izin Anda (Keperluan Pribadi) dari 2025-06-30 hingga 2025-06-30 telah disetujui oleh sudina.",
-    "timestamp": "2025-06-26T15:51:52.386Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750953612453_03x9x_ult",
-    "userId": "usr_owner_default",
-    "message": "Permintaan izin baru dari Struktur Default (Keperluan Pribadi) dari tanggal 2025-06-27 hingga 2025-06-27.",
-    "timestamp": "2025-06-26T16:00:12.451Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750954263903_p5ess",
-    "userId": "usr_1747633745993_u8h9d",
-    "message": "Permintaan izin Anda (Keperluan Pribadi) dari 2025-06-27 hingga 2025-06-27 telah disetujui oleh sudina.",
-    "timestamp": "2025-06-26T16:11:03.903Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750955030806_qgqyv_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750923884164_mtu12",
-    "message": "Proyek 'proyek mega mendung' telah selesai dengan semua dokumen akhir terunggah oleh komangmerta.",
-    "timestamp": "2025-06-26T16:23:50.797Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750955328012_9e1cp_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Proyek baru \"proyek kuta\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-06-26T16:28:48.008Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750955751290_ujv9r_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Penawaran untuk proyek 'proyek villa di tanah lot' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
-    "timestamp": "2025-06-26T16:35:51.288Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750955778044_4s7sz_ue2",
-    "userId": "usr_1747925369552_66ue2",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Penawaran untuk proyek 'proyek villa di tanah lot' telah disetujui oleh sudina. Mohon buat faktur DP.",
-    "timestamp": "2025-06-26T16:36:18.042Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750955812797_xfjth_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Faktur DP untuk proyek 'proyek villa di tanah lot' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
-    "timestamp": "2025-06-26T16:36:52.794Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750955843004_7reo2_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Faktur DP untuk proyek 'proyek villa di tanah lot' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
-    "timestamp": "2025-06-26T16:37:23.001Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750955927272_xjb1e_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Berkas administrasi untuk 'proyek villa di tanah lot' lengkap. Mohon jadwalkan survei.",
-    "timestamp": "2025-06-26T16:38:47.269Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750955927279_hbmym_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Berkas administrasi untuk 'proyek villa di tanah lot' lengkap. Mohon jadwalkan survei.",
-    "timestamp": "2025-06-26T16:38:47.278Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750955927286_y5rg2_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Berkas administrasi untuk 'proyek villa di tanah lot' lengkap. Mohon jadwalkan survei.",
-    "timestamp": "2025-06-26T16:38:47.285Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750955975060_cs5c7_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada {surveyDate} oleh arsitek.",
-    "timestamp": "2025-06-26T16:39:35.059Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750955975064_42c7j_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada {surveyDate} oleh arsitek.",
-    "timestamp": "2025-06-26T16:39:35.064Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750955975069_4p2vt_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada {surveyDate} oleh arsitek.",
-    "timestamp": "2025-06-26T16:39:35.069Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750956303428_xiwv4_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T16:45:03.426Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750956303438_da19v_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T16:45:03.436Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750956303442_yukmi_h9d",
-    "userId": "usr_1747633745993_u8h9d",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T16:45:03.441Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750956303450_0o4tt_ls1",
-    "userId": "usr_1748081668166_rkls1",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T16:45:03.447Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750956322788_jsokw_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Proyek 'proyek villa di tanah lot' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: gagal",
-    "timestamp": "2025-06-26T16:45:22.784Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750956322813_kdkwb_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Proyek 'proyek villa di tanah lot' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: gagal",
-    "timestamp": "2025-06-26T16:45:22.810Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750956322821_qea2d_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Proyek 'proyek villa di tanah lot' dikembalikan ke tahap survei oleh komangmerta untuk dijadwalkan ulang. Alasan: gagal",
-    "timestamp": "2025-06-26T16:45:22.820Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750956607099_5s6hw_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada Jumat, 27 Juni 2025 pukul 00:51 oleh arsitek.",
-    "timestamp": "2025-06-26T16:50:07.094Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750956607109_vacgo_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada Jumat, 27 Juni 2025 pukul 00:51 oleh arsitek.",
-    "timestamp": "2025-06-26T16:50:07.105Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750956607115_ulkkf_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Survei untuk proyek 'proyek villa di tanah lot' telah dijadwalkan pada Jumat, 27 Juni 2025 pukul 00:51 oleh arsitek.",
-    "timestamp": "2025-06-26T16:50:07.114Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750957141740_b3fjw_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T16:59:01.736Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750957141756_s57k9_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T16:59:01.752Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750957141773_agyad_h9d",
-    "userId": "usr_1747633745993_u8h9d",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T16:59:01.770Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750957141782_y2gj8_ls1",
-    "userId": "usr_1748081668166_rkls1",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Survey proyek 'proyek villa di tanah lot' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T16:59:01.780Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750957302846_vfwy7_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Arsitek baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:01:42.843Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750957383108_vsduh_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:03:03.104Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750957384791_x3vor_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Divisi Struktur telah menyelesaikan unggahan mereka untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:03:04.789Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750957516731_snl4h_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Divisi Arsitek telah menyelesaikan unggahan mereka untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:05:16.727Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750958436522_6ff9d_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "MEP baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:20:36.522Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750958443035_a8in6_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Divisi MEP telah menyelesaikan unggahan mereka untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:20:43.028Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750958464204_58ig1_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Semua berkas desain untuk proyek 'proyek villa di tanah lot' telah dikonfirmasi terunggah oleh komangmerta. Mohon jadwalkan sidang.",
-    "timestamp": "2025-06-26T17:21:04.204Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750958483654_llfmf_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Sidang untuk proyek 'proyek villa di tanah lot' telah dijadwalkan oleh komangmerta. Mohon nyatakan hasilnya setelah selesai.",
-    "timestamp": "2025-06-26T17:21:23.652Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750958542141_d98q5_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Sidang untuk proyek 'proyek villa di tanah lot' perlu dijadwalkan ulang oleh Anda atas permintaan dari sudina.",
-    "timestamp": "2025-06-26T17:22:22.140Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750958556912_aeeqx_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Sidang untuk proyek 'proyek villa di tanah lot' telah dijadwalkan oleh sudina. Mohon nyatakan hasilnya setelah selesai.",
-    "timestamp": "2025-06-26T17:22:36.907Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750958591374_4x7ve_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Proyek 'proyek villa di tanah lot' memerlukan revisi setelah sidang yang dinyatakan oleh sudina.",
-    "timestamp": "2025-06-26T17:23:11.371Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750958886440_56cyd_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "MEP baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:28:06.439Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750958902772_zvzcy_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:28:22.771Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750958921228_celko_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Arsitek baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:28:41.226Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750958924480_l3do9_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Divisi Arsitek telah menyelesaikan unggahan mereka untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:28:44.479Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750958929279_499ol_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Divisi Struktur telah menyelesaikan unggahan mereka untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:28:49.278Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750958934109_dfv5r_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Divisi MEP telah menyelesaikan unggahan mereka untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:28:54.103Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750959612940_ezy1b_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_demo_aktif_001",
-    "message": "Proyek \"Proyek Renovasi Kantor Pusat\" telah diperbarui secara manual oleh komangmerta. Status baru: \"Pending Admin Files\", Ditugaskan ke: \"Admin Proyek\". Tindakan berikutnya: Unggah Berkas Administrasi. Alasan: untuk demo",
-    "timestamp": "2025-06-26T17:40:12.939Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750959750267_370vu_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Arsitek baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:42:30.265Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750959764882_9fcgy_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:42:44.881Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750959781566_zqddz_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "MEP baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:43:01.565Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750960235054_z71bp_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Arsitek baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:50:35.052Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750960266799_h6k31_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:51:06.798Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750960293042_ohqvy_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "MEP baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:51:33.041Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750960410168_99m54_h9d",
-    "userId": "usr_1747633745993_u8h9d",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Divisi Struktur telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek villa di tanah lot\" oleh komangmerta.",
-    "timestamp": "2025-06-26T17:53:30.167Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750960471291_ltj24_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek villa di tanah lot\".",
-    "timestamp": "2025-06-26T17:54:31.289Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750960484990_cespm_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Revisi pasca-sidang untuk proyek 'proyek villa di tanah lot' telah selesai. Mohon unggah dokumen akhir.",
-    "timestamp": "2025-06-26T17:54:44.988Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750961048619_369j4_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Penawaran untuk proyek 'proyek kuta' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
-    "timestamp": "2025-06-26T18:04:08.617Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750961116938_8x2ge_ue2",
-    "userId": "usr_1747925369552_66ue2",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Penawaran untuk proyek 'proyek kuta' telah disetujui oleh sudina. Mohon buat faktur DP.",
-    "timestamp": "2025-06-26T18:05:16.937Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750961159224_69zaa_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Faktur DP untuk proyek 'proyek kuta' telah diajukan oleh oksi dan menunggu persetujuan Anda.",
-    "timestamp": "2025-06-26T18:05:59.223Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750961171193_oj5r3_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Faktur DP untuk proyek 'proyek kuta' telah disetujui oleh sudina. Mohon unggah berkas administrasi.",
-    "timestamp": "2025-06-26T18:06:11.192Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750961326136_lsnz0_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Berkas administrasi untuk 'proyek kuta' lengkap. Mohon jadwalkan survei.",
-    "timestamp": "2025-06-26T18:08:46.132Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750961326142_9fl90_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Berkas administrasi untuk 'proyek kuta' lengkap. Mohon jadwalkan survei.",
-    "timestamp": "2025-06-26T18:08:46.141Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750961326154_utkq3_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Berkas administrasi untuk 'proyek kuta' lengkap. Mohon jadwalkan survei.",
-    "timestamp": "2025-06-26T18:08:46.152Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750961337059_p9lpo_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Survei untuk proyek 'proyek kuta' telah dijadwalkan pada Jumat, 27 Juni 2025 pukul 02:09 oleh sudina.",
-    "timestamp": "2025-06-26T18:08:57.057Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750961337064_l10de_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Survei untuk proyek 'proyek kuta' telah dijadwalkan pada Jumat, 27 Juni 2025 pukul 02:09 oleh sudina.",
-    "timestamp": "2025-06-26T18:08:57.063Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750961337075_3tdw2_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Survei untuk proyek 'proyek kuta' telah dijadwalkan pada Jumat, 27 Juni 2025 pukul 02:09 oleh sudina.",
-    "timestamp": "2025-06-26T18:08:57.074Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750961429736_rdu09_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750950968313_qtcnd",
-    "message": "Proyek 'proyek villa di tanah lot' telah selesai dengan semua dokumen akhir terunggah oleh komangmerta.",
-    "timestamp": "2025-06-26T18:10:29.734Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750961489214_qiog8_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Survey proyek 'proyek kuta' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T18:11:29.213Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750961489223_6rq0w_ubw",
-    "userId": "usr_1747633709593_uxubw",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Survey proyek 'proyek kuta' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T18:11:29.221Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750961489231_klfje_h9d",
-    "userId": "usr_1747633745993_u8h9d",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Survey proyek 'proyek kuta' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T18:11:29.229Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750961489238_yor67_ls1",
-    "userId": "usr_1748081668166_rkls1",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Survey proyek 'proyek kuta' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
-    "timestamp": "2025-06-26T18:11:29.236Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750961516971_fq7ri_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Arsitek baru saja mengunggah file untuk proyek \"proyek kuta\".",
-    "timestamp": "2025-06-26T18:11:56.967Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750961554271_w0jv8_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek kuta\".",
-    "timestamp": "2025-06-26T18:12:34.266Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750961607751_bbkpy_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "MEP baru saja mengunggah file untuk proyek \"proyek kuta\".",
-    "timestamp": "2025-06-26T18:13:27.749Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750961614518_dy5v4_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Divisi MEP telah menyelesaikan unggahan mereka untuk proyek \"proyek kuta\".",
-    "timestamp": "2025-06-26T18:13:34.516Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750961631630_cgdw7_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Semua berkas desain untuk proyek 'proyek kuta' telah dikonfirmasi terunggah oleh komangmerta. Mohon jadwalkan sidang.",
-    "timestamp": "2025-06-26T18:13:51.629Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750961813146_esjji_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Sidang untuk proyek 'proyek kuta' telah dijadwalkan oleh sudina. Mohon nyatakan hasilnya setelah selesai.",
-    "timestamp": "2025-06-26T18:16:53.146Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750961854648_wgby8_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Sidang untuk proyek 'proyek kuta' perlu dijadwalkan ulang oleh Anda atas permintaan dari sudina.",
-    "timestamp": "2025-06-26T18:17:34.646Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750961912429_1bnt2_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Sidang untuk proyek 'proyek kuta' telah dijadwalkan oleh sudina. Mohon nyatakan hasilnya setelah selesai.",
-    "timestamp": "2025-06-26T18:18:32.428Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750961935619_a5d1v_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Proyek 'proyek kuta' memerlukan revisi setelah sidang yang dinyatakan oleh sudina.",
-    "timestamp": "2025-06-26T18:18:55.618Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750962003127_1y8rz_h9d",
-    "userId": "usr_1747633745993_u8h9d",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Divisi Struktur telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek kuta\" oleh komangmerta.",
-    "timestamp": "2025-06-26T18:20:03.125Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750962039447_6lyog_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek kuta\".",
-    "timestamp": "2025-06-26T18:20:39.446Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750962055207_jhbh9_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Divisi Struktur telah menyelesaikan unggahan mereka untuk proyek \"proyek kuta\".",
-    "timestamp": "2025-06-26T18:20:55.205Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750962076783_n6i8x_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Revisi pasca-sidang untuk proyek 'proyek kuta' telah selesai. Mohon unggah dokumen akhir.",
-    "timestamp": "2025-06-26T18:21:16.782Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750962160839_az806_ult",
-    "userId": "usr_owner_default",
-    "projectId": "project_1750955327988_zof0g",
-    "message": "Proyek 'proyek kuta' telah selesai dengan semua dokumen akhir terunggah oleh komangmerta.",
-    "timestamp": "2025-06-26T18:22:40.837Z",
-    "isRead": true
-  },
-  {
-    "id": "notif_1750963984635_7dvje_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750963984596_1k65q",
-    "message": "Proyek baru \"proyek test\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-06-26T18:53:04.634Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1750964375265_tai5u_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1750964375228_tepdu",
-    "message": "Proyek baru \"proyek test 2\" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-06-26T18:59:35.262Z",
-    "isRead": false
-  },
-  {
-    "id": "notif_1751040339906_7yvf9_22a",
-    "userId": "usr_1747799008584_4r22a",
-    "projectId": "project_1751040339851_2785s",
-    "message": "Proyek baru \"proyek kesambi\" telah dibuat oleh komangmerta dan memerlukan tindakan: Unggah Dokumen Penawaran.",
-    "timestamp": "2025-06-27T16:05:39.904Z",
-    "isRead": false
   }
 ]

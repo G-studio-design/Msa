@@ -322,6 +322,11 @@ const id = {
         structureSubmittedDesign: "Struktur mengirimkan file desain.", // New
         mepSubmittedDesign: "MEP mengirimkan file desain.", // New
         adminConfirmedAllDesigns: "Admin Proyek mengonfirmasi semua desain paralel telah diunggah.", // New
+        createdProjectWithWorkflow: "Proyek dibuat dengan alur kerja: {workflowId}",
+        assignedToFor: "Ditugaskan kepada {division} untuk {nextAction}",
+        uploadedInitialFile: "Mengunggah file awal: {fileName}",
+        submittedFor: "{username} ({role}) menyerahkan untuk \"{task}\"",
+        approvedAction: "{username} ({role}) menyetujui: {task}"
     },
     fileChecklist: {
       title: "Checklist Desain Bersama",

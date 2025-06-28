@@ -322,6 +322,11 @@ const en = {
         structureSubmittedDesign: "Structure submitted design files.", // New
         mepSubmittedDesign: "MEP submitted design files.", // New
         adminConfirmedAllDesigns: "Admin Project confirmed all parallel designs uploaded.", // New
+        createdProjectWithWorkflow: "Created Project with workflow: {workflowId}",
+        assignedToFor: "Assigned to {division} for {nextAction}",
+        uploadedInitialFile: "Uploaded initial file: {fileName}",
+        submittedFor: "{username} ({role}) submitted for \"{task}\"",
+        approvedAction: "{username} ({role}) approved: {task}"
     },
     fileChecklist: {
       title: "Shared Design Checklist",

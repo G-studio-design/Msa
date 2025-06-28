@@ -52,10 +52,10 @@
   {
     "id": "project_1751040339851_2785s",
     "title": "proyek kesambi",
-    "status": "Pending Offer",
-    "progress": 10,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Unggah Dokumen Penawaran",
+    "status": "Canceled",
+    "progress": 20,
+    "assignedDivision": "",
+    "nextAction": null,
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -68,10 +68,69 @@
         "division": "System",
         "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
         "timestamp": "2025-06-27T16:05:39.851Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
+        "timestamp": "2025-06-28T09:09:43.087Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) canceled project at offer stage: Setujui Dokumen Penawaran",
+        "timestamp": "2025-06-28T09:14:57.477Z"
       }
     ],
-    "files": [],
+    "files": [
+      {
+        "name": "dokumen penawaran proyek.doc",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1751040339851_2785s-proyek_kesambi/dokumen_penawaran_proyekdoc",
+        "timestamp": "2025-06-28T09:09:43.087Z"
+      }
+    ],
     "createdAt": "2025-06-27T16:05:39.851Z",
     "createdBy": "komangmerta"
+  },
+  {
+    "id": "project_1751102866774_5uayv",
+    "title": "proyek batur",
+    "status": "Pending DP Invoice",
+    "progress": 25,
+    "assignedDivision": "Akuntan",
+    "nextAction": "Buat Faktur DP",
+    "workflowId": "msa_workflow",
+    "workflowHistory": [
+      {
+        "division": "sudina",
+        "action": "Created Project with workflow: msa_workflow",
+        "timestamp": "2025-06-28T09:27:46.774Z",
+        "note": "Initial files: 0"
+      },
+      {
+        "division": "System",
+        "action": "Assigned to Admin Proyek for Unggah Dokumen Penawaran",
+        "timestamp": "2025-06-28T09:27:46.774Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Dokumen Penawaran\"",
+        "timestamp": "2025-06-28T09:28:46.077Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) approved: Setujui Dokumen Penawaran",
+        "timestamp": "2025-06-28T09:29:27.357Z"
+      }
+    ],
+    "files": [
+      {
+        "name": "dokumen penawaran proyek.doc",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1751102866774_5uayv-proyek_batur/dokumen_penawaran_proyekdoc",
+        "timestamp": "2025-06-28T09:28:46.077Z"
+      }
+    ],
+    "createdAt": "2025-06-28T09:27:46.774Z",
+    "createdBy": "sudina"
   }
 ]

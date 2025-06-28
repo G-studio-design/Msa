@@ -410,7 +410,28 @@ export default function ProjectsPage() {
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = Clock; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Clock; break;
-        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles': case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs': case 'menungudokkonsultasi': case 'pendingreview': case 'menunggutinjauan': case 'pendingfinaldocuments': variant = 'secondary'; Icon = Clock; break;
+        case 'pendingdpinvoice':
+        case 'menunggufakturdp':
+        case 'pendingadminfiles':
+        case 'menungguberkasadministrasi':
+        case 'pendingsurveydetails':
+        case 'menunggudetailsurvei':
+        case 'pendingarchitectfiles':
+        case 'menungguberkasarsitektur':
+        case 'pendingstructurefiles':
+        case 'menungguberkasstruktur':
+        case 'pendingmepfiles':
+        case 'menungguberkasmep':
+        case 'pendingfinalcheck':
+        case 'menunggupemeriksaanakhir':
+        case 'pendingscheduling':
+        case 'menunggupenjadwalan':
+        case 'pendingconsultationdocs':
+        case 'menungudokkonsultasi':
+        case 'pendingreview':
+        case 'menunggutinjauan':
+        case 'pendingfinaldocuments':
+            variant = 'secondary'; Icon = Clock; break;
         case 'pendingparalleldesignuploads': variant = 'secondary'; className = `${className} bg-indigo-500 text-white dark:bg-indigo-600 dark:text-primary-foreground hover:bg-indigo-600 dark:hover:bg-indigo-700`; Icon = Shield; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarClock; break;
         case 'surveyscheduled': variant = 'secondary'; className = `${className} bg-cyan-500 text-white dark:bg-cyan-600 dark:text-primary-foreground hover:bg-cyan-600 dark:hover:bg-cyan-700`; Icon = MapPin; break;
@@ -1145,6 +1166,57 @@ export default function ProjectsPage() {
         );
     }, [parallelUploadChecklist]);
 
+    const translateHistoryAction = React.useCallback((action: string): string => {
+        if (!isClient || !action) return action || '';
+
+        const translations = projectsDict.workflowActions;
+        if (!translations) return action;
+
+        // Pattern: Created Project with workflow: ...
+        const createdMatch = action.match(/^(Created Project with workflow|Proyek dibuat dengan alur kerja): (.*)$/i);
+        if (createdMatch) {
+            return (translations.createdProjectWithWorkflow || "Created Project with workflow: {workflowId}")
+                .replace('{workflowId}', createdMatch[2]);
+        }
+
+        // Pattern: Assigned to ... for ...
+        const assignedMatch = action.match(/^(Assigned to|Ditugaskan kepada) (.*?) for (.*)$/i);
+        if (assignedMatch) {
+            const division = getTranslatedStatus(assignedMatch[2]);
+            const nextAction = assignedMatch[3];
+            return (translations.assignedToFor || "Assigned to {division} for {nextAction}")
+                .replace('{division}', division)
+                .replace('{nextAction}', nextAction);
+        }
+        
+        // Pattern: Uploaded initial file: ...
+        const uploadedFileMatch = action.match(/^(Uploaded initial file|Mengunggah file awal): (.*)$/i);
+        if (uploadedFileMatch) {
+            return (translations.uploadedInitialFile || "Uploaded initial file: {fileName}")
+                .replace('{fileName}', uploadedFileMatch[2]);
+        }
+
+        // Pattern: {user} ({role}) submitted for "{task}"
+        const submittedMatch = action.match(/^(.*?) \((.*?)\) (submitted for|menyerahkan untuk) "(.*)"$/i);
+        if (submittedMatch) {
+            return (translations.submittedFor || "{username} ({role}) submitted for \"{task}\"")
+                .replace('{username}', submittedMatch[1])
+                .replace('{role}', getTranslatedStatus(submittedMatch[2]))
+                .replace('{task}', submittedMatch[4]);
+        }
+        
+        // Pattern: {user} ({role}) approved: {task}
+        const approvedMatch = action.match(/^(.*?) \((.*?)\) (approved|menyetujui): (.*)$/i);
+        if (approvedMatch) {
+            return (translations.approvedAction || "{username} ({role}) approved: {task}")
+                .replace('{username}', approvedMatch[1])
+                .replace('{role}', getTranslatedStatus(approvedMatch[2]))
+                .replace('{task}', approvedMatch[4]);
+        }
+
+        return action; // Fallback for actions that don't match
+    }, [isClient, projectsDict.workflowActions, getTranslatedStatus]);
+
     const groupedAndSortedHistory = React.useMemo(() => {
         if (!selectedProject) return [];
         const grouped = new Map<string, GroupedHistoryItem>();
@@ -1480,7 +1552,7 @@ export default function ProjectsPage() {
                                             <div className={`mt-1 h-3 w-3 rounded-full flex-shrink-0 ${index === 0 ? 'bg-primary animate-pulse' : 'bg-muted-foreground/50'}`}></div>
                                             <div>
                                                 {group.entries.length > 0 ? group.entries.map((entry, entryIndex) => (
-                                                    <p key={entryIndex} className="text-sm font-medium">{entry.action}</p>
+                                                    <p key={entryIndex} className="text-sm font-medium">{translateHistoryAction(entry.action)}</p>
                                                 )) : <p className="text-sm font-medium italic">{projectsDict.uploadedFilesTitle}</p>}
                                                 <p className="text-xs text-muted-foreground">{formatTimestamp(group.timestamp)}</p>
                                                 {group.entries.map((entry, entryIndex) => (
