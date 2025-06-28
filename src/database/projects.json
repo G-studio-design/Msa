@@ -94,10 +94,10 @@
   {
     "id": "project_1751102866774_5uayv",
     "title": "proyek batur",
-    "status": "Pending Survey Details",
-    "progress": 45,
+    "status": "Survey Scheduled",
+    "progress": 48,
     "assignedDivision": "Admin Proyek",
-    "nextAction": "Input Jadwal Survei",
+    "nextAction": "Konfirmasi penyelesaian survei dan unggah laporan (opsional).",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -182,6 +182,12 @@
         "action": "arsitek (Arsitek) rescheduled Survey to 2025-06-28 at 18:49",
         "timestamp": "2025-06-28T10:48:56.175Z",
         "note": "Reason: client tidak ada"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) submitted Survey Details for 2025-06-28 at 19:01",
+        "timestamp": "2025-06-28T11:00:35.506Z",
+        "note": "Survey Description: lokasinya disana."
       }
     ],
     "files": [
@@ -220,7 +226,7 @@
     "createdBy": "sudina",
     "surveyDetails": {
       "date": "2025-06-28",
-      "time": "18:49",
+      "time": "19:01",
       "description": "lokasinya disana"
     }
   }

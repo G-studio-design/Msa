@@ -978,6 +978,10 @@ export default function ProjectsPage() {
             return ['Arsitek', 'Struktur', 'MEP'].includes(userRole);
         }
 
+        if (userRole === 'Owner') {
+            return false;
+        }
+
         // The assigned user must match the current user's role
         if (userRole !== selectedProject.assignedDivision?.trim()) {
             return false;
@@ -1047,7 +1051,6 @@ export default function ProjectsPage() {
         return selectedProject.status === 'Pending Survey Details' &&
                (
                    userRoleCleaned === 'Admin Proyek' ||
-                   userRoleCleaned === 'Owner' ||
                    userRoleCleaned === 'Arsitek'
                );
     }, [selectedProject, currentUser]);
