@@ -94,10 +94,10 @@
   {
     "id": "project_1751102866774_5uayv",
     "title": "proyek batur",
-    "status": "Pending Approval",
-    "progress": 30,
-    "assignedDivision": "Owner",
-    "nextAction": "Setujui Faktur DP",
+    "status": "Pending Survey Details",
+    "progress": 45,
+    "assignedDivision": "Admin Proyek",
+    "nextAction": "Input Jadwal Survei",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -125,6 +125,63 @@
         "division": "Akuntan",
         "action": "oksi (Akuntan) submitted for \"Buat Faktur DP\"",
         "timestamp": "2025-06-28T10:14:51.515Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) requested revision (revise_dp). Project sent to Akuntan for Revisi dan Unggah Ulang Faktur DP berdasarkan masukan Owner..",
+        "timestamp": "2025-06-28T10:23:46.235Z",
+        "note": "terlalu tinggi harganya"
+      },
+      {
+        "division": "Akuntan",
+        "action": "oksi (Akuntan) submitted for \"Revisi dan Unggah Ulang Faktur DP berdasarkan masukan Owner.\"",
+        "timestamp": "2025-06-28T10:26:24.289Z",
+        "note": "sudah direvisi"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) approved: Setujui Faktur DP",
+        "timestamp": "2025-06-28T10:28:50.794Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah Berkas Administrasi\"",
+        "timestamp": "2025-06-28T10:36:36.462Z"
+      },
+      {
+        "division": "komangmerta",
+        "action": "Manually changed status to \"Pending Admin Files\" and assigned to \"Admin Proyek\". Next Action: Input Jadwal Survei & Unggah Hasil. Progress: 40%.",
+        "timestamp": "2025-06-28T10:39:43.615Z",
+        "note": "Reason: salah masukin file"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Input Jadwal Survei & Unggah Hasil\"",
+        "timestamp": "2025-06-28T10:40:53.509Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) submitted Survey Details for 2025-06-28 at 18:42",
+        "timestamp": "2025-06-28T10:41:58.877Z",
+        "note": "Survey Description: lokasinya disana."
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) rescheduled Survey to 2025-06-28 at 18:45",
+        "timestamp": "2025-06-28T10:44:53.701Z",
+        "note": "Reason: bad wheather"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) submitted Survey Details for 2025-06-28 at 18:45",
+        "timestamp": "2025-06-28T10:46:39.743Z",
+        "note": "Survey Description: lokasinya disana."
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) rescheduled Survey to 2025-06-28 at 18:49",
+        "timestamp": "2025-06-28T10:48:56.175Z",
+        "note": "Reason: client tidak ada"
       }
     ],
     "files": [
@@ -139,9 +196,32 @@
         "uploadedBy": "Akuntan",
         "path": "project_1751102866774_5uayv-proyek_batur/invoice_msa_1pdf",
         "timestamp": "2025-06-28T10:14:51.515Z"
+      },
+      {
+        "name": "invoice MSA 1.pdf",
+        "uploadedBy": "Akuntan",
+        "path": "project_1751102866774_5uayv-proyek_batur/invoice_msa_1pdf",
+        "timestamp": "2025-06-28T10:26:24.289Z"
+      },
+      {
+        "name": "dokumen kelengkapan administrasi proyek.doc",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1751102866774_5uayv-proyek_batur/dokumen_kelengkapan_administrasi_proyekdoc",
+        "timestamp": "2025-06-28T10:36:36.462Z"
+      },
+      {
+        "name": "dokumen kelengkapan administrasi proyek.doc",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1751102866774_5uayv-proyek_batur/dokumen_kelengkapan_administrasi_proyekdoc",
+        "timestamp": "2025-06-28T10:40:53.509Z"
       }
     ],
     "createdAt": "2025-06-28T09:27:46.774Z",
-    "createdBy": "sudina"
+    "createdBy": "sudina",
+    "surveyDetails": {
+      "date": "2025-06-28",
+      "time": "18:49",
+      "description": "lokasinya disana"
+    }
   }
 ]

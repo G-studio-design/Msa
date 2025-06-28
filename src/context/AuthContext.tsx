@@ -20,29 +20,29 @@ const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter(); // Get router instance
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    // Initialize state from sessionStorage on the client-side
+    // Initialize state from localStorage on the client-side
     if (typeof window !== 'undefined') {
-      const storedUser = sessionStorage.getItem('currentUser');
+      const storedUser = localStorage.getItem('currentUser'); // Use localStorage
       try {
         return storedUser ? (JSON.parse(storedUser) as User) : null;
       } catch (error) {
         console.error("Failed to parse stored user:", error);
-        sessionStorage.removeItem('currentUser'); // Clear invalid data
+        localStorage.removeItem('currentUser'); // Use localStorage
         return null;
       }
     }
     return null; // Default to null on the server or if no stored user
   });
 
-  // Persist user changes to sessionStorage
+  // Persist user changes to localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
       if (currentUser) {
-        // IMPORTANT: Never store sensitive data like passwords in sessionStorage
+        // IMPORTANT: Never store sensitive data like passwords in localStorage
         const { password, ...userToStore } = currentUser;
-        sessionStorage.setItem('currentUser', JSON.stringify(userToStore));
+        localStorage.setItem('currentUser', JSON.stringify(userToStore)); // Use localStorage
       } else {
-        sessionStorage.removeItem('currentUser');
+        localStorage.removeItem('currentUser'); // Use localStorage
       }
     }
   }, [currentUser]);
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Logout function
   const logout = useCallback(() => {
     setCurrentUser(null);
-    // The useEffect above will handle removing from sessionStorage
+    // The useEffect above will handle removing from localStorage
     console.log("User logged out. Redirecting to login page.");
     router.push('/'); // Redirect to login page after logout
   }, [router]); // Add router to dependency array
