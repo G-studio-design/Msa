@@ -18,6 +18,7 @@ export interface Notification {
 }
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
+const NOTIFICATION_LIMIT = 300; // Limit the total number of notifications stored
 
 // --- Helper Functions ---
 
@@ -62,6 +63,15 @@ async function readNotifications(): Promise<Notification[]> {
 
 async function writeNotifications(notifications: Notification[]): Promise<void> {
     try {
+        // Sort by timestamp descending (newest first) to prepare for trimming
+        notifications.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+        // Keep only the most recent notifications up to the limit
+        if (notifications.length > NOTIFICATION_LIMIT) {
+          console.log(`[NotificationService/JSON] Notification limit (${NOTIFICATION_LIMIT}) reached. Trimming ${notifications.length - NOTIFICATION_LIMIT} oldest notifications.`);
+          notifications = notifications.slice(0, NOTIFICATION_LIMIT);
+        }
+
         await fs.writeFile(DB_PATH, JSON.stringify(notifications, null, 2), 'utf8');
     } catch (error) {
         console.error("[NotificationService/JSON] Error writing notification database:", error);
@@ -227,4 +237,3 @@ export async function clearAllNotifications(): Promise<void> {
         throw new Error("Could not clear notification data.");
     }
 }
-
