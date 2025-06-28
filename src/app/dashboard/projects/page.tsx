@@ -410,28 +410,7 @@ export default function ProjectsPage() {
         case 'delayed': case 'tertunda': variant = 'destructive'; className = `${className} bg-orange-500 text-white dark:bg-orange-600 dark:text-primary-foreground hover:bg-orange-600 dark:hover:bg-orange-700 border-orange-500 dark:border-orange-600`; Icon = Clock; break;
         case 'canceled': case 'dibatalkan': variant = 'destructive'; Icon = XCircle; break;
         case 'pending': case 'pendinginitialinput': case 'menungguinputawal': case 'pendingoffer': case 'menunggupenawaran': variant = 'outline'; className = `${className} border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-500`; Icon = Clock; break;
-        case 'pendingdpinvoice':
-        case 'menunggufakturdp':
-        case 'pendingadminfiles':
-        case 'menungguberkasadministrasi':
-        case 'pendingsurveydetails':
-        case 'menunggudetailsurvei':
-        case 'pendingarchitectfiles':
-        case 'menungguberkasarsitektur':
-        case 'pendingstructurefiles':
-        case 'menungguberkasstruktur':
-        case 'pendingmepfiles':
-        case 'menungguberkasmep':
-        case 'pendingfinalcheck':
-        case 'menunggupemeriksaanakhir':
-        case 'pendingscheduling':
-        case 'menunggupenjadwalan':
-        case 'pendingconsultationdocs':
-        case 'menungudokkonsultasi':
-        case 'pendingreview':
-        case 'menunggutinjauan':
-        case 'pendingfinaldocuments':
-            variant = 'secondary'; Icon = Clock; break;
+        case 'pendingdpinvoice': case 'menunggufakturdp': case 'pendingadminfiles': case 'menungguberkasadministrasi': case 'pendingsurveydetails': case 'menunggudetailsurvei': case 'pendingarchitectfiles': case 'menungguberkasarsitektur': case 'pendingstructurefiles': case 'menungguberkasstruktur': case 'pendingmepfiles': case 'menungguberkasmep': case 'pendingfinalcheck': case 'menunggupemeriksaanakhir': case 'pendingscheduling': case 'menunggupenjadwalan': case 'pendingconsultationdocs': case 'menungudokkonsultasi': case 'pendingreview': case 'menunggutinjauan': case 'pendingfinaldocuments': variant = 'secondary'; Icon = Clock; break;
         case 'pendingparalleldesignuploads': variant = 'secondary'; className = `${className} bg-indigo-500 text-white dark:bg-indigo-600 dark:text-primary-foreground hover:bg-indigo-600 dark:hover:bg-indigo-700`; Icon = Shield; break;
         case 'scheduled': case 'terjadwal': variant = 'secondary'; className = `${className} bg-purple-500 text-white dark:bg-purple-600 dark:text-primary-foreground hover:bg-purple-600 dark:hover:bg-purple-700`; Icon = CalendarClock; break;
         case 'surveyscheduled': variant = 'secondary'; className = `${className} bg-cyan-500 text-white dark:bg-cyan-600 dark:text-primary-foreground hover:bg-cyan-600 dark:hover:bg-cyan-700`; Icon = MapPin; break;
@@ -993,25 +972,31 @@ export default function ProjectsPage() {
         
         const userRole = currentUser.role.trim();
     
-        // Only design divisions can upload in parallel stage or revision stage
+        // Logic for parallel/revision uploads
         if (selectedProject.workflowId === 'msa_workflow' &&
             (selectedProject.status === 'Pending Parallel Design Uploads' || selectedProject.status === 'Pending Post-Sidang Revision')) {
             return ['Arsitek', 'Struktur', 'MEP'].includes(userRole);
         }
-    
-        // General logic for other stages
-        if (!canPerformSelectedProjectAction) {
+
+        // The assigned user must match the current user's role
+        if (userRole !== selectedProject.assignedDivision?.trim()) {
             return false;
         }
-    
-        const statusesExpectingUploadGeneral = [
-            'Pending Offer', 'Pending DP Invoice', 'Pending Admin Files',
-            'Pending Architect Files', 'Pending Structure Files', 'Pending MEP Files',
+
+        // List of statuses where the assigned user is expected to upload
+        const statusesExpectingUpload = [
+            'Pending Offer', 
+            'Pending DP Invoice', 
+            'Pending Admin Files',
+            'Pending Architect Files', 
+            'Pending Structure Files', 
+            'Pending MEP Files',
             'Pending Consultation Docs'
+            // 'Survey Scheduled' is handled by showSurveyCompletionSection to avoid showing two upload sections
         ];
     
-        return statusesExpectingUploadGeneral.includes(selectedProject.status);
-    }, [selectedProject, currentUser, canPerformSelectedProjectAction]);
+        return statusesExpectingUpload.includes(selectedProject.status);
+    }, [selectedProject, currentUser]);
 
     const showSharedDesignChecklistSection = React.useMemo(() => {
         if (!selectedProject || !currentUser) return false;
@@ -1072,14 +1057,14 @@ export default function ProjectsPage() {
         const userRoleCleaned = currentUser.role.trim();
         const now = new Date();
         const surveyDate = selectedProject.surveyDetails?.date ? new Date(`${selectedProject.surveyDetails.date}T${selectedProject.surveyDetails.time || '00:00:00'}`) : null;
+        
+        // According to the workflow, Admin Proyek is responsible for confirming the survey.
+        // Architect might also be involved in uploading reports.
+        const canCompleteSurvey = userRoleCleaned === 'Admin Proyek' || userRoleCleaned === 'Arsitek';
 
         return selectedProject.status === 'Survey Scheduled' &&
-               (surveyDate && now >= surveyDate) && // Only show after survey time has passed
-               (
-                   userRoleCleaned === 'Admin Proyek' ||
-                   userRoleCleaned === 'Owner' ||
-                   userRoleCleaned === 'Arsitek'
-               );
+               (surveyDate && now >= surveyDate) && 
+               canCompleteSurvey;
     }, [selectedProject, currentUser]);
 
 
