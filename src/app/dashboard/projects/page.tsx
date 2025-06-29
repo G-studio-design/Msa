@@ -1252,7 +1252,7 @@ export default function ProjectsPage() {
         if (approvedMatch) {
             return (translations.approvedAction || "{username} ({role}) approved: {task}")
                 .replace('{username}', approvedMatch[1])
-                .replace('{role}', getTranslatedStatus(submittedMatch[2]))
+                .replace('{role}', getTranslatedStatus(approvedMatch[2]))
                 .replace('{task}', approvedMatch[4]);
         }
 
