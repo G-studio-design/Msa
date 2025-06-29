@@ -25,7 +25,6 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { verifyUserCredentials, type User } from '@/services/user-service'; // Import local user service functions
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
-import { Separator } from '@/components/ui/separator'; // Keep Separator if used elsewhere, remove if not
 
 // Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
