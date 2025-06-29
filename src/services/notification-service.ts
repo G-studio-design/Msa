@@ -181,3 +181,28 @@ export async function clearAllNotifications(): Promise<void> {
         throw new Error("Could not clear notification data.");
     }
 }
+
+export async function deleteNotificationsByProjectId(projectId: string): Promise<void> {
+    console.log(`[NotificationService] Deleting notifications for project ID: ${projectId}`);
+    try {
+        if (!projectId) {
+            console.warn(`[NotificationService] No project ID provided for notification deletion. Skipping.`);
+            return;
+        }
+
+        const notifications = await readDb<Notification[]>(DB_PATH, []);
+        const originalCount = notifications.length;
+        const filteredNotifications = notifications.filter(n => n.projectId !== projectId);
+        const newCount = filteredNotifications.length;
+
+        if (originalCount !== newCount) {
+            await writeDb(DB_PATH, filteredNotifications);
+            console.log(`[NotificationService] Successfully deleted ${originalCount - newCount} notification(s) for project ID ${projectId}.`);
+        } else {
+            console.log(`[NotificationService] No notifications found for project ID ${projectId}. No changes made.`);
+        }
+
+    } catch (error) {
+        console.error(`[NotificationService] Error deleting notifications for project ID "${projectId}":`, error);
+    }
+}

@@ -1,3 +1,4 @@
+// src/services/project-service.ts
 'use server';
 
 import * as fs from 'fs/promises';
@@ -5,7 +6,7 @@ import * as path from 'path';
 import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized utils
-import { notifyUsersByRole } from './notification-service';
+import { notifyUsersByRole, deleteNotificationsByProjectId } from './notification-service';
 import { sanitizeForPath } from '@/lib/path-utils';
 import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants';
 import type { Workflow, WorkflowStep, WorkflowStepTransition } from './workflow-service';
@@ -664,6 +665,7 @@ export async function deleteProject(projectId: string, deleterUsername: string):
     await writeDb(DB_PATH, projects);
     console.log(`[ProjectService] Project "${projectToDelete.title}" (ID: ${projectId}) removed from projects.json.`);
 
+    // Delete associated project files directory
     const projectTitleSanitized = sanitizeForPath(projectToDelete.title);
     const projectSpecificDirRelative = `${projectId}-${projectTitleSanitized}`;
     const projectSpecificDirAbsolute = path.join(PROJECT_FILES_BASE_DIR, projectSpecificDirRelative);
@@ -679,6 +681,8 @@ export async function deleteProject(projectId: string, deleterUsername: string):
             console.error(`[ProjectService] Error deleting project folder ${projectSpecificDirAbsolute}:`, error);
         }
     }
+
+    await deleteNotificationsByProjectId(projectId);
 }
 
 export async function markParallelUploadsAsCompleteByDivision(
