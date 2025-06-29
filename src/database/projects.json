@@ -94,10 +94,10 @@
   {
     "id": "project_1751102866774_5uayv",
     "title": "proyek batur",
-    "status": "Pending Parallel Design Uploads",
-    "progress": 50,
-    "assignedDivision": "Admin Proyek",
-    "nextAction": "Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.",
+    "status": "Completed",
+    "progress": 100,
+    "assignedDivision": "",
+    "nextAction": null,
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -257,6 +257,73 @@
         "division": "struktur",
         "action": "Deleted file: \"Spektek struktur.docx\"",
         "timestamp": "2025-06-29T10:42:32.987Z"
+      },
+      {
+        "division": "Struktur",
+        "action": "struktur (Struktur) uploaded file(s).",
+        "timestamp": "2025-06-29T12:17:56.786Z",
+        "note": "analisa laporan struktur.docx, daftar simak struktur.xlsx, gambar struktur.bmp, Hammer TEst.txt, Spektek struktur.docx"
+      },
+      {
+        "division": "MEP",
+        "action": "agung (MEP) uploaded file(s).",
+        "timestamp": "2025-06-29T12:22:46.109Z",
+        "note": "analisa laporan MEP.docx, daftar simak MEp.xlsx, gambar Mep.bmp, RAP.txt"
+      },
+      {
+        "division": "MEP",
+        "action": "agung (MEP) uploaded file(s).",
+        "timestamp": "2025-06-29T12:23:21.596Z",
+        "note": "Spektek MEP.docx"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) all_files_confirmed for \"Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.\"",
+        "timestamp": "2025-06-29T12:28:28.250Z"
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) scheduled Sidang on 2025-06-29 at 20:35",
+        "timestamp": "2025-06-29T12:34:50.837Z",
+        "note": "Location: puspem."
+      },
+      {
+        "division": "Owner",
+        "action": "sudina (Owner) declared Sidang outcome as: revise",
+        "timestamp": "2025-06-29T12:37:55.909Z",
+        "note": "harap sesuaikan dikit"
+      },
+      {
+        "division": "komangmerta",
+        "action": "Deleted file: \"daftar simak MEp.xlsx\"",
+        "timestamp": "2025-06-29T12:39:16.045Z"
+      },
+      {
+        "division": "MEP",
+        "action": "agung (MEP) uploaded file(s).",
+        "timestamp": "2025-06-29T12:42:44.596Z",
+        "note": "daftar simak MEp.xlsx"
+      },
+      {
+        "division": "agung",
+        "action": "Marked their design/revision phase as complete.",
+        "timestamp": "2025-06-29T12:43:04.186Z",
+        "note": "Divisi MEP telah menyelesaikan tugasnya."
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) completed post-sidang revisions and moved to final documentation.",
+        "timestamp": "2025-06-29T12:43:41.918Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) submitted for \"Unggah dokumen penyelesaian akhir: Berita Acara, SKRD, dll.\"",
+        "timestamp": "2025-06-29T12:55:16.523Z"
+      },
+      {
+        "division": "Admin Proyek",
+        "action": "komangmerta (Admin Proyek) declared Sidang outcome as: completed",
+        "timestamp": "2025-06-29T12:57:14.567Z"
       }
     ],
     "files": [
@@ -325,6 +392,96 @@
         "uploadedBy": "Struktur",
         "path": "project_1751102866774_5uayv-proyek_batur/gaambar_strukturbmp",
         "timestamp": "2025-06-29T09:56:53.407Z"
+      },
+      {
+        "name": "analisa laporan struktur.docx",
+        "uploadedBy": "Struktur",
+        "path": "project_1751102866774_5uayv-proyek_batur/analisa_laporan_strukturdocx",
+        "timestamp": "2025-06-29T12:17:56.786Z"
+      },
+      {
+        "name": "daftar simak struktur.xlsx",
+        "uploadedBy": "Struktur",
+        "path": "project_1751102866774_5uayv-proyek_batur/daftar_simak_strukturxlsx",
+        "timestamp": "2025-06-29T12:17:56.786Z"
+      },
+      {
+        "name": "gambar struktur.bmp",
+        "uploadedBy": "Struktur",
+        "path": "project_1751102866774_5uayv-proyek_batur/gambar_strukturbmp",
+        "timestamp": "2025-06-29T12:17:56.786Z"
+      },
+      {
+        "name": "Hammer TEst.txt",
+        "uploadedBy": "Struktur",
+        "path": "project_1751102866774_5uayv-proyek_batur/hammer_testtxt",
+        "timestamp": "2025-06-29T12:17:56.786Z"
+      },
+      {
+        "name": "Spektek struktur.docx",
+        "uploadedBy": "Struktur",
+        "path": "project_1751102866774_5uayv-proyek_batur/spektek_strukturdocx",
+        "timestamp": "2025-06-29T12:17:56.786Z"
+      },
+      {
+        "name": "analisa laporan MEP.docx",
+        "uploadedBy": "MEP",
+        "path": "project_1751102866774_5uayv-proyek_batur/analisa_laporan_mepdocx",
+        "timestamp": "2025-06-29T12:22:46.109Z"
+      },
+      {
+        "name": "gambar Mep.bmp",
+        "uploadedBy": "MEP",
+        "path": "project_1751102866774_5uayv-proyek_batur/gambar_mepbmp",
+        "timestamp": "2025-06-29T12:22:46.109Z"
+      },
+      {
+        "name": "RAP.txt",
+        "uploadedBy": "MEP",
+        "path": "project_1751102866774_5uayv-proyek_batur/raptxt",
+        "timestamp": "2025-06-29T12:22:46.109Z"
+      },
+      {
+        "name": "Spektek MEP.docx",
+        "uploadedBy": "MEP",
+        "path": "project_1751102866774_5uayv-proyek_batur/spektek_mepdocx",
+        "timestamp": "2025-06-29T12:23:21.596Z"
+      },
+      {
+        "name": "daftar simak MEp.xlsx",
+        "uploadedBy": "MEP",
+        "path": "project_1751102866774_5uayv-proyek_batur/daftar_simak_mepxlsx",
+        "timestamp": "2025-06-29T12:42:44.596Z"
+      },
+      {
+        "name": "berita acara .jpg",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1751102866774_5uayv-proyek_batur/berita_acara_jpg",
+        "timestamp": "2025-06-29T12:55:16.523Z"
+      },
+      {
+        "name": "dokumen final .pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1751102866774_5uayv-proyek_batur/dokumen_final_pdf",
+        "timestamp": "2025-06-29T12:55:16.523Z"
+      },
+      {
+        "name": "ijin terbit .pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1751102866774_5uayv-proyek_batur/ijin_terbit_pdf",
+        "timestamp": "2025-06-29T12:55:16.523Z"
+      },
+      {
+        "name": "skrd .pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1751102866774_5uayv-proyek_batur/skrd_pdf",
+        "timestamp": "2025-06-29T12:55:16.523Z"
+      },
+      {
+        "name": "tanda terima .pdf",
+        "uploadedBy": "Admin Proyek",
+        "path": "project_1751102866774_5uayv-proyek_batur/tanda_terima_pdf",
+        "timestamp": "2025-06-29T12:55:16.523Z"
       }
     ],
     "createdAt": "2025-06-28T09:27:46.774Z",
@@ -335,7 +492,12 @@
       "description": "lokasinya disana"
     },
     "parallelUploadsCompletedBy": [
-      "Arsitek"
-    ]
+      "MEP"
+    ],
+    "scheduleDetails": {
+      "date": "2025-06-29",
+      "time": "20:35",
+      "location": "puspem"
+    }
   }
 ]

@@ -1,5 +1,101 @@
 [
   {
+    "id": "notif_1751201834589_ojxkf_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Proyek 'proyek batur' telah selesai dengan semua dokumen akhir terunggah oleh komangmerta.",
+    "timestamp": "2025-06-29T12:57:14.586Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1751201021941_ywxtt_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Revisi pasca-sidang untuk proyek 'proyek batur' telah selesai. Mohon unggah dokumen akhir.",
+    "timestamp": "2025-06-29T12:43:41.936Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1751200984195_jey7x_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Divisi MEP telah menyelesaikan unggahan mereka untuk proyek \"proyek batur\".",
+    "timestamp": "2025-06-29T12:43:04.191Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1751200964627_09u8c_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "MEP baru saja mengunggah file untuk proyek \"proyek batur\".",
+    "timestamp": "2025-06-29T12:42:44.625Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1751200774495_xiu82_ls1",
+    "userId": "usr_1748081668166_rkls1",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Divisi MEP telah dinotifikasi untuk berkontribusi pada revisi proyek \"proyek batur\" oleh komangmerta.",
+    "timestamp": "2025-06-29T12:39:34.492Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1751200675933_fcyod_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Proyek 'proyek batur' memerlukan revisi setelah sidang yang dinyatakan oleh sudina.",
+    "timestamp": "2025-06-29T12:37:55.930Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1751200490857_qhl2c_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Sidang untuk proyek 'proyek batur' telah dijadwalkan oleh sudina. Mohon nyatakan hasilnya setelah selesai.",
+    "timestamp": "2025-06-29T12:34:50.855Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1751200108289_qyqqv_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Semua berkas desain untuk proyek 'proyek batur' telah dikonfirmasi terunggah oleh komangmerta. Proyek kini siap untuk penjadwalan sidang.",
+    "timestamp": "2025-06-29T12:28:28.284Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1751200108264_ipa0m_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Semua berkas desain untuk proyek 'proyek batur' telah dikonfirmasi terunggah oleh komangmerta. Proyek kini siap untuk penjadwalan sidang.",
+    "timestamp": "2025-06-29T12:28:28.262Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1751199801638_de2jj_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "MEP baru saja mengunggah file untuk proyek \"proyek batur\".",
+    "timestamp": "2025-06-29T12:23:21.625Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1751199766133_yf2h4_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "MEP baru saja mengunggah file untuk proyek \"proyek batur\".",
+    "timestamp": "2025-06-29T12:22:46.129Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1751199476823_xu196_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Struktur baru saja mengunggah file untuk proyek \"proyek batur\".",
+    "timestamp": "2025-06-29T12:17:56.818Z",
+    "isRead": false
+  },
+  {
     "id": "notif_1751191013421_mps4j_22a",
     "userId": "usr_1747799008584_4r22a",
     "projectId": "project_1751102866774_5uayv",
@@ -29,7 +125,7 @@
     "projectId": "project_1751102866774_5uayv",
     "message": "Survey proyek 'proyek batur' telah selesai, segera kerjakan dan lengkapi semua berkas proyek.",
     "timestamp": "2025-06-29T08:49:56.242Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1751186996233_8y9de_h9d",
@@ -61,7 +157,7 @@
     "projectId": "project_1751102866774_5uayv",
     "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan ulang oleh arsitek. Alasan: bad wheather. Mohon periksa jadwal baru.",
     "timestamp": "2025-06-29T08:47:42.988Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1751186862978_zt3qi_ubw",
@@ -101,7 +197,7 @@
     "projectId": "project_1751102866774_5uayv",
     "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan pada Minggu, 29 Juni 2025 pukul 11:42 oleh arsitek.",
     "timestamp": "2025-06-29T03:41:32.589Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1751112735874_dt4q4_ult",
@@ -109,7 +205,7 @@
     "projectId": "project_1751102866774_5uayv",
     "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan ulang oleh arsitek. Alasan: klien tidak ada. Mohon periksa jadwal baru.",
     "timestamp": "2025-06-28T12:12:15.872Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1751112735855_isubt_ubw",
@@ -149,7 +245,7 @@
     "projectId": "project_1751102866774_5uayv",
     "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan pada Sabtu, 28 Juni 2025 pukul 19:39 oleh arsitek.",
     "timestamp": "2025-06-28T11:38:20.933Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1751109487919_62tgk_ult",
@@ -157,7 +253,7 @@
     "projectId": "project_1751102866774_5uayv",
     "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan ulang oleh arsitek. Alasan: bad wheather. Mohon periksa jadwal baru.",
     "timestamp": "2025-06-28T11:18:07.916Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1751109487907_lycoz_ubw",
@@ -293,7 +389,7 @@
     "projectId": "project_1751102866774_5uayv",
     "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan pada Sabtu, 28 Juni 2025 pukul 18:42 oleh sudina.",
     "timestamp": "2025-06-28T10:41:58.890Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1751107253548_fm5iq_ubw",
@@ -317,7 +413,7 @@
     "projectId": "project_1751102866774_5uayv",
     "message": "Berkas administrasi untuk 'proyek batur' lengkap. Mohon jadwalkan survei.",
     "timestamp": "2025-06-28T10:40:53.520Z",
-    "isRead": false
+    "isRead": true
   },
   {
     "id": "notif_1751107183620_rhdtb_22a",
