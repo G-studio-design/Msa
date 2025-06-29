@@ -14,14 +14,14 @@ export const metadata: Metadata = {
   description: 'Employee task management application for various divisions.',
   icons: {
     icon: [
-        { url: '/msarch-logo.png?v=5', type: 'image/png' },
-        { url: '/msarch-logo.png?v=5', sizes: '16x16', type: 'image/png' },
-        { url: '/msarch-logo.png?v=5', sizes: '32x32', type: 'image/png' },
+        { url: '/msarch-logo.png?v=6', type: 'image/png' },
+        { url: '/msarch-logo.png?v=6', sizes: '16x16', type: 'image/png' },
+        { url: '/msarch-logo.png?v=6', sizes: '32x32', type: 'image/png' },
     ],
     apple: [
-        { url: '/msarch-logo.png?v=5', type: 'image/png' },
+        { url: '/msarch-logo.png?v=6', type: 'image/png' },
     ],
-    shortcut: ['/msarch-logo.png?v=5']
+    shortcut: ['/msarch-logo.png?v=6']
   },
 };
 

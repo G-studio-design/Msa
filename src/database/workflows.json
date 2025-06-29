@@ -572,10 +572,10 @@
             }
           },
           "reschedule_survey": {
-            "targetStatus": "Pending Survey Details",
+            "targetStatus": "Survey Scheduled",
             "targetAssignedDivision": "Admin Proyek",
-            "targetNextActionDescription": "Input Jadwal Survei",
-            "targetProgress": 45,
+            "targetNextActionDescription": "Konfirmasi penyelesaian survei dan unggah laporan (opsional).",
+            "targetProgress": 48,
             "notification": {
               "division": [
                 "Admin Proyek",

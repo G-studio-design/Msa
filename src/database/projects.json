@@ -94,10 +94,10 @@
   {
     "id": "project_1751102866774_5uayv",
     "title": "proyek batur",
-    "status": "Survey Scheduled",
-    "progress": 48,
+    "status": "Pending Parallel Design Uploads",
+    "progress": 50,
     "assignedDivision": "Admin Proyek",
-    "nextAction": "Konfirmasi penyelesaian survei dan unggah laporan (opsional).",
+    "nextAction": "Admin Proyek: Pantau unggahan. Arsitek/Struktur/MEP: Unggah berkas Anda sesuai checklist.",
     "workflowId": "msa_workflow",
     "workflowHistory": [
       {
@@ -212,6 +212,30 @@
         "action": "arsitek (Arsitek) submitted Survey Details for 2025-06-29 at 11:42",
         "timestamp": "2025-06-29T03:41:32.581Z",
         "note": "Survey Description: lokasinya disana."
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) rescheduled Survey to 2025-06-29 at 16:48",
+        "timestamp": "2025-06-29T08:47:42.953Z",
+        "note": "Reason: bad wheather"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) submitted Survey Details for 2025-06-29 at 16:48",
+        "timestamp": "2025-06-29T08:49:56.197Z",
+        "note": "Survey Description: lokasinya disana. Note: survey berhasil dilakukan"
+      },
+      {
+        "division": "Arsitek",
+        "action": "arsitek (Arsitek) uploaded file(s).",
+        "timestamp": "2025-06-29T08:52:16.945Z",
+        "note": "gambar arsitek.docx, daftar simak arsitek.docx, spektek arsitek.docx, rap arsitek.docx"
+      },
+      {
+        "division": "arsitek",
+        "action": "Marked their design/revision phase as complete.",
+        "timestamp": "2025-06-29T08:54:39.294Z",
+        "note": "Divisi Arsitek telah menyelesaikan tugasnya."
       }
     ],
     "files": [
@@ -244,14 +268,41 @@
         "uploadedBy": "Admin Proyek",
         "path": "project_1751102866774_5uayv-proyek_batur/dokumen_kelengkapan_administrasi_proyekdoc",
         "timestamp": "2025-06-28T10:40:53.509Z"
+      },
+      {
+        "name": "gambar arsitek.docx",
+        "uploadedBy": "Arsitek",
+        "path": "project_1751102866774_5uayv-proyek_batur/gambar_arsitekdocx",
+        "timestamp": "2025-06-29T08:52:16.945Z"
+      },
+      {
+        "name": "daftar simak arsitek.docx",
+        "uploadedBy": "Arsitek",
+        "path": "project_1751102866774_5uayv-proyek_batur/daftar_simak_arsitekdocx",
+        "timestamp": "2025-06-29T08:52:16.945Z"
+      },
+      {
+        "name": "spektek arsitek.docx",
+        "uploadedBy": "Arsitek",
+        "path": "project_1751102866774_5uayv-proyek_batur/spektek_arsitekdocx",
+        "timestamp": "2025-06-29T08:52:16.945Z"
+      },
+      {
+        "name": "rap arsitek.docx",
+        "uploadedBy": "Arsitek",
+        "path": "project_1751102866774_5uayv-proyek_batur/rap_arsitekdocx",
+        "timestamp": "2025-06-29T08:52:16.945Z"
       }
     ],
     "createdAt": "2025-06-28T09:27:46.774Z",
     "createdBy": "sudina",
     "surveyDetails": {
       "date": "2025-06-29",
-      "time": "11:42",
+      "time": "16:48",
       "description": "lokasinya disana"
-    }
+    },
+    "parallelUploadsCompletedBy": [
+      "Arsitek"
+    ]
   }
 ]
