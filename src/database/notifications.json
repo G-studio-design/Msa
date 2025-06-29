@@ -1,5 +1,29 @@
 [
   {
+    "id": "notif_1751168492614_tu7bb_ubw",
+    "userId": "usr_1747633709593_uxubw",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan pada Minggu, 29 Juni 2025 pukul 11:42 oleh arsitek.",
+    "timestamp": "2025-06-29T03:41:32.613Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1751168492605_0oblx_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan pada Minggu, 29 Juni 2025 pukul 11:42 oleh arsitek.",
+    "timestamp": "2025-06-29T03:41:32.604Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1751168492594_aaa9z_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1751102866774_5uayv",
+    "message": "Survei untuk proyek 'proyek batur' telah dijadwalkan pada Minggu, 29 Juni 2025 pukul 11:42 oleh arsitek.",
+    "timestamp": "2025-06-29T03:41:32.589Z",
+    "isRead": false
+  },
+  {
     "id": "notif_1751112735874_dt4q4_ult",
     "userId": "usr_owner_default",
     "projectId": "project_1751102866774_5uayv",

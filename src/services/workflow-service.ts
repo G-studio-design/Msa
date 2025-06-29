@@ -212,10 +212,10 @@ const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
           }
         },
         "reschedule_survey": {
-            targetStatus: "Pending Survey Details",
+            targetStatus: "Survey Scheduled",
             targetAssignedDivision: "Admin Proyek",
-            targetNextActionDescription: "Input Jadwal Survei",
-            targetProgress: 45,
+            targetNextActionDescription: "Konfirmasi penyelesaian survei dan unggah laporan (opsional).",
+            targetProgress: 48,
             notification: {
               division: ["Admin Proyek", "Arsitek", "Owner"],
               message: "Survei untuk proyek '{projectName}' telah dijadwalkan ulang oleh {actorUsername}. Alasan: {reasonNote}. Mohon periksa jadwal baru."
@@ -485,10 +485,10 @@ const MSA_WORKFLOW_STEPS: WorkflowStep[] = [
             }
         },
         "reschedule_survey": {
-            targetStatus: "Pending Survey Details",
+            targetStatus: "Survey Scheduled",
             targetAssignedDivision: "Admin Proyek",
-            targetNextActionDescription: "Input Jadwal Survei",
-            targetProgress: 45,
+            targetNextActionDescription: "Konfirmasi penyelesaian survei dan unggah laporan (opsional).",
+            targetProgress: 48,
             notification: {
               division: ["Admin Proyek", "Arsitek", "Owner"],
               message: "Survei untuk proyek '{projectName}' telah dijadwalkan ulang oleh {actorUsername}. Alasan: {reasonNote}. Mohon periksa jadwal baru."
