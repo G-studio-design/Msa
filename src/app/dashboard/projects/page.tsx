@@ -1063,7 +1063,7 @@ export default function ProjectsPage() {
     const showSurveyDetailsInputSection = React.useMemo(() => {
       if (!selectedProject || !currentUser) return false;
       const userRoleCleaned = currentUser.role.trim();
-      const canTakeAction = userRoleCleaned === 'Admin Proyek' || userRoleCleaned === 'Arsitek';
+      const canTakeAction = userRoleCleaned === 'Admin Proyek' || userRoleCleaned === 'Arsitek' || userRoleCleaned === 'Owner';
       return selectedProject.status === 'Pending Survey Details' && canTakeAction;
     }, [selectedProject, currentUser]);
 
