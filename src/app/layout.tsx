@@ -13,9 +13,9 @@ export const metadata: Metadata = {
   title: 'Msarch App',
   description: 'Employee task management application for various divisions.',
   icons: {
-    icon: '/msarch-logo.png',
-    shortcut: '/msarch-logo.png',
-    apple: '/msarch-logo.png',
+    icon: { url: '/msarch-logo.png', type: 'image/png' },
+    shortcut: { url: '/msarch-logo.png', type: 'image/png' },
+    apple: { url: '/msarch-logo.png', type: 'image/png' },
   },
 };
 
