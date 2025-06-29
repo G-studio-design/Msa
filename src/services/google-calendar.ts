@@ -23,16 +23,3 @@ export interface CalendarEvent {
    */
   description: string;
 }
-
-/**
- * Asynchronously schedules an event in Google Calendar.
- *
- * @param event The event to schedule.
- * @returns A promise that resolves to a string containing the ID of the created event.
- */
-export async function scheduleEvent(event: CalendarEvent): Promise<string> {
-  // TODO: Implement this by calling the Google Calendar API.
-  console.log('TODO: Implement scheduleEvent');
-
-  return 'stubbed-calendar-event-id';
-}
