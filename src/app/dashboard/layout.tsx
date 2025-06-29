@@ -61,6 +61,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isClient, setIsClient] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   // This effect sets the isClient flag to true only after the component has mounted.
   // This is the key to solving hydration errors.
@@ -313,6 +315,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                }
            }
        }
+       setIsPopoverOpen(false); // Close popover on click
    }, [currentUser, router, pathname, projectIdFromUrl]);
 
 
@@ -328,7 +331,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               </Link>
 
              <div className="flex items-center gap-2">
-              <Popover>
+              <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
                 <PopoverTrigger asChild>
                     <Button variant="outline" size="icon" className="relative h-9 w-9 sm:h-10 sm:w-10">
                         <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -383,7 +386,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 </PopoverContent>
               </Popover>
 
-              <Sheet>
+              <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                 <SheetTrigger asChild>
                    <Button variant="outline" size="icon" className="h-9 w-9 sm:h-10 sm:w-10">
                      <PanelRightOpen className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -404,6 +407,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                            <Link
                              key={item.href}
                              href={item.href}
+                             onClick={() => setIsSheetOpen(false)} // Close sheet on click
                              className="flex items-center gap-3 rounded-md px-3 py-2 text-primary-foreground/90 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground"
                            >
                              <item.icon className="h-5 w-5" />
@@ -459,7 +463,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     <Button
                       variant="ghost"
                       className="w-full justify-start gap-3 text-primary-foreground/90 hover:bg-primary-foreground/10 hover:text-primary-foreground"
-                      onClick={logout}
+                      onClick={() => {
+                        logout();
+                        setIsSheetOpen(false); // Close sheet on logout
+                      }}
                       disabled={!isClient || !currentUser}
                     >
                       <LogOut className="h-5 w-5" />
