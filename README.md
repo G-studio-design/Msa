@@ -1,33 +1,33 @@
 # Firebase Studio
 
-This is a NextJS starter in Firebase Studio.
+Ini adalah starter NextJS di Firebase Studio.
 
-To get started, take a look at src/app/page.tsx.
+Untuk memulai, lihat `src/app/page.tsx`.
 
-## Prerequisites
+## Prasyarat
 
-Before you can run this application locally, you'll need to have a few essential tools installed on your computer.
+Sebelum Anda dapat menjalankan aplikasi ini secara lokal, Anda perlu menginstal beberapa alat penting di komputer Anda.
 
-1.  **Node.js**: This is the runtime environment that allows you to run JavaScript code outside of a web browser. This project requires it to build and run.
-    *   **Recommendation**: Download and install the **LTS (Long-Term Support)** version from the official [Node.js website](https://nodejs.org/). The LTS version is the most stable and is recommended for most users.
+1.  **Node.js**: Ini adalah lingkungan runtime yang memungkinkan Anda menjalankan kode JavaScript di luar browser. Proyek ini membutuhkannya untuk proses build dan menjalankan aplikasi.
+    *   **Rekomendasi**: Unduh dan instal versi **LTS (Long-Term Support)** dari situs web resmi [Node.js](https://nodejs.org/). Versi LTS adalah yang paling stabil dan direkomendasikan untuk sebagian besar pengguna.
 
-2.  **npm (Node Package Manager)**: npm is the package manager for Node.js. It's used to install the libraries and tools this project depends on.
-    *   **Installation**: npm is automatically installed when you install Node.js, so you don't need to install it separately.
+2.  **npm (Node Package Manager)**: npm adalah manajer paket untuk Node.js. Ini digunakan untuk menginstal pustaka dan alat yang menjadi dependensi proyek ini.
+    *   **Instalasi**: npm secara otomatis terinstal saat Anda menginstal Node.js, jadi Anda tidak perlu menginstalnya secara terpisah.
 
-3.  **A Code Editor**: While you can use any text editor, a modern code editor will provide features like syntax highlighting and code completion, making development much easier.
-    *   **Recommendation**: We highly recommend using [Visual Studio Code](https://code.visualstudio.com/), which is a free and powerful editor popular for web development.
+3.  **Editor Kode**: Meskipun Anda dapat menggunakan editor teks apa pun, editor kode modern akan menyediakan fitur seperti penyorotan sintaks dan pelengkapan kode, yang membuat pengembangan jauh lebih mudah.
+    *   **Rekomendasi**: Kami sangat menyarankan penggunaan [Visual Studio Code](https://code.visualstudio.com/), editor gratis dan kuat yang populer untuk pengembangan web.
 
-## Running Locally
+## Menjalankan Secara Lokal
 
-To run this application on your local machine, follow these steps:
+Untuk menjalankan aplikasi ini di mesin lokal Anda, ikuti langkah-langkah berikut:
 
-### 1. Set Up Environment Variables
+### 1. Atur Variabel Lingkungan
 
-This project requires several API keys and credentials to run.
+Proyek ini memerlukan beberapa kunci API dan kredensial untuk dapat berjalan.
 
-1.  Create a new file named `.env.local` in the root directory of the project if it doesn't exist.
-2.  Copy the contents of the `.env` file (or the template below) into your new `.env.local` file.
-3.  Replace the placeholder values (e.g., `YOUR_API_KEY_HERE`) with your actual credentials from Google Cloud and Firebase.
+1.  Buat file baru bernama `.env.local` di direktori root proyek jika belum ada.
+2.  Salin isi dari file `.env` (atau templat di bawah) ke file `.env.local` baru Anda.
+3.  Ganti nilai placeholder (misalnya, `YOUR_API_KEY_HERE`) dengan kredensial Anda yang sebenarnya dari Google Cloud dan Firebase.
 
 ```
 # Google OAuth Credentials (for Google Calendar & Sign-In)
@@ -51,20 +51,20 @@ NEXT_PUBLIC_FIREBASE_APP_ID=YOUR_FIREBASE_APP_ID
 
 ```
 
-### 2. Install Dependencies
+### 2. Instal Dependensi
 
-Open a terminal in the project's root directory and run the following command to install the necessary packages:
+Buka terminal di direktori root proyek dan jalankan perintah berikut untuk menginstal paket yang diperlukan:
 
 ```bash
 npm install
 ```
 
-### 3. Run the Development Server
+### 3. Jalankan Server Pengembangan
 
-Once the dependencies are installed, start the Next.js development server:
+Setelah dependensi terinstal, jalankan server pengembangan Next.js:
 
 ```bash
 npm run dev
 ```
 
-The application will now be running. You can access it in your web browser, typically at `http://localhost:9002`.
+Aplikasi sekarang akan berjalan. Anda dapat mengaksesnya di browser web Anda, biasanya di `http://localhost:9002`.
