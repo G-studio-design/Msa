@@ -1,8 +1,8 @@
 // src/services/leave-request-service.ts
 'use server';
 
-import * as fs from 'fs/promises';
 import * as path from 'path';
+import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized utils
 import { notifyUsersByRole, notifyUserById } from './notification-service';
 import type { User } from './user-service';
 
@@ -32,38 +32,12 @@ export interface AddLeaveRequestData {
   reason: string;
 }
 
-const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json'); // Corrected filename
+const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
 
-async function readLeaveRequests(): Promise<LeaveRequest[]> {
-  try {
-    await fs.access(DB_PATH);
-  } catch (error) {
-    console.log("[LeaveRequestService/JSON] Leave requests database file not found, creating a new one.");
-    await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8');
-    return [];
-  }
-  try {
-    const data = await fs.readFile(DB_PATH, 'utf8');
-    if (data.trim() === "") return [];
-    return JSON.parse(data) as LeaveRequest[];
-  } catch (error) {
-    console.error("[LeaveRequestService/JSON] Error reading or parsing leave requests database:", error);
-    await fs.writeFile(DB_PATH, JSON.stringify([], null, 2), 'utf8'); // Reset if corrupted
-    return [];
-  }
-}
-
-async function writeLeaveRequests(requests: LeaveRequest[]): Promise<void> {
-  try {
-    await fs.writeFile(DB_PATH, JSON.stringify(requests, null, 2), 'utf8');
-  } catch (error) {
-    console.error("[LeaveRequestService/JSON] Error writing leave requests database:", error);
-    throw new Error('Failed to save leave request data.');
-  }
-}
+// The individual read/write functions are no longer needed here.
 
 export async function addLeaveRequest(data: AddLeaveRequestData): Promise<LeaveRequest> {
-  const leaveRequests = await readLeaveRequests();
+  const leaveRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
   const now = new Date();
 
   const newRequest: LeaveRequest = {
@@ -80,37 +54,37 @@ export async function addLeaveRequest(data: AddLeaveRequestData): Promise<LeaveR
   };
 
   leaveRequests.push(newRequest);
-  await writeLeaveRequests(leaveRequests);
+  await writeDb(DB_PATH, leaveRequests);
 
   const notificationMessage = `Permintaan izin baru dari ${newRequest.displayName} (${newRequest.leaveType}) dari tanggal ${newRequest.startDate} hingga ${newRequest.endDate}.`;
   await notifyUsersByRole('Owner', notificationMessage); // Assuming Owner approves
 
-  console.log(`[LeaveRequestService/JSON] Leave request added for ${data.username}. Owners notified.`);
+  console.log(`[LeaveRequestService] Leave request added for ${data.username}. Owners notified.`);
   return newRequest;
 }
 
 export async function getAllLeaveRequests(): Promise<LeaveRequest[]> {
-  const allRequests = await readLeaveRequests();
+  const allRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
   return allRequests.sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());
 }
 
 
 export async function getApprovedLeaveRequests(): Promise<LeaveRequest[]> {
-  const allRequests = await readLeaveRequests();
+  const allRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
   return allRequests.filter(req => req.status === 'Approved');
 }
 
 export async function approveLeaveRequest(requestId: string, approverUserId: string, approverUsername: string): Promise<LeaveRequest | null> {
-  const leaveRequests = await readLeaveRequests();
+  const leaveRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
   const requestIndex = leaveRequests.findIndex(req => req.id === requestId);
 
   if (requestIndex === -1) {
-    console.warn(`[LeaveRequestService/JSON] Leave request with ID ${requestId} not found for approval.`);
+    console.warn(`[LeaveRequestService] Leave request with ID ${requestId} not found for approval.`);
     return null;
   }
 
   if (leaveRequests[requestIndex].status !== 'Pending') {
-    console.warn(`[LeaveRequestService/JSON] Leave request ${requestId} is not in Pending state, cannot approve.`);
+    console.warn(`[LeaveRequestService] Leave request ${requestId} is not in Pending state, cannot approve.`);
     return null; 
   }
 
@@ -118,27 +92,27 @@ export async function approveLeaveRequest(requestId: string, approverUserId: str
   leaveRequests[requestIndex].approvedRejectedBy = approverUserId;
   leaveRequests[requestIndex].approvedRejectedAt = new Date().toISOString();
 
-  await writeLeaveRequests(leaveRequests);
+  await writeDb(DB_PATH, leaveRequests);
   const updatedRequest = leaveRequests[requestIndex];
 
   const employeeNotificationMessage = `Permintaan izin Anda (${updatedRequest.leaveType}) dari ${updatedRequest.startDate} hingga ${updatedRequest.endDate} telah disetujui oleh ${approverUsername}.`;
   await notifyUserById(updatedRequest.userId, employeeNotificationMessage);
-  console.log(`[LeaveRequestService/JSON] User ${updatedRequest.userId} notified of leave approval.`);
+  console.log(`[LeaveRequestService] User ${updatedRequest.userId} notified of leave approval.`);
 
   return updatedRequest;
 }
 
 export async function rejectLeaveRequest(requestId: string, rejectorUserId: string, rejectorUsername: string, rejectionReason: string): Promise<LeaveRequest | null> {
-  const leaveRequests = await readLeaveRequests();
+  const leaveRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
   const requestIndex = leaveRequests.findIndex(req => req.id === requestId);
 
   if (requestIndex === -1) {
-    console.warn(`[LeaveRequestService/JSON] Leave request with ID ${requestId} not found for rejection.`);
+    console.warn(`[LeaveRequestService] Leave request with ID ${requestId} not found for rejection.`);
     return null;
   }
 
   if (leaveRequests[requestIndex].status !== 'Pending') {
-    console.warn(`[LeaveRequestService/JSON] Leave request ${requestId} is not in Pending state, cannot reject.`);
+    console.warn(`[LeaveRequestService] Leave request ${requestId} is not in Pending state, cannot reject.`);
     return null; 
   }
 
@@ -147,17 +121,17 @@ export async function rejectLeaveRequest(requestId: string, rejectorUserId: stri
   leaveRequests[requestIndex].approvedRejectedAt = new Date().toISOString();
   leaveRequests[requestIndex].rejectionReason = rejectionReason;
 
-  await writeLeaveRequests(leaveRequests);
+  await writeDb(DB_PATH, leaveRequests);
   const updatedRequest = leaveRequests[requestIndex];
   
   const employeeNotificationMessage = `Permintaan izin Anda (${updatedRequest.leaveType}) dari ${updatedRequest.startDate} hingga ${updatedRequest.endDate} telah ditolak oleh ${rejectorUsername}. Alasan: ${rejectionReason}`;
   await notifyUserById(updatedRequest.userId, employeeNotificationMessage);
-  console.log(`[LeaveRequestService/JSON] User ${updatedRequest.userId} notified of leave rejection.`);
+  console.log(`[LeaveRequestService] User ${updatedRequest.userId} notified of leave rejection.`);
 
   return updatedRequest;
 }
 
 export async function getLeaveRequestsByUserId(userId: string): Promise<LeaveRequest[]> {
-    const allRequests = await readLeaveRequests();
+    const allRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
     return allRequests.filter(req => req.userId === userId).sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());
 }
