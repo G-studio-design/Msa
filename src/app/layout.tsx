@@ -12,19 +12,11 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 export const metadata: Metadata = {
   title: 'Msarch App',
   description: 'Employee task management application for various divisions.',
+  // The primary icon is now handled by the /icon.ico/route.ts file.
+  // We only need to specify other icons like apple-touch-icon here.
   icons: {
-    icon: {
-      url: '/msarch-logo.png',
-      type: 'image/png',
-    },
-    shortcut: {
-      url: '/msarch-logo.png',
-      type: 'image/png',
-    },
-    apple: {
-      url: '/msarch-logo.png',
-      type: 'image/png',
-    },
+    shortcut: { url: '/msarch-logo.png', type: 'image/png' },
+    apple: { url: '/msarch-logo.png', type: 'image/png' },
   },
 };
 
