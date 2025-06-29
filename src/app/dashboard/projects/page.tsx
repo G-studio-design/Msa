@@ -43,6 +43,7 @@ import {
   Check,
   FileLock,
   Sparkles,
+  CalendarIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -68,6 +69,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
@@ -102,6 +109,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { format, parseISO } from 'date-fns';
+import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 
 
 const defaultGlobalDict = getDictionary('en');
@@ -160,11 +169,12 @@ export default function ProjectsPage() {
   const [description, setDescription] = React.useState('');
   const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [scheduleDate, setScheduleDate] = React.useState('');
+  
+  const [scheduleDate, setScheduleDate] = React.useState<Date | undefined>();
   const [scheduleTime, setScheduleTime] = React.useState('');
   const [scheduleLocation, setScheduleLocation] = React.useState('');
 
-  const [surveyDate, setSurveyDate] = React.useState('');
+  const [surveyDate, setSurveyDate] = React.useState<Date | undefined>();
   const [surveyTime, setSurveyTime] = React.useState('');
   const [surveyDescription, setSurveyDescription] = React.useState('');
 
@@ -191,7 +201,7 @@ export default function ProjectsPage() {
   const [isGenericRevisionDialogOpen, setIsGenericRevisionDialogOpen] = React.useState(false);
   
   const [isRescheduleDialogOpen, setIsRescheduleDialogOpen] = React.useState(false);
-  const [rescheduleDate, setRescheduleDate] = React.useState('');
+  const [rescheduleDate, setRescheduleDate] = React.useState<Date | undefined>();
   const [rescheduleTime, setRescheduleTime] = React.useState('');
   const [rescheduleNote, setRescheduleNote] = React.useState('');
 
@@ -240,10 +250,10 @@ export default function ProjectsPage() {
                   // Reset form fields when selecting a new project
                   setDescription('');
                   setUploadedFiles([]);
-                  setScheduleDate(projectToSelect.scheduleDetails?.date || '');
+                  setScheduleDate(projectToSelect.scheduleDetails?.date ? parseISO(projectToSelect.scheduleDetails.date) : undefined);
                   setScheduleTime(projectToSelect.scheduleDetails?.time || '');
                   setScheduleLocation(projectToSelect.scheduleDetails?.location || '');
-                  setSurveyDate(projectToSelect.surveyDetails?.date || '');
+                  setSurveyDate(projectToSelect.surveyDetails?.date ? parseISO(projectToSelect.surveyDetails.date) : undefined);
                   setSurveyTime(projectToSelect.surveyDetails?.time || '');
                   setSurveyDescription(projectToSelect.surveyDetails?.description || '');
                   setRevisionNote('');
@@ -509,13 +519,13 @@ export default function ProjectsPage() {
             actionTaken: actionTaken,
             files: uploadedFileEntries.length > 0 ? uploadedFileEntries : undefined,
             note: currentDescription || undefined,
-            scheduleDetails: (selectedProject.status === 'Pending Scheduling' && actionTaken === 'scheduled') ? {
-                date: scheduleDate,
+            scheduleDetails: (selectedProject.status === 'Pending Scheduling' && actionTaken === 'scheduled' && scheduleDate) ? {
+                date: format(scheduleDate, 'yyyy-MM-dd'),
                 time: scheduleTime,
                 location: scheduleLocation
             } : undefined,
              surveyDetails: (selectedProject.status === 'Pending Survey Details' || selectedProject.status === 'Survey Scheduled') && (actionTaken === 'submitted' || actionTaken === 'reschedule_survey') ? {
-                date: (actionTaken === 'reschedule_survey') ? rescheduleDate : surveyDate,
+                date: (actionTaken === 'reschedule_survey' && rescheduleDate) ? format(rescheduleDate, 'yyyy-MM-dd') : (surveyDate ? format(surveyDate, 'yyyy-MM-dd') : ''),
                 time: (actionTaken === 'reschedule_survey') ? rescheduleTime : surveyTime,
                 description: surveyDescription
             } : undefined,
@@ -629,7 +639,7 @@ export default function ProjectsPage() {
         await handleProgressSubmit('reschedule_survey', [], rescheduleNote);
         setIsSubmitting(false);
         setIsRescheduleDialogOpen(false);
-        setRescheduleDate('');
+        setRescheduleDate(undefined);
         setRescheduleTime('');
         setRescheduleNote('');
     };
@@ -1373,8 +1383,8 @@ export default function ProjectsPage() {
             </div>
        );
        
-       const surveyDate = project.surveyDetails?.date ? new Date(`${project.surveyDetails.date}T${project.surveyDetails.time || '00:00:00'}`) : null;
-       const isSurveyDatePassed = surveyDate && new Date() >= surveyDate;
+       const surveyDateObj = project.surveyDetails?.date ? parseISO(project.surveyDetails.date) : null;
+       const isSurveyDatePassed = surveyDateObj && new Date() >= surveyDateObj;
 
 
        const renderChecklistItem = (item: ChecklistItem) => {
@@ -1744,7 +1754,20 @@ export default function ProjectsPage() {
                             <div className="space-y-4 border-t pt-4 mt-4">
                                 <h3 className="text-lg font-semibold">{projectsDict.nextActionDescriptions.inputSurveyDetails}</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-1.5"><Label htmlFor="surveyDate">{projectsDict.dateLabel}</Label><Input id="surveyDate" type="date" value={surveyDate} onChange={e => setSurveyDate(e.target.value)} disabled={isSubmitting} /></div>
+                                    <div className="space-y-1.5">
+                                        <Label>{projectsDict.dateLabel}</Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !surveyDate && "text-muted-foreground")} disabled={isSubmitting}>
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {surveyDate ? format(surveyDate, "PPP", { locale: language === 'id' ? IndonesianLocale : EnglishLocale }) : <span>{projectsDict.dateLabel}</span>}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0">
+                                                <Calendar mode="single" selected={surveyDate} onSelect={setSurveyDate} initialFocus locale={language === 'id' ? IndonesianLocale : EnglishLocale}/>
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
                                     <div className="space-y-1.5"><Label htmlFor="surveyTime">{projectsDict.timeLabel}</Label><Input id="surveyTime" type="time" value={surveyTime} onChange={e => setSurveyTime(e.target.value)} disabled={isSubmitting} /></div>
                                 </div>
                                 <div className="space-y-1.5"><Label htmlFor="surveyDescription">{projectsDict.descriptionLabel}</Label><Textarea id="surveyDescription" placeholder={projectsDict.surveyDescriptionPlaceholder} value={surveyDescription} onChange={e => setSurveyDescription(e.target.value)} disabled={isSubmitting}/></div>
@@ -1805,7 +1828,20 @@ export default function ProjectsPage() {
                                           </DialogHeader>
                                           <div className="grid gap-4 py-4">
                                               <div className="grid grid-cols-2 gap-4">
-                                                  <div><Label htmlFor="reschedule-date">{projectsDict.dateLabel}</Label><Input id="reschedule-date" type="date" value={rescheduleDate} onChange={(e) => setRescheduleDate(e.target.value)} disabled={isSubmitting}/></div>
+                                                  <div className="space-y-1.5">
+                                                      <Label>{projectsDict.dateLabel}</Label>
+                                                      <Popover>
+                                                          <PopoverTrigger asChild>
+                                                              <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !rescheduleDate && "text-muted-foreground")} disabled={isSubmitting}>
+                                                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                                                  {rescheduleDate ? format(rescheduleDate, "PPP", { locale: language === 'id' ? IndonesianLocale : EnglishLocale }) : <span>{projectsDict.dateLabel}</span>}
+                                                              </Button>
+                                                          </PopoverTrigger>
+                                                          <PopoverContent className="w-auto p-0">
+                                                              <Calendar mode="single" selected={rescheduleDate} onSelect={setRescheduleDate} initialFocus locale={language === 'id' ? IndonesianLocale : EnglishLocale}/>
+                                                          </PopoverContent>
+                                                      </Popover>
+                                                  </div>
                                                   <div><Label htmlFor="reschedule-time">{projectsDict.timeLabel}</Label><Input id="reschedule-time" type="time" value={rescheduleTime} onChange={(e) => setRescheduleTime(e.target.value)} disabled={isSubmitting}/></div>
                                               </div>
                                               <div>
@@ -1861,7 +1897,20 @@ export default function ProjectsPage() {
                             <div className="space-y-4 border-t pt-4 mt-4">
                               <h3 className="text-lg font-semibold">{projectsDict.scheduleSidangTitle.replace('{role}', getTranslatedStatus(currentUser!.role))}</h3>
                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                 <div className="space-y-1.5"><Label htmlFor="scheduleDate">{projectsDict.dateLabel}</Label><Input id="scheduleDate" type="date" value={scheduleDate} onChange={e => setScheduleDate(e.target.value)} disabled={isSubmitting} /></div>
+                                 <div className="space-y-1.5">
+                                    <Label>{projectsDict.dateLabel}</Label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant={"outline"} className={cn("w-full justify-start text-left font-normal", !scheduleDate && "text-muted-foreground")} disabled={isSubmitting}>
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {scheduleDate ? format(scheduleDate, "PPP", { locale: language === 'id' ? IndonesianLocale : EnglishLocale }) : <span>{projectsDict.dateLabel}</span>}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                            <Calendar mode="single" selected={scheduleDate} onSelect={setScheduleDate} initialFocus locale={language === 'id' ? IndonesianLocale : EnglishLocale}/>
+                                        </PopoverContent>
+                                    </Popover>
+                                 </div>
                                   <div className="space-y-1.5"><Label htmlFor="scheduleTime">{projectsDict.timeLabel}</Label><Input id="scheduleTime" type="time" value={scheduleTime} onChange={e => setScheduleTime(e.target.value)} disabled={isSubmitting} /></div>
                                </div>
                                 <div className="space-y-1.5"><Label htmlFor="scheduleLocation">{projectsDict.locationLabel}</Label><Input id="scheduleLocation" placeholder={projectsDict.locationPlaceholder} value={scheduleLocation} onChange={e => setScheduleLocation(e.target.value)} disabled={isSubmitting} /></div>
