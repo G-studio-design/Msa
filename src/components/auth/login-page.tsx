@@ -162,7 +162,7 @@ export default function LoginPage() {
                       <Input
                          placeholder={isClient ? dict.usernamePlaceholder : defaultDict.login.usernamePlaceholder}
                          {...field}
-                         autoComplete="username"
+                         autoComplete="off"
                          disabled={isSubmitting} // Removed isBypassing from disabled state
                       />
                     </FormControl>
