@@ -12,11 +12,22 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 export const metadata: Metadata = {
   title: 'Msarch App',
   description: 'Employee task management application for various divisions.',
-  icons: {
-    icon: { url: '/msarch-logo.png', type: 'image/png' },
-    shortcut: { url: '/msarch-logo.png', type: 'image/png' },
-    apple: { url: '/msarch-logo.png', type: 'image/png' },
-  },
+  icons: [
+    {
+      rel: 'icon',
+      url: '/msarch-logo.png', // Main favicon
+      type: 'image/png',
+      sizes: 'any', // Helps override stubborn default .ico files
+    },
+    {
+      rel: 'apple-touch-icon',
+      url: '/msarch-logo.png', // For Apple devices
+    },
+    {
+      rel: 'shortcut icon',
+      url: '/msarch-logo.png', // For older browsers
+    },
+  ],
 };
 
 export default function RootLayout({
