@@ -1,4 +1,3 @@
-
 // src/locales/id.ts
 const id = {
   // Login Page
@@ -107,9 +106,9 @@ const id = {
      progress: '{progress}% Selesai',
      averageProgressTitle: 'Rata-rata Progres',
      averageProgressDesc: 'Tingkat penyelesaian rata-rata di semua proyek Anda.',
-     projectProgressChartTitle: 'Progres Proyek Aktif',
-     projectProgressChartDesc: 'Visualisasi tingkat penyelesaian proyek saat ini.',
-     noActiveProjectsForChart: 'Tidak ada proyek aktif untuk ditampilkan dalam diagram.',
+     projectProgressChartTitle: 'Tinjauan Progres Proyek',
+     projectProgressChartDesc: 'Visualisasi tingkat penyelesaian untuk semua proyek.',
+     noProjectsForChart: 'Tidak ada proyek yang tersedia untuk ditampilkan di diagram.',
      progressChart: {
         label: 'Progres'
      },

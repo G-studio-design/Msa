@@ -1,4 +1,3 @@
-
 // src/locales/en.ts
 const en = {
   // Login Page
@@ -107,9 +106,9 @@ const en = {
     progress: '{progress}% Complete',
     averageProgressTitle: 'Average Progress',
     averageProgressDesc: 'Average completion rate across your projects.',
-    projectProgressChartTitle: 'Active Project Progress',
-    projectProgressChartDesc: 'Visualization of current project completion rates.',
-    noActiveProjectsForChart: 'No active projects to display in the chart.',
+    projectProgressChartTitle: 'Overall Project Progress',
+    projectProgressChartDesc: 'Visualization of completion rates for all projects.',
+    noProjectsForChart: 'No projects available to display in the chart.',
     progressChart: {
         label: 'Progress'
     },
