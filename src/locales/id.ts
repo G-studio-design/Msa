@@ -430,6 +430,8 @@ const id = {
       divisionCompletionDesc: "Anda telah menandai pekerjaan untuk {role} sebagai selesai. Admin Proyek telah diberitahu.",
       markDivisionCompleteButton: "Tandai Pekerjaan Saya Selesai",
       divisionCompletedButton: "Pekerjaan Ditandai Selesai",
+      fileNameMismatchTitle: "Nama File Tidak Valid",
+      fileNameMismatchDesc: "File '{fileName}' tidak cocok dengan item checklist yang diperlukan untuk divisi Anda. Harap ganti nama file. Kata kunci yang diharapkan terkait dengan: {requiredNames}.",
     }
   },
   // Add Project Page

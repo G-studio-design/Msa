@@ -236,6 +236,12 @@
         "action": "Marked their design/revision phase as complete.",
         "timestamp": "2025-06-29T08:54:39.294Z",
         "note": "Divisi Arsitek telah menyelesaikan tugasnya."
+      },
+      {
+        "division": "Struktur",
+        "action": "struktur (Struktur) uploaded file(s).",
+        "timestamp": "2025-06-29T09:56:53.407Z",
+        "note": "analisa laporan struktur.docx, daftar simaak struktur.xlsx, gaambar struktur.bmp, Hammer TEst.txt, Spektek struktur.docx"
       }
     ],
     "files": [
@@ -292,6 +298,36 @@
         "uploadedBy": "Arsitek",
         "path": "project_1751102866774_5uayv-proyek_batur/rap_arsitekdocx",
         "timestamp": "2025-06-29T08:52:16.945Z"
+      },
+      {
+        "name": "analisa laporan struktur.docx",
+        "uploadedBy": "Struktur",
+        "path": "project_1751102866774_5uayv-proyek_batur/analisa_laporan_strukturdocx",
+        "timestamp": "2025-06-29T09:56:53.407Z"
+      },
+      {
+        "name": "daftar simaak struktur.xlsx",
+        "uploadedBy": "Struktur",
+        "path": "project_1751102866774_5uayv-proyek_batur/daftar_simaak_strukturxlsx",
+        "timestamp": "2025-06-29T09:56:53.407Z"
+      },
+      {
+        "name": "gaambar struktur.bmp",
+        "uploadedBy": "Struktur",
+        "path": "project_1751102866774_5uayv-proyek_batur/gaambar_strukturbmp",
+        "timestamp": "2025-06-29T09:56:53.407Z"
+      },
+      {
+        "name": "Hammer TEst.txt",
+        "uploadedBy": "Struktur",
+        "path": "project_1751102866774_5uayv-proyek_batur/hammer_testtxt",
+        "timestamp": "2025-06-29T09:56:53.407Z"
+      },
+      {
+        "name": "Spektek struktur.docx",
+        "uploadedBy": "Struktur",
+        "path": "project_1751102866774_5uayv-proyek_batur/spektek_strukturdocx",
+        "timestamp": "2025-06-29T09:56:53.407Z"
       }
     ],
     "createdAt": "2025-06-28T09:27:46.774Z",

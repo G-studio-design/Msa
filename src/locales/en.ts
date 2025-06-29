@@ -430,6 +430,8 @@ const en = {
       divisionCompletionDesc: "You have marked the work for {role} as complete. Admin Proyek has been notified.",
       markDivisionCompleteButton: "Mark My Work as Done",
       divisionCompletedButton: "Work Marked as Done",
+      fileNameMismatchTitle: "Invalid File Name",
+      fileNameMismatchDesc: "File '{fileName}' does not match any required checklist items for your division. Please rename the file. Expected keywords are related to: {requiredNames}.",
     }
   },
   // Add Project Page

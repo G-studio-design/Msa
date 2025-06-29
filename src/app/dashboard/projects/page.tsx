@@ -459,6 +459,46 @@ export default function ProjectsPage() {
     const currentFiles = filesToSubmit || uploadedFiles;
     const currentDescription = descriptionForSubmit || description;
 
+    // --- START NEW VALIDATION LOGIC ---
+    const isParallelOrRevisionStatus =
+        selectedProject.status === 'Pending Parallel Design Uploads' ||
+        selectedProject.status === 'Pending Post-Sidang Revision';
+
+    if (isParallelOrRevisionStatus && currentFiles.length > 0 && currentUser.role && parallelUploadChecklist) {
+        const userDivision = currentUser.role as keyof typeof parallelUploadChecklist;
+        const divisionChecklist = parallelUploadChecklist[userDivision];
+
+        if (divisionChecklist) {
+            const requiredNames = divisionChecklist.map(i => `"${i.name}"`).join(', ');
+            for (const file of currentFiles) {
+                let fileMatchesAnItem = false;
+                for (const item of divisionChecklist) {
+                    const itemNameKeywords = item.name.toLowerCase().split(' ').filter(k => k);
+                    const fileNameLower = file.name.toLowerCase();
+                    const allKeywordsMatch = itemNameKeywords.every(keyword => fileNameLower.includes(keyword));
+
+                    if (allKeywordsMatch) {
+                        fileMatchesAnItem = true;
+                        break; // Found a match, no need to check other items for this file
+                    }
+                }
+
+                if (!fileMatchesAnItem) {
+                    toast({
+                        variant: 'destructive',
+                        title: projectsDict.toast.fileNameMismatchTitle,
+                        description: projectsDict.toast.fileNameMismatchDesc
+                            .replace('{fileName}', file.name)
+                            .replace('{requiredNames}', requiredNames),
+                        duration: 10000,
+                    });
+                    return; // Abort submission
+                }
+            }
+        }
+    }
+    // --- END NEW VALIDATION LOGIC ---
+
     const isDecisionOrTerminalAction = ['approved', 'rejected', 'completed', 'revise_offer', 'revise_dp', 'revise_after_sidang', 'canceled_after_sidang', 'revision_completed_and_finish', 'all_files_confirmed', 'reschedule_sidang'].includes(actionTaken);
     const isSchedulingAction = actionTaken === 'scheduled' || actionTaken === 'reschedule_survey' || actionTaken === 'reschedule_survey_from_parallel';
     const isSurveySchedulingAction = selectedProject.status === 'Pending Survey Details' && actionTaken === 'submitted';
@@ -595,7 +635,7 @@ export default function ProjectsPage() {
          setIsSubmitting(false);
          if (isArchitectInitialImageUpload) setIsSubmittingInitialImages(false);
       }
-  }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus, initialImageFiles, initialImageDescription, rescheduleDate, rescheduleTime]);
+  }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus, initialImageFiles, initialImageDescription, rescheduleDate, rescheduleTime, parallelUploadChecklist]);
 
   const handleSurveyScheduleSubmit = React.useCallback(async () => {
         if (!currentUser || !selectedProject ) { 
@@ -1212,7 +1252,7 @@ export default function ProjectsPage() {
         if (approvedMatch) {
             return (translations.approvedAction || "{username} ({role}) approved: {task}")
                 .replace('{username}', approvedMatch[1])
-                .replace('{role}', getTranslatedStatus(approvedMatch[2]))
+                .replace('{role}', getTranslatedStatus(submittedMatch[2]))
                 .replace('{task}', approvedMatch[4]);
         }
 
