@@ -12,11 +12,12 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 export const metadata: Metadata = {
   title: 'Msarch App',
   description: 'Employee task management application for various divisions.',
-  // The primary icon is now handled by the /icon.ico/route.ts file.
-  // We only need to specify other icons like apple-touch-icon here.
+  // The favicon is now primarily handled by the redirect in next.config.ts
+  // This metadata provides fallbacks and icons for other contexts like mobile.
   icons: {
-    shortcut: { url: '/msarch-logo.png', type: 'image/png' },
-    apple: { url: '/msarch-logo.png', type: 'image/png' },
+    icon: '/msarch-logo.png',
+    shortcut: '/msarch-logo.png',
+    apple: '/msarch-logo.png',
   },
 };
 

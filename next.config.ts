@@ -24,6 +24,16 @@ const nextConfig: NextConfig = {
        },
     ],
   },
+  // Add a permanent redirect for the favicon
+  async redirects() {
+    return [
+      {
+        source: '/favicon.ico',
+        destination: '/msarch-logo.png',
+        permanent: true,
+      },
+    ]
+  },
   // Firebase and Google credentials are loaded from .env.local by Next.js automatically.
   // This 'env' block makes them available to the application code via `process.env`.
   env: {
