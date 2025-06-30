@@ -67,30 +67,45 @@ export default function AttendancePage() {
     }
   }, [isClient, fetchData]);
 
-  const handleCheckIn = async () => {
+  const handleCheckIn = () => {
     if (!currentUser) return;
     setIsProcessing(true);
-    try {
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        const { latitude, longitude } = position.coords;
-        const record = await checkIn({ 
-          userId: currentUser.id, 
-          username: currentUser.username, 
-          displayName: currentUser.displayName || currentUser.username, 
-          location: { latitude, longitude }
-        });
-        setTodaysRecord(record);
-        toast({ title: dict.toast.checkInSuccessTitle, description: `${dict.toast.checkInSuccessDesc} ${format(new Date(record.checkInTime!), 'HH:mm')}` });
-        setIsProcessing(false);
-      }, async (error) => {
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const record = await checkIn({
+            userId: currentUser.id,
+            username: currentUser.username,
+            displayName: currentUser.displayName || currentUser.username,
+            location: { latitude, longitude },
+          });
+          setTodaysRecord(record);
+          toast({
+            title: dict.toast.checkInSuccessTitle,
+            description: `${dict.toast.checkInSuccessDesc} ${format(new Date(record.checkInTime!), 'HH:mm')}`,
+          });
+        } catch (error: any) {
+          console.error("Check-in error:", error);
+          toast({ variant: 'destructive', title: dict.toast.errorTitle, description: error.message });
+        } finally {
+          setIsProcessing(false);
+        }
+      },
+      (error) => {
         console.error("Geolocation error:", error);
-        toast({ variant: 'destructive', title: dict.toast.errorTitle, description: error.message.includes("User denied Geolocation") ? "Izin lokasi diperlukan untuk absensi." : "Gagal mendapatkan lokasi." });
+        toast({
+          variant: 'destructive',
+          title: dict.toast.errorTitle,
+          description: error.message.includes("User denied Geolocation")
+            ? "Izin lokasi diperlukan untuk absensi."
+            : "Gagal mendapatkan lokasi.",
+        });
         setIsProcessing(false);
-      }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
-    } catch (error: any) {
-      toast({ variant: 'destructive', title: dict.toast.errorTitle, description: error.message });
-      setIsProcessing(false);
-    }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
   };
 
   const handleCheckOutClick = () => {

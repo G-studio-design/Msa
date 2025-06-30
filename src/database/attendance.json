@@ -23,6 +23,8 @@
     "location": {
       "latitude": -8.635892,
       "longitude": 115.2228326
-    }
+    },
+    "checkOutTime": "2025-06-30T04:12:56.853Z",
+    "checkOutReason": "Survei"
   }
 ]
