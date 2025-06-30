@@ -455,37 +455,37 @@ export default function MonthlyReportPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-               <div className="overflow-x-auto mb-6 rounded-md border">
-                  <div ref={chartContainerRef} className="p-2 sm:p-4 bg-background min-w-[500px]">
-                     {noDataForChart ? (
-                        <div className="flex flex-col items-center justify-center h-[250px] sm:h-[300px] text-center text-muted-foreground p-4">
-                            <PieChartIcon className="h-12 w-12 mb-2 opacity-50" />
-                            <p>{reportDict.noDataForMonth}</p>
-                        </div>
-                     ) : (
-                        <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                    data={chartDisplayData}
-                                    layout="vertical"
-                                    margin={{ left: language === 'id' ? 25 : 20, right: 35, top: 5, bottom: 5 }}
-                                >
-                                    <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-                                    <XAxis type="number" allowDecimals={false} tick={{ fontSize: 10 }} />
-                                    <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} stroke="#888888" fontSize={10} width={language === 'id' ? 105 : 75} interval={0}/>
-                                    <ChartTooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent hideLabel />} />
-                                    <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                                        <LabelList dataKey="count" position="right" offset={8} className="fill-foreground" fontSize={10} />
-                                        {chartDisplayData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </ChartContainer>
-                     )}
-                   </div>
-               </div>
+                <div className="w-full overflow-x-auto rounded-md border mb-6">
+                    <div ref={chartContainerRef} className="bg-background p-2 sm:p-4 min-w-[500px]">
+                        {noDataForChart ? (
+                            <div className="flex flex-col items-center justify-center h-[250px] sm:h-[300px] text-center text-muted-foreground p-4">
+                                <PieChartIcon className="h-12 w-12 mb-2 opacity-50" />
+                                <p>{reportDict.noDataForMonth}</p>
+                            </div>
+                        ) : (
+                            <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart
+                                        data={chartDisplayData}
+                                        layout="vertical"
+                                        margin={{ left: language === 'id' ? 25 : 20, right: 35, top: 5, bottom: 5 }}
+                                    >
+                                        <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+                                        <XAxis type="number" allowDecimals={false} tick={{ fontSize: 10 }} />
+                                        <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} stroke="#888888" fontSize={10} width={language === 'id' ? 105 : 75} interval={0}/>
+                                        <ChartTooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent hideLabel />} />
+                                        <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                                            <LabelList dataKey="count" position="right" offset={8} className="fill-foreground" fontSize={10} />
+                                            {chartDisplayData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.fill} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </ChartContainer>
+                        )}
+                    </div>
+                </div>
 
               {!noDataForReport && (
                 <>
@@ -530,7 +530,7 @@ export default function MonthlyReportPage() {
                     {allProjectsForReport.map((project) => (
                       <ResponsiveCard key={`mobile-${project.id}`}>
                         <CardHeader>
-                            <CardTitle className="text-base truncate">{project.title}</CardTitle>
+                            <CardTitle className="text-base break-words truncate">{project.title}</CardTitle>
                             <CardDescription>
                                 <Badge variant={ project.status === 'Completed' ? 'default' : project.status === 'Canceled' ? 'destructive' : 'secondary'} className={cn(project.status === 'Completed' && 'bg-green-500 hover:bg-green-600 text-white')}>
                                 {dashboardDict.status[project.status.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status] || project.status}
