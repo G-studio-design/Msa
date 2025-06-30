@@ -10,7 +10,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { checkIn, checkOut, getTodaysAttendance, getAttendanceForUser, type AttendanceRecord } from '@/services/attendance-service';
+import { checkIn, checkOut, getTodaysAttendance, type AttendanceRecord } from '@/services/attendance-service';
 import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 import { Calendar } from "@/components/ui/calendar";
@@ -75,20 +75,25 @@ export default function AttendancePage() {
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
-          const record = await checkIn({
+          const result = await checkIn({
             userId: currentUser.id,
             username: currentUser.username,
             displayName: currentUser.displayName || currentUser.username,
             location: { latitude, longitude },
           });
-          setTodaysRecord(record);
-          toast({
-            title: dict.toast.checkInSuccessTitle,
-            description: `${dict.toast.checkInSuccessDesc} ${format(new Date(record.checkInTime!), 'HH:mm')}`,
-          });
+
+          if (result.error) {
+             toast({ variant: 'destructive', title: dict.toast.errorTitle, description: result.error });
+          } else if (result.record) {
+            setTodaysRecord(result.record);
+            toast({
+              title: dict.toast.checkInSuccessTitle,
+              description: `${dict.toast.checkInSuccessDesc} ${format(new Date(result.record.checkInTime!), 'HH:mm')}`,
+            });
+          }
         } catch (error: any) {
-          console.error("Check-in error:", error);
-          toast({ variant: 'destructive', title: dict.toast.errorTitle, description: error.message });
+          console.error("Client-side check-in error:", error);
+          toast({ variant: 'destructive', title: dict.toast.errorTitle, description: "Terjadi kesalahan pada aplikasi. Silakan coba lagi." });
         } finally {
           setIsProcessing(false);
         }
@@ -129,11 +134,16 @@ export default function AttendancePage() {
     setIsProcessing(true);
     setIsCheckOutDialogOpen(false);
     try {
-      const record = await checkOut(currentUser.id, reason);
-      setTodaysRecord(record);
-      toast({ title: dict.toast.checkOutSuccessTitle, description: `${dict.toast.checkOutSuccessDesc} ${format(new Date(record.checkOutTime!), 'HH:mm')}` });
+      const result = await checkOut(currentUser.id, reason);
+      if (result.error) {
+        toast({ variant: 'destructive', title: dict.toast.errorTitle, description: result.error });
+      } else if (result.record) {
+        setTodaysRecord(result.record);
+        toast({ title: dict.toast.checkOutSuccessTitle, description: `${dict.toast.checkOutSuccessDesc} ${format(new Date(result.record.checkOutTime!), 'HH:mm')}` });
+      }
     } catch (error: any) {
-      toast({ variant: 'destructive', title: dict.toast.errorTitle, description: error.message });
+      console.error("Client-side check-out error:", error);
+      toast({ variant: 'destructive', title: dict.toast.errorTitle, description: "Terjadi kesalahan pada aplikasi. Silakan coba lagi." });
     } finally {
       setIsProcessing(false);
     }
