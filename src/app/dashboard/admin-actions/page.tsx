@@ -38,7 +38,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Edit, Save, XCircle, Loader2, Replace, Trash2, BellOff } from 'lucide-react';
+import { Edit, Save, XCircle, Loader2, Replace, Trash2, BellOff, MapPin } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
@@ -116,6 +116,7 @@ export default function AdminActionsPage() {
   // State for attendance settings
   const [attendanceSettings, setAttendanceSettings] = React.useState<AttendanceSettings | null>(null);
   const [isUpdatingAttendanceSettings, setIsUpdatingAttendanceSettings] = React.useState(false);
+  const [isFetchingLocation, setIsFetchingLocation] = React.useState(false);
 
 
    const fetchData = React.useCallback(async () => {
@@ -369,7 +370,7 @@ export default function AdminActionsPage() {
             workingHours: {
                 ...prev.workingHours,
                 [day]: {
-                    ...prev.workingHours[day],
+                    ...prev.workingHours[day as DayOfWeek],
                     [field]: value,
                 },
             },
@@ -392,6 +393,48 @@ export default function AdminActionsPage() {
         setIsUpdatingAttendanceSettings(false);
     }
   };
+
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+        toast({
+            variant: "destructive",
+            title: "Geolocation Tidak Didukung",
+            description: "Browser Anda tidak mendukung pengambilan lokasi.",
+        });
+        return;
+    }
+
+    setIsFetchingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const { latitude, longitude } = position.coords;
+            setAttendanceSettings(prev => prev ? ({
+                ...prev,
+                office_latitude: latitude,
+                office_longitude: longitude,
+            }) : null);
+            toast({
+                title: "Lokasi Ditemukan",
+                description: "Koordinat lokasi kantor telah diperbarui. Jangan lupa simpan perubahan.",
+            });
+            setIsFetchingLocation(false);
+        },
+        (error) => {
+            console.error("Geolocation error:", error);
+            let description = "Gagal mendapatkan lokasi.";
+            if (error.code === error.PERMISSION_DENIED) {
+                description = "Izin lokasi diperlukan untuk menggunakan fitur ini. Harap aktifkan di pengaturan browser Anda.";
+            }
+            toast({
+                variant: "destructive",
+                title: "Gagal Mendapatkan Lokasi",
+                description: description,
+            });
+            setIsFetchingLocation(false);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+};
 
   const showAttendanceSettingsCard = currentUser && ['Owner', 'Admin Developer'].includes(currentUser.role.trim());
 
@@ -543,16 +586,26 @@ export default function AdminActionsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                       <Label htmlFor="office_latitude">Latitude Kantor</Label>
-                      <Input id="office_latitude" type="number" value={attendanceSettings?.office_latitude} onChange={handleAttendanceSettingsChange} placeholder="-8.123456" disabled={isUpdatingAttendanceSettings}/>
+                      <Input id="office_latitude" type="number" value={attendanceSettings?.office_latitude} onChange={handleAttendanceSettingsChange} placeholder="-8.123456" disabled={isUpdatingAttendanceSettings || isFetchingLocation}/>
                   </div>
                   <div className="space-y-1">
                       <Label htmlFor="office_longitude">Longitude Kantor</Label>
-                      <Input id="office_longitude" type="number" value={attendanceSettings?.office_longitude} onChange={handleAttendanceSettingsChange} placeholder="115.123456" disabled={isUpdatingAttendanceSettings}/>
+                      <Input id="office_longitude" type="number" value={attendanceSettings?.office_longitude} onChange={handleAttendanceSettingsChange} placeholder="115.123456" disabled={isUpdatingAttendanceSettings || isFetchingLocation}/>
                   </div>
                   <div className="space-y-1">
                       <Label htmlFor="attendance_radius_meters">Radius Absensi (meter)</Label>
-                      <Input id="attendance_radius_meters" type="number" value={attendanceSettings?.attendance_radius_meters} onChange={handleAttendanceSettingsChange} placeholder="100" disabled={isUpdatingAttendanceSettings}/>
+                      <Input id="attendance_radius_meters" type="number" value={attendanceSettings?.attendance_radius_meters} onChange={handleAttendanceSettingsChange} placeholder="100" disabled={isUpdatingAttendanceSettings || isFetchingLocation}/>
                   </div>
+              </div>
+              
+              <div className="border-t pt-4">
+                  <Button type="button" variant="outline" onClick={handleGetLocation} disabled={isUpdatingAttendanceSettings || isFetchingLocation}>
+                      {isFetchingLocation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MapPin className="mr-2 h-4 w-4" />}
+                      Gunakan Lokasi Saat Ini
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-2">
+                      Gunakan GPS perangkat Anda untuk mengatur koordinat kantor secara otomatis.
+                  </p>
               </div>
 
               <div className="space-y-4 border-t pt-4">
@@ -583,7 +636,7 @@ export default function AdminActionsPage() {
                   </div>
               </div>
 
-              <Button onClick={handleSaveAttendanceSettings} disabled={isUpdatingAttendanceSettings || !attendanceSettings}>
+              <Button onClick={handleSaveAttendanceSettings} disabled={isUpdatingAttendanceSettings || !attendanceSettings || isFetchingLocation}>
                 {isUpdatingAttendanceSettings && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {adminDict.saveAttendanceSettingsButton || "Simpan Pengaturan Absensi"}
               </Button>
