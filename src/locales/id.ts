@@ -107,7 +107,7 @@ const id = {
      averageProgressTitle: 'Rata-rata Progres',
      averageProgressDesc: 'Tingkat penyelesaian rata-rata di semua proyek Anda.',
      projectProgressChartTitle: 'Tinjauan Progres Proyek',
-     projectProgressChartDesc: 'Visualisasi tingkat penyelesaian untuk semua proyek.',
+     projectProgressChartDesc: 'Visualisasi tingkat penyelesaian untuk semua proyek. Warna bar menunjukkan tingkat progres.',
      noProjectsForChart: 'Tidak ada proyek yang tersedia untuk ditampilkan di diagram.',
      progressChart: {
         label: 'Progres'

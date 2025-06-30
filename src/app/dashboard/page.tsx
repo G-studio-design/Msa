@@ -49,7 +49,7 @@ import {
   ChartTooltipContent,
   ChartConfig,
 } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LabelList } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LabelList, Cell } from "recharts";
 import { cn } from '@/lib/utils';
 
 // Unified event type for the calendar
@@ -66,6 +66,24 @@ interface UnifiedEvent {
 }
 
 const defaultGlobalDict = getDictionary('en');
+
+// Helper function to determine bar color based on progress
+const getProgressColor = (progress: number, status: string): string => {
+    if (status === 'Canceled') {
+      return 'hsl(240 4.8% 95.9%)'; // Muted
+    }
+    if (progress === 100) {
+      return 'hsl(142.1 76.2% 36.3%)'; // Green
+    }
+    if (progress >= 70) {
+      return 'hsl(221.2 83.2% 53.3%)'; // Primary (Blue)
+    }
+    if (progress >= 30) {
+      return 'hsl(35.6 91.6% 56.5%)'; // Orange
+    }
+    return 'hsl(0 84.2% 60.2%)'; // Destructive (Red)
+};
+
 
 export default function DashboardPage() {
   const { currentUser } = useAuth();
@@ -212,7 +230,6 @@ export default function DashboardPage() {
   const chartConfig = {
     progress: {
       label: dashboardDict.progressChart.label,
-      color: "hsl(var(--primary))",
     },
   } as ChartConfig;
 
@@ -308,8 +325,11 @@ export default function DashboardPage() {
                             cursor={{ fill: 'hsl(var(--muted))' }}
                             content={<ChartTooltipContent />}
                         />
-                        <Bar dataKey="progress" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]}>
+                        <Bar dataKey="progress" radius={[0, 4, 4, 0]}>
                            <LabelList dataKey="progress" position="right" offset={8} className="fill-foreground" fontSize={12} formatter={(value: number) => `${value}%`} />
+                           {projects.map((project, index) => (
+                                <Cell key={`cell-${index}`} fill={getProgressColor(project.progress, project.status)} />
+                           ))}
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
