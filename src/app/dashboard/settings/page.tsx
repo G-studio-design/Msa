@@ -1,6 +1,7 @@
-
 // src/app/dashboard/settings/page.tsx
 'use client';
+
+export const dynamic = 'force-dynamic';
 
 import * as React from 'react';
 import Image from 'next/image'; // Import next/image
