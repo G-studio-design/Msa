@@ -54,7 +54,8 @@ import {
 import { getAllUniqueStatuses, type WorkflowStep } from '@/services/workflow-service';
 import { clearAllNotifications } from '@/services/notification-service';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { getAppSettings, setAttendanceFeatureEnabled as updateFeatureSetting, updateAttendanceSettings as saveAttendanceSettings, type AttendanceSettings } from '@/services/settings-service';
+import { getAppSettings, setAttendanceFeatureEnabled as updateFeatureSetting, updateAttendanceSettings as saveAttendanceSettings, type AppSettings, type AttendanceSettings } from '@/services/settings-service';
+import { cn } from '@/lib/utils';
 
 const defaultGlobalDict = getDictionary('en');
 
@@ -75,6 +76,8 @@ const statusWorkflowDetailsMap: Record<string, Partial<WorkflowStep>> = {
   'Pending Consultation Docs': { assignedDivision: 'Admin Proyek', nextActionDescription: 'Unggah Ringkasan Konsultasi', progress: 10 },
   'Pending Review': { assignedDivision: 'Owner', nextActionDescription: 'Tinjau Ringkasan Konsultasi', progress: 50 },
 };
+
+type DayOfWeek = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
 
 
 export default function AdminActionsPage() {
@@ -111,13 +114,7 @@ export default function AdminActionsPage() {
   const [isUpdatingFeature, setIsUpdatingFeature] = React.useState(false);
 
   // State for attendance settings
-  const [attendanceSettings, setAttendanceSettings] = React.useState<AttendanceSettings>({
-    office_latitude: 0,
-    office_longitude: 0,
-    attendance_radius_meters: 100,
-    check_in_time: "09:00",
-    check_out_time: "17:00",
-  });
+  const [attendanceSettings, setAttendanceSettings] = React.useState<AttendanceSettings | null>(null);
   const [isUpdatingAttendanceSettings, setIsUpdatingAttendanceSettings] = React.useState(false);
 
 
@@ -137,8 +134,7 @@ export default function AdminActionsPage() {
                   office_latitude: settings.office_latitude || 0,
                   office_longitude: settings.office_longitude || 0,
                   attendance_radius_meters: settings.attendance_radius_meters || 100,
-                  check_in_time: settings.check_in_time || "09:00",
-                  check_out_time: settings.check_out_time || "17:00",
+                  workingHours: settings.workingHours
                 });
             } catch (error) {
                 console.error("Failed to fetch data for admin actions:", error);
@@ -359,13 +355,30 @@ export default function AdminActionsPage() {
   
   const handleAttendanceSettingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setAttendanceSettings(prev => ({
+    setAttendanceSettings(prev => prev ? ({
         ...prev,
         [id]: id === 'office_latitude' || id === 'office_longitude' || id === 'attendance_radius_meters' ? parseFloat(value) || 0 : value
-    }));
+    }) : null);
+  };
+  
+  const handleWorkingHoursChange = (day: DayOfWeek, field: 'checkIn' | 'checkOut' | 'isWorkDay', value: string | boolean) => {
+    setAttendanceSettings(prev => {
+        if (!prev) return null;
+        return {
+            ...prev,
+            workingHours: {
+                ...prev.workingHours,
+                [day]: {
+                    ...prev.workingHours[day],
+                    [field]: value,
+                },
+            },
+        };
+    });
   };
 
   const handleSaveAttendanceSettings = async () => {
+    if (!attendanceSettings) return;
     setIsUpdatingAttendanceSettings(true);
     try {
         await saveAttendanceSettings(attendanceSettings);
@@ -526,32 +539,51 @@ export default function AdminActionsPage() {
             <CardTitle>{adminDict.attendanceSettingsTitle || "Pengaturan Absensi"}</CardTitle>
             <CardDescription>{adminDict.attendanceSettingsDesc || "Atur lokasi kantor, radius, dan jam kerja untuk fitur absensi karyawan."}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                       <Label htmlFor="office_latitude">Latitude Kantor</Label>
-                      <Input id="office_latitude" type="number" value={attendanceSettings.office_latitude} onChange={handleAttendanceSettingsChange} placeholder="-8.123456" disabled={isUpdatingAttendanceSettings}/>
+                      <Input id="office_latitude" type="number" value={attendanceSettings?.office_latitude} onChange={handleAttendanceSettingsChange} placeholder="-8.123456" disabled={isUpdatingAttendanceSettings}/>
                   </div>
                   <div className="space-y-1">
                       <Label htmlFor="office_longitude">Longitude Kantor</Label>
-                      <Input id="office_longitude" type="number" value={attendanceSettings.office_longitude} onChange={handleAttendanceSettingsChange} placeholder="115.123456" disabled={isUpdatingAttendanceSettings}/>
+                      <Input id="office_longitude" type="number" value={attendanceSettings?.office_longitude} onChange={handleAttendanceSettingsChange} placeholder="115.123456" disabled={isUpdatingAttendanceSettings}/>
                   </div>
                   <div className="space-y-1">
                       <Label htmlFor="attendance_radius_meters">Radius Absensi (meter)</Label>
-                      <Input id="attendance_radius_meters" type="number" value={attendanceSettings.attendance_radius_meters} onChange={handleAttendanceSettingsChange} placeholder="100" disabled={isUpdatingAttendanceSettings}/>
+                      <Input id="attendance_radius_meters" type="number" value={attendanceSettings?.attendance_radius_meters} onChange={handleAttendanceSettingsChange} placeholder="100" disabled={isUpdatingAttendanceSettings}/>
                   </div>
-                   <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                          <Label htmlFor="check_in_time">Jam Masuk</Label>
-                          <Input id="check_in_time" type="time" value={attendanceSettings.check_in_time} onChange={handleAttendanceSettingsChange} disabled={isUpdatingAttendanceSettings}/>
-                      </div>
-                      <div className="space-y-1">
-                          <Label htmlFor="check_out_time">Jam Pulang</Label>
-                          <Input id="check_out_time" type="time" value={attendanceSettings.check_out_time} onChange={handleAttendanceSettingsChange} disabled={isUpdatingAttendanceSettings}/>
-                      </div>
-                   </div>
               </div>
-              <Button onClick={handleSaveAttendanceSettings} disabled={isUpdatingAttendanceSettings}>
+
+              <div className="space-y-4 border-t pt-4">
+                  <h4 className="font-semibold">{adminDict.workingHoursTitle || "Working Hours"}</h4>
+                  <div className="space-y-3">
+                      {attendanceSettings && Object.keys(attendanceSettings.workingHours).map((day) => (
+                          <div key={day} className="grid grid-cols-3 sm:grid-cols-4 items-center gap-2 sm:gap-4 p-2 border rounded-md">
+                              <Label className="font-medium col-span-3 sm:col-span-1">{adminDict.dayLabels[day as DayOfWeek]}</Label>
+                              <div className="flex items-center space-x-2">
+                                  <Switch
+                                      id={`isWorkDay-${day}`}
+                                      checked={attendanceSettings.workingHours[day as DayOfWeek].isWorkDay}
+                                      onCheckedChange={(checked) => handleWorkingHoursChange(day as DayOfWeek, 'isWorkDay', checked)}
+                                      disabled={isUpdatingAttendanceSettings}
+                                  />
+                                  <Label htmlFor={`isWorkDay-${day}`} className="text-sm">{adminDict.workDayLabel}</Label>
+                              </div>
+                              <div className={cn("space-y-1", !attendanceSettings.workingHours[day as DayOfWeek].isWorkDay && "opacity-50")}>
+                                  <Label htmlFor={`checkIn-${day}`} className="text-xs text-muted-foreground">{adminDict.checkInLabel}</Label>
+                                  <Input id={`checkIn-${day}`} type="time" value={attendanceSettings.workingHours[day as DayOfWeek].checkIn} onChange={(e) => handleWorkingHoursChange(day as DayOfWeek, 'checkIn', e.target.value)} disabled={isUpdatingAttendanceSettings || !attendanceSettings.workingHours[day as DayOfWeek].isWorkDay}/>
+                              </div>
+                              <div className={cn("space-y-1", !attendanceSettings.workingHours[day as DayOfWeek].isWorkDay && "opacity-50")}>
+                                  <Label htmlFor={`checkOut-${day}`} className="text-xs text-muted-foreground">{adminDict.checkOutLabel}</Label>
+                                  <Input id={`checkOut-${day}`} type="time" value={attendanceSettings.workingHours[day as DayOfWeek].checkOut} onChange={(e) => handleWorkingHoursChange(day as DayOfWeek, 'checkOut', e.target.value)} disabled={isUpdatingAttendanceSettings || !attendanceSettings.workingHours[day as DayOfWeek].isWorkDay}/>
+                              </div>
+                          </div>
+                      ))}
+                  </div>
+              </div>
+
+              <Button onClick={handleSaveAttendanceSettings} disabled={isUpdatingAttendanceSettings || !attendanceSettings}>
                 {isUpdatingAttendanceSettings && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {adminDict.saveAttendanceSettingsButton || "Simpan Pengaturan Absensi"}
               </Button>

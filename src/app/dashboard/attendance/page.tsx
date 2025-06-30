@@ -5,7 +5,7 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LogIn, LogOut, CheckCircle, Clock, XCircle, MapPin, Briefcase, RefreshCw } from 'lucide-react';
+import { Loader2, LogIn, LogOut, CheckCircle, Clock, MapPin, Briefcase, Plane, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
@@ -14,11 +14,12 @@ import { checkIn, checkOut, getTodaysAttendance, getAttendanceForUser, type Atte
 import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 import { Calendar } from "@/components/ui/calendar";
-import { cn } from '@/lib/utils';
-import { getAppSettings } from '@/services/settings-service';
+import { getAppSettings, type AppSettings } from '@/services/settings-service';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 const defaultDict = getDictionary('en');
+type DayOfWeek = "sunday" | "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday";
+const daysOfWeek: DayOfWeek[] = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
 export default function AttendancePage() {
   const { currentUser } = useAuth();
@@ -31,7 +32,7 @@ export default function AttendancePage() {
   const [isProcessing, setIsProcessing] = React.useState(false);
   const [todaysRecord, setTodaysRecord] = React.useState<AttendanceRecord | null>(null);
   const [userHistory, setUserHistory] = React.useState<AttendanceRecord[]>([]);
-  const [checkOutTime, setCheckOutTime] = React.useState("17:00");
+  const [appSettings, setAppSettings] = React.useState<AppSettings | null>(null);
   const [isCheckOutDialogOpen, setIsCheckOutDialogOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -51,7 +52,7 @@ export default function AttendancePage() {
         ]);
         setTodaysRecord(today);
         setUserHistory(history);
-        setCheckOutTime(settings.check_out_time || "17:00");
+        setAppSettings(settings);
       } catch (error: any) {
         toast({ variant: 'destructive', title: dict.toast.errorTitle, description: error.message });
       } finally {
@@ -94,7 +95,10 @@ export default function AttendancePage() {
 
   const handleCheckOutClick = () => {
     const now = new Date();
-    const [hour, minute] = checkOutTime.split(':').map(Number);
+    const currentDayKey = daysOfWeek[now.getDay()];
+    const standardCheckOutTime = appSettings?.workingHours[currentDayKey]?.checkOut || "17:00";
+    
+    const [hour, minute] = standardCheckOutTime.split(':').map(Number);
     const standardCheckOutTimeToday = new Date();
     standardCheckOutTimeToday.setHours(hour, minute, 0, 0);
 
@@ -134,6 +138,8 @@ export default function AttendancePage() {
   }, [userHistory]);
   
   const currentLocale = language === 'id' ? IndonesianLocale : EnglishLocale;
+  const todayKey = daysOfWeek[new Date().getDay()];
+  const isWorkDayToday = appSettings?.workingHours[todayKey]?.isWorkDay ?? true;
 
   if (!isClient) {
     return (
@@ -193,10 +199,20 @@ export default function AttendancePage() {
                 }
               </div>
             ) : (
-              <Button onClick={handleCheckIn} disabled={isProcessing} className="w-full">
-                {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
-                {dict.checkInButton}
-              </Button>
+              isWorkDayToday ? (
+                <Button onClick={handleCheckIn} disabled={isProcessing} className="w-full">
+                  {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
+                  {dict.checkInButton}
+                </Button>
+              ) : (
+                <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary text-muted-foreground">
+                  <Plane className="h-6 w-6" />
+                  <div>
+                    <p className="font-semibold">Hari Libur</p>
+                    <p className="text-sm">Tidak perlu absensi hari ini.</p>
+                  </div>
+                </div>
+              )
             )}
           </CardContent>
         </Card>

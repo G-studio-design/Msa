@@ -4,13 +4,26 @@
 import * as path from 'path';
 import { readDb, writeDb } from '@/lib/json-db-utils';
 
+interface WorkingHours {
+  isWorkDay: boolean;
+  checkIn: string; // "HH:mm"
+  checkOut: string; // "HH:mm"
+}
+
 export interface AppSettings {
   feature_attendance_enabled: boolean;
   office_latitude: number;
   office_longitude: number;
   attendance_radius_meters: number;
-  check_in_time: string; // e.g., "09:00"
-  check_out_time: string; // e.g., "17:00"
+  workingHours: {
+    monday: WorkingHours;
+    tuesday: WorkingHours;
+    wednesday: WorkingHours;
+    thursday: WorkingHours;
+    friday: WorkingHours;
+    saturday: WorkingHours;
+    sunday: WorkingHours;
+  };
 }
 
 export type AttendanceSettings = Omit<AppSettings, 'feature_attendance_enabled'>;
@@ -22,8 +35,15 @@ const DEFAULT_SETTINGS: AppSettings = {
   office_latitude: -8.6759,
   office_longitude: 115.2386,
   attendance_radius_meters: 100,
-  check_in_time: "09:00",
-  check_out_time: "17:00",
+  workingHours: {
+    monday: { isWorkDay: true, checkIn: "09:00", checkOut: "17:00" },
+    tuesday: { isWorkDay: true, checkIn: "09:00", checkOut: "17:00" },
+    wednesday: { isWorkDay: true, checkIn: "09:00", checkOut: "17:00" },
+    thursday: { isWorkDay: true, checkIn: "09:00", checkOut: "17:00" },
+    friday: { isWorkDay: true, checkIn: "09:00", checkOut: "17:00" },
+    saturday: { isWorkDay: true, checkIn: "09:00", checkOut: "14:00" },
+    sunday: { isWorkDay: false, checkIn: "09:00", checkOut: "17:00" },
+  }
 };
 
 export async function getAppSettings(): Promise<AppSettings> {

@@ -3,6 +3,41 @@
   "office_latitude": -8.6759,
   "office_longitude": 115.2386,
   "attendance_radius_meters": 100,
-  "check_in_time": "09:00",
-  "check_out_time": "17:00"
+  "workingHours": {
+    "monday": {
+      "isWorkDay": true,
+      "checkIn": "09:00",
+      "checkOut": "17:00"
+    },
+    "tuesday": {
+      "isWorkDay": true,
+      "checkIn": "09:00",
+      "checkOut": "17:00"
+    },
+    "wednesday": {
+      "isWorkDay": true,
+      "checkIn": "09:00",
+      "checkOut": "17:00"
+    },
+    "thursday": {
+      "isWorkDay": true,
+      "checkIn": "09:00",
+      "checkOut": "17:00"
+    },
+    "friday": {
+      "isWorkDay": true,
+      "checkIn": "09:00",
+      "checkOut": "17:00"
+    },
+    "saturday": {
+      "isWorkDay": true,
+      "checkIn": "09:00",
+      "checkOut": "14:00"
+    },
+    "sunday": {
+      "isWorkDay": false,
+      "checkIn": "09:00",
+      "checkOut": "17:00"
+    }
+  }
 }
