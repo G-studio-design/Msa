@@ -56,6 +56,7 @@ import {
 } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LabelList, Cell } from "recharts";
 import { cn } from '@/lib/utils';
+import { getAppSettings } from '@/services/settings-service';
 
 // Unified event type for the calendar
 type CalendarEventType = 'sidang' | 'survey' | 'leave' | 'holiday' | 'company_event';
@@ -102,6 +103,8 @@ export default function DashboardPage() {
   const [allUsers, setAllUsers] = useState<Omit<User, 'password'>[]>([]);
   const [todaysAttendance, setTodaysAttendance] = useState<AttendanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [attendanceEnabled, setAttendanceEnabled] = useState(false);
+
 
   // UI states
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -123,19 +126,22 @@ export default function DashboardPage() {
             fetchedLeave,
             fetchedHolidays,
             fetchedUsers,
-            fetchedTodaysAttendance
+            fetchedTodaysAttendance,
+            settings
         ] = await Promise.all([
           getAllProjects(),
           getApprovedLeaveRequests(),
           getAllHolidays(),
           getAllUsersForDisplay(),
-          getTodaysAttendanceForAllUsers()
+          getTodaysAttendanceForAllUsers(),
+          getAppSettings()
         ]);
         setProjects(fetchedProjects);
         setLeaveRequests(fetchedLeave);
         setHolidays(fetchedHolidays);
         setAllUsers(fetchedUsers);
         setTodaysAttendance(fetchedTodaysAttendance);
+        setAttendanceEnabled(settings.feature_attendance_enabled);
       } catch (error) {
         console.error('[DashboardPage] Failed to fetch page data:', error);
         // Toast notification for error can be added here
@@ -319,47 +325,49 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
              {/* Attendance Summary Widget */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>{dashboardDict.attendanceSummary.title}</CardTitle>
-                    <CardDescription>{format(new Date(), 'eeee, dd MMMM yyyy', { locale: currentLocale })}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {attendanceSummary.isHoliday ? (
-                        <div className="flex items-center gap-3 text-muted-foreground p-4 bg-secondary rounded-lg">
-                            <PartyPopper className="h-8 w-8 text-fuchsia-500"/>
-                            <div>
-                                <p className="font-semibold text-foreground">{dashboardDict.attendanceSummary.holiday}</p>
-                                <p className="text-sm">{attendanceSummary.holidayName}</p>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <div className="flex items-center gap-3">
-                                <UserCheck className="h-7 w-7 text-green-500" />
+            {(attendanceEnabled || (currentUser && currentUser.role === 'Admin Developer')) && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>{dashboardDict.attendanceSummary.title}</CardTitle>
+                        <CardDescription>{format(new Date(), 'eeee, dd MMMM yyyy', { locale: currentLocale })}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {attendanceSummary.isHoliday ? (
+                            <div className="flex items-center gap-3 text-muted-foreground p-4 bg-secondary rounded-lg">
+                                <PartyPopper className="h-8 w-8 text-fuchsia-500"/>
                                 <div>
-                                    <p className="text-lg font-bold">{attendanceSummary.checkedIn}</p>
-                                    <p className="text-xs text-muted-foreground">{dashboardDict.attendanceSummary.present}</p>
+                                    <p className="font-semibold text-foreground">{dashboardDict.attendanceSummary.holiday}</p>
+                                    <p className="text-sm">{attendanceSummary.holidayName}</p>
                                 </div>
                             </div>
-                             <div className="flex items-center gap-3">
-                                <Plane className="h-7 w-7 text-blue-500" />
-                                <div>
-                                    <p className="text-lg font-bold">{attendanceSummary.onLeave}</p>
-                                    <p className="text-xs text-muted-foreground">{dashboardDict.attendanceSummary.onLeave}</p>
+                        ) : (
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div className="flex items-center gap-3">
+                                    <UserCheck className="h-7 w-7 text-green-500" />
+                                    <div>
+                                        <p className="text-lg font-bold">{attendanceSummary.checkedIn}</p>
+                                        <p className="text-xs text-muted-foreground">{dashboardDict.attendanceSummary.present}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Plane className="h-7 w-7 text-blue-500" />
+                                    <div>
+                                        <p className="text-lg font-bold">{attendanceSummary.onLeave}</p>
+                                        <p className="text-xs text-muted-foreground">{dashboardDict.attendanceSummary.onLeave}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <UserX className="h-7 w-7 text-red-500" />
+                                    <div>
+                                        <p className="text-lg font-bold">{attendanceSummary.notCheckedIn}</p>
+                                        <p className="text-xs text-muted-foreground">{dashboardDict.attendanceSummary.absent}</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <UserX className="h-7 w-7 text-red-500" />
-                                <div>
-                                    <p className="text-lg font-bold">{attendanceSummary.notCheckedIn}</p>
-                                    <p className="text-xs text-muted-foreground">{dashboardDict.attendanceSummary.absent}</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
 
 
             {/* Active Projects Card */}

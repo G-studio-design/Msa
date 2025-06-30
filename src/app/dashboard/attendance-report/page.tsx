@@ -19,19 +19,21 @@ import { getMonthlyAttendanceReportData, type AttendanceRecord } from '@/service
 import { getAllUsersForDisplay, type User } from '@/services/user-service';
 import { getApprovedLeaveRequests, type LeaveRequest } from '@/services/leave-request-service';
 import { getAllHolidays, type HolidayEntry } from '@/services/holiday-service';
+import { isAttendanceFeatureEnabled } from '@/services/settings-service';
 
 const defaultDict = getDictionary('en');
 
 interface CombinedEvent {
-  type: 'attendance' | 'leave';
+  type: 'attendance' | 'leave' | 'absent';
   date: string;
   user: User;
-  data: AttendanceRecord | LeaveRequest;
+  data?: AttendanceRecord | LeaveRequest;
 }
+
 
 interface ReportData {
   users: Omit<User, 'password'>[];
-  summary: { [userId: string]: { present: number; late: number; on_leave: number } };
+  summary: { [userId: string]: { present: number; late: number; on_leave: number; absent: number; } };
   events: CombinedEvent[];
   holidays: HolidayEntry[];
   monthName: string;
@@ -47,6 +49,8 @@ export default function AttendanceReportPage() {
   const [isClient, setIsClient] = React.useState(false);
   const [dict, setDict] = React.useState(defaultDict.attendanceReportPage);
   const [dictGlobal, setDictGlobal] = React.useState(defaultDict);
+  const [attendanceEnabled, setAttendanceEnabled] = React.useState(true);
+  const [isCheckingFeature, setIsCheckingFeature] = React.useState(true);
 
   const currentMonth = (new Date().getMonth() + 1).toString();
   const currentYear = new Date().getFullYear().toString();
@@ -64,6 +68,17 @@ export default function AttendanceReportPage() {
     setDict(newDictData.attendanceReportPage);
     setDictGlobal(newDictData);
   }, [language]);
+
+  React.useEffect(() => {
+    async function checkFeature() {
+      const enabled = await isAttendanceFeatureEnabled();
+      setAttendanceEnabled(enabled);
+      setIsCheckingFeature(false);
+    }
+    if (isClient) {
+        checkFeature();
+    }
+  }, [isClient]);
 
   const canViewPage = currentUser && (currentUser.role === 'Owner' || currentUser.role === 'Admin Developer');
 
@@ -95,10 +110,6 @@ export default function AttendanceReportPage() {
         getAllHolidays()
       ]);
 
-      if (records.length === 0 && allApprovedLeave.length === 0) {
-        toast({ title: dict.toast.noDataTitle, description: dict.toast.noDataDesc });
-      }
-
       const reportInterval = { start: new Date(yearInt, monthInt - 1, 1), end: new Date(yearInt, monthInt, 0) };
       const monthlyHolidays = allHolidays.filter(h => isWithinInterval(parseISO(h.date), reportInterval));
       const monthlyLeaves = allApprovedLeave.filter(l => 
@@ -107,8 +118,8 @@ export default function AttendanceReportPage() {
           (parseISO(l.startDate) < reportInterval.start && parseISO(l.endDate) > reportInterval.end)
       );
 
-      const userStats: { [userId: string]: { present: number; late: number; on_leave: number } } = {};
-      users.forEach(u => { userStats[u.id] = { present: 0, late: 0, on_leave: 0 }; });
+      const userStats: { [userId: string]: { present: number; late: number; on_leave: number; absent: number; } } = {};
+      users.forEach(u => { userStats[u.id] = { present: 0, late: 0, on_leave: 0, absent: 0 }; });
 
       records.forEach(r => {
         if (userStats[r.userId]) {
@@ -124,12 +135,32 @@ export default function AttendanceReportPage() {
           }
       });
       
-      const eventMap = new Map<string, CombinedEvent>(); // Key: 'userId-date'
+      // Calculate absent days
+      const daysInMonth = eachDayOfInterval(reportInterval);
+      users.forEach(user => {
+        daysInMonth.forEach(day => {
+          const dayOfWeek = day.getDay();
+          const isWorkDay = dayOfWeek !== 0; // Simple: Sun=off
+          if (!isWorkDay) return;
+
+          const dateStr = format(day, 'yyyy-MM-dd');
+          const isHoliday = monthlyHolidays.some(h => h.date === dateStr);
+          if (isHoliday) return;
+
+          const isOnLeave = monthlyLeaves.some(l => l.userId === user.id && isWithinInterval(day, {start: parseISO(l.startDate), end: parseISO(l.endDate)}));
+          if (isOnLeave) return;
+
+          const hasAttendance = records.some(r => r.userId === user.id && r.date === dateStr);
+          if (!hasAttendance) {
+            userStats[user.id].absent++;
+          }
+        });
+      });
+
+      const eventMap = new Map<string, CombinedEvent>();
       records.forEach(rec => {
         const user = users.find(u => u.id === rec.userId);
-        if (user) {
-            eventMap.set(`${rec.userId}-${rec.date}`, { type: 'attendance', date: rec.date, user, data: rec });
-        }
+        if (user) eventMap.set(`${rec.userId}-${rec.date}`, { type: 'attendance', date: rec.date, user, data: rec });
       });
       monthlyLeaves.forEach(leave => {
         const user = users.find(u => u.id === leave.userId);
@@ -137,13 +168,21 @@ export default function AttendanceReportPage() {
             eachDayOfInterval({start: parseISO(leave.startDate), end: parseISO(leave.endDate)}).forEach(day => {
                 if (isWithinInterval(day, reportInterval)) {
                     const dateStr = format(day, 'yyyy-MM-dd');
-                    if (!eventMap.has(`${user.id}-${dateStr}`)) {
-                        eventMap.set(`${user.id}-${dateStr}`, { type: 'leave', date: dateStr, user, data: leave });
-                    }
+                    if (!eventMap.has(`${user.id}-${dateStr}`)) eventMap.set(`${user.id}-${dateStr}`, { type: 'leave', date: dateStr, user, data: leave });
                 }
             });
         }
       });
+      users.forEach(user => {
+        daysInMonth.forEach(day => {
+            const dateStr = format(day, 'yyyy-MM-dd');
+            if (day.getDay() !== 0 && !monthlyHolidays.some(h => h.date === dateStr) && !eventMap.has(`${user.id}-${dateStr}`)) {
+                eventMap.set(`${user.id}-${dateStr}`, { type: 'absent', date: dateStr, user });
+            }
+        });
+      });
+
+
       const combinedEvents = Array.from(eventMap.values()).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime() || a.user.displayName.localeCompare(b.user.displayName));
 
       setReportData({
@@ -155,6 +194,10 @@ export default function AttendanceReportPage() {
         year: selectedYear,
         month: monthInt,
       });
+
+      if (combinedEvents.length === 0) {
+        toast({ title: dict.toast.noDataTitle, description: dict.toast.noDataDesc });
+      }
 
     } catch (error: any) {
       toast({ variant: 'destructive', title: dict.toast.error, description: error.message || dict.toast.generationFailed });
@@ -212,7 +255,7 @@ export default function AttendanceReportPage() {
     }
   };
 
-  if (!isClient) {
+  if (!isClient || isCheckingFeature) {
     return (
       <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
         <Skeleton className="h-8 w-1/3" />
@@ -221,7 +264,8 @@ export default function AttendanceReportPage() {
     );
   }
 
-  if (!canViewPage) {
+  const featureIsEnabledForUser = attendanceEnabled || (currentUser && currentUser.role === 'Admin Developer');
+  if (!canViewPage || !featureIsEnabledForUser) {
     return (
       <div className="container mx-auto py-4 px-4 md:px-6">
         <Card className="border-destructive">
@@ -283,6 +327,7 @@ export default function AttendanceReportPage() {
                     <TableHead className="text-center">{dict.tableHeaderPresent}</TableHead>
                     <TableHead className="text-center">{dict.tableHeaderLate}</TableHead>
                     <TableHead className="text-center">{dict.tableHeaderOnLeave}</TableHead>
+                    <TableHead className="text-center">{dict.tableHeaderAbsent}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -292,6 +337,7 @@ export default function AttendanceReportPage() {
                       <TableCell className="text-center">{reportData.summary[user.id]?.present || 0}</TableCell>
                       <TableCell className="text-center">{reportData.summary[user.id]?.late || 0}</TableCell>
                       <TableCell className="text-center">{reportData.summary[user.id]?.on_leave || 0}</TableCell>
+                      <TableCell className="text-center">{reportData.summary[user.id]?.absent || 0}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -327,13 +373,17 @@ export default function AttendanceReportPage() {
                               <TableCell>{formatTimeOnly((event.data as AttendanceRecord).checkOutTime)}</TableCell>
                               <TableCell>{dictGlobal.attendancePage.status[(event.data as AttendanceRecord).status.toLowerCase() as keyof typeof dictGlobal.attendancePage.status] || (event.data as AttendanceRecord).status}</TableCell>
                             </>
-                        ) : (
+                        ) : event.type === 'leave' ? (
                             <TableCell colSpan={3} className="text-center text-blue-600 italic">
                                 <div className="flex items-center justify-center gap-2">
                                   <Plane className="h-4 w-4"/> 
-                                  <span>{dictGlobal.leaveApprovalsPage.leaveTypes[(event.data as LeaveRequest).leaveType.toLowerCase().replace(/ /g, '') as keyof typeof dictGlobal.leaveApprovalsPage.leaveTypes] || (event.data as LeaveRequest).leaveType}</span>
+                                  <span>{dictGlobal.leaveRequestPage.leaveTypes[(event.data as LeaveRequest).leaveType.toLowerCase().replace(/ /g, '') as keyof typeof dictGlobal.leaveRequestPage.leaveTypes] || (event.data as LeaveRequest).leaveType}</span>
                                 </div>
                             </TableCell>
+                        ) : (
+                             <TableCell colSpan={3} className="text-center text-red-600 italic">
+                                {dict.tableHeaderAbsent}
+                             </TableCell>
                         )}
                       </TableRow>
                     ))}

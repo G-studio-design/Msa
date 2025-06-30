@@ -11,7 +11,7 @@ import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { checkIn, checkOut, getTodaysAttendance, type AttendanceRecord } from '@/services/attendance-service';
-import { format, parseISO, isSameDay, isWithinInterval, eachDayOfInterval } from 'date-fns';
+import { format, parseISO, isSameDay, isWithinInterval, eachDayOfInterval, startOfDay, endOfDay } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 import { Calendar } from "@/components/ui/calendar";
 import { getAppSettings, type AppSettings } from '@/services/settings-service';
@@ -148,7 +148,7 @@ export default function AttendancePage() {
         toast({ variant: 'destructive', title: dict.toast.errorTitle, description: result.error });
       } else if (result.record) {
         setTodaysRecord(result.record);
-        toast({ title: dict.toast.checkOutSuccessTitle, description: `${dict.toast.checkOutSuccessDesc} ${format(new Date(result.record.checkOutTime!), 'HH:mm')}` });
+        toast({ title: dict.toast.checkOutSuccessTitle, description: `${dict.toast.checkOutSuccessDesc} ${format(parseISO(result.record.checkOutTime!), 'HH:mm')}` });
       }
     } catch (error: any) {
       console.error("Client-side check-out error:", error);
@@ -186,10 +186,10 @@ export default function AttendancePage() {
   }, [userHistory, leaves, holidays, currentUser]);
   
   const currentLocale = language === 'id' ? IndonesianLocale : EnglishLocale;
-  const todayKey = daysOfWeek[new Date().getDay()];
+  const today = new Date();
+  const todayKey = daysOfWeek[today.getDay()];
   const isWorkDayToday = appSettings?.workingHours[todayKey]?.isWorkDay ?? true;
   
-  const today = new Date();
   const isTodayHoliday = holidays.some(h => isSameDay(parseISO(h.date), today));
   const isTodayOnLeave = leaves.some(l => l.userId === currentUser?.id && isWithinInterval(today, { start: startOfDay(parseISO(l.startDate)), end: endOfDay(parseISO(l.endDate)) }));
 
@@ -202,6 +202,18 @@ export default function AttendancePage() {
           <Card><CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader><CardContent><Skeleton className="h-24 w-full" /></CardContent></Card>
           <Card><CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
         </div>
+      </div>
+    );
+  }
+
+  const featureIsEnabled = appSettings?.feature_attendance_enabled;
+  if (isClient && !isLoading && !featureIsEnabled && currentUser?.role !== 'Admin Developer') {
+    return (
+      <div className="container mx-auto py-4 px-4 md:px-6">
+        <Card className="border-destructive">
+          <CardHeader><CardTitle className="text-destructive">Fitur Dinonaktifkan</CardTitle></CardHeader>
+          <CardContent><p>Fitur absensi saat ini tidak diaktifkan oleh administrator.</p></CardContent>
+        </Card>
       </div>
     );
   }
