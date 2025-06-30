@@ -14,7 +14,7 @@ import { checkIn, checkOut, getTodaysAttendance, type AttendanceRecord } from '@
 import { format, parseISO, isSameDay, isWithinInterval, eachDayOfInterval, startOfDay, endOfDay } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 import { Calendar } from "@/components/ui/calendar";
-import { getAppSettings, type AppSettings } from '@/services/settings-service';
+import { getAppSettings, isAttendanceFeatureEnabled, type AppSettings } from '@/services/settings-service';
 import { getApprovedLeaveRequests, type LeaveRequest } from '@/services/leave-request-service';
 import { getAllHolidays, type HolidayEntry } from '@/services/holiday-service';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -30,21 +30,43 @@ export default function AttendancePage() {
 
   const [isClient, setIsClient] = React.useState(false);
   const [dict, setDict] = React.useState(defaultDict.attendancePage);
+
+  // Main data loading
   const [isLoading, setIsLoading] = React.useState(true);
-  const [isProcessing, setIsProcessing] = React.useState(false);
   const [todaysRecord, setTodaysRecord] = React.useState<AttendanceRecord | null>(null);
   const [userHistory, setUserHistory] = React.useState<AttendanceRecord[]>([]);
   const [appSettings, setAppSettings] = React.useState<AppSettings | null>(null);
-  const [isCheckOutDialogOpen, setIsCheckOutDialogOpen] = React.useState(false);
-
   const [leaves, setLeaves] = React.useState<LeaveRequest[]>([]);
   const [holidays, setHolidays] = React.useState<HolidayEntry[]>([]);
+
+  // Feature flag checking
+  const [attendanceEnabled, setAttendanceEnabled] = React.useState(false);
+  const [isCheckingFeature, setIsCheckingFeature] = React.useState(true);
+  
+  const [isProcessing, setIsProcessing] = React.useState(false);
+  const [isCheckOutDialogOpen, setIsCheckOutDialogOpen] = React.useState(false);
 
   React.useEffect(() => {
     setIsClient(true);
     const newDictData = getDictionary(language);
     setDict(newDictData.attendancePage);
   }, [language]);
+
+  // Effect for checking the feature flag first
+  React.useEffect(() => {
+    async function checkFeature() {
+      if(currentUser) {
+        setIsCheckingFeature(true);
+        const enabled = await isAttendanceFeatureEnabled();
+        setAttendanceEnabled(enabled);
+        setIsCheckingFeature(false);
+      }
+    }
+    if (isClient) {
+        checkFeature();
+    }
+  }, [isClient, currentUser]);
+
 
   const fetchData = React.useCallback(async () => {
     if (currentUser) {
@@ -70,11 +92,13 @@ export default function AttendancePage() {
     }
   }, [currentUser, toast, dict]);
 
+  // Effect for fetching the main page data, depends on feature check being complete
   React.useEffect(() => {
-    if (isClient) {
+    const featureIsEnabledForUser = attendanceEnabled || (currentUser && currentUser.role === 'Admin Developer');
+    if (isClient && !isCheckingFeature && featureIsEnabledForUser) {
       fetchData();
     }
-  }, [isClient, fetchData]);
+  }, [isClient, attendanceEnabled, isCheckingFeature, fetchData, currentUser]);
 
   const handleCheckIn = () => {
     if (!currentUser) return;
@@ -121,7 +145,7 @@ export default function AttendancePage() {
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
-
+  
   const handleCheckOutClick = () => {
     const now = new Date();
     const currentDayKey = daysOfWeek[now.getDay()];
@@ -194,7 +218,8 @@ export default function AttendancePage() {
   const isTodayOnLeave = leaves.some(l => l.userId === currentUser?.id && isWithinInterval(today, { start: startOfDay(parseISO(l.startDate)), end: endOfDay(parseISO(l.endDate)) }));
 
 
-  if (!isClient) {
+  // Render logic
+  if (!isClient || isCheckingFeature) {
     return (
       <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
         <Skeleton className="h-8 w-1/3 mb-4" />
@@ -206,8 +231,8 @@ export default function AttendancePage() {
     );
   }
 
-  const featureIsEnabled = appSettings?.feature_attendance_enabled;
-  if (isClient && !isLoading && !featureIsEnabled && currentUser?.role !== 'Admin Developer') {
+  const featureIsEnabledForUser = attendanceEnabled || (currentUser && currentUser.role === 'Admin Developer');
+  if (!featureIsEnabledForUser) {
     return (
       <div className="container mx-auto py-4 px-4 md:px-6">
         <Card className="border-destructive">
