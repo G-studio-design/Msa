@@ -23,7 +23,7 @@ export default function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#1A237E',
+          backgroundColor: '#1A237E', // Corrected from 'background'
           color: 'white',
           fontSize: 20,
           fontWeight: 'bold',
