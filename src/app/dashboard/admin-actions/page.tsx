@@ -54,8 +54,9 @@ import {
 import { getAllUniqueStatuses, type WorkflowStep } from '@/services/workflow-service';
 import { clearAllNotifications } from '@/services/notification-service';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { getAppSettings, setAttendanceFeatureEnabled as updateFeatureSetting, updateAttendanceSettings as saveAttendanceSettings, type AppSettings, type AttendanceSettings } from '@/services/settings-service';
+import { getAppSettings, updateAttendanceSettings as saveAttendanceSettings, setAttendanceFeatureEnabled as updateFeatureSetting, type AppSettings, type AttendanceSettings } from '@/services/settings-service';
 import { cn } from '@/lib/utils';
+import { Card as ResponsiveCard } from '@/components/ui/card';
 
 const defaultGlobalDict = getDictionary('en');
 
@@ -482,7 +483,8 @@ export default function AdminActionsPage() {
             </div>
         </CardHeader>
         <CardContent>
-            <div className="w-full overflow-x-auto rounded-md border">
+            {/* Desktop View */}
+            <div className="hidden md:block w-full overflow-x-auto rounded-md border">
                <Table>
                 <TableHeader>
                   <TableRow>
@@ -572,6 +574,36 @@ export default function AdminActionsPage() {
                   )}
                 </TableBody>
               </Table>
+            </div>
+            {/* Mobile View */}
+            <div className="grid gap-4 md:hidden">
+                {projects.length === 0 && !isLoadingProjects ? (
+                    <div className="text-center text-muted-foreground py-8">
+                        {isClient ? adminDict.noProjects : defaultGlobalDict.adminActionsPage.noProjects}
+                    </div>
+                ) : (
+                    projects.map((project) => (
+                        <ResponsiveCard key={`mobile-${project.id}`}>
+                            <CardHeader>
+                                <CardTitle className="text-base break-words">{project.title}</CardTitle>
+                                <CardDescription>{getTranslatedStatus(project.status)}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-2 text-sm">
+                                <div><span className="font-semibold">{adminDict.tableHeaderId}:</span> <span className="font-mono text-xs">{project.id}</span></div>
+                            </CardContent>
+                            <CardFooter className="flex justify-end gap-2">
+                                <Button variant="ghost" size="sm" onClick={() => openStatusChangeDialog(project)} disabled={isSaving || isDeleting}>
+                                    <Replace className="mr-2 h-4 w-4 text-orange-500" />
+                                    Change Status
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => handleEditClick(project.id, project.title)} disabled={isSaving || isDeleting}>
+                                    <Edit className="mr-2 h-4 w-4 text-primary" />
+                                    Edit Title
+                                </Button>
+                            </CardFooter>
+                        </ResponsiveCard>
+                    ))
+                )}
             </div>
         </CardContent>
       </Card>

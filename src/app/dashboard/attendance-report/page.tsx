@@ -20,6 +20,7 @@ import { getAllUsersForDisplay, type User } from '@/services/user-service';
 import { getApprovedLeaveRequests, type LeaveRequest } from '@/services/leave-request-service';
 import { getAllHolidays, type HolidayEntry } from '@/services/holiday-service';
 import { isAttendanceFeatureEnabled } from '@/services/settings-service';
+import { Card as ResponsiveCard } from '@/components/ui/card';
 
 const defaultDict = getDictionary('en');
 
@@ -320,7 +321,8 @@ export default function AttendanceReportPage() {
               <CardDescription>{dict.summaryTitle}</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto rounded-md border">
+              {/* Desktop View */}
+              <div className="hidden md:block w-full overflow-x-auto rounded-md border">
                 <Table className="min-w-[600px]">
                   <TableHeader>
                     <TableRow>
@@ -344,6 +346,22 @@ export default function AttendanceReportPage() {
                   </TableBody>
                 </Table>
               </div>
+               {/* Mobile View */}
+              <div className="grid gap-4 md:hidden">
+                {reportData.users.map(user => (
+                  <ResponsiveCard key={`mobile-summary-${user.id}`}>
+                    <CardHeader>
+                      <CardTitle className="text-base">{user.displayName || user.username}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                      <div className="flex justify-between"><span>{dict.tableHeaderPresent}:</span> <span className="font-bold">{reportData.summary[user.id]?.present || 0}</span></div>
+                      <div className="flex justify-between"><span>{dict.tableHeaderLate}:</span> <span className="font-bold">{reportData.summary[user.id]?.late || 0}</span></div>
+                      <div className="flex justify-between"><span>{dict.tableHeaderOnLeave}:</span> <span className="font-bold">{reportData.summary[user.id]?.on_leave || 0}</span></div>
+                      <div className="flex justify-between"><span>{dict.tableHeaderAbsent}:</span> <span className="font-bold">{reportData.summary[user.id]?.absent || 0}</span></div>
+                    </CardContent>
+                  </ResponsiveCard>
+                ))}
+              </div>
             </CardContent>
           </Card>
           
@@ -353,57 +371,97 @@ export default function AttendanceReportPage() {
             </CardHeader>
             <CardContent>
               {reportData.events.length > 0 ? (
-                <div className="overflow-x-auto rounded-md border">
-                  <Table className="min-w-[700px]">
-                    <TableCaption>{dict.reportFor} {reportData.monthName} {reportData.year}</TableCaption>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{dict.detailHeaderDate}</TableHead>
-                        <TableHead>{dict.detailHeaderEmployee}</TableHead>
-                        <TableHead>{dict.detailHeaderCheckIn}</TableHead>
-                        <TableHead>{dict.detailHeaderCheckOut}</TableHead>
-                        <TableHead>{dict.detailHeaderStatus}</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {reportData.events.map(event => (
-                        <TableRow key={`${event.user.id}-${event.date}`}>
-                          <TableCell>{format(parseISO(event.date), 'PP', { locale: language === 'id' ? idLocale : enLocale })}</TableCell>
-                          <TableCell>{event.user.displayName}</TableCell>
+                <>
+                  {/* Desktop View */}
+                  <div className="hidden md:block w-full overflow-x-auto rounded-md border">
+                    <Table className="min-w-[700px]">
+                      <TableCaption>{dict.reportFor} {reportData.monthName} {reportData.year}</TableCaption>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>{dict.detailHeaderDate}</TableHead>
+                          <TableHead>{dict.detailHeaderEmployee}</TableHead>
+                          <TableHead>{dict.detailHeaderCheckIn}</TableHead>
+                          <TableHead>{dict.detailHeaderCheckOut}</TableHead>
+                          <TableHead>{dict.detailHeaderStatus}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {reportData.events.map(event => (
+                          <TableRow key={`${event.user.id}-${event.date}`}>
+                            <TableCell>{format(parseISO(event.date), 'PP', { locale: language === 'id' ? idLocale : enLocale })}</TableCell>
+                            <TableCell>{event.user.displayName}</TableCell>
+                            {event.type === 'attendance' ? (
+                                <>
+                                  <TableCell>{formatTimeOnly((event.data as AttendanceRecord).checkInTime)}</TableCell>
+                                  <TableCell>{formatTimeOnly((event.data as AttendanceRecord).checkOutTime)}</TableCell>
+                                  <TableCell>{dictGlobal.attendancePage.status[(event.data as AttendanceRecord).status.toLowerCase() as keyof typeof dictGlobal.attendancePage.status] || (event.data as AttendanceRecord).status}</TableCell>
+                                </>
+                            ) : event.type === 'leave' ? (
+                                <TableCell colSpan={3} className="text-center text-blue-600 italic">
+                                    <div className="flex items-center justify-center gap-2">
+                                      <Plane className="h-4 w-4"/> 
+                                      <span>{dictGlobal.leaveRequestPage.leaveTypes[(event.data as LeaveRequest).leaveType.toLowerCase().replace(/ /g, '') as keyof typeof dictGlobal.leaveRequestPage.leaveTypes] || (event.data as LeaveRequest).leaveType}</span>
+                                    </div>
+                                </TableCell>
+                            ) : (
+                                 <TableCell colSpan={3} className="text-center text-red-600 italic">
+                                    {dict.tableHeaderAbsent}
+                                 </TableCell>
+                            )}
+                          </TableRow>
+                        ))}
+                         {reportData.holidays.map(holiday => (
+                             <TableRow key={holiday.id} className="bg-fuchsia-50 dark:bg-fuchsia-900/30">
+                                <TableCell>{format(parseISO(holiday.date), 'PP', { locale: language === 'id' ? idLocale : enLocale })}</TableCell>
+                                <TableCell colSpan={4} className="text-center text-fuchsia-600 italic">
+                                   <div className="flex items-center justify-center gap-2">
+                                    <CalendarOff className="h-4 w-4"/>
+                                    <span>{dictGlobal.dashboardPage.holidayLabel}: {holiday.name}</span>
+                                   </div>
+                                </TableCell>
+                             </TableRow>
+                         ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  {/* Mobile View */}
+                  <div className="grid gap-4 md:hidden">
+                    {reportData.events.map(event => (
+                      <ResponsiveCard key={`mobile-detail-${event.user.id}-${event.date}`}>
+                        <CardHeader>
+                          <CardTitle className="text-base">{event.user.displayName}</CardTitle>
+                          <CardDescription>{format(parseISO(event.date), 'PP', { locale: language === 'id' ? idLocale : enLocale })}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="text-sm space-y-2">
                           {event.type === 'attendance' ? (
                               <>
-                                <TableCell>{formatTimeOnly((event.data as AttendanceRecord).checkInTime)}</TableCell>
-                                <TableCell>{formatTimeOnly((event.data as AttendanceRecord).checkOutTime)}</TableCell>
-                                <TableCell>{dictGlobal.attendancePage.status[(event.data as AttendanceRecord).status.toLowerCase() as keyof typeof dictGlobal.attendancePage.status] || (event.data as AttendanceRecord).status}</TableCell>
+                                <div><span className="font-semibold">{dict.detailHeaderCheckIn}:</span> {formatTimeOnly((event.data as AttendanceRecord).checkInTime)}</div>
+                                <div><span className="font-semibold">{dict.detailHeaderCheckOut}:</span> {formatTimeOnly((event.data as AttendanceRecord).checkOutTime)}</div>
+                                <div><span className="font-semibold">{dict.detailHeaderStatus}:</span> {dictGlobal.attendancePage.status[(event.data as AttendanceRecord).status.toLowerCase() as keyof typeof dictGlobal.attendancePage.status] || (event.data as AttendanceRecord).status}</div>
                               </>
                           ) : event.type === 'leave' ? (
-                              <TableCell colSpan={3} className="text-center text-blue-600 italic">
-                                  <div className="flex items-center justify-center gap-2">
-                                    <Plane className="h-4 w-4"/> 
-                                    <span>{dictGlobal.leaveRequestPage.leaveTypes[(event.data as LeaveRequest).leaveType.toLowerCase().replace(/ /g, '') as keyof typeof dictGlobal.leaveRequestPage.leaveTypes] || (event.data as LeaveRequest).leaveType}</span>
-                                  </div>
-                              </TableCell>
+                              <div className="flex items-center gap-2 text-blue-600 italic">
+                                <Plane className="h-4 w-4"/>
+                                <span>{dictGlobal.leaveRequestPage.leaveTypes[(event.data as LeaveRequest).leaveType.toLowerCase().replace(/ /g, '') as keyof typeof dictGlobal.leaveRequestPage.leaveTypes] || (event.data as LeaveRequest).leaveType}</span>
+                              </div>
                           ) : (
-                               <TableCell colSpan={3} className="text-center text-red-600 italic">
-                                  {dict.tableHeaderAbsent}
-                               </TableCell>
+                              <div className="text-red-600 italic">{dict.tableHeaderAbsent}</div>
                           )}
-                        </TableRow>
-                      ))}
-                       {reportData.holidays.map(holiday => (
-                           <TableRow key={holiday.id} className="bg-fuchsia-50 dark:bg-fuchsia-900/30">
-                              <TableCell>{format(parseISO(holiday.date), 'PP', { locale: language === 'id' ? idLocale : enLocale })}</TableCell>
-                              <TableCell colSpan={4} className="text-center text-fuchsia-600 italic">
-                                 <div className="flex items-center justify-center gap-2">
-                                  <CalendarOff className="h-4 w-4"/>
-                                  <span>{dictGlobal.dashboardPage.holidayLabel}: {holiday.name}</span>
-                                 </div>
-                              </TableCell>
-                           </TableRow>
-                       ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                        </CardContent>
+                      </ResponsiveCard>
+                    ))}
+                    {reportData.holidays.map(holiday => (
+                        <ResponsiveCard key={`mobile-holiday-${holiday.id}`} className="bg-fuchsia-50 dark:bg-fuchsia-900/30">
+                          <CardContent className="pt-6 text-center text-fuchsia-600 italic">
+                             <div className="flex items-center justify-center gap-2">
+                              <CalendarOff className="h-4 w-4"/>
+                              <span>{holiday.name} ({format(parseISO(holiday.date), 'PP', { locale: language === 'id' ? idLocale : enLocale })})</span>
+                             </div>
+                          </CardContent>
+                        </ResponsiveCard>
+                    ))}
+                  </div>
+                </>
               ) : (
                 <div className="text-center text-muted-foreground py-4">
                   <p>{dict.toast.noDataDesc}</p>

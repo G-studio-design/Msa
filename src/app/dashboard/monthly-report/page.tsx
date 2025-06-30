@@ -9,6 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Select,
@@ -47,6 +48,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LabelL
 import type { Language } from '@/context/LanguageContext';
 import { toPng } from 'html-to-image';
 import { cn } from '@/lib/utils';
+import { Card as ResponsiveCard } from '@/components/ui/card';
 
 
 interface MonthlyReportData {
@@ -485,40 +487,65 @@ export default function MonthlyReportPage() {
                </div>
 
               {!noDataForReport && (
-                <div className="w-full overflow-x-auto rounded-md border">
-                  <Table className="min-w-[1000px]">
-                    <TableCaption>{reportDict.tableCaption}</TableCaption>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{reportDict.tableHeaderTitle}</TableHead>
-                        <TableHead>{reportDict.tableHeaderStatus}</TableHead>
-                        <TableHead>{reportDict.tableHeaderLastActivityDate}</TableHead>
-                        <TableHead>{reportDict.tableHeaderContributors}</TableHead>
-                        <TableHead className="text-right">{reportDict.tableHeaderProgress}</TableHead>
-                        <TableHead>{reportDict.tableHeaderCreatedBy}</TableHead>
-                        <TableHead>{reportDict.tableHeaderCreatedAt}</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {allProjectsForReport.map((project) => (
-                        <TableRow key={`desktop-${project.id}`}>
-                          <TableCell className="font-medium">{project.title}</TableCell>
-                          <TableCell>
-                            <Badge variant={ project.status === 'Completed' ? 'default' : project.status === 'Canceled' ? 'destructive' : 'secondary'}
-                              className={cn(project.status === 'Completed' && 'bg-green-500 hover:bg-green-600 text-white')}>
-                              {dashboardDict.status[project.status.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status] || project.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{getLastActivityDate(project)}</TableCell>
-                          <TableCell>{getContributors(project)}</TableCell>
-                          <TableCell className="text-right">{project.progress}%</TableCell>
-                          <TableCell>{project.createdBy}</TableCell>
-                          <TableCell>{formatDateOnly(project.createdAt)}</TableCell>
+                <>
+                  {/* Desktop View */}
+                  <div className="hidden md:block w-full overflow-x-auto rounded-md border">
+                    <Table className="min-w-[1000px]">
+                      <TableCaption>{reportDict.tableCaption}</TableCaption>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>{reportDict.tableHeaderTitle}</TableHead>
+                          <TableHead>{reportDict.tableHeaderStatus}</TableHead>
+                          <TableHead>{reportDict.tableHeaderLastActivityDate}</TableHead>
+                          <TableHead>{reportDict.tableHeaderContributors}</TableHead>
+                          <TableHead className="text-right">{reportDict.tableHeaderProgress}</TableHead>
+                          <TableHead>{reportDict.tableHeaderCreatedBy}</TableHead>
+                          <TableHead>{reportDict.tableHeaderCreatedAt}</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                      </TableHeader>
+                      <TableBody>
+                        {allProjectsForReport.map((project) => (
+                          <TableRow key={`desktop-${project.id}`}>
+                            <TableCell className="font-medium">{project.title}</TableCell>
+                            <TableCell>
+                              <Badge variant={ project.status === 'Completed' ? 'default' : project.status === 'Canceled' ? 'destructive' : 'secondary'}
+                                className={cn(project.status === 'Completed' && 'bg-green-500 hover:bg-green-600 text-white')}>
+                                {dashboardDict.status[project.status.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status] || project.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{getLastActivityDate(project)}</TableCell>
+                            <TableCell>{getContributors(project)}</TableCell>
+                            <TableCell className="text-right">{project.progress}%</TableCell>
+                            <TableCell>{project.createdBy}</TableCell>
+                            <TableCell>{formatDateOnly(project.createdAt)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  {/* Mobile View */}
+                  <div className="grid gap-4 md:hidden">
+                    {allProjectsForReport.map((project) => (
+                      <ResponsiveCard key={`mobile-${project.id}`}>
+                        <CardHeader>
+                            <CardTitle className="text-base">{project.title}</CardTitle>
+                            <CardDescription>
+                                <Badge variant={ project.status === 'Completed' ? 'default' : project.status === 'Canceled' ? 'destructive' : 'secondary'} className={cn(project.status === 'Completed' && 'bg-green-500 hover:bg-green-600 text-white')}>
+                                {dashboardDict.status[project.status.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status] || project.status}
+                                </Badge>
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="text-sm space-y-2">
+                           <div><span className="font-semibold">{reportDict.tableHeaderProgress}:</span> {project.progress}%</div>
+                           <div><span className="font-semibold">{reportDict.tableHeaderLastActivityDate}:</span> {getLastActivityDate(project)}</div>
+                           <div><span className="font-semibold">{reportDict.tableHeaderContributors}:</span> {getContributors(project)}</div>
+                           <div><span className="font-semibold">{reportDict.tableHeaderCreatedBy}:</span> {project.createdBy}</div>
+                           <div><span className="font-semibold">{reportDict.tableHeaderCreatedAt}:</span> {formatDateOnly(project.createdAt)}</div>
+                        </CardContent>
+                      </ResponsiveCard>
+                    ))}
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>
