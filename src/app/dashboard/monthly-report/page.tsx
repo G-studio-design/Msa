@@ -452,15 +452,15 @@ export default function MonthlyReportPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-               <div className="grid grid-cols-1">
-                 <div ref={chartContainerRef} className="p-2 sm:p-4 bg-background rounded-md mb-6 overflow-x-auto"> 
+               <div className="overflow-x-auto mb-6">
+                 <div ref={chartContainerRef} className="p-2 sm:p-4 bg-background rounded-md min-w-[500px]"> 
                    {noDataForChart ? (
                       <div className="flex flex-col items-center justify-center h-full min-h-[250px] sm:min-h-[300px] text-center text-muted-foreground p-4">
                           <PieChartIcon className="h-12 w-12 mb-2 opacity-50" />
                           <p>{reportDict.noDataForMonth}</p>
                       </div>
                    ) : (
-                      <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] w-full min-w-[500px]">
+                      <ChartContainer config={chartConfig} className="h-[250px] sm:h-[300px] w-full">
                           <ResponsiveContainer width="100%" height="100%">
                               <BarChart 
                                   data={chartDisplayData} 

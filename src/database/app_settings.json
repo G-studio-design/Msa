@@ -1,8 +1,8 @@
 {
   "feature_attendance_enabled": true,
-  "office_latitude": -8.6414837,
-  "office_longitude": 115.2222507,
-  "attendance_radius_meters": 100,
+  "office_latitude": -8.6358894,
+  "office_longitude": 115.2228202,
+  "attendance_radius_meters": 500,
   "workingHours": {
     "monday": {
       "isWorkDay": true,

@@ -486,7 +486,7 @@ export default function AdminActionsPage() {
                <Table>
                 <TableHeader>
                   <TableRow>
-                      <TableHead className="w-[150px] sm:w-[200px]">{isClient ? adminDict.tableHeaderId : defaultGlobalDict.adminActionsPage.tableHeaderId}</TableHead>
+                      <TableHead className="w-[200px]">{isClient ? adminDict.tableHeaderId : defaultGlobalDict.adminActionsPage.tableHeaderId}</TableHead>
                     <TableHead>{isClient ? adminDict.tableHeaderTitle : defaultGlobalDict.adminActionsPage.tableHeaderTitle}</TableHead>
                       <TableHead className="w-[120px] sm:w-[150px]">{isClient ? adminDict.tableHeaderStatus : defaultGlobalDict.adminActionsPage.tableHeaderStatus}</TableHead>
                       <TableHead className="text-right w-auto">{isClient ? adminDict.tableHeaderActions : defaultGlobalDict.adminActionsPage.tableHeaderActions}</TableHead>
@@ -502,13 +502,13 @@ export default function AdminActionsPage() {
                   ) : (
                     projects.map((project) => (
                       <TableRow key={project.id}>
-                          <TableCell className="text-xs font-mono break-all">{project.id}</TableCell>
+                          <TableCell className="text-xs font-mono break-words">{project.id}</TableCell>
                         <TableCell className="font-medium">
                           {editingProjectId === project.id ? (
                             <Input
                               value={newTitle}
                               onChange={(e) => setNewTitle(e.target.value)}
-                              className="h-8 min-w-[150px]"
+                              className="h-8"
                               disabled={isSaving}
                             />
                           ) : (

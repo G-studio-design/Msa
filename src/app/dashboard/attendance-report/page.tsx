@@ -320,28 +320,30 @@ export default function AttendanceReportPage() {
               <CardDescription>{dict.summaryTitle}</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{dict.tableHeaderEmployee}</TableHead>
-                    <TableHead className="text-center">{dict.tableHeaderPresent}</TableHead>
-                    <TableHead className="text-center">{dict.tableHeaderLate}</TableHead>
-                    <TableHead className="text-center">{dict.tableHeaderOnLeave}</TableHead>
-                    <TableHead className="text-center">{dict.tableHeaderAbsent}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {reportData.users.map(user => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.displayName || user.username}</TableCell>
-                      <TableCell className="text-center">{reportData.summary[user.id]?.present || 0}</TableCell>
-                      <TableCell className="text-center">{reportData.summary[user.id]?.late || 0}</TableCell>
-                      <TableCell className="text-center">{reportData.summary[user.id]?.on_leave || 0}</TableCell>
-                      <TableCell className="text-center">{reportData.summary[user.id]?.absent || 0}</TableCell>
+              <div className="overflow-x-auto rounded-md border">
+                <Table className="min-w-[600px]">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{dict.tableHeaderEmployee}</TableHead>
+                      <TableHead className="text-center">{dict.tableHeaderPresent}</TableHead>
+                      <TableHead className="text-center">{dict.tableHeaderLate}</TableHead>
+                      <TableHead className="text-center">{dict.tableHeaderOnLeave}</TableHead>
+                      <TableHead className="text-center">{dict.tableHeaderAbsent}</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {reportData.users.map(user => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">{user.displayName || user.username}</TableCell>
+                        <TableCell className="text-center">{reportData.summary[user.id]?.present || 0}</TableCell>
+                        <TableCell className="text-center">{reportData.summary[user.id]?.late || 0}</TableCell>
+                        <TableCell className="text-center">{reportData.summary[user.id]?.on_leave || 0}</TableCell>
+                        <TableCell className="text-center">{reportData.summary[user.id]?.absent || 0}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
           
@@ -351,55 +353,57 @@ export default function AttendanceReportPage() {
             </CardHeader>
             <CardContent>
               {reportData.events.length > 0 ? (
-                <Table>
-                  <TableCaption>{dict.reportFor} {reportData.monthName} {reportData.year}</TableCaption>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{dict.detailHeaderDate}</TableHead>
-                      <TableHead>{dict.detailHeaderEmployee}</TableHead>
-                      <TableHead>{dict.detailHeaderCheckIn}</TableHead>
-                      <TableHead>{dict.detailHeaderCheckOut}</TableHead>
-                      <TableHead>{dict.detailHeaderStatus}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {reportData.events.map(event => (
-                      <TableRow key={`${event.user.id}-${event.date}`}>
-                        <TableCell>{format(parseISO(event.date), 'PP', { locale: language === 'id' ? idLocale : enLocale })}</TableCell>
-                        <TableCell>{event.user.displayName}</TableCell>
-                        {event.type === 'attendance' ? (
-                            <>
-                              <TableCell>{formatTimeOnly((event.data as AttendanceRecord).checkInTime)}</TableCell>
-                              <TableCell>{formatTimeOnly((event.data as AttendanceRecord).checkOutTime)}</TableCell>
-                              <TableCell>{dictGlobal.attendancePage.status[(event.data as AttendanceRecord).status.toLowerCase() as keyof typeof dictGlobal.attendancePage.status] || (event.data as AttendanceRecord).status}</TableCell>
-                            </>
-                        ) : event.type === 'leave' ? (
-                            <TableCell colSpan={3} className="text-center text-blue-600 italic">
-                                <div className="flex items-center justify-center gap-2">
-                                  <Plane className="h-4 w-4"/> 
-                                  <span>{dictGlobal.leaveRequestPage.leaveTypes[(event.data as LeaveRequest).leaveType.toLowerCase().replace(/ /g, '') as keyof typeof dictGlobal.leaveRequestPage.leaveTypes] || (event.data as LeaveRequest).leaveType}</span>
-                                </div>
-                            </TableCell>
-                        ) : (
-                             <TableCell colSpan={3} className="text-center text-red-600 italic">
-                                {dict.tableHeaderAbsent}
-                             </TableCell>
-                        )}
+                <div className="overflow-x-auto rounded-md border">
+                  <Table className="min-w-[700px]">
+                    <TableCaption>{dict.reportFor} {reportData.monthName} {reportData.year}</TableCaption>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{dict.detailHeaderDate}</TableHead>
+                        <TableHead>{dict.detailHeaderEmployee}</TableHead>
+                        <TableHead>{dict.detailHeaderCheckIn}</TableHead>
+                        <TableHead>{dict.detailHeaderCheckOut}</TableHead>
+                        <TableHead>{dict.detailHeaderStatus}</TableHead>
                       </TableRow>
-                    ))}
-                     {reportData.holidays.map(holiday => (
-                         <TableRow key={holiday.id} className="bg-fuchsia-50 dark:bg-fuchsia-900/30">
-                            <TableCell>{format(parseISO(holiday.date), 'PP', { locale: language === 'id' ? idLocale : enLocale })}</TableCell>
-                            <TableCell colSpan={4} className="text-center text-fuchsia-600 italic">
-                               <div className="flex items-center justify-center gap-2">
-                                <CalendarOff className="h-4 w-4"/>
-                                <span>{dictGlobal.dashboardPage.holidayLabel}: {holiday.name}</span>
-                               </div>
-                            </TableCell>
-                         </TableRow>
-                     ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {reportData.events.map(event => (
+                        <TableRow key={`${event.user.id}-${event.date}`}>
+                          <TableCell>{format(parseISO(event.date), 'PP', { locale: language === 'id' ? idLocale : enLocale })}</TableCell>
+                          <TableCell>{event.user.displayName}</TableCell>
+                          {event.type === 'attendance' ? (
+                              <>
+                                <TableCell>{formatTimeOnly((event.data as AttendanceRecord).checkInTime)}</TableCell>
+                                <TableCell>{formatTimeOnly((event.data as AttendanceRecord).checkOutTime)}</TableCell>
+                                <TableCell>{dictGlobal.attendancePage.status[(event.data as AttendanceRecord).status.toLowerCase() as keyof typeof dictGlobal.attendancePage.status] || (event.data as AttendanceRecord).status}</TableCell>
+                              </>
+                          ) : event.type === 'leave' ? (
+                              <TableCell colSpan={3} className="text-center text-blue-600 italic">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <Plane className="h-4 w-4"/> 
+                                    <span>{dictGlobal.leaveRequestPage.leaveTypes[(event.data as LeaveRequest).leaveType.toLowerCase().replace(/ /g, '') as keyof typeof dictGlobal.leaveRequestPage.leaveTypes] || (event.data as LeaveRequest).leaveType}</span>
+                                  </div>
+                              </TableCell>
+                          ) : (
+                               <TableCell colSpan={3} className="text-center text-red-600 italic">
+                                  {dict.tableHeaderAbsent}
+                               </TableCell>
+                          )}
+                        </TableRow>
+                      ))}
+                       {reportData.holidays.map(holiday => (
+                           <TableRow key={holiday.id} className="bg-fuchsia-50 dark:bg-fuchsia-900/30">
+                              <TableCell>{format(parseISO(holiday.date), 'PP', { locale: language === 'id' ? idLocale : enLocale })}</TableCell>
+                              <TableCell colSpan={4} className="text-center text-fuchsia-600 italic">
+                                 <div className="flex items-center justify-center gap-2">
+                                  <CalendarOff className="h-4 w-4"/>
+                                  <span>{dictGlobal.dashboardPage.holidayLabel}: {holiday.name}</span>
+                                 </div>
+                              </TableCell>
+                           </TableRow>
+                       ))}
+                    </TableBody>
+                  </Table>
+                </div>
               ) : (
                 <div className="text-center text-muted-foreground py-4">
                   <p>{dict.toast.noDataDesc}</p>
