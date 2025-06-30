@@ -257,10 +257,16 @@ export default function ManageWorkflowsPage() {
     }
   };
   
-  const getTranslatedRoleForStep = (roleName: string): string => {
-      if (!isClient || !dashboardDict?.status || !roleName) return roleName;
-      const key = roleName.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status;
-      return dashboardDict.status[key] || roleName;
+  const getTranslatedRoleForStep = (roleName: string | string[] | null): string => {
+    if (!roleName) {
+      return '';
+    }
+    if (Array.isArray(roleName)) {
+      return roleName.map(name => getTranslatedRoleForStep(name)).join(', ');
+    }
+    if (!isClient || !dashboardDict?.status) return roleName;
+    const key = roleName.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status;
+    return dashboardDict.status[key] || roleName;
   };
 
   const moveStepUp = (index: number) => {
@@ -535,7 +541,7 @@ export default function ManageWorkflowsPage() {
                                                     <p>Target Progress: {transition.targetProgress}%</p>
                                                     <p>Target Next Action: {transition.targetNextActionDescription || workflowsDict.noneLabel}</p>
                                                     {transition.notification && (
-                                                        <p>Notification to {getTranslatedRoleForStep(transition.notification.division || "") || workflowsDict.notApplicable}: "{transition.notification.message.substring(0,50)}..."</p>
+                                                        <p>Notification to {getTranslatedRoleForStep(transition.notification.division || null) || workflowsDict.notApplicable}: "{transition.notification.message.substring(0,50)}..."</p>
                                                     )}
                                                 </div>
                                             </details>
