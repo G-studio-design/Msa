@@ -56,6 +56,32 @@ import { isAttendanceFeatureEnabled } from '@/services/settings-service';
 
 type LayoutDictKeys = keyof ReturnType<typeof getDictionary>['dashboardLayout'];
 
+// Helper functions moved outside component for better performance & organization
+const getUserRoleIcon = (role: string | undefined) => {
+    if (!role) return User;
+    const roleLower = role.toLowerCase().trim();
+    switch(roleLower) {
+        case 'owner': return User;
+        case 'akuntan': return UserCog; 
+        case 'admin proyek': return UserCog;
+        case 'arsitek': return User;
+        case 'struktur': return User;
+        case 'mep': return Wrench;
+        case 'admin developer': return Code;
+        default: return User;
+    }
+};
+
+const getUserInitials = (name: string | undefined): string => {
+    if (!name) return '?';
+    return name.split(' ')
+               .map(n => n[0])
+               .join('')
+               .toUpperCase()
+               .slice(0, 2);
+};
+
+
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { language } = useLanguage();
   const { currentUser, logout } = useAuth();
@@ -244,34 +270,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return [];
   }, [isClient, currentUser, menuItems, attendanceEnabled]);
 
-
-  const getUserRoleIcon = useCallback((role: string | undefined) => {
-      if (!role) return User;
-      const roleLower = role.toLowerCase().trim();
-      switch(roleLower) {
-          case 'owner': return User;
-          case 'akuntan': return UserCog; 
-          case 'admin proyek': return UserCog;
-          case 'arsitek': return User;
-          case 'struktur': return User;
-          case 'mep': return Wrench;
-          case 'admin developer': return Code;
-          default: return User;
-      }
-  }, []);
-
-  const RoleIcon = useMemo(() => isClient && currentUser ? getUserRoleIcon(currentUser.role) : User, [isClient, currentUser, getUserRoleIcon]);
-
-
-  const getUserInitials = useCallback((name: string | undefined): string => {
-      if (!name) return '?';
-      return name.split(' ')
-                 .map(n => n[0])
-                 .join('')
-                 .toUpperCase()
-                 .slice(0, 2);
-  }, []);
-
+  const RoleIcon = useMemo(() => isClient && currentUser ? getUserRoleIcon(currentUser.role) : User, [isClient, currentUser]);
 
    const getTranslatedRole = useCallback((role: string): string => {
        const rolesDict = manageUsersDict.roles as Record<string, string>;
