@@ -54,7 +54,7 @@ import {
 import { getAllUniqueStatuses, type WorkflowStep } from '@/services/workflow-service';
 import { clearAllNotifications } from '@/services/notification-service';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { getAppSettings, setAttendanceFeatureEnabled } from '@/services/settings-service';
+import { getAppSettings, setAttendanceFeatureEnabled as updateFeatureSetting } from '@/services/settings-service';
 
 const defaultGlobalDict = getDictionary('en');
 
@@ -325,13 +325,12 @@ export default function AdminActionsPage() {
     const handleFeatureToggle = async (enabled: boolean) => {
       setIsUpdatingFeature(true);
       try {
-        await setAttendanceFeatureEnabled(enabled);
+        await updateFeatureSetting(enabled);
         setAttendanceFeatureEnabled(enabled);
         toast({
           title: adminDict.toast.featureToggleTitle,
           description: enabled ? adminDict.toast.attendanceEnabledDesc : adminDict.toast.attendanceDisabledDesc,
         });
-        // You might want to reload the page to see menu changes immediately
         window.location.reload();
       } catch (error: any) {
         toast({ variant: 'destructive', title: adminDict.toast.error, description: error.message || "Failed to update feature setting." });
