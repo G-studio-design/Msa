@@ -9,6 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -56,7 +57,6 @@ import { clearAllNotifications } from '@/services/notification-service';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { getAppSettings, updateAttendanceSettings as saveAttendanceSettings, setAttendanceFeatureEnabled as updateFeatureSetting, type AppSettings, type AttendanceSettings } from '@/services/settings-service';
 import { cn } from '@/lib/utils';
-import { Card as ResponsiveCard } from '@/components/ui/card';
 
 const defaultGlobalDict = getDictionary('en');
 
@@ -583,7 +583,7 @@ export default function AdminActionsPage() {
                     </div>
                 ) : (
                     projects.map((project) => (
-                        <ResponsiveCard key={`mobile-${project.id}`}>
+                        <Card key={`mobile-${project.id}`}>
                             <CardHeader>
                                 <CardTitle className="text-base break-words">{project.title}</CardTitle>
                                 <CardDescription>{getTranslatedStatus(project.status)}</CardDescription>
@@ -601,7 +601,7 @@ export default function AdminActionsPage() {
                                     Edit Title
                                 </Button>
                             </CardFooter>
-                        </ResponsiveCard>
+                        </Card>
                     ))
                 )}
             </div>
