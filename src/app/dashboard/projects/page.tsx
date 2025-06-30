@@ -2,6 +2,8 @@
 // src/app/dashboard/projects/page.tsx
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import {
