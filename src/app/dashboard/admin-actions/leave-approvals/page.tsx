@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // src/app/dashboard/admin-actions/leave-approvals/page.tsx
 'use client';
 

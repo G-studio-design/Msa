@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // src/app/dashboard/monthly-report/page.tsx
 'use client';
 

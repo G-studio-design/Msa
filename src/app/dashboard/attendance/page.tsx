@@ -1,6 +1,6 @@
-'use client';
-
 export const dynamic = 'force-dynamic';
+
+'use client';
 
 // src/app/dashboard/attendance/page.tsx
 import * as React from 'react';

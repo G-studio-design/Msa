@@ -1,6 +1,6 @@
-'use client';
-
 export const dynamic = 'force-dynamic';
+
+'use client';
 
 // src/app/dashboard/admin-actions/workflows/page.tsx
 import * as React from 'react';
