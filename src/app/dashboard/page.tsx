@@ -315,10 +315,10 @@ export default function DashboardPage() {
                 <CardDescription>{dashboardDict.projectProgressChartDesc}</CardDescription>
               </CardHeader>
               <CardContent className="pl-0 pr-4 sm:pl-2">
-                {projects.length > 0 ? (
+                {activeProjects.length > 0 ? (
                   <ChartContainer config={chartConfig} className="h-[300px] w-full">
                     <ResponsiveContainer>
-                      <BarChart data={projects} layout="vertical" margin={{ right: 40, left: 10 }}>
+                      <BarChart data={activeProjects} layout="vertical" margin={{ right: 40, left: 10 }}>
                         <XAxis type="number" dataKey="progress" domain={[0, 100]} tickFormatter={(value) => `${value}%`} tick={{ fontSize: 10 }} />
                         <YAxis type="category" dataKey="title" tick={{ fontSize: 10, width: 80, textAnchor: 'end' }} interval={0} tickFormatter={(value) => value.length > 15 ? `${value.substring(0, 15)}...` : value} />
                         <ChartTooltip
@@ -327,7 +327,7 @@ export default function DashboardPage() {
                         />
                         <Bar dataKey="progress" radius={[0, 4, 4, 0]}>
                            <LabelList dataKey="progress" position="right" offset={8} className="fill-foreground" fontSize={12} formatter={(value: number) => `${value}%`} />
-                           {projects.map((project, index) => (
+                           {activeProjects.map((project, index) => (
                                 <Cell key={`cell-${index}`} fill={getProgressColor(project.progress, project.status)} />
                            ))}
                         </Bar>

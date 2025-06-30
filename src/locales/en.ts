@@ -106,9 +106,9 @@ const en = {
     progress: '{progress}% Complete',
     averageProgressTitle: 'Average Progress',
     averageProgressDesc: 'Average completion rate across your projects.',
-    projectProgressChartTitle: 'Overall Project Progress',
-    projectProgressChartDesc: 'Visualization of completion rates for all projects. Bar colors indicate progress level.',
-    noProjectsForChart: 'No projects available to display in the chart.',
+    projectProgressChartTitle: 'Active Project Progress',
+    projectProgressChartDesc: 'Visualization of completion rates for all active projects. Bar colors indicate progress level.',
+    noProjectsForChart: 'No active projects available to display in the chart.',
     progressChart: {
         label: 'Progress'
     },

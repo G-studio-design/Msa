@@ -106,12 +106,12 @@ const id = {
      progress: '{progress}% Selesai',
      averageProgressTitle: 'Rata-rata Progres',
      averageProgressDesc: 'Tingkat penyelesaian rata-rata di semua proyek Anda.',
-     projectProgressChartTitle: 'Tinjauan Progres Proyek',
-     projectProgressChartDesc: 'Visualisasi tingkat penyelesaian untuk semua proyek. Warna bar menunjukkan tingkat progres.',
-     noProjectsForChart: 'Tidak ada proyek yang tersedia untuk ditampilkan di diagram.',
+     projectProgressChartTitle: 'Progres Proyek Aktif',
+     projectProgressChartDesc: 'Visualisasi tingkat penyelesaian untuk semua proyek aktif. Warna bar menunjukkan tingkat progres.',
+     noProjectsForChart: 'Tidak ada proyek aktif yang tersedia untuk ditampilkan di diagram.',
      progressChart: {
-        label: 'Progres'
-     },
+         label: 'Progres'
+      },
     scheduleAgendaTitle: 'Jadwal & Agenda',
     scheduleAgendaDesc: 'Lihat jadwal sidang proyek, survei, izin karyawan, hari libur dan acara perusahaan.',
     todayButtonLabel: 'Hari Ini',
