@@ -528,7 +528,7 @@ export default function MonthlyReportPage() {
                     {allProjectsForReport.map((project) => (
                       <ResponsiveCard key={`mobile-${project.id}`}>
                         <CardHeader>
-                            <CardTitle className="text-base">{project.title}</CardTitle>
+                            <CardTitle className="text-base truncate">{project.title}</CardTitle>
                             <CardDescription>
                                 <Badge variant={ project.status === 'Completed' ? 'default' : project.status === 'Canceled' ? 'destructive' : 'secondary'} className={cn(project.status === 'Completed' && 'bg-green-500 hover:bg-green-600 text-white')}>
                                 {dashboardDict.status[project.status.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status] || project.status}
@@ -538,8 +538,8 @@ export default function MonthlyReportPage() {
                         <CardContent className="text-sm space-y-2">
                            <div><span className="font-semibold">{reportDict.tableHeaderProgress}:</span> {project.progress}%</div>
                            <div><span className="font-semibold">{reportDict.tableHeaderLastActivityDate}:</span> {getLastActivityDate(project)}</div>
-                           <div><span className="font-semibold">{reportDict.tableHeaderContributors}:</span> {getContributors(project)}</div>
-                           <div><span className="font-semibold">{reportDict.tableHeaderCreatedBy}:</span> {project.createdBy}</div>
+                           <div className="break-words"><span className="font-semibold">{reportDict.tableHeaderContributors}:</span> {getContributors(project)}</div>
+                           <div className="break-words"><span className="font-semibold">{reportDict.tableHeaderCreatedBy}:</span> {project.createdBy}</div>
                            <div><span className="font-semibold">{reportDict.tableHeaderCreatedAt}:</span> {formatDateOnly(project.createdAt)}</div>
                         </CardContent>
                       </ResponsiveCard>
