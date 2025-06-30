@@ -49,6 +49,7 @@ import type { Language } from '@/context/LanguageContext';
 import { toPng } from 'html-to-image';
 import { cn } from '@/lib/utils';
 import { Card as ResponsiveCard } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 interface MonthlyReportData {
@@ -454,10 +455,10 @@ export default function MonthlyReportPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-               <div ref={chartContainerRef} className="overflow-x-auto mb-6 rounded-md border">
-                  <div className="p-2 sm:p-4" style={{minWidth: '500px'}}>
+               <div className="overflow-x-auto mb-6 rounded-md border">
+                  <div ref={chartContainerRef} className="p-2 sm:p-4 bg-background min-w-[500px]">
                      {noDataForChart ? (
-                        <div className="flex flex-col items-center justify-center h-full min-h-[250px] sm:min-h-[300px] text-center text-muted-foreground p-4">
+                        <div className="flex flex-col items-center justify-center h-[250px] sm:h-[300px] text-center text-muted-foreground p-4">
                             <PieChartIcon className="h-12 w-12 mb-2 opacity-50" />
                             <p>{reportDict.noDataForMonth}</p>
                         </div>
@@ -488,42 +489,43 @@ export default function MonthlyReportPage() {
 
               {!noDataForReport && (
                 <>
-                  {/* Desktop View */}
-                  <div className="hidden md:block w-full overflow-x-auto rounded-md border">
-                    <Table className="min-w-[1000px]">
-                      <TableCaption>{reportDict.tableCaption}</TableCaption>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{reportDict.tableHeaderTitle}</TableHead>
-                          <TableHead>{reportDict.tableHeaderStatus}</TableHead>
-                          <TableHead>{reportDict.tableHeaderLastActivityDate}</TableHead>
-                          <TableHead>{reportDict.tableHeaderContributors}</TableHead>
-                          <TableHead className="text-right">{reportDict.tableHeaderProgress}</TableHead>
-                          <TableHead>{reportDict.tableHeaderCreatedBy}</TableHead>
-                          <TableHead>{reportDict.tableHeaderCreatedAt}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {allProjectsForReport.map((project) => (
-                          <TableRow key={`desktop-${project.id}`}>
-                            <TableCell className="font-medium">{project.title}</TableCell>
-                            <TableCell>
-                              <Badge variant={ project.status === 'Completed' ? 'default' : project.status === 'Canceled' ? 'destructive' : 'secondary'}
-                                className={cn(project.status === 'Completed' && 'bg-green-500 hover:bg-green-600 text-white')}>
-                                {dashboardDict.status[project.status.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status] || project.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>{getLastActivityDate(project)}</TableCell>
-                            <TableCell>{getContributors(project)}</TableCell>
-                            <TableCell className="text-right">{project.progress}%</TableCell>
-                            <TableCell>{project.createdBy}</TableCell>
-                            <TableCell>{formatDateOnly(project.createdAt)}</TableCell>
+                  <div className="hidden md:block">
+                    <ScrollArea className="w-full rounded-md border">
+                      <Table className="min-w-[1000px]">
+                        <TableCaption>{reportDict.tableCaption}</TableCaption>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>{reportDict.tableHeaderTitle}</TableHead>
+                            <TableHead>{reportDict.tableHeaderStatus}</TableHead>
+                            <TableHead>{reportDict.tableHeaderLastActivityDate}</TableHead>
+                            <TableHead>{reportDict.tableHeaderContributors}</TableHead>
+                            <TableHead className="text-right">{reportDict.tableHeaderProgress}</TableHead>
+                            <TableHead>{reportDict.tableHeaderCreatedBy}</TableHead>
+                            <TableHead>{reportDict.tableHeaderCreatedAt}</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                        </TableHeader>
+                        <TableBody>
+                          {allProjectsForReport.map((project) => (
+                            <TableRow key={`desktop-${project.id}`}>
+                              <TableCell className="font-medium">{project.title}</TableCell>
+                              <TableCell>
+                                <Badge variant={ project.status === 'Completed' ? 'default' : project.status === 'Canceled' ? 'destructive' : 'secondary'}
+                                  className={cn(project.status === 'Completed' && 'bg-green-500 hover:bg-green-600 text-white')}>
+                                  {dashboardDict.status[project.status.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status] || project.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>{getLastActivityDate(project)}</TableCell>
+                              <TableCell className="break-words">{getContributors(project)}</TableCell>
+                              <TableCell className="text-right">{project.progress}%</TableCell>
+                              <TableCell>{project.createdBy}</TableCell>
+                              <TableCell>{formatDateOnly(project.createdAt)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </ScrollArea>
                   </div>
-                  {/* Mobile View */}
+                  
                   <div className="grid gap-4 md:hidden">
                     {allProjectsForReport.map((project) => (
                       <ResponsiveCard key={`mobile-${project.id}`}>
