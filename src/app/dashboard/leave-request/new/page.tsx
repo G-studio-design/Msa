@@ -1,9 +1,8 @@
-
-// src/app/dashboard/leave-request/new/page.tsx
 'use client';
 
 export const dynamic = 'force-dynamic';
 
+// src/app/dashboard/leave-request/new/page.tsx
 import * as React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';

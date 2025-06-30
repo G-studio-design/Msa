@@ -1,8 +1,8 @@
-// src/app/dashboard/settings/page.tsx
 'use client';
 
 export const dynamic = 'force-dynamic';
 
+// src/app/dashboard/settings/page.tsx
 import * as React from 'react';
 import Image from 'next/image'; // Import next/image
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
