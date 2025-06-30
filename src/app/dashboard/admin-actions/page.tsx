@@ -54,7 +54,7 @@ import {
 import { getAllUniqueStatuses, type WorkflowStep } from '@/services/workflow-service';
 import { clearAllNotifications } from '@/services/notification-service';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { getAppSettings, setAttendanceFeatureEnabled as updateFeatureSetting } from '@/services/settings-service';
+import { getAppSettings, setAttendanceFeatureEnabled as updateFeatureSetting, updateAttendanceSettings as saveAttendanceSettings, type AttendanceSettings } from '@/services/settings-service';
 
 const defaultGlobalDict = getDictionary('en');
 
@@ -110,6 +110,17 @@ export default function AdminActionsPage() {
   const [attendanceFeatureEnabled, setAttendanceFeatureEnabled] = React.useState(false);
   const [isUpdatingFeature, setIsUpdatingFeature] = React.useState(false);
 
+  // State for attendance settings
+  const [attendanceSettings, setAttendanceSettings] = React.useState<AttendanceSettings>({
+    office_latitude: 0,
+    office_longitude: 0,
+    attendance_radius_meters: 100,
+    check_in_time: "09:00",
+    check_out_time: "17:00",
+  });
+  const [isUpdatingAttendanceSettings, setIsUpdatingAttendanceSettings] = React.useState(false);
+
+
    const fetchData = React.useCallback(async () => {
         if (currentUser && ['Owner', 'Akuntan', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role.trim())) {
             setIsLoadingProjects(true);
@@ -122,6 +133,13 @@ export default function AdminActionsPage() {
                 setProjects(fetchedProjects);
                 setAvailableStatuses(statuses);
                 setAttendanceFeatureEnabled(settings.feature_attendance_enabled);
+                setAttendanceSettings({
+                  office_latitude: settings.office_latitude || 0,
+                  office_longitude: settings.office_longitude || 0,
+                  attendance_radius_meters: settings.attendance_radius_meters || 100,
+                  check_in_time: settings.check_in_time || "09:00",
+                  check_out_time: settings.check_out_time || "17:00",
+                });
             } catch (error) {
                 console.error("Failed to fetch data for admin actions:", error);
                 toast({ variant: 'destructive', title: adminDict.toast.error, description: adminDict.toast.fetchError });
@@ -338,6 +356,32 @@ export default function AdminActionsPage() {
         setIsUpdatingFeature(false);
       }
     };
+  
+  const handleAttendanceSettingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setAttendanceSettings(prev => ({
+        ...prev,
+        [id]: id === 'office_latitude' || id === 'office_longitude' || id === 'attendance_radius_meters' ? parseFloat(value) || 0 : value
+    }));
+  };
+
+  const handleSaveAttendanceSettings = async () => {
+    setIsUpdatingAttendanceSettings(true);
+    try {
+        await saveAttendanceSettings(attendanceSettings);
+        toast({
+            title: "Pengaturan Absensi Disimpan",
+            description: "Pengaturan lokasi, radius, dan jam kerja telah berhasil diperbarui.",
+        });
+    } catch (error: any) {
+        toast({ variant: 'destructive', title: adminDict.toast.error, description: error.message || "Gagal menyimpan pengaturan absensi." });
+    } finally {
+        setIsUpdatingAttendanceSettings(false);
+    }
+  };
+
+  const showAttendanceSettingsCard = currentUser && ['Owner', 'Admin Developer'].includes(currentUser.role.trim());
+
 
   return (
      <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
@@ -476,6 +520,45 @@ export default function AdminActionsPage() {
         </CardContent>
       </Card>
       
+      {showAttendanceSettingsCard && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{adminDict.attendanceSettingsTitle || "Pengaturan Absensi"}</CardTitle>
+            <CardDescription>{adminDict.attendanceSettingsDesc || "Atur lokasi kantor, radius, dan jam kerja untuk fitur absensi karyawan."}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                      <Label htmlFor="office_latitude">Latitude Kantor</Label>
+                      <Input id="office_latitude" type="number" value={attendanceSettings.office_latitude} onChange={handleAttendanceSettingsChange} placeholder="-8.123456" disabled={isUpdatingAttendanceSettings}/>
+                  </div>
+                  <div className="space-y-1">
+                      <Label htmlFor="office_longitude">Longitude Kantor</Label>
+                      <Input id="office_longitude" type="number" value={attendanceSettings.office_longitude} onChange={handleAttendanceSettingsChange} placeholder="115.123456" disabled={isUpdatingAttendanceSettings}/>
+                  </div>
+                  <div className="space-y-1">
+                      <Label htmlFor="attendance_radius_meters">Radius Absensi (meter)</Label>
+                      <Input id="attendance_radius_meters" type="number" value={attendanceSettings.attendance_radius_meters} onChange={handleAttendanceSettingsChange} placeholder="100" disabled={isUpdatingAttendanceSettings}/>
+                  </div>
+                   <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                          <Label htmlFor="check_in_time">Jam Masuk</Label>
+                          <Input id="check_in_time" type="time" value={attendanceSettings.check_in_time} onChange={handleAttendanceSettingsChange} disabled={isUpdatingAttendanceSettings}/>
+                      </div>
+                      <div className="space-y-1">
+                          <Label htmlFor="check_out_time">Jam Pulang</Label>
+                          <Input id="check_out_time" type="time" value={attendanceSettings.check_out_time} onChange={handleAttendanceSettingsChange} disabled={isUpdatingAttendanceSettings}/>
+                      </div>
+                   </div>
+              </div>
+              <Button onClick={handleSaveAttendanceSettings} disabled={isUpdatingAttendanceSettings}>
+                {isUpdatingAttendanceSettings && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {adminDict.saveAttendanceSettingsButton || "Simpan Pengaturan Absensi"}
+              </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {currentUser.role === 'Admin Developer' && (
         <Card>
           <CardHeader>

@@ -5,7 +5,7 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LogIn, LogOut, CheckCircle, Clock, XCircle, MapPin } from 'lucide-react';
+import { Loader2, LogIn, LogOut, CheckCircle, Clock, XCircle, MapPin, Briefcase, RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
@@ -15,7 +15,8 @@ import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from '@/lib/utils';
-import { isAttendanceFeatureEnabled } from '@/services/settings-service';
+import { getAppSettings } from '@/services/settings-service';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 const defaultDict = getDictionary('en');
 
@@ -30,6 +31,8 @@ export default function AttendancePage() {
   const [isProcessing, setIsProcessing] = React.useState(false);
   const [todaysRecord, setTodaysRecord] = React.useState<AttendanceRecord | null>(null);
   const [userHistory, setUserHistory] = React.useState<AttendanceRecord[]>([]);
+  const [checkOutTime, setCheckOutTime] = React.useState("17:00");
+  const [isCheckOutDialogOpen, setIsCheckOutDialogOpen] = React.useState(false);
 
   React.useEffect(() => {
     setIsClient(true);
@@ -41,12 +44,14 @@ export default function AttendancePage() {
     if (currentUser) {
       setIsLoading(true);
       try {
-        const [today, history] = await Promise.all([
+        const [today, history, settings] = await Promise.all([
           getTodaysAttendance(currentUser.id),
-          getAttendanceForUser(currentUser.id)
+          getAttendanceForUser(currentUser.id),
+          getAppSettings(),
         ]);
         setTodaysRecord(today);
         setUserHistory(history);
+        setCheckOutTime(settings.check_out_time || "17:00");
       } catch (error: any) {
         toast({ variant: 'destructive', title: dict.toast.errorTitle, description: error.message });
       } finally {
@@ -65,7 +70,6 @@ export default function AttendancePage() {
     if (!currentUser) return;
     setIsProcessing(true);
     try {
-      // Basic geolocation for web
       navigator.geolocation.getCurrentPosition(async (position) => {
         const { latitude, longitude } = position.coords;
         const record = await checkIn({ 
@@ -76,25 +80,37 @@ export default function AttendancePage() {
         });
         setTodaysRecord(record);
         toast({ title: dict.toast.checkInSuccessTitle, description: `${dict.toast.checkInSuccessDesc} ${format(new Date(record.checkInTime!), 'HH:mm')}` });
+        setIsProcessing(false);
       }, async (error) => {
-        console.warn("Geolocation failed, checking in without location:", error.message);
-        // Fallback if user denies location or it fails
-        const record = await checkIn({ userId: currentUser.id, username: currentUser.username, displayName: currentUser.displayName || currentUser.username });
-        setTodaysRecord(record);
-        toast({ title: dict.toast.checkInSuccessTitle, description: `${dict.toast.checkInSuccessDesc} ${format(new Date(record.checkInTime!), 'HH:mm')}` });
-      });
+        console.error("Geolocation error:", error);
+        toast({ variant: 'destructive', title: dict.toast.errorTitle, description: error.message.includes("User denied Geolocation") ? "Izin lokasi diperlukan untuk absensi." : "Gagal mendapatkan lokasi." });
+        setIsProcessing(false);
+      }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
     } catch (error: any) {
       toast({ variant: 'destructive', title: dict.toast.errorTitle, description: error.message });
-    } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleCheckOut = async () => {
+  const handleCheckOutClick = () => {
+    const now = new Date();
+    const [hour, minute] = checkOutTime.split(':').map(Number);
+    const standardCheckOutTimeToday = new Date();
+    standardCheckOutTimeToday.setHours(hour, minute, 0, 0);
+
+    if (now < standardCheckOutTimeToday) {
+        setIsCheckOutDialogOpen(true);
+    } else {
+        performCheckOut('Normal');
+    }
+  };
+  
+  const performCheckOut = async (reason: 'Normal' | 'Survei' | 'Sidang') => {
     if (!currentUser) return;
     setIsProcessing(true);
+    setIsCheckOutDialogOpen(false);
     try {
-      const record = await checkOut(currentUser.id);
+      const record = await checkOut(currentUser.id, reason);
       setTodaysRecord(record);
       toast({ title: dict.toast.checkOutSuccessTitle, description: `${dict.toast.checkOutSuccessDesc} ${format(new Date(record.checkOutTime!), 'HH:mm')}` });
     } catch (error: any) {
@@ -156,10 +172,15 @@ export default function AttendancePage() {
                 {todaysRecord.checkOutTime ? (
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary">
                     <LogOut className="h-6 w-6 text-primary" />
-                    <p className="font-semibold">{dict.checkOutTimeLabel}: {format(parseISO(todaysRecord.checkOutTime), 'HH:mm:ss')}</p>
+                    <div>
+                      <p className="font-semibold">{dict.checkOutTimeLabel}: {format(parseISO(todaysRecord.checkOutTime), 'HH:mm:ss')}</p>
+                      {todaysRecord.checkOutReason && todaysRecord.checkOutReason !== 'Normal' && (
+                         <p className="text-sm text-muted-foreground">{dict.checkOutReasonLabel}: {todaysRecord.checkOutReason}</p>
+                      )}
+                    </div>
                   </div>
                 ) : (
-                  <Button onClick={handleCheckOut} disabled={isProcessing} className="w-full accent-teal">
+                  <Button onClick={handleCheckOutClick} disabled={isProcessing} className="w-full accent-teal">
                     {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
                     {dict.checkOutButton}
                   </Button>
@@ -198,6 +219,29 @@ export default function AttendancePage() {
           </CardContent>
         </Card>
       </div>
+      
+      <Dialog open={isCheckOutDialogOpen} onOpenChange={setIsCheckOutDialogOpen}>
+          <DialogContent>
+              <DialogHeader>
+                  <DialogTitle>{dict.checkOutDialog.title}</DialogTitle>
+                  <DialogDescription>{dict.checkOutDialog.description}</DialogDescription>
+              </DialogHeader>
+              <div className="grid grid-cols-1 gap-3 py-4">
+                  <Button onClick={() => performCheckOut('Normal')} variant="outline" disabled={isProcessing}>
+                    <LogOut className="mr-2 h-4 w-4" /> {dict.checkOutDialog.normalButton}
+                  </Button>
+                  <Button onClick={() => performCheckOut('Survei')} variant="outline" disabled={isProcessing}>
+                    <MapPin className="mr-2 h-4 w-4" /> {dict.checkOutDialog.surveyButton}
+                  </Button>
+                  <Button onClick={() => performCheckOut('Sidang')} variant="outline" disabled={isProcessing}>
+                    <Briefcase className="mr-2 h-4 w-4" /> {dict.checkOutDialog.sidangButton}
+                  </Button>
+              </div>
+              <DialogFooter>
+                  <Button variant="ghost" onClick={() => setIsCheckOutDialogOpen(false)} disabled={isProcessing}>{dict.checkOutDialog.cancelButton}</Button>
+              </DialogFooter>
+          </DialogContent>
+      </Dialog>
     </div>
   );
 }
