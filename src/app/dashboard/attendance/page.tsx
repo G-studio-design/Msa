@@ -5,16 +5,18 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, LogIn, LogOut, CheckCircle, Clock, MapPin, Briefcase, Plane, AlertTriangle } from 'lucide-react';
+import { Loader2, LogIn, LogOut, CheckCircle, Clock, MapPin, Briefcase, Plane, AlertTriangle, PartyPopper } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { checkIn, checkOut, getTodaysAttendance, type AttendanceRecord } from '@/services/attendance-service';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isSameDay, isWithinInterval, eachDayOfInterval } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 import { Calendar } from "@/components/ui/calendar";
 import { getAppSettings, type AppSettings } from '@/services/settings-service';
+import { getApprovedLeaveRequests, type LeaveRequest } from '@/services/leave-request-service';
+import { getAllHolidays, type HolidayEntry } from '@/services/holiday-service';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 const defaultDict = getDictionary('en');
@@ -35,6 +37,9 @@ export default function AttendancePage() {
   const [appSettings, setAppSettings] = React.useState<AppSettings | null>(null);
   const [isCheckOutDialogOpen, setIsCheckOutDialogOpen] = React.useState(false);
 
+  const [leaves, setLeaves] = React.useState<LeaveRequest[]>([]);
+  const [holidays, setHolidays] = React.useState<HolidayEntry[]>([]);
+
   React.useEffect(() => {
     setIsClient(true);
     const newDictData = getDictionary(language);
@@ -45,14 +50,18 @@ export default function AttendancePage() {
     if (currentUser) {
       setIsLoading(true);
       try {
-        const [today, history, settings] = await Promise.all([
+        const [today, history, settings, approvedLeaves, allHolidays] = await Promise.all([
           getTodaysAttendance(currentUser.id),
           getAttendanceForUser(currentUser.id),
           getAppSettings(),
+          getApprovedLeaveRequests(),
+          getAllHolidays(),
         ]);
         setTodaysRecord(today);
         setUserHistory(history);
         setAppSettings(settings);
+        setLeaves(approvedLeaves);
+        setHolidays(allHolidays);
       } catch (error: any) {
         toast({ variant: 'destructive', title: dict.toast.errorTitle, description: error.message });
       } finally {
@@ -153,18 +162,37 @@ export default function AttendancePage() {
     const modifiers: Record<string, Date[]> = {
       present: [],
       late: [],
-      absent: [], // Future use
+      on_leave: [],
+      holiday: [],
     };
     userHistory.forEach(rec => {
       if (rec.status === 'Present') modifiers.present.push(parseISO(rec.date));
       if (rec.status === 'Late') modifiers.late.push(parseISO(rec.date));
     });
+    // Populate leave days for the current user
+    leaves.forEach(l => {
+        if (l.userId === currentUser?.id) {
+            eachDayOfInterval({start: parseISO(l.startDate), end: parseISO(l.endDate)}).forEach(day => {
+                modifiers.on_leave.push(day);
+            });
+        }
+    });
+    // Populate holidays
+    holidays.forEach(h => {
+        modifiers.holiday.push(parseISO(h.date));
+    });
+
     return modifiers;
-  }, [userHistory]);
+  }, [userHistory, leaves, holidays, currentUser]);
   
   const currentLocale = language === 'id' ? IndonesianLocale : EnglishLocale;
   const todayKey = daysOfWeek[new Date().getDay()];
   const isWorkDayToday = appSettings?.workingHours[todayKey]?.isWorkDay ?? true;
+  
+  const today = new Date();
+  const isTodayHoliday = holidays.some(h => isSameDay(parseISO(h.date), today));
+  const isTodayOnLeave = leaves.some(l => l.userId === currentUser?.id && isWithinInterval(today, { start: startOfDay(parseISO(l.startDate)), end: endOfDay(parseISO(l.endDate)) }));
+
 
   if (!isClient) {
     return (
@@ -223,21 +251,35 @@ export default function AttendancePage() {
                   </div>
                 }
               </div>
+            ) : isTodayHoliday ? (
+              <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary text-muted-foreground">
+                <PartyPopper className="h-6 w-6 text-fuchsia-500"/>
+                <div>
+                  <p className="font-semibold">{holidays.find(h => isSameDay(parseISO(h.date), today))?.name || "Hari Libur"}</p>
+                  <p className="text-sm">Tidak perlu absensi hari ini.</p>
+                </div>
+              </div>
+            ) : isTodayOnLeave ? (
+              <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary text-muted-foreground">
+                <Plane className="h-6 w-6 text-blue-500"/>
+                <div>
+                  <p className="font-semibold">Anda Sedang Izin</p>
+                  <p className="text-sm">Permintaan izin Anda telah disetujui.</p>
+                </div>
+              </div>
+            ) : !isWorkDayToday ? (
+              <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary text-muted-foreground">
+                <Briefcase className="h-6 w-6" />
+                <div>
+                  <p className="font-semibold">Hari Libur Kerja</p>
+                  <p className="text-sm">Tidak perlu absensi hari ini sesuai jadwal kerja.</p>
+                </div>
+              </div>
             ) : (
-              isWorkDayToday ? (
                 <Button onClick={handleCheckIn} disabled={isProcessing} className="w-full">
                   {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
                   {dict.checkInButton}
                 </Button>
-              ) : (
-                <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary text-muted-foreground">
-                  <Plane className="h-6 w-6" />
-                  <div>
-                    <p className="font-semibold">Hari Libur</p>
-                    <p className="text-sm">Tidak perlu absensi hari ini.</p>
-                  </div>
-                </div>
-              )
             )}
           </CardContent>
         </Card>
@@ -254,6 +296,8 @@ export default function AttendancePage() {
                 modifiersClassNames={{
                   present: "bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 rounded-full",
                   late: "bg-orange-100 dark:bg-orange-800 text-orange-800 dark:text-orange-200 rounded-full",
+                  on_leave: "bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 rounded-full",
+                  holiday: "bg-fuchsia-100 dark:bg-fuchsia-800 text-fuchsia-800 dark:text-fuchsia-200 rounded-full",
                 }}
                 locale={currentLocale}
               />

@@ -8,24 +8,35 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Download, AlertTriangle, BarChart2 } from 'lucide-react';
+import { Loader2, Download, AlertTriangle, BarChart2, Plane, CalendarOff } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, eachDayOfInterval, isWithinInterval } from 'date-fns';
 import { id as idLocale, enUS as enLocale } from 'date-fns/locale';
 import { getMonthlyAttendanceReportData, type AttendanceRecord } from '@/services/attendance-service';
 import { getAllUsersForDisplay, type User } from '@/services/user-service';
+import { getApprovedLeaveRequests, type LeaveRequest } from '@/services/leave-request-service';
+import { getAllHolidays, type HolidayEntry } from '@/services/holiday-service';
 
 const defaultDict = getDictionary('en');
 
+interface CombinedEvent {
+  type: 'attendance' | 'leave';
+  date: string;
+  user: User;
+  data: AttendanceRecord | LeaveRequest;
+}
+
 interface ReportData {
-  records: AttendanceRecord[];
   users: Omit<User, 'password'>[];
-  summary: { [userId: string]: { present: number; late: number; absent: number } };
+  summary: { [userId: string]: { present: number; late: number; on_leave: number } };
+  events: CombinedEvent[];
+  holidays: HolidayEntry[];
   monthName: string;
   year: string;
+  month: number;
 }
 
 export default function AttendanceReportPage() {
@@ -77,19 +88,27 @@ export default function AttendanceReportPage() {
       const monthInt = parseInt(selectedMonth, 10);
       const yearInt = parseInt(selectedYear, 10);
       
-      const [records, users] = await Promise.all([
+      const [records, users, allApprovedLeave, allHolidays] = await Promise.all([
         getMonthlyAttendanceReportData(monthInt, yearInt),
-        getAllUsersForDisplay()
+        getAllUsersForDisplay(),
+        getApprovedLeaveRequests(),
+        getAllHolidays()
       ]);
 
-      if (records.length === 0) {
+      if (records.length === 0 && allApprovedLeave.length === 0) {
         toast({ title: dict.toast.noDataTitle, description: dict.toast.noDataDesc });
       }
 
-      const userStats: { [userId: string]: { present: number; late: number; absent: number } } = {};
-      users.forEach(u => {
-        userStats[u.id] = { present: 0, late: 0, absent: 0 };
-      });
+      const reportInterval = { start: new Date(yearInt, monthInt - 1, 1), end: new Date(yearInt, monthInt, 0) };
+      const monthlyHolidays = allHolidays.filter(h => isWithinInterval(parseISO(h.date), reportInterval));
+      const monthlyLeaves = allApprovedLeave.filter(l => 
+          isWithinInterval(parseISO(l.startDate), reportInterval) ||
+          isWithinInterval(parseISO(l.endDate), reportInterval) ||
+          (parseISO(l.startDate) < reportInterval.start && parseISO(l.endDate) > reportInterval.end)
+      );
+
+      const userStats: { [userId: string]: { present: number; late: number; on_leave: number } } = {};
+      users.forEach(u => { userStats[u.id] = { present: 0, late: 0, on_leave: 0 }; });
 
       records.forEach(r => {
         if (userStats[r.userId]) {
@@ -98,12 +117,43 @@ export default function AttendanceReportPage() {
         }
       });
       
+      monthlyLeaves.forEach(leave => {
+          if (userStats[leave.userId]) {
+              eachDayOfInterval({ start: parseISO(leave.startDate), end: parseISO(leave.endDate) })
+              .forEach(day => { if (isWithinInterval(day, reportInterval)) { userStats[leave.userId].on_leave++; }});
+          }
+      });
+      
+      const eventMap = new Map<string, CombinedEvent>(); // Key: 'userId-date'
+      records.forEach(rec => {
+        const user = users.find(u => u.id === rec.userId);
+        if (user) {
+            eventMap.set(`${rec.userId}-${rec.date}`, { type: 'attendance', date: rec.date, user, data: rec });
+        }
+      });
+      monthlyLeaves.forEach(leave => {
+        const user = users.find(u => u.id === leave.userId);
+        if (user) {
+            eachDayOfInterval({start: parseISO(leave.startDate), end: parseISO(leave.endDate)}).forEach(day => {
+                if (isWithinInterval(day, reportInterval)) {
+                    const dateStr = format(day, 'yyyy-MM-dd');
+                    if (!eventMap.has(`${user.id}-${dateStr}`)) {
+                        eventMap.set(`${user.id}-${dateStr}`, { type: 'leave', date: dateStr, user, data: leave });
+                    }
+                }
+            });
+        }
+      });
+      const combinedEvents = Array.from(eventMap.values()).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime() || a.user.displayName.localeCompare(b.user.displayName));
+
       setReportData({
-        records: records.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime() || a.displayName.localeCompare(b.displayName)),
-        users: users.sort((a,b) => (a.displayName || a.username).localeCompare(b.displayName || b.username)),
+        users,
         summary: userStats,
+        events: combinedEvents,
+        holidays: monthlyHolidays,
         monthName: getMonthName(monthInt),
         year: selectedYear,
+        month: monthInt,
       });
 
     } catch (error: any) {
@@ -124,8 +174,8 @@ export default function AttendanceReportPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          month: parseInt(selectedMonth, 10),
-          year: parseInt(selectedYear, 10),
+          month: reportData.month,
+          year: parseInt(reportData.year, 10),
           monthName: reportData.monthName,
           language,
         }),
@@ -140,7 +190,7 @@ export default function AttendanceReportPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `attendance_report_${selectedYear}_${reportData.monthName.replace(/ /g, '_')}.docx`;
+      a.download = `attendance_report_${reportData.year}_${reportData.monthName.replace(/ /g, '_')}.docx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -232,6 +282,7 @@ export default function AttendanceReportPage() {
                     <TableHead>{dict.tableHeaderEmployee}</TableHead>
                     <TableHead className="text-center">{dict.tableHeaderPresent}</TableHead>
                     <TableHead className="text-center">{dict.tableHeaderLate}</TableHead>
+                    <TableHead className="text-center">{dict.tableHeaderOnLeave}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -240,6 +291,7 @@ export default function AttendanceReportPage() {
                       <TableCell className="font-medium">{user.displayName || user.username}</TableCell>
                       <TableCell className="text-center">{reportData.summary[user.id]?.present || 0}</TableCell>
                       <TableCell className="text-center">{reportData.summary[user.id]?.late || 0}</TableCell>
+                      <TableCell className="text-center">{reportData.summary[user.id]?.on_leave || 0}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -252,7 +304,7 @@ export default function AttendanceReportPage() {
               <CardTitle>{dict.detailedLogTitle}</CardTitle>
             </CardHeader>
             <CardContent>
-              {reportData.records.length > 0 ? (
+              {reportData.events.length > 0 ? (
                 <Table>
                   <TableCaption>{dict.reportFor} {reportData.monthName} {reportData.year}</TableCaption>
                   <TableHeader>
@@ -265,15 +317,37 @@ export default function AttendanceReportPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {reportData.records.map(rec => (
-                      <TableRow key={rec.id}>
-                        <TableCell>{format(parseISO(rec.date), 'PP', { locale: language === 'id' ? idLocale : enLocale })}</TableCell>
-                        <TableCell>{rec.displayName}</TableCell>
-                        <TableCell>{formatTimeOnly(rec.checkInTime)}</TableCell>
-                        <TableCell>{formatTimeOnly(rec.checkOutTime)}</TableCell>
-                        <TableCell>{dictGlobal.attendancePage.status[rec.status.toLowerCase() as keyof typeof dictGlobal.attendancePage.status] || rec.status}</TableCell>
+                    {reportData.events.map(event => (
+                      <TableRow key={`${event.user.id}-${event.date}`}>
+                        <TableCell>{format(parseISO(event.date), 'PP', { locale: language === 'id' ? idLocale : enLocale })}</TableCell>
+                        <TableCell>{event.user.displayName}</TableCell>
+                        {event.type === 'attendance' ? (
+                            <>
+                              <TableCell>{formatTimeOnly((event.data as AttendanceRecord).checkInTime)}</TableCell>
+                              <TableCell>{formatTimeOnly((event.data as AttendanceRecord).checkOutTime)}</TableCell>
+                              <TableCell>{dictGlobal.attendancePage.status[(event.data as AttendanceRecord).status.toLowerCase() as keyof typeof dictGlobal.attendancePage.status] || (event.data as AttendanceRecord).status}</TableCell>
+                            </>
+                        ) : (
+                            <TableCell colSpan={3} className="text-center text-blue-600 italic">
+                                <div className="flex items-center justify-center gap-2">
+                                  <Plane className="h-4 w-4"/> 
+                                  <span>{dictGlobal.leaveApprovalsPage.leaveTypes[(event.data as LeaveRequest).leaveType.toLowerCase().replace(/ /g, '') as keyof typeof dictGlobal.leaveApprovalsPage.leaveTypes] || (event.data as LeaveRequest).leaveType}</span>
+                                </div>
+                            </TableCell>
+                        )}
                       </TableRow>
                     ))}
+                     {reportData.holidays.map(holiday => (
+                         <TableRow key={holiday.id} className="bg-fuchsia-50 dark:bg-fuchsia-900/30">
+                            <TableCell>{format(parseISO(holiday.date), 'PP', { locale: language === 'id' ? idLocale : enLocale })}</TableCell>
+                            <TableCell colSpan={4} className="text-center text-fuchsia-600 italic">
+                               <div className="flex items-center justify-center gap-2">
+                                <CalendarOff className="h-4 w-4"/>
+                                <span>{dictGlobal.dashboardPage.holidayLabel}: {holiday.name}</span>
+                               </div>
+                            </TableCell>
+                         </TableRow>
+                     ))}
                   </TableBody>
                 </Table>
               ) : (

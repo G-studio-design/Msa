@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { generateAttendanceWordReport } from '@/lib/attendance-report-generator';
 import { getMonthlyAttendanceReportData } from '@/services/attendance-service';
 import { getAllUsersForDisplay } from '@/services/user-service';
+import { getApprovedLeaveRequests } from '@/services/leave-request-service';
+import { getAllHolidays } from '@/services/holiday-service';
 import type { Language } from '@/context/LanguageContext';
 
 export async function POST(request: Request) {
@@ -18,16 +20,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required report parameters." }, { status: 400 });
     }
 
-    const [records, users] = await Promise.all([
+    const [records, users, leaves, holidays] = await Promise.all([
       getMonthlyAttendanceReportData(month, year),
-      getAllUsersForDisplay()
+      getAllUsersForDisplay(),
+      getApprovedLeaveRequests(),
+      getAllHolidays()
     ]);
 
     const buffer = await generateAttendanceWordReport({
         records,
         users,
-        monthName,
+        leaves,
+        holidays,
+        month,
         year,
+        monthName,
         language
     });
 

@@ -7,16 +7,21 @@ import {
 } from 'docx';
 import type { AttendanceRecord } from '@/services/attendance-service';
 import type { User } from '@/services/user-service';
+import type { LeaveRequest } from '@/services/leave-request-service';
+import type { HolidayEntry } from '@/services/holiday-service';
 import type { Language } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, eachDayOfInterval, isWithinInterval } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 
 interface ReportData {
   records: AttendanceRecord[];
   users: Omit<User, 'password'>[];
+  leaves: LeaveRequest[];
+  holidays: HolidayEntry[];
+  month: number;
+  year: number;
   monthName: string;
-  year: string;
   language: Language;
 }
 
@@ -36,13 +41,16 @@ const formatTimeOnly = (isoString?: string): string => {
 };
 
 export async function generateAttendanceWordReport(data: ReportData): Promise<Buffer> {
-  const { records, users, monthName, year, language } = data;
+  const { records, users, leaves, holidays, month, year, monthName, language } = data;
   const dict = getDictionary(language).attendanceReportPage;
+  const dictGlobal = getDictionary(language);
   const currentLocale = language === 'id' ? IndonesianLocale : EnglishLocale;
 
-  const userStats: { [userId: string]: { present: number; late: number; absent: number } } = {};
+  const reportInterval = { start: new Date(year, month - 1, 1), end: new Date(year, month, 0) };
+
+  const userStats: { [userId: string]: { present: number; late: number; on_leave: number } } = {};
   users.forEach(u => {
-    userStats[u.id] = { present: 0, late: 0, absent: 0 };
+    userStats[u.id] = { present: 0, late: 0, on_leave: 0 };
   });
 
   records.forEach(r => {
@@ -51,6 +59,20 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
       if (r.status === 'Late') userStats[r.userId].late++;
     }
   });
+
+  const monthlyLeaves = leaves.filter(l => 
+      isWithinInterval(parseISO(l.startDate), reportInterval) ||
+      isWithinInterval(parseISO(l.endDate), reportInterval) ||
+      (parseISO(l.startDate) < reportInterval.start && parseISO(l.endDate) > reportInterval.end)
+  );
+
+  monthlyLeaves.forEach(leave => {
+      if (userStats[leave.userId]) {
+          eachDayOfInterval({ start: parseISO(leave.startDate), end: parseISO(leave.endDate) })
+          .forEach(day => { if (isWithinInterval(day, reportInterval)) { userStats[leave.userId].on_leave++; }});
+      }
+  });
+
 
   const children: (Paragraph | Table)[] = [];
 
@@ -74,6 +96,7 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
         new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ children: [new TextRun({ text: dict.tableHeaderEmployee, bold: true, color: "FFFFFF", size: 24 })] })], verticalAlign: VerticalAlign.CENTER }),
         new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ children: [new TextRun({ text: dict.tableHeaderPresent, bold: true, color: "FFFFFF", size: 24 })] })], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
         new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ children: [new TextRun({ text: dict.tableHeaderLate, bold: true, color: "FFFFFF", size: 24 })] })], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
+        new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ children: [new TextRun({ text: dict.tableHeaderOnLeave, bold: true, color: "FFFFFF", size: 24 })] })], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
       ]
     })
   ];
@@ -86,6 +109,7 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
         new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(user.displayName || user.username))], verticalAlign: VerticalAlign.CENTER }),
         new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(stats.present.toString()))], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
         new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(stats.late.toString()))], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
+        new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(stats.on_leave.toString()))], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
       ]
     }));
   });
@@ -93,7 +117,7 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
   children.push(new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: summaryRows,
-    columnWidths: [60, 20, 20]
+    columnWidths: [55, 15, 15, 15]
   }));
 
   // Detailed Log
@@ -101,6 +125,28 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
     spacing: { before: 800, after: 200 },
     children: [new TextRun({ text: ensureNonEmpty(dict.detailedLogTitle), size: 36, bold: true, color: "1A237E" })],
   }));
+  
+  // Combined events for detailed log
+  interface CombinedEvent { type: 'attendance' | 'leave'; date: string; user: User; data: AttendanceRecord | LeaveRequest; }
+  const eventMap = new Map<string, CombinedEvent>();
+  records.forEach(rec => {
+    const user = users.find(u => u.id === rec.userId);
+    if(user) eventMap.set(`${rec.userId}-${rec.date}`, { type: 'attendance', date: rec.date, user, data: rec });
+  });
+  monthlyLeaves.forEach(leave => {
+    const user = users.find(u => u.id === leave.userId);
+    if (user) {
+        eachDayOfInterval({start: parseISO(leave.startDate), end: parseISO(leave.endDate)}).forEach(day => {
+            if (isWithinInterval(day, reportInterval)) {
+                const dateStr = format(day, 'yyyy-MM-dd');
+                if (!eventMap.has(`${user.id}-${dateStr}`)) {
+                    eventMap.set(`${user.id}-${dateStr}`, { type: 'leave', date: dateStr, user, data: leave });
+                }
+            }
+        });
+    }
+  });
+  const combinedEvents = Array.from(eventMap.values()).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime() || a.user.displayName.localeCompare(b.user.displayName));
 
   const detailRows = [
     new TableRow({
@@ -114,21 +160,31 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
       ]
     })
   ];
-  
-  const sortedRecords = [...records].sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime() || a.displayName.localeCompare(b.displayName));
 
-  sortedRecords.forEach((rec, index) => {
+  combinedEvents.forEach((event, index) => {
     const shading = index % 2 === 0 ? { type: ShadingType.SOLID, color: "F4F8FB", fill: "F4F8FB" } : undefined;
-    const formattedDate = format(parseISO(rec.date), 'eeee, dd MMMM yyyy', { locale: currentLocale });
-    detailRows.push(new TableRow({
-      children: [
-        new TableCell({ shading, children: [new Paragraph(formattedDate)], verticalAlign: VerticalAlign.CENTER }),
-        new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(rec.displayName))], verticalAlign: VerticalAlign.CENTER }),
-        new TableCell({ shading, children: [new Paragraph(formatTimeOnly(rec.checkInTime))], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
-        new TableCell({ shading, children: [new Paragraph(formatTimeOnly(rec.checkOutTime))], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
-        new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(rec.status))], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
-      ]
-    }));
+    const formattedDate = format(parseISO(event.date), 'eeee, dd MMMM yyyy', { locale: currentLocale });
+    let row: TableRow;
+    
+    if (event.type === 'attendance') {
+        const attData = event.data as AttendanceRecord;
+        row = new TableRow({ children: [
+            new TableCell({ shading, children: [new Paragraph(formattedDate)], verticalAlign: VerticalAlign.CENTER }),
+            new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(attData.displayName))], verticalAlign: VerticalAlign.CENTER }),
+            new TableCell({ shading, children: [new Paragraph(formatTimeOnly(attData.checkInTime))], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
+            new TableCell({ shading, children: [new Paragraph(formatTimeOnly(attData.checkOutTime))], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
+            new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(dictGlobal.attendancePage.status[attData.status.toLowerCase() as keyof typeof dictGlobal.attendancePage.status] || attData.status))], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
+        ]});
+    } else { // 'leave'
+        const leaveData = event.data as LeaveRequest;
+        const leaveTypeText = dictGlobal.leaveRequestPage.leaveTypes[leaveData.leaveType.toLowerCase().replace(/ /g, '') as keyof typeof dictGlobal.leaveRequestPage.leaveTypes] || leaveData.leaveType;
+        row = new TableRow({ children: [
+            new TableCell({ shading, children: [new Paragraph(formattedDate)], verticalAlign: VerticalAlign.CENTER }),
+            new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(event.user.displayName))], verticalAlign: VerticalAlign.CENTER }),
+            new TableCell({ shading, children: [new Paragraph({ text: `IZIN: ${leaveTypeText}`, alignment: AlignmentType.CENTER, style: "italic" })], verticalAlign: VerticalAlign.CENTER, columnSpan: 3 }),
+        ]});
+    }
+    detailRows.push(row);
   });
   
   children.push(new Table({
