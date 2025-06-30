@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Edit, Save, XCircle, Loader2, Replace, Trash2, BellOff } from 'lucide-react';
@@ -53,7 +54,7 @@ import {
 import { getAllUniqueStatuses, type WorkflowStep } from '@/services/workflow-service';
 import { clearAllNotifications } from '@/services/notification-service';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-
+import { getAppSettings, setAttendanceFeatureEnabled } from '@/services/settings-service';
 
 const defaultGlobalDict = getDictionary('en');
 
@@ -106,20 +107,23 @@ export default function AdminActionsPage() {
 
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [isClearingNotifications, setIsClearingNotifications] = React.useState(false);
+  const [attendanceFeatureEnabled, setAttendanceFeatureEnabled] = React.useState(false);
+  const [isUpdatingFeature, setIsUpdatingFeature] = React.useState(false);
 
-
-   const fetchProjectsAndStatuses = React.useCallback(async () => {
+   const fetchData = React.useCallback(async () => {
         if (currentUser && ['Owner', 'Akuntan', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role.trim())) {
             setIsLoadingProjects(true);
             try {
-                const [fetchedProjects, statuses] = await Promise.all([
+                const [fetchedProjects, statuses, settings] = await Promise.all([
                    getAllProjects(),
-                   getAllUniqueStatuses()
+                   getAllUniqueStatuses(),
+                   getAppSettings()
                 ]);
                 setProjects(fetchedProjects);
                 setAvailableStatuses(statuses);
+                setAttendanceFeatureEnabled(settings.feature_attendance_enabled);
             } catch (error) {
-                console.error("Failed to fetch projects or statuses for admin actions:", error);
+                console.error("Failed to fetch data for admin actions:", error);
                 toast({ variant: 'destructive', title: adminDict.toast.error, description: adminDict.toast.fetchError });
             } finally {
                 setIsLoadingProjects(false);
@@ -135,9 +139,9 @@ export default function AdminActionsPage() {
 
   React.useEffect(() => {
     if (isClient && currentUser) {
-      fetchProjectsAndStatuses();
+      fetchData();
     }
-  }, [isClient, currentUser, fetchProjectsAndStatuses]);
+  }, [isClient, currentUser, fetchData]);
 
 
   const handleEditClick = (projectId: string, currentTitle: string) => {
@@ -161,7 +165,7 @@ export default function AdminActionsPage() {
 
     try {
         await updateProjectTitle(projectId, newTitle);
-        fetchProjectsAndStatuses(); 
+        fetchData(); 
         toast({ title: adminDict.toast.titleUpdated, description: adminDict.toast.titleUpdatedDesc.replace('{id}', projectId) });
         handleCancelEdit();
     } catch (error: any) {
@@ -218,7 +222,7 @@ export default function AdminActionsPage() {
             adminUsername: currentUser.username,
             reasonNote
         });
-        fetchProjectsAndStatuses(); 
+        fetchData(); 
         toast({ title: adminDict.toast.statusChangeSuccess, description: adminDict.toast.statusChangeSuccessDesc.replace('{title}', projectForStatusChange.title).replace('{status}', getTranslatedStatus(newStatus) || newStatus).replace('{division}', getTranslatedRole(finalAssignedDivision) || finalAssignedDivision ) });
         setIsStatusChangeDialogOpen(false);
     } catch (error: any) {
@@ -288,7 +292,7 @@ export default function AdminActionsPage() {
        setIsDeleting(true);
        try {
            await deleteProject(projectId, currentUser.username);
-           fetchProjectsAndStatuses(); 
+           fetchData(); 
            toast({ title: adminDict.toast.projectDeletedTitle || "Project Deleted", description: (adminDict.toast.projectDeletedDesc || "Project \"{title}\" has been deleted.").replace('{title}', projectTitle) });
        } catch (error: any) {
            console.error("Error deleting project:", error);
@@ -317,6 +321,24 @@ export default function AdminActionsPage() {
             setIsClearingNotifications(false);
         }
     };
+    
+    const handleFeatureToggle = async (enabled: boolean) => {
+      setIsUpdatingFeature(true);
+      try {
+        await setAttendanceFeatureEnabled(enabled);
+        setAttendanceFeatureEnabled(enabled);
+        toast({
+          title: adminDict.toast.featureToggleTitle,
+          description: enabled ? adminDict.toast.attendanceEnabledDesc : adminDict.toast.attendanceDisabledDesc,
+        });
+        // You might want to reload the page to see menu changes immediately
+        window.location.reload();
+      } catch (error: any) {
+        toast({ variant: 'destructive', title: adminDict.toast.error, description: error.message || "Failed to update feature setting." });
+      } finally {
+        setIsUpdatingFeature(false);
+      }
+    };
 
   return (
      <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
@@ -334,25 +356,25 @@ export default function AdminActionsPage() {
                         <AlertDialogTrigger asChild>
                             <Button variant="destructive" size="sm" className="w-full sm:w-auto">
                                 <BellOff className="mr-2 h-4 w-4" />
-                                Bersihkan Semua Notifikasi
+                                {adminDict.clearNotificationsButton || "Clear All Notifications"}
                             </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                             <AlertDialogHeader>
-                                <AlertDialogTitle>Konfirmasi Pembersihan Notifikasi</AlertDialogTitle>
+                                <AlertDialogTitle>{adminDict.clearNotificationsTitle || "Confirm Notification Cleanup"}</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    Apakah Anda yakin ingin menghapus SEMUA notifikasi untuk SEMUA pengguna? Tindakan ini tidak dapat dibatalkan.
+                                    {adminDict.clearNotificationsDesc || "Are you sure you want to delete ALL notifications for ALL users? This action cannot be undone."}
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                                <AlertDialogCancel disabled={isClearingNotifications}>Batal</AlertDialogCancel>
+                                <AlertDialogCancel disabled={isClearingNotifications}>{adminDict.cancelButton || "Cancel"}</AlertDialogCancel>
                                 <AlertDialogAction
                                     className="bg-destructive hover:bg-destructive/90"
                                     onClick={handleClearAllNotifications}
                                     disabled={isClearingNotifications}
                                 >
                                     {isClearingNotifications ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                    Ya, Hapus Semua
+                                    {adminDict.confirmClearButton || "Yes, Delete All"}
                                 </AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
@@ -454,6 +476,30 @@ export default function AdminActionsPage() {
             </div>
         </CardContent>
       </Card>
+      
+      {currentUser.role === 'Admin Developer' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{adminDict.featureManagementTitle || "Feature Management"}</CardTitle>
+            <CardDescription>{adminDict.featureManagementDesc || "Enable or disable major features for all users."}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-4 rounded-md border p-4">
+              <div className="flex-1 space-y-1">
+                <p className="text-sm font-medium leading-none">{adminDict.attendanceFeatureLabel || "Employee Attendance Feature"}</p>
+                <p className="text-sm text-muted-foreground">{adminDict.attendanceFeatureDesc || "Toggles the visibility of the attendance system for all non-developer users."}</p>
+              </div>
+              <Switch
+                checked={attendanceFeatureEnabled}
+                onCheckedChange={handleFeatureToggle}
+                disabled={isUpdatingFeature}
+                aria-label="Toggle Attendance Feature"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
 
        <Dialog open={isStatusChangeDialogOpen} onOpenChange={setIsStatusChangeDialogOpen}>
             <DialogContent className="sm:max-w-md">

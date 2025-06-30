@@ -27,6 +27,8 @@ const en = {
     dashboard: 'Dashboard',
     projects: 'Projects',
     manageUsers: 'Manage Users',
+    attendance: 'Attendance',
+    attendanceReport: 'Attendance Report',
     requestLeave: 'Request Leave',
     leaveApprovals: 'Leave Approvals',
     adminActions: 'Admin Actions',
@@ -39,7 +41,7 @@ const en = {
     toggleMenu: 'Toggle Menu Panel',
     roles: {
         owner: 'Owner',
-        akuntan: 'Accountant', // Changed from General Admin
+        akuntan: 'Accountant', 
         adminproyek: 'Project Admin',
         arsitek: 'Architect',
         struktur: 'Structure',
@@ -70,7 +72,7 @@ const en = {
       inprogress: 'In Progress',
       pendingapproval: 'Pending Approval',
       pendingpostsidangrevision: "Pending Post-Sidang Revision",
-      pendingparalleldesignuploads: "Pending Parallel Design Uploads", // Added
+      pendingparalleldesignuploads: "Pending Parallel Design Uploads", 
       delayed: 'Delayed',
       canceled: 'Canceled',
       pending: 'Pending',
@@ -90,7 +92,7 @@ const en = {
       pendingscheduling: 'Pending Scheduling',
       pendingfinaldocuments: 'Pending Final Documents',
       owner: 'Owner',
-      akuntan: 'Accountant', // Changed from General Admin
+      akuntan: 'Accountant', 
       adminproyek: 'Project Admin',
       arsitek: 'Architect',
       struktur: 'Structure',
@@ -130,7 +132,7 @@ const en = {
     reasonLabel: "Reason",
     upcomingAgendaTitle: "Upcoming Agenda",
     upcomingAgendaDesc: "Reminders for your upcoming scheduled activities (surveys, sidangs).",
-    noUpcomingAgenda: "No upcoming surveys or sidangs in the next 3 days.", // Updated
+    noUpcomingAgenda: "No upcoming surveys or sidangs in the next 3 days.", 
     eventTypes: {
         sidang: "Project Sidang",
         survey: "Project Survey",
@@ -225,9 +227,9 @@ const en = {
     confirmRevisionDesc: 'This will send the project back for correction. Are you sure?',
     confirmRevisionButton: 'Yes, Request Revision',
     cancelButton: 'Cancel',
-    cancelDialogTitle: "Confirm Project Cancellation", // Updated
-    cancelDialogDesc: "Are you sure you want to cancel project \"{projectName}\"? This action cannot be undone.", // Updated
-    confirmCancelButton: "Yes, Cancel Project", // Updated
+    cancelDialogTitle: "Confirm Project Cancellation", 
+    cancelDialogDesc: "Are you sure you want to cancel project \"{projectName}\"? This action cannot be undone.", 
+    confirmCancelButton: "Yes, Cancel Project", 
     revisionNotePrefix: 'Note:',
     invalidDate: 'Invalid Date',
     notApplicable: 'N/A',
@@ -238,8 +240,8 @@ const en = {
     optionalReportLabel: "Optional Report",
     optionalNoteLabel: "Optional",
     finalCheckNotePlaceholder: "Add any notes for the final check...",
-    architectUploadInitialImagesTitle: "Upload Initial Reference Images for Structure & MEP", // Updated
-    architectUploadInitialImagesButton: "Upload Initial Images & Notify Structure/MEP", // Updated
+    architectUploadInitialImagesTitle: "Upload Initial Reference Images for Structure & MEP", 
+    architectUploadInitialImagesButton: "Upload Initial Images & Notify Structure/MEP", 
     architectUploadInitialImagesDialogTitle: "Upload Initial Reference Images",
     architectUploadInitialImagesDialogDesc: "These images will be sent to Structure & MEP divisions for early planning. The project will remain in your court.",
     currentProjectActionsTitle: "Current Project Actions",
@@ -279,8 +281,8 @@ const en = {
         reviseDPInvoice: "Revise and Re-upload DP Invoice",
         performPostSidangRevisions: "Perform Post-Sidang Revisions",
         uploadPostSidangRevisions: "Upload post-sidang revisions, notify relevant parties if needed, then confirm project completion.",
-        awaitParallelDesignUploads: "Awaiting design file uploads from Architect, Structure, and MEP.", // New
-        confirmAllParallelUploads: "Verify all design files are uploaded and proceed.", // New
+        awaitParallelDesignUploads: "Awaiting design file uploads from Architect, Structure, and MEP.", 
+        confirmAllParallelUploads: "Verify all design files are uploaded and proceed.", 
     },
     workflowActions: {
         approveOffer: "Approved Offer Document",
@@ -296,7 +298,7 @@ const en = {
         uploadedArchitectFiles: "Uploaded Architect Files",
         uploadedStructureFiles: "Uploaded Structure Files",
         submittedProgressFor: "Submitted Progress for",
-        canceledProject: "Canceled Project", // Updated for clarity
+        canceledProject: "Canceled Project", 
         generateDPInvoice: "Generated DP Invoice",
         approvedOfferTransition: "Approved Offer",
         approvedDPInvoiceTransition: "Approved DP Invoice",
@@ -317,10 +319,10 @@ const en = {
         adminProyekCompletedPostSidangRevision: "Project Admin completed post-sidang revisions and finalized the project.",
         offerCanceledByOwner: "Project offer was canceled by the Owner.",
         offerRevisedByOwner: "Project offer revision requested by Owner.",
-        architectSubmittedMainDesign: "Architect submitted main design files.", // New
-        structureSubmittedDesign: "Structure submitted design files.", // New
-        mepSubmittedDesign: "MEP submitted design files.", // New
-        adminConfirmedAllDesigns: "Admin Project confirmed all parallel designs uploaded.", // New
+        architectSubmittedMainDesign: "Architect submitted main design files.", 
+        structureSubmittedDesign: "Structure submitted design files.", 
+        mepSubmittedDesign: "MEP submitted design files.", 
+        adminConfirmedAllDesigns: "Admin Project confirmed all parallel designs uploaded.", 
         createdProjectWithWorkflow: "Created Project with workflow: {workflowId}",
         assignedToFor: "Assigned to {division} for {nextAction}",
         uploadedInitialFile: "Uploaded initial file: {fileName}",
@@ -357,8 +359,8 @@ const en = {
       revisionNotApplicable: 'Revision is not applicable for the current project step or your role.',
       noTransitionFound: 'No valid workflow transition found for this action from the current state.',
       onlyOwnerDecision: 'Only Owner can make this decision.',
-      projectCanceledTitle: 'Project Canceled', // New
-      projectCanceledDesc: 'Project "{projectName}" has been successfully canceled.', // New
+      projectCanceledTitle: 'Project Canceled',
+      projectCanceledDesc: 'Project "{projectName}" has been successfully canceled.',
       projectMarkedCompleted: "Project Completed",
       projectCompletedSuccessfully: "Project \"{title}\" has been successfully marked as completed.",
       projectMarkedCanceled: "Project Canceled",
@@ -413,7 +415,7 @@ const en = {
       maxFilesExceeded: 'Cannot upload more than {max} files at once.',
       uploadError: 'Upload Error',
       initialImagesUploadedTitle: "Initial Images Uploaded",
-      initialImagesUploadedDesc: "Initial reference images for project \"{projectName}\" have been uploaded by {actorUsername}. Divisions Structure & MEP have been notified.", // Updated
+      initialImagesUploadedDesc: "Initial reference images for project \"{projectName}\" have been uploaded by {actorUsername}. Divisions Structure & MEP have been notified.", 
       revisionNotificationSentTitle: "Notification Sent",
       revisionNotificationSentDesc: "Division {division} has been notified to contribute to the revision for project \"{projectName}\" by {actorUsername}.",
       parallelUploadSubmittedDesc: "{uploaderRole} submitted their files for project \"{projectName}\". Admin Proyek has been notified.",
@@ -501,7 +503,7 @@ const en = {
     cannotChangeLastAdminRoleHint: 'Cannot change the role of the last Accountant.',
     roles: {
        owner: 'Owner',
-       akuntan: 'Accountant', // Changed from General Admin
+       akuntan: 'Accountant', 
        adminproyek: 'Project Admin',
        arsitek: 'Architect',
        struktur: 'Structure',
@@ -571,6 +573,14 @@ const en = {
        deleteProjectDialogTitle: "Confirm Project Deletion",
        deleteProjectDialogDesc: "Are you sure you want to delete project \"{title}\"? This will also delete all associated files and cannot be undone.",
        deleteProjectConfirmButton: "Yes, Delete Project",
+       featureManagementTitle: "Feature Management",
+       featureManagementDesc: "Enable or disable major features for all users.",
+       attendanceFeatureLabel: "Employee Attendance Feature",
+       attendanceFeatureDesc: "Toggles the visibility of the attendance system for all non-developer users.",
+       clearNotificationsButton: "Clear All Notifications",
+       clearNotificationsTitle: "Confirm Notification Cleanup",
+       clearNotificationsDesc: "Are you sure you want to delete ALL notifications for ALL users? This action cannot be undone.",
+       confirmClearButton: "Yes, Delete All",
        toast: {
            error: 'Error',
            titleEmpty: 'Title cannot be empty.',
@@ -586,6 +596,9 @@ const en = {
            projectDeletedDesc: "Project \"{title}\" has been deleted.",
            deletePermissionDenied: "You do not have permission to delete projects.",
            deleteError: "Failed to delete project.",
+           featureToggleTitle: "Feature Setting Updated",
+           attendanceEnabledDesc: "Attendance feature is now ENABLED for all users.",
+           attendanceDisabledDesc: "Attendance feature is now DISABLED for all users.",
        },
        accessDeniedTitle: 'Access Denied',
        accessDeniedDesc: 'You do not have permission to access this page.',
@@ -867,6 +880,61 @@ const en = {
       rejectedSuccessTitle: "Leave Rejected",
       rejectedSuccessDesc: "The leave request has been rejected.",
       reasonRequired: "Rejection reason is required.",
+    }
+  },
+  // Attendance Page
+  attendancePage: {
+    title: "Employee Attendance",
+    todayTitle: "Today's Attendance",
+    checkInButton: "Check In",
+    checkOutButton: "Check Out",
+    statusLabel: "Status",
+    checkInTimeLabel: "Check-in Time",
+    checkOutTimeLabel: "Check-out Time",
+    checkInLocation: "Check-in Location",
+    historyTitle: "My Attendance History",
+    historyDesc: "Your attendance record for the current month.",
+    status: {
+      present: "Present",
+      late: "Late",
+      absent: "Absent",
+    },
+    toast: {
+      errorTitle: "Error",
+      checkInSuccessTitle: "Check-in Successful",
+      checkInSuccessDesc: "You have checked in at",
+      checkOutSuccessTitle: "Check-out Successful",
+      checkOutSuccessDesc: "You have checked out at",
+    }
+  },
+  // Attendance Report Page
+  attendanceReportPage: {
+    title: "Attendance Report",
+    generateTitle: "Generate Monthly Report",
+    generateDesc: "Select a month and year to generate a downloadable attendance report for all employees.",
+    monthLabel: "Month",
+    yearLabel: "Year",
+    downloadButton: "Download Report",
+    generatingButton: "Generating...",
+    reportTitle: "Employee Attendance Report",
+    reportFor: "Report for",
+    tableHeaderEmployee: "Employee",
+    tableHeaderPresent: "Present",
+    tableHeaderLate: "Late",
+    detailedLogTitle: "Detailed Log",
+    detailHeaderDate: "Date",
+    detailHeaderEmployee: "Employee",
+    detailHeaderCheckIn: "Check-in",
+    detailHeaderCheckOut: "Check-out",
+    detailHeaderStatus: "Status",
+    accessDenied: "Access Denied",
+    accessDeniedDesc: "You do not have permission to view this page.",
+    toast: {
+      error: "Error",
+      success: "Success",
+      selectMonthYear: "Please select a month and year.",
+      generationFailed: "Failed to generate the report.",
+      downloadStarted: "Your report download has started.",
     }
   },
    // Notifications (General)

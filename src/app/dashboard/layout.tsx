@@ -37,6 +37,8 @@ import {
   Plane,
   ShieldCheck,
   Code,
+  CalendarCheck,
+  FileClock,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -50,6 +52,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { getNotificationsForUser, markNotificationAsRead, type Notification } from '@/services/notification-service';
+import { isAttendanceFeatureEnabled } from '@/services/settings-service';
 
 type LayoutDictKeys = keyof ReturnType<typeof getDictionary>['dashboardLayout'];
 
@@ -63,25 +66,26 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [isClient, setIsClient] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [attendanceEnabled, setAttendanceEnabled] = useState(false);
 
-  // This effect sets the isClient flag to true only after the component has mounted.
-  // This is the key to solving hydration errors.
   useEffect(() => {
     setIsClient(true);
+    const checkFeatureFlag = async () => {
+      const enabled = await isAttendanceFeatureEnabled();
+      setAttendanceEnabled(enabled);
+    };
+    checkFeatureFlag();
   }, []);
 
-  // This useMemo block now safely handles server vs. client rendering for dictionaries.
   const { layoutDict, notificationsDict, manageUsersDict } = useMemo(() => {
-    const defaultDict = getDictionary('en'); // Always have the default for server/initial render
+    const defaultDict = getDictionary('en'); 
     if (!isClient) {
-      // On the server or during initial client render, use the default English dictionary.
       return {
         layoutDict: defaultDict.dashboardLayout,
         notificationsDict: defaultDict.notifications,
         manageUsersDict: defaultDict.manageUsersPage,
       };
     }
-    // After the component has mounted on the client, use the dictionary for the selected language.
     const currentDict = getDictionary(language);
     return {
       layoutDict: currentDict.dashboardLayout,
@@ -102,7 +106,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           registration.showNotification(title, {
             body: body,
             icon: '/msarch-logo.png',
-            data: { url: url } // Pass the URL in the data payload
+            data: { url: url } 
           });
         }).catch(err => {
             console.error("Service Worker registration not ready, cannot show notification:", err);
@@ -205,26 +209,40 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [isClient, currentUser, toast, notificationsDict]);
 
 
-  const menuItems = useMemo(() => [
-    { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
-    { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
-    { href: "/dashboard/users", icon: Users, labelKey: "manageUsers" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Admin Developer"] },
-    { href: "/dashboard/leave-request/new", icon: Plane, labelKey: "requestLeave" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
-    { href: "/dashboard/admin-actions/leave-approvals", icon: ShieldCheck, labelKey: "leaveApprovals" as LayoutDictKeys, roles: ["Owner"] },
-    { href: "/dashboard/admin-actions", icon: Replace, labelKey: "adminActions" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Admin Developer"] },
-    { href: "/dashboard/admin-actions/workflows", icon: GitFork, labelKey: "manageWorkflows" as LayoutDictKeys, roles: ["Admin Developer"] },
-    { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Admin Developer"] },
-    { href: "/dashboard/settings", icon: Settings, labelKey: "settings" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"] },
-  ], []);
+  const menuItems = useMemo(() => {
+    const allRoles = ["Owner", "Akuntan", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"];
+    
+    const items = [
+      { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard" as LayoutDictKeys, roles: allRoles },
+      { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects" as LayoutDictKeys, roles: allRoles },
+      { href: "/dashboard/users", icon: Users, labelKey: "manageUsers" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Admin Developer"] },
+      { href: "/dashboard/attendance", icon: CalendarCheck, labelKey: "attendance" as LayoutDictKeys, roles: allRoles, featureFlag: true },
+      { href: "/dashboard/attendance-report", icon: FileClock, labelKey: "attendanceReport" as LayoutDictKeys, roles: ["Owner", "Admin Developer"], featureFlag: true },
+      { href: "/dashboard/leave-request/new", icon: Plane, labelKey: "requestLeave" as LayoutDictKeys, roles: allRoles },
+      { href: "/dashboard/admin-actions/leave-approvals", icon: ShieldCheck, labelKey: "leaveApprovals" as LayoutDictKeys, roles: ["Owner"] },
+      { href: "/dashboard/admin-actions", icon: Replace, labelKey: "adminActions" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Admin Developer"] },
+      { href: "/dashboard/admin-actions/workflows", icon: GitFork, labelKey: "manageWorkflows" as LayoutDictKeys, roles: ["Admin Developer"] },
+      { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Admin Developer"] },
+      { href: "/dashboard/settings", icon: Settings, labelKey: "settings" as LayoutDictKeys, roles: allRoles },
+    ];
+    return items;
+  }, []);
 
 
- const visibleMenuItems = useMemo(() => {
+  const visibleMenuItems = useMemo(() => {
     if (isClient && currentUser && currentUser.role) {
       const userRoleCleaned = currentUser.role.trim();
-      return menuItems.filter(item => item.roles.includes(userRoleCleaned));
+      return menuItems.filter(item => {
+        const hasRole = item.roles.includes(userRoleCleaned);
+        if (item.featureFlag) {
+          // Dev always sees it, others see it if flag is on
+          return (userRoleCleaned === 'Admin Developer') || (hasRole && attendanceEnabled);
+        }
+        return hasRole;
+      });
     }
     return [];
-  }, [isClient, currentUser, menuItems]);
+  }, [isClient, currentUser, menuItems, attendanceEnabled]);
 
 
   const getUserRoleIcon = useCallback((role: string | undefined) => {
@@ -294,6 +312,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 console.error("Failed to mark notification as read:", error);
            }
        }
+       
+       setIsPopoverOpen(false); 
 
        if (notification.projectId) {
            const targetPath = '/dashboard/projects';
@@ -315,7 +335,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                }
            }
        }
-       setIsPopoverOpen(false); // Close popover on click
    }, [currentUser, router, pathname, projectIdFromUrl]);
 
 
@@ -325,7 +344,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
            <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b bg-background px-4 sm:px-6">
              <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-base sm:text-lg text-primary">
                 <Image src="/msarch-logo.png" alt="Msarch App Logo" width={24} height={24} className="h-5 w-5 sm:h-6 sm:w-6" />
-                {/* Simplified rendering logic to prevent hydration errors */}
                  <span className="hidden sm:inline">{layoutDict.appTitle}</span>
                  <span className="sm:hidden">{layoutDict.appTitleShort || layoutDict.appTitle}</span>
               </Link>
@@ -407,11 +425,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                            <Link
                              key={item.href}
                              href={item.href}
-                             onClick={() => setIsSheetOpen(false)} // Close sheet on click
+                             onClick={() => setIsSheetOpen(false)}
                              className="flex items-center gap-3 rounded-md px-3 py-2 text-primary-foreground/90 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground"
                            >
                              <item.icon className="h-5 w-5" />
-                             <span>{layoutDict[item.labelKey]}</span>
+                             <span>{layoutDict[item.labelKey as keyof typeof layoutDict]}</span>
                            </Link>
                          ))
                      ) : (
@@ -465,7 +483,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                       className="w-full justify-start gap-3 text-primary-foreground/90 hover:bg-primary-foreground/10 hover:text-primary-foreground"
                       onClick={() => {
                         logout();
-                        setIsSheetOpen(false); // Close sheet on logout
+                        setIsSheetOpen(false);
                       }}
                       disabled={!isClient || !currentUser}
                     >

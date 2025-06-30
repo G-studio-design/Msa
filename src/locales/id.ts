@@ -27,6 +27,8 @@ const id = {
     dashboard: 'Dasbor',
     projects: 'Proyek',
     manageUsers: 'Kelola Pengguna',
+    attendance: 'Absensi Karyawan',
+    attendanceReport: 'Laporan Absensi',
     requestLeave: 'Ajukan Izin',
     leaveApprovals: 'Persetujuan Izin',
     adminActions: 'Tindakan Admin',
@@ -39,7 +41,7 @@ const id = {
     toggleMenu: 'Buka/Tutup Panel Menu',
     roles: {
         owner: 'Pemilik',
-        akuntan: 'Akuntan', // Changed from Admin Umum
+        akuntan: 'Akuntan', 
         adminproyek: 'Admin Proyek',
         arsitek: 'Arsitek',
         struktur: 'Struktur',
@@ -70,7 +72,7 @@ const id = {
       inprogress: 'Sedang Berjalan',
       pendingapproval: 'Menunggu Persetujuan',
       pendingpostsidangrevision: "Menunggu Revisi Pasca-Sidang",
-      pendingparalleldesignuploads: "Menunggu Unggahan Desain Paralel", // Added
+      pendingparalleldesignuploads: "Menunggu Unggahan Desain Paralel", 
       delayed: 'Tertunda',
       canceled: 'Dibatalkan',
       pending: 'Tertunda',
@@ -90,7 +92,7 @@ const id = {
       pendingscheduling: 'Menunggu Penjadwalan',
       pendingfinaldocuments: 'Menunggu Dokumen Akhir',
       owner: 'Pemilik',
-      akuntan: 'Akuntan', // Changed from Admin Umum
+      akuntan: 'Akuntan', 
       adminproyek: 'Admin Proyek',
       arsitek: 'Arsitek',
       struktur: 'Struktur',
@@ -130,7 +132,7 @@ const id = {
     reasonLabel: "Alasan",
     upcomingAgendaTitle: "Agenda Mendatang",
     upcomingAgendaDesc: "Pengingat untuk kegiatan terjadwal Anda yang akan datang (survei, sidang).",
-    noUpcomingAgenda: "Tidak ada survei atau sidang mendatang dalam 3 hari ke depan.", // Updated
+    noUpcomingAgenda: "Tidak ada survei atau sidang mendatang dalam 3 hari ke depan.", 
     eventTypes: {
         sidang: "Sidang Proyek",
         survey: "Survei Proyek",
@@ -225,9 +227,9 @@ const id = {
     confirmRevisionDesc: 'Ini akan mengirim proyek kembali untuk diperbaiki. Apakah Anda yakin?',
     confirmRevisionButton: 'Ya, Minta Revisi',
     cancelButton: 'Batal',
-    cancelDialogTitle: "Konfirmasi Pembatalan Proyek", // Updated
-    cancelDialogDesc: "Apakah Anda yakin ingin membatalkan proyek \"{projectName}\"? Tindakan ini tidak dapat dibatalkan.", // Updated
-    confirmCancelButton: "Ya, Batalkan Proyek", // Updated
+    cancelDialogTitle: "Konfirmasi Pembatalan Proyek", 
+    cancelDialogDesc: "Apakah Anda yakin ingin membatalkan proyek \"{projectName}\"? Tindakan ini tidak dapat dibatalkan.", 
+    confirmCancelButton: "Ya, Batalkan Proyek", 
     revisionNotePrefix: 'Catatan:',
     invalidDate: 'Tanggal Tidak Valid',
     notApplicable: 'N/A',
@@ -238,8 +240,8 @@ const id = {
     optionalReportLabel: "Laporan Opsional",
     optionalNoteLabel: "Opsional",
     finalCheckNotePlaceholder: "Tambahkan catatan untuk pemeriksaan akhir...",
-    architectUploadInitialImagesTitle: "Unggah Gambar Referensi Awal untuk Struktur & MEP", // Updated
-    architectUploadInitialImagesButton: "Unggah Gambar Awal & Notifikasi Struktur/MEP", // Updated
+    architectUploadInitialImagesTitle: "Unggah Gambar Referensi Awal untuk Struktur & MEP", 
+    architectUploadInitialImagesButton: "Unggah Gambar Awal & Notifikasi Struktur/MEP", 
     architectUploadInitialImagesDialogTitle: "Unggah Gambar Referensi Awal",
     architectUploadInitialImagesDialogDesc: "Gambar-gambar ini akan dikirim ke divisi Struktur & MEP untuk perencanaan awal. Proyek akan tetap menjadi tanggung jawab Anda.",
     currentProjectActionsTitle: "Tindakan Proyek Saat Ini",
@@ -279,8 +281,8 @@ const id = {
         reviseDPInvoice: "Revisi dan Unggah Ulang Faktur DP",
         performPostSidangRevisions: "Lakukan Revisi Pasca Sidang",
         uploadPostSidangRevisions: "Unggah revisi pasca-sidang, notifikasi pihak terkait jika perlu, lalu konfirmasi penyelesaian proyek.",
-        awaitParallelDesignUploads: "Menunggu unggahan file desain dari Arsitek, Struktur, dan MEP.", // New
-        confirmAllParallelUploads: "Verifikasi semua file desain telah diunggah dan lanjutkan.", // New
+        awaitParallelDesignUploads: "Menunggu unggahan file desain dari Arsitek, Struktur, dan MEP.", 
+        confirmAllParallelUploads: "Verifikasi semua file desain telah diunggah dan lanjutkan.", 
     },
     workflowActions: {
         approveOffer: "Menyetujui Dokumen Penawaran",
@@ -296,7 +298,7 @@ const id = {
         uploadedArchitectFiles: "Mengunggah Berkas Arsitektur",
         uploadedStructureFiles: "Mengunggah Berkas Struktur",
         submittedProgressFor: "Mengirim Progres untuk",
-        canceledProject: "Membatalkan Proyek", // Updated for clarity
+        canceledProject: "Membatalkan Proyek", 
         generateDPInvoice: "Membuat Faktur DP",
         approvedOfferTransition: "Menyetujui Penawaran",
         approvedDPInvoiceTransition: "Menyetujui Faktur DP",
@@ -317,10 +319,10 @@ const id = {
         adminProyekCompletedPostSidangRevision: "Admin Proyek menyelesaikan revisi pasca-sidang dan menyelesaikan proyek.",
         offerCanceledByOwner: "Proyek dibatalkan oleh Pemilik pada tahap penawaran.",
         offerRevisedByOwner: "Permintaan revisi penawaran proyek oleh Pemilik.",
-        architectSubmittedMainDesign: "Arsitek mengirimkan file desain utama.", // New
-        structureSubmittedDesign: "Struktur mengirimkan file desain.", // New
-        mepSubmittedDesign: "MEP mengirimkan file desain.", // New
-        adminConfirmedAllDesigns: "Admin Proyek mengonfirmasi semua desain paralel telah diunggah.", // New
+        architectSubmittedMainDesign: "Arsitek mengirimkan file desain utama.", 
+        structureSubmittedDesign: "Struktur mengirimkan file desain.", 
+        mepSubmittedDesign: "MEP mengirimkan file desain.", 
+        adminConfirmedAllDesigns: "Admin Proyek mengonfirmasi semua desain paralel telah diunggah.", 
         createdProjectWithWorkflow: "Proyek dibuat dengan alur kerja: {workflowId}",
         assignedToFor: "Ditugaskan kepada {division} untuk {nextAction}",
         uploadedInitialFile: "Mengunggah file awal: {fileName}",
@@ -357,8 +359,8 @@ const id = {
       revisionNotApplicable: 'Revisi tidak berlaku untuk langkah proyek saat ini atau peran Anda.',
       noTransitionFound: 'Tidak ada transisi alur kerja yang valid untuk tindakan ini dari status saat ini.',
       onlyOwnerDecision: 'Hanya Pemilik yang dapat membuat keputusan ini.',
-      projectCanceledTitle: 'Proyek Dibatalkan', // New
-      projectCanceledDesc: 'Proyek "{projectName}" telah berhasil dibatalkan.', // New
+      projectCanceledTitle: 'Proyek Dibatalkan',
+      projectCanceledDesc: 'Proyek "{projectName}" telah berhasil dibatalkan.',
       projectMarkedCompleted: "Proyek Selesai",
       projectCompletedSuccessfully: "Proyek \"{title}\" telah berhasil ditandai sebagai selesai.",
       projectMarkedCanceled: "Proyek Dibatalkan",
@@ -413,7 +415,7 @@ const id = {
       maxFilesExceeded: 'Tidak dapat mengunggah lebih dari {max} file sekaligus.',
       uploadError: 'Kesalahan Unggah',
       initialImagesUploadedTitle: "Gambar Awal Diunggah",
-      initialImagesUploadedDesc: "Gambar referensi awal untuk proyek \"{projectName}\" telah diunggah oleh {actorUsername}. Divisi Struktur & MEP telah dinotifikasi.", // Updated
+      initialImagesUploadedDesc: "Gambar referensi awal untuk proyek \"{projectName}\" telah diunggah oleh {actorUsername}. Divisi Struktur & MEP telah dinotifikasi.", 
       revisionNotificationSentTitle: "Notifikasi Terkirim",
       revisionNotificationSentDesc: "Divisi {division} telah dinotifikasi untuk berkontribusi pada revisi proyek \"{projectName}\" oleh {actorUsername}.",
       parallelUploadSubmittedDesc: "{uploaderRole} mengirimkan file mereka untuk proyek \"{projectName}\". Admin Proyek telah diberitahu.",
@@ -501,7 +503,7 @@ const id = {
     cannotChangeLastAdminRoleHint: 'Tidak dapat mengubah peran Akuntan terakhir.',
     roles: {
        owner: 'Pemilik',
-       akuntan: 'Akuntan', // Changed from Admin Umum
+       akuntan: 'Akuntan', 
        adminproyek: 'Admin Proyek',
        arsitek: 'Arsitek',
        struktur: 'Struktur',
@@ -571,6 +573,14 @@ const id = {
        deleteProjectDialogTitle: "Konfirmasi Penghapusan Proyek",
        deleteProjectDialogDesc: "Apakah Anda yakin ingin menghapus proyek \"{title}\"? Ini juga akan menghapus semua file terkait dan tidak dapat dibatalkan.",
        deleteProjectConfirmButton: "Ya, Hapus Proyek",
+       featureManagementTitle: "Manajemen Fitur",
+       featureManagementDesc: "Aktifkan atau nonaktifkan fitur utama untuk semua pengguna.",
+       attendanceFeatureLabel: "Fitur Absensi Karyawan",
+       attendanceFeatureDesc: "Mengubah visibilitas sistem absensi untuk semua pengguna non-developer.",
+       clearNotificationsButton: "Bersihkan Semua Notifikasi",
+       clearNotificationsTitle: "Konfirmasi Pembersihan Notifikasi",
+       clearNotificationsDesc: "Apakah Anda yakin ingin menghapus SEMUA notifikasi untuk SEMUA pengguna? Tindakan ini tidak dapat dibatalkan.",
+       confirmClearButton: "Ya, Hapus Semua",
        toast: {
            error: 'Kesalahan',
            titleEmpty: 'Judul tidak boleh kosong.',
@@ -586,6 +596,9 @@ const id = {
            projectDeletedDesc: "Proyek \"{title}\" telah dihapus.",
            deletePermissionDenied: "Anda tidak memiliki izin untuk menghapus proyek.",
            deleteError: "Gagal menghapus proyek.",
+           featureToggleTitle: "Pengaturan Fitur Diperbarui",
+           attendanceEnabledDesc: "Fitur absensi sekarang DIAKTIFKAN untuk semua pengguna.",
+           attendanceDisabledDesc: "Fitur absensi sekarang DINONAKTIFKAN untuk semua pengguna.",
        },
        accessDeniedTitle: 'Akses Ditolak',
        accessDeniedDesc: 'Anda tidak memiliki izin untuk mengakses halaman ini.',
@@ -867,6 +880,61 @@ const id = {
       rejectedSuccessTitle: "Izin Ditolak",
       rejectedSuccessDesc: "Permintaan izin telah ditolak.",
       reasonRequired: "Alasan penolakan wajib diisi.",
+    }
+  },
+  // Attendance Page
+  attendancePage: {
+    title: "Absensi Karyawan",
+    todayTitle: "Absensi Hari Ini",
+    checkInButton: "Check In",
+    checkOutButton: "Check Out",
+    statusLabel: "Status",
+    checkInTimeLabel: "Waktu Check-in",
+    checkOutTimeLabel: "Waktu Check-out",
+    checkInLocation: "Lokasi Check-in",
+    historyTitle: "Riwayat Absensi Saya",
+    historyDesc: "Catatan kehadiran Anda untuk bulan ini.",
+    status: {
+      present: "Hadir",
+      late: "Terlambat",
+      absent: "Absen",
+    },
+    toast: {
+      errorTitle: "Kesalahan",
+      checkInSuccessTitle: "Check-in Berhasil",
+      checkInSuccessDesc: "Anda telah check-in pada pukul",
+      checkOutSuccessTitle: "Check-out Berhasil",
+      checkOutSuccessDesc: "Anda telah check-out pada pukul",
+    }
+  },
+  // Attendance Report Page
+  attendanceReportPage: {
+    title: "Laporan Absensi",
+    generateTitle: "Buat Laporan Bulanan",
+    generateDesc: "Pilih bulan dan tahun untuk membuat laporan absensi yang dapat diunduh untuk semua karyawan.",
+    monthLabel: "Bulan",
+    yearLabel: "Tahun",
+    downloadButton: "Unduh Laporan",
+    generatingButton: "Membuat Laporan...",
+    reportTitle: "Laporan Absensi Karyawan",
+    reportFor: "Laporan untuk",
+    tableHeaderEmployee: "Karyawan",
+    tableHeaderPresent: "Hadir",
+    tableHeaderLate: "Terlambat",
+    detailedLogTitle: "Log Detail",
+    detailHeaderDate: "Tanggal",
+    detailHeaderEmployee: "Karyawan",
+    detailHeaderCheckIn: "Check-in",
+    detailHeaderCheckOut: "Check-out",
+    detailHeaderStatus: "Status",
+    accessDenied: "Akses Ditolak",
+    accessDeniedDesc: "Anda tidak memiliki izin untuk melihat halaman ini.",
+    toast: {
+      error: "Kesalahan",
+      success: "Berhasil",
+      selectMonthYear: "Silakan pilih bulan dan tahun.",
+      generationFailed: "Gagal membuat laporan.",
+      downloadStarted: "Unduhan laporan Anda telah dimulai.",
     }
   },
    // Notifications (General)
