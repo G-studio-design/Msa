@@ -25,31 +25,9 @@ Untuk menjalankan aplikasi ini di mesin lokal Anda, ikuti langkah-langkah beriku
 
 Proyek ini memerlukan beberapa kunci API dan kredensial untuk dapat berjalan.
 
-1.  Buat file baru bernama `.env.local` di direktori root proyek jika belum ada.
-2.  Salin isi dari file `.env` (atau templat di bawah) ke file `.env.local` baru Anda.
-3.  Ganti nilai placeholder (misalnya, `YOUR_API_KEY_HERE`) dengan kredensial Anda yang sebenarnya dari Google Cloud dan Firebase.
-
-```
-# Google OAuth Credentials (for Google Calendar & Sign-In)
-# Find these in your Google Cloud Console under APIs & Services > Credentials
-GOOGLE_CLIENT_ID=YOUR_GOOGLE_CLIENT_ID
-GOOGLE_CLIENT_SECRET=YOUR_GOOGLE_CLIENT_SECRET
-NEXT_PUBLIC_GOOGLE_REDIRECT_URI=http://localhost:9002/api/auth/google/callback
-
-# Google Generative AI (for Genkit AI features)
-# Find this in Google AI Studio or your Google Cloud Console
-GOOGLE_GENAI_API_KEY=YOUR_GEMINI_API_KEY
-
-# Firebase Public Keys (for Firebase services, if used)
-# Find these in your Firebase Project Settings under "General"
-NEXT_PUBLIC_FIREBASE_API_KEY=YOUR_FIREBASE_API_KEY
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=YOUR_FIREBASE_AUTH_DOMAIN
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=YOUR_FIREBASE_PROJECT_ID
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=YOUR_FIREBASE_STORAGE_BUCKET
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=YOUR_FIREBASE_MESSAGING_SENDER_ID
-NEXT_PUBLIC_FIREBASE_APP_ID=YOUR_FIREBASE_APP_ID
-
-```
+1.  Buat salinan file `.env.example` di direktori root proyek dan beri nama `.env.local`.
+2.  Buka file `.env.local` baru Anda.
+3.  Ganti nilai placeholder (misalnya, `YOUR_GOOGLE_CLIENT_ID`) dengan kredensial Anda yang sebenarnya dari Google Cloud dan Firebase.
 
 ### 2. Instal Dependensi
 
