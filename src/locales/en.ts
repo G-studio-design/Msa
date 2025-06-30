@@ -915,6 +915,8 @@ const en = {
     monthLabel: "Month",
     yearLabel: "Year",
     downloadButton: "Download Report",
+    downloadingButton: "Downloading...",
+    generateButton: "Generate Report",
     generatingButton: "Generating...",
     reportTitle: "Employee Attendance Report",
     reportFor: "Report for",
@@ -922,6 +924,7 @@ const en = {
     tableHeaderPresent: "Present",
     tableHeaderLate: "Late",
     detailedLogTitle: "Detailed Log",
+    summaryTitle: "Attendance Summary",
     detailHeaderDate: "Date",
     detailHeaderEmployee: "Employee",
     detailHeaderCheckIn: "Check-in",
@@ -935,6 +938,9 @@ const en = {
       selectMonthYear: "Please select a month and year.",
       generationFailed: "Failed to generate the report.",
       downloadStarted: "Your report download has started.",
+      noDataTitle: "No Data",
+      noDataDesc: "No attendance records found for the selected period.",
+      generateFirst: "Please generate the report first before downloading.",
     }
   },
    // Notifications (General)

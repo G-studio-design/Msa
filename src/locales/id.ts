@@ -915,6 +915,8 @@ const id = {
     monthLabel: "Bulan",
     yearLabel: "Tahun",
     downloadButton: "Unduh Laporan",
+    downloadingButton: "Mengunduh...",
+    generateButton: "Buat Laporan",
     generatingButton: "Membuat Laporan...",
     reportTitle: "Laporan Absensi Karyawan",
     reportFor: "Laporan untuk",
@@ -922,6 +924,7 @@ const id = {
     tableHeaderPresent: "Hadir",
     tableHeaderLate: "Terlambat",
     detailedLogTitle: "Log Detail",
+    summaryTitle: "Ringkasan Absensi",
     detailHeaderDate: "Tanggal",
     detailHeaderEmployee: "Karyawan",
     detailHeaderCheckIn: "Check-in",
@@ -935,6 +938,9 @@ const id = {
       selectMonthYear: "Silakan pilih bulan dan tahun.",
       generationFailed: "Gagal membuat laporan.",
       downloadStarted: "Unduhan laporan Anda telah dimulai.",
+      noDataTitle: "Tidak Ada Data",
+      noDataDesc: "Tidak ada catatan absensi yang ditemukan untuk periode yang dipilih.",
+      generateFirst: "Harap buat laporan terlebih dahulu sebelum mengunduh.",
     }
   },
    // Notifications (General)

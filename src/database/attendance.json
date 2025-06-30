@@ -1,1 +1,15 @@
+[
+  {
+    "id": "att_1751254390756__iwg",
+    "userId": "usr_dev_iwg",
+    "username": "I.wayan_govina",
+    "displayName": "I Wayan Govina (Dev)",
+    "date": "2025-06-30",
+    "checkInTime": "2025-06-30T03:33:10.170Z",
+    "status": "Present",
+    "location": {
+      "latitude": -8.6414837,
+      "longitude": 115.2222507
+    }
+  }
 ]
