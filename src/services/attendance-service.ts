@@ -16,7 +16,7 @@ export interface AttendanceRecord {
   checkInTime?: string; // ISO string
   checkOutTime?: string; // ISO string
   checkOutReason?: 'Normal' | 'Survei' | 'Sidang';
-  status: 'Present' | 'Absent' | 'Late';
+  status: 'Present' | 'Late';
   location?: {
     latitude: number;
     longitude: number;
@@ -66,6 +66,12 @@ export async function getTodaysAttendance(userId: string): Promise<AttendanceRec
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const attendanceRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
   return attendanceRecords.find(r => r.userId === userId && r.date === todayStr) || null;
+}
+
+export async function getTodaysAttendanceForAllUsers(): Promise<AttendanceRecord[]> {
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+  const allRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
+  return allRecords.filter(r => r.date === todayStr);
 }
 
 export async function checkIn(data: CheckInData): Promise<CheckInResult> {

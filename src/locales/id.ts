@@ -140,6 +140,13 @@ const id = {
         holiday: "Hari Libur",
         company_event: "Acara Perusahaan"
     },
+    attendanceSummary: {
+      title: "Ringkasan Absensi Hari Ini",
+      present: "Hadir",
+      onLeave: "Izin",
+      absent: "Belum Absen",
+      holiday: "Hari ini adalah hari libur!",
+    },
     toast: {
         errorTitle: 'Kesalahan',
         fetchError: 'Tidak dapat memuat data halaman.',
@@ -948,6 +955,8 @@ const id = {
     tableHeaderEmployee: "Karyawan",
     tableHeaderPresent: "Hadir",
     tableHeaderLate: "Terlambat",
+    tableHeaderOnLeave: "Izin",
+    tableHeaderAbsent: "Absen",
     detailedLogTitle: "Log Detail",
     summaryTitle: "Ringkasan Absensi",
     detailHeaderDate: "Tanggal",

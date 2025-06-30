@@ -140,6 +140,13 @@ const en = {
         holiday: "Holiday",
         company_event: "Company Event"
     },
+    attendanceSummary: {
+      title: "Today's Attendance Summary",
+      present: "Present",
+      onLeave: "On Leave",
+      absent: "Not Checked In",
+      holiday: "Today is a holiday!",
+    },
     toast: {
         errorTitle: 'Error',
         fetchError: 'Could not load page data.',
@@ -948,6 +955,8 @@ const en = {
     tableHeaderEmployee: "Employee",
     tableHeaderPresent: "Present",
     tableHeaderLate: "Late",
+    tableHeaderOnLeave: "On Leave",
+    tableHeaderAbsent: "Absent",
     detailedLogTitle: "Detailed Log",
     summaryTitle: "Attendance Summary",
     detailHeaderDate: "Date",

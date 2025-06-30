@@ -19,9 +19,11 @@ import { getDictionary } from '@/lib/translations';
 import { getAllProjects, type Project } from '@/services/project-service';
 import { getApprovedLeaveRequests, type LeaveRequest } from '@/services/leave-request-service';
 import { getAllHolidays, type HolidayEntry } from '@/services/holiday-service';
+import { getAllUsersForDisplay, type User } from '@/services/user-service';
+import { getTodaysAttendanceForAllUsers, type AttendanceRecord } from '@/services/attendance-service';
 import Link from 'next/link';
 import { Calendar } from "@/components/ui/calendar";
-import { format, parseISO, startOfToday, isSameDay, addDays, isWithinInterval } from 'date-fns';
+import { format, parseISO, startOfToday, isSameDay, addDays, isWithinInterval, endOfDay } from 'date-fns';
 import { id as idLocale, enUS as enLocale } from 'date-fns/locale';
 import { Progress } from '@/components/ui/progress';
 import {
@@ -38,10 +40,13 @@ import {
     Plane,
     Wrench,
     Code,
-    User,
+    User as UserIcon,
     UserCog,
     PartyPopper,
-    Building
+    Building,
+    Users as UsersIcon,
+    UserCheck,
+    UserX
 } from 'lucide-react';
 import {
   ChartContainer,
@@ -94,6 +99,8 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [holidays, setHolidays] = useState<HolidayEntry[]>([]);
+  const [allUsers, setAllUsers] = useState<Omit<User, 'password'>[]>([]);
+  const [todaysAttendance, setTodaysAttendance] = useState<AttendanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // UI states
@@ -111,14 +118,24 @@ export default function DashboardPage() {
     if (currentUser) {
       setIsLoading(true);
       try {
-        const [fetchedProjects, fetchedLeave, fetchedHolidays] = await Promise.all([
+        const [
+            fetchedProjects,
+            fetchedLeave,
+            fetchedHolidays,
+            fetchedUsers,
+            fetchedTodaysAttendance
+        ] = await Promise.all([
           getAllProjects(),
           getApprovedLeaveRequests(),
-          getAllHolidays()
+          getAllHolidays(),
+          getAllUsersForDisplay(),
+          getTodaysAttendanceForAllUsers()
         ]);
         setProjects(fetchedProjects);
         setLeaveRequests(fetchedLeave);
         setHolidays(fetchedHolidays);
+        setAllUsers(fetchedUsers);
+        setTodaysAttendance(fetchedTodaysAttendance);
       } catch (error) {
         console.error('[DashboardPage] Failed to fetch page data:', error);
         // Toast notification for error can be added here
@@ -194,6 +211,36 @@ export default function DashboardPage() {
 
     return { eventsByDate: eventMap, upcomingEvents: upcoming };
   }, [projects, leaveRequests, holidays]);
+  
+  const attendanceSummary = useMemo(() => {
+    const today = new Date();
+    const todayHoliday = holidays.find(h => isSameDay(parseISO(h.date), today));
+
+    if (todayHoliday) {
+      return { isHoliday: true, holidayName: todayHoliday.name, checkedIn: 0, onLeave: 0, notCheckedIn: 0 };
+    }
+
+    const onLeaveToday = new Set<string>();
+    leaveRequests.forEach(l => {
+      if (isWithinInterval(today, { start: parseISO(l.startDate), end: endOfDay(parseISO(l.endDate)) })) {
+        onLeaveToday.add(l.userId);
+      }
+    });
+
+    const checkedInCount = todaysAttendance.length;
+    // Count users who are not on leave today
+    const activeUsersToday = allUsers.filter(u => !onLeaveToday.has(u.id));
+    // Count users who are active but haven't checked in
+    const notCheckedInCount = activeUsersToday.filter(u => !todaysAttendance.some(a => a.userId === u.id)).length;
+
+    return {
+      isHoliday: false,
+      holidayName: null,
+      checkedIn: checkedInCount,
+      onLeave: onLeaveToday.size,
+      notCheckedIn: notCheckedInCount,
+    };
+  }, [allUsers, todaysAttendance, leaveRequests, holidays]);
 
   const activeProjects = useMemo(() => {
     return projects.filter(p => p.status !== 'Completed' && p.status !== 'Canceled');
@@ -206,14 +253,14 @@ export default function DashboardPage() {
   
   const getRoleIcon = (role: string) => {
       const roleLower = role.toLowerCase().trim();
-      if (roleLower.includes('owner')) return User;
+      if (roleLower.includes('owner')) return UserIcon;
       if (roleLower.includes('akuntan')) return UserCog;
       if (roleLower.includes('admin proyek')) return UserCog;
-      if (roleLower.includes('arsitek')) return User;
-      if (roleLower.includes('struktur')) return User;
+      if (roleLower.includes('arsitek')) return UserIcon;
+      if (roleLower.includes('struktur')) return UserIcon;
       if (roleLower.includes('mep')) return Wrench;
       if (roleLower.includes('admin developer')) return Code;
-      return User;
+      return UserIcon;
   }
   
   const getEventTypeIcon = (type: CalendarEventType) => {
@@ -271,6 +318,50 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
+             {/* Attendance Summary Widget */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>{dashboardDict.attendanceSummary.title}</CardTitle>
+                    <CardDescription>{format(new Date(), 'eeee, dd MMMM yyyy', { locale: currentLocale })}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {attendanceSummary.isHoliday ? (
+                        <div className="flex items-center gap-3 text-muted-foreground p-4 bg-secondary rounded-lg">
+                            <PartyPopper className="h-8 w-8 text-fuchsia-500"/>
+                            <div>
+                                <p className="font-semibold text-foreground">{dashboardDict.attendanceSummary.holiday}</p>
+                                <p className="text-sm">{attendanceSummary.holidayName}</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <div className="flex items-center gap-3">
+                                <UserCheck className="h-7 w-7 text-green-500" />
+                                <div>
+                                    <p className="text-lg font-bold">{attendanceSummary.checkedIn}</p>
+                                    <p className="text-xs text-muted-foreground">{dashboardDict.attendanceSummary.present}</p>
+                                </div>
+                            </div>
+                             <div className="flex items-center gap-3">
+                                <Plane className="h-7 w-7 text-blue-500" />
+                                <div>
+                                    <p className="text-lg font-bold">{attendanceSummary.onLeave}</p>
+                                    <p className="text-xs text-muted-foreground">{dashboardDict.attendanceSummary.onLeave}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <UserX className="h-7 w-7 text-red-500" />
+                                <div>
+                                    <p className="text-lg font-bold">{attendanceSummary.notCheckedIn}</p>
+                                    <p className="text-xs text-muted-foreground">{dashboardDict.attendanceSummary.absent}</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+
             {/* Active Projects Card */}
             <Card>
                 <CardHeader>
