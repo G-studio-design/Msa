@@ -34,8 +34,6 @@ import { format, differenceInDays, addDays } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export const dynamic = 'force-dynamic'; // Force dynamic rendering for this page
-
 const defaultDict = getDictionary('en');
 
 // Define leave types (could be moved to a config or fetched)

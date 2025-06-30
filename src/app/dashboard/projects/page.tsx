@@ -2,8 +2,6 @@
 // src/app/dashboard/projects/page.tsx
 'use client';
 
-export const dynamic = 'force-dynamic';
-
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -827,7 +825,7 @@ export default function ProjectsPage() {
                     errorDetails = responseText || errorDetails;
                 }
             } catch (e) {
-                console.error("Server returned non-JSON error response for calendar event or failed to parse JSON:", response.status, responseText, e);
+                 console.error("Server returned non-JSON error response for calendar event or failed to parse JSON:", response.status, responseText, e);
                  errorDetails = responseText.substring(0,100) || `Server: ${response.status}`;
             }
             throw new Error(errorDetails);

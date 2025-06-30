@@ -1,8 +1,6 @@
 // src/app/dashboard/page.tsx
 'use client';
 
-export const dynamic = 'force-dynamic';
-
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import {
   Card,
