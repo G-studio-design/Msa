@@ -454,7 +454,7 @@ export default function MonthlyReportPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-               <div className="overflow-x-auto mb-6">
+               <div className="overflow-x-auto mb-6"> 
                  <div ref={chartContainerRef} className="p-2 sm:p-4 bg-background rounded-md min-w-[500px]"> 
                    {noDataForChart ? (
                       <div className="flex flex-col items-center justify-center h-full min-h-[250px] sm:min-h-[300px] text-center text-muted-foreground p-4">
