@@ -172,16 +172,6 @@ export async function markAllNotificationsAsRead(userId: string): Promise<void> 
      }
 }
 
-export async function clearAllNotifications(): Promise<void> {
-    try {
-        await writeDb(DB_PATH, []); 
-        console.log("[NotificationService] All notifications have been cleared.");
-    } catch (error) {
-        console.error("[NotificationService] Failed to clear notifications:", error);
-        throw new Error("Could not clear notification data.");
-    }
-}
-
 export async function deleteNotificationsByProjectId(projectId: string): Promise<void> {
     console.log(`[NotificationService] Deleting notifications for project ID: ${projectId}`);
     try {
@@ -204,5 +194,15 @@ export async function deleteNotificationsByProjectId(projectId: string): Promise
 
     } catch (error) {
         console.error(`[NotificationService] Error deleting notifications for project ID "${projectId}":`, error);
+    }
+}
+
+export async function clearAllNotifications(): Promise<void> {
+    try {
+        await writeDb(DB_PATH, []); 
+        console.log("[NotificationService] All notifications have been cleared.");
+    } catch (error) {
+        console.error("[NotificationService] Failed to clear notifications:", error);
+        throw new Error("Could not clear notification data.");
     }
 }

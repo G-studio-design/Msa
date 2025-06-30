@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Edit, Save, XCircle, Loader2, Replace, Trash2 } from 'lucide-react';
+import { Edit, Save, XCircle, Loader2, Replace, Trash2, BellOff } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
@@ -51,6 +51,7 @@ import {
     type UpdateProjectParams 
 } from '@/services/project-service';
 import { getAllUniqueStatuses, type WorkflowStep } from '@/services/workflow-service';
+import { clearAllNotifications } from '@/services/notification-service';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 
@@ -104,6 +105,7 @@ export default function AdminActionsPage() {
   const [availableDivisions, setAvailableDivisions] = React.useState<string[]>(['Owner', 'Akuntan', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP']); 
 
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [isClearingNotifications, setIsClearingNotifications] = React.useState(false);
 
 
    const fetchProjectsAndStatuses = React.useCallback(async () => {
@@ -296,14 +298,67 @@ export default function AdminActionsPage() {
        }
    };
 
+    const handleClearAllNotifications = async () => {
+        setIsClearingNotifications(true);
+        try {
+            await clearAllNotifications();
+            toast({
+                title: "Notifikasi Dibersihkan",
+                description: "Semua riwayat notifikasi telah berhasil dihapus.",
+            });
+        } catch (error: any) {
+            console.error("Error clearing notifications:", error);
+            toast({
+                variant: 'destructive',
+                title: "Kesalahan",
+                description: "Gagal membersihkan notifikasi: " + error.message,
+            });
+        } finally {
+            setIsClearingNotifications(false);
+        }
+    };
+
   return (
      <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
       <Card>
         <CardHeader>
-           <CardTitle className="text-xl md:text-2xl">{isClient ? adminDict.title : defaultGlobalDict.adminActionsPage.title}</CardTitle>
-          <CardDescription>
-           {isClient ? adminDict.description : defaultGlobalDict.adminActionsPage.description}
-          </CardDescription>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <CardTitle className="text-xl md:text-2xl">{isClient ? adminDict.title : defaultGlobalDict.adminActionsPage.title}</CardTitle>
+                    <CardDescription>
+                        {isClient ? adminDict.description : defaultGlobalDict.adminActionsPage.description}
+                    </CardDescription>
+                </div>
+                { (currentUser && ['Owner', 'Admin Developer'].includes(currentUser.role.trim())) && (
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm" className="w-full sm:w-auto">
+                                <BellOff className="mr-2 h-4 w-4" />
+                                Bersihkan Semua Notifikasi
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Konfirmasi Pembersihan Notifikasi</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Apakah Anda yakin ingin menghapus SEMUA notifikasi untuk SEMUA pengguna? Tindakan ini tidak dapat dibatalkan.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel disabled={isClearingNotifications}>Batal</AlertDialogCancel>
+                                <AlertDialogAction
+                                    className="bg-destructive hover:bg-destructive/90"
+                                    onClick={handleClearAllNotifications}
+                                    disabled={isClearingNotifications}
+                                >
+                                    {isClearingNotifications ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                    Ya, Hapus Semua
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                )}
+            </div>
         </CardHeader>
         <CardContent>
             {/* Desktop Table View */}
