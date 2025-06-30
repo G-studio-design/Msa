@@ -15,7 +15,6 @@ export const contentType = 'image/png'
 export default function Icon() {
   return new ImageResponse(
     (
-      // A simple, valid JSX element to avoid parsing errors.
       <div
         style={{
           width: '100%',
@@ -23,7 +22,7 @@ export default function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#1A237E',
+          backgroundColor: '#1A237E', // Corrected from 'background'
           color: 'white',
           fontSize: 20,
           fontWeight: 'bold',
