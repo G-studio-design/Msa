@@ -1,6 +1,5 @@
 'use client';
 
-// src/app/dashboard/settings/page.tsx
 import * as React from 'react';
 import Image from 'next/image'; // Import next/image
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";

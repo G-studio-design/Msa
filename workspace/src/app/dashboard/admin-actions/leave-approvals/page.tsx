@@ -1,6 +1,5 @@
 'use client';
 
-// src/app/dashboard/admin-actions/leave-approvals/page.tsx
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import {

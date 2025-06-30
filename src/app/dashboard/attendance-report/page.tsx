@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic';
-
 'use client';
 
 // src/app/dashboard/attendance-report/page.tsx
