@@ -1,4 +1,3 @@
-
 // src/app/dashboard/admin-actions/leave-approvals/page.tsx
 'use client';
 
@@ -10,7 +9,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from '@/components/ui/card';
 import {
   Table,
@@ -33,7 +31,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, XCircle, Loader2, AlertTriangle, Inbox, MessageSquareText } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, Inbox, MessageSquareText } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
@@ -54,12 +52,10 @@ export default function LeaveApprovalsPage() {
   const [isClient, setIsClient] = React.useState(false);
   const [dict, setDict] = React.useState(defaultDict);
   const [leaveApprovalsDict, setLeaveApprovalsDict] = React.useState(defaultDict.leaveApprovalsPage);
-  const [dashboardDict, setDashboardDict] = React.useState(defaultDict.dashboardPage);
-
 
   const [pendingRequests, setPendingRequests] = React.useState<LeaveRequest[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
-  const [isProcessing, setIsProcessing] = React.useState<string | false>(false); // Store request ID being processed
+  const [isProcessing, setIsProcessing] = React.useState<string | false>(false);
 
   const [isRejectDialogOpen, setIsRejectDialogOpen] = React.useState(false);
   const [requestToReject, setRequestToReject] = React.useState<LeaveRequest | null>(null);
@@ -73,7 +69,6 @@ export default function LeaveApprovalsPage() {
     const newDictData = getDictionary(language);
     setDict(newDictData);
     setLeaveApprovalsDict(newDictData.leaveApprovalsPage);
-    setDashboardDict(newDictData.dashboardPage);
   }, [language]);
 
   const currentLocale = language === 'id' ? IndonesianLocale : EnglishLocale;
@@ -208,11 +203,11 @@ export default function LeaveApprovalsPage() {
                 <TableCaption>{leaveApprovalsDict.tableCaption}</TableCaption>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{leaveApprovalsDict.tableHeaders.employee}</TableHead>
+                    <TableHead className="min-w-[150px]">{leaveApprovalsDict.tableHeaders.employee}</TableHead>
                     <TableHead>{leaveApprovalsDict.tableHeaders.leaveType}</TableHead>
-                    <TableHead>{leaveApprovalsDict.tableHeaders.dates}</TableHead>
+                    <TableHead className="min-w-[250px]">{leaveApprovalsDict.tableHeaders.dates}</TableHead>
                     <TableHead>{leaveApprovalsDict.tableHeaders.reason}</TableHead>
-                    <TableHead className="text-right">{leaveApprovalsDict.tableHeaders.actions}</TableHead>
+                    <TableHead className="text-right min-w-[180px]">{leaveApprovalsDict.tableHeaders.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -220,49 +215,34 @@ export default function LeaveApprovalsPage() {
                     <TableRow key={req.id}>
                       <TableCell className="font-medium">{req.displayName || req.username}</TableCell>
                       <TableCell>
-                         <Badge variant="outline">{getTranslatedLeaveType(req.leaveType)}</Badge>
+                        <Badge variant="outline">{getTranslatedLeaveType(req.leaveType)}</Badge>
                       </TableCell>
                       <TableCell>{formatDateRange(req.startDate, req.endDate)}</TableCell>
                       <TableCell className="max-w-xs truncate">
-                         <Dialog>
+                        <Dialog>
                             <DialogTrigger asChild>
                                 <Button variant="link" size="sm" className="p-0 h-auto text-muted-foreground hover:text-primary">
-                                   <MessageSquareText className="mr-1 h-3.5 w-3.5"/> {leaveApprovalsDict.viewReason}
+                                  <MessageSquareText className="mr-1 h-3.5 w-3.5"/> {leaveApprovalsDict.viewReason}
                                 </Button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-md">
                                 <DialogHeader>
                                     <DialogTitle>{leaveApprovalsDict.reasonDialogTitle.replace('{employee}', req.displayName || req.username)}</DialogTitle>
                                 </DialogHeader>
-                                <div className="py-4 text-sm text-foreground whitespace-pre-wrap">
-                                    {req.reason}
-                                </div>
+                                <div className="py-4 text-sm text-foreground whitespace-pre-wrap max-h-60 overflow-y-auto">{req.reason}</div>
                                 <DialogFooter>
-                                    <Button type="button" variant="outline" onClick={() => (document.querySelector('[data-radix-dialog-default-open="true"] [aria-label="Close"]') as HTMLElement)?.click()}>
-                                        {leaveApprovalsDict.closeButton}
-                                    </Button>
+                                    <Button type="button" variant="outline" onClick={() => (document.querySelector('[data-radix-dialog-default-open="true"] [aria-label="Close"]') as HTMLElement)?.click()}>{leaveApprovalsDict.closeButton}</Button>
                                 </DialogFooter>
                             </DialogContent>
                         </Dialog>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex flex-col sm:flex-row justify-end items-end sm:items-center gap-1">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openRejectDialog(req)}
-                            disabled={isProcessing === req.id}
-                            className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
-                          >
+                        <div className="flex justify-end items-center gap-2">
+                          <Button variant="outline" size="sm" onClick={() => openRejectDialog(req)} disabled={isProcessing === req.id} className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive">
                             {isProcessing === req.id && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                             <XCircle className="mr-1.5 h-3.5 w-3.5" /> {leaveApprovalsDict.rejectButton}
                           </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => handleApprove(req.id)}
-                            disabled={isProcessing === req.id}
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                          >
+                          <Button size="sm" onClick={() => handleApprove(req.id)} disabled={isProcessing === req.id} className="bg-green-600 hover:bg-green-700 text-white">
                             {isProcessing === req.id && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
                             <CheckCircle className="mr-1.5 h-3.5 w-3.5" /> {leaveApprovalsDict.approveButton}
                           </Button>
@@ -278,7 +258,6 @@ export default function LeaveApprovalsPage() {
         </CardContent>
       </Card>
 
-      {/* Reject Reason Dialog */}
       <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -288,27 +267,13 @@ export default function LeaveApprovalsPage() {
           <div className="grid gap-4 py-4">
             <div className="grid w-full gap-1.5">
               <Label htmlFor="rejectionReason">{leaveApprovalsDict.rejectDialog.reasonLabel}</Label>
-              <Textarea
-                id="rejectionReason"
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder={leaveApprovalsDict.rejectDialog.reasonPlaceholder}
-                rows={3}
-                disabled={!!isProcessing}
-              />
+              <Textarea id="rejectionReason" value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} placeholder={leaveApprovalsDict.rejectDialog.reasonPlaceholder} rows={3} disabled={!!isProcessing}/>
                {rejectionReason.trim().length === 0 && <p className="text-xs text-destructive">{leaveApprovalsDict.toast.reasonRequired}</p>}
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setIsRejectDialogOpen(false)} disabled={!!isProcessing}>
-              {leaveApprovalsDict.cancelButton}
-            </Button>
-            <Button
-              type="button"
-              onClick={handleReject}
-              disabled={!!isProcessing || !rejectionReason.trim()}
-              className="bg-destructive hover:bg-destructive/90"
-            >
+            <Button type="button" variant="outline" onClick={() => setIsRejectDialogOpen(false)} disabled={!!isProcessing}>{leaveApprovalsDict.cancelButton}</Button>
+            <Button type="button" onClick={handleReject} disabled={!!isProcessing || !rejectionReason.trim()} className="bg-destructive hover:bg-destructive/90">
               {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {leaveApprovalsDict.rejectDialog.confirmButton}
             </Button>

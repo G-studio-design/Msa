@@ -37,7 +37,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, User, UserCog, Edit, Loader2, Eye, EyeOff, CheckCircle, ShieldAlert, Code, Wrench } from 'lucide-react';
+import { PlusCircle, Trash2, User, UserCog, Edit, Loader2, Eye, EyeOff, Code, Wrench } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -58,7 +58,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger, 
 } from '@/components/ui/alert-dialog';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
@@ -73,7 +72,6 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Define available roles for selection (internal role names)
 const divisions = ['Owner', 'Akuntan', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP'];
 
 const defaultGlobalDict = getDictionary('en');
@@ -427,7 +425,6 @@ export default function ManageUsersPage() {
   
   const getTranslatedRole = React.useCallback((roleKey: string) => {
     if (!isClient || !usersDict?.roles || !roleKey) {
-      // Fallback if dict or roles not ready
       const fallbackDict = defaultGlobalDict.manageUsersPage.roles as Record<string, string>;
       const key = roleKey?.trim().replace(/\s+/g, '').toLowerCase() || "";
       return fallbackDict[key] || roleKey;
@@ -568,8 +565,7 @@ export default function ManageUsersPage() {
             </Dialog>
         </CardHeader>
         <CardContent>
-            {/* Desktop Table - hidden on small screens */}
-            <div className="hidden md:block w-full overflow-x-auto rounded-md border">
+            <div className="w-full overflow-x-auto rounded-md border">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -659,71 +655,6 @@ export default function ManageUsersPage() {
                         })}
                     </TableBody>
                 </Table>
-            </div>
-            
-            {/* Mobile Card List - hidden on medium screens and up */}
-            <div className="grid gap-4 md:hidden">
-                {users.length === 0 && !isLoading ? (
-                    <p className="text-center text-muted-foreground py-8">{isClient ? usersDict.noUsers : defaultGlobalDict.manageUsersPage.noUsers}</p>
-                ) : (
-                    users.map((user) => {
-                        const isSelf = user.id === currentUser?.id;
-                        const isTargetAdminDeveloper = user.role === 'Admin Developer'; 
-                        const isTargetOwner = user.role === 'Owner';
-                        const isTargetAccountant = user.role === 'Akuntan'; 
-                        
-                        let disableEditBasedOnRole = 
-                            (isTargetAdminDeveloper && currentUser?.role !== 'Admin Developer') ||
-                            (currentUser?.role === 'Akuntan' && (isTargetOwner || isTargetAdminDeveloper)) ||
-                            (currentUser?.role === 'Admin Proyek' && (isTargetOwner || isTargetAccountant || isTargetAdminDeveloper));
-
-                        let disableDeleteBasedOnRole =
-                            isTargetAdminDeveloper ||
-                            isSelf ||
-                            (isTargetOwner && currentUser?.role !== 'Admin Developer' && currentUser?.role !== 'Owner') || 
-                            (isTargetAccountant && currentUser?.role !== 'Owner' && currentUser?.role !== 'Admin Developer') ||
-                            (currentUser?.role === 'Admin Proyek' && (isTargetOwner || isTargetAccountant || isTargetAdminDeveloper));
-
-                        return (
-                            <div key={user.id} className="rounded-lg border bg-card text-card-foreground p-4">
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-semibold break-words">{user.username}</p>
-                                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                                            {getRoleIcon(user.role)}
-                                            <span>{getTranslatedRole(user.role)}</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-0">
-                                        <Button variant="ghost" size="icon" onClick={() => openEditDialog(user)} disabled={isProcessing || disableEditBasedOnRole || !canManageUsers} title={isClient ? usersDict.editUserButtonLabel : defaultGlobalDict.manageUsersPage.editUserButtonLabel}>
-                                            <Edit className={`h-5 w-5 ${(disableEditBasedOnRole || !canManageUsers) ? 'text-muted-foreground' : 'text-blue-500'}`} />
-                                        </Button>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button variant="ghost" size="icon" disabled={isProcessing || disableDeleteBasedOnRole || !canManageUsers} title={isClient ? usersDict.deleteUserButtonLabel : defaultGlobalDict.manageUsersPage.deleteUserButtonLabel}>
-                                                    <Trash2 className={`h-5 w-5 ${(disableDeleteBasedOnRole || !canManageUsers) ? 'text-muted-foreground' : 'text-destructive'}`} />
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>{isClient ? usersDict.deleteDialogTitle : defaultGlobalDict.manageUsersPage.deleteDialogTitle}</AlertDialogTitle>
-                                                    <AlertDialogDescription>{(isClient ? usersDict.deleteDialogDesc : defaultGlobalDict.manageUsersPage.deleteDialogDesc).replace('{username}', user.username)}</AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel disabled={isProcessing}>{isClient ? usersDict.deleteDialogCancel : defaultGlobalDict.manageUsersPage.deleteDialogCancel}</AlertDialogCancel>
-                                                    <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleDeleteUser(user.id, user.username)} disabled={isProcessing}>
-                                                        {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                                        {isClient ? usersDict.deleteDialogConfirm : defaultGlobalDict.manageUsersPage.deleteDialogConfirm}
-                                                    </AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })
-                )}
             </div>
         </CardContent>
       </Card>
