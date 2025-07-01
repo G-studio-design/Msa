@@ -2,45 +2,19 @@
 'use server';
 
 import * as path from 'path';
-import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized utils
+import { readDb, writeDb } from '@/lib/json-db-utils';
 import {
     DEFAULT_WORKFLOW_ID,
     DEFAULT_WORKFLOW_NAME,
     DEFAULT_WORKFLOW_DESCRIPTION
 } from '@/config/workflow-constants';
 import { unstable_noStore as noStore } from 'next/cache';
+import type { Workflow, WorkflowStep, WorkflowStepTransition } from '@/types/workflow-types';
 
-
-export interface WorkflowStepTransition {
-  targetStatus: string;
-  targetAssignedDivision: string;
-  targetNextActionDescription: string | null;
-  targetProgress: number;
-  notification?: {
-    division: string | string[] | null; // Can be a single role, array of roles, or null
-    message: string;
-  };
-}
-
-export interface WorkflowStep {
-  stepName: string;
-  status: string;
-  assignedDivision: string;
-  progress: number;
-  nextActionDescription: string | null;
-  transitions: {
-    [action: string]: WorkflowStepTransition;
-  } | null;
-}
-
-export interface Workflow {
-  id: string;
-  name: string;
-  description: string;
-  steps: WorkflowStep[];
-}
+const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
 
 // Master definition of the default standard workflow structure.
+// NOT EXPORTED to comply with 'use server' constraints.
 const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
     {
       stepName: "Offer Submission",
@@ -618,51 +592,12 @@ const MSA_WORKFLOW_STEPS: WorkflowStep[] = [
 ];
 
 
-const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
-
-/**
- * Initializes workflows if they don't exist. This function WRITES to the filesystem
- * and should only be called from dynamic contexts like Server Actions, not during build.
- * To make it safer, we only write if the file doesn't exist at all.
- */
-export async function initializeWorkflows(): Promise<Workflow[]> {
-    noStore();
-    let workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
-
-    // Only write if the workflows file is completely empty.
-    // This is safer for build processes and prevents overwriting user changes.
-    if (workflows.length === 0) {
-        console.log("[WorkflowService] Workflows file is empty. Initializing with default set.");
-        workflows = [
-            {
-                id: 'default_standard_workflow',
-                name: DEFAULT_WORKFLOW_NAME,
-                description: DEFAULT_WORKFLOW_DESCRIPTION,
-                steps: JSON.parse(JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE)),
-            },
-            {
-                id: 'msa_workflow',
-                name: 'MSa Workflow',
-                description: 'Workflow with parallel design uploads after survey.',
-                steps: JSON.parse(JSON.stringify(MSA_WORKFLOW_STEPS)),
-            }
-        ];
-        await writeDb(WORKFLOWS_DB_PATH, workflows);
-    }
-
-    return workflows;
-}
-
-
-/**
- * Reads workflows from the database. This is a read-only operation
- * suitable for build processes. It no longer attempts to self-heal or
- * write to the database file, preventing build errors.
- */
 export async function getAllWorkflows(): Promise<Workflow[]> {
-    noStore();
-    return await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
+  noStore();
+  const workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
+  return workflows;
 }
+
 
 export async function getWorkflowById(id: string): Promise<Workflow | null> {
   const workflows = await getAllWorkflows();
@@ -746,6 +681,8 @@ export async function getTransitionInfo(
 export async function addWorkflow(name: string, description: string): Promise<Workflow> {
   console.log(`[WorkflowService] Attempting to add workflow: ${name}`);
   let workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
+  const msaWorkflow = workflows.find(wf => wf.id === 'msa_workflow');
+  if(!msaWorkflow) throw new Error("Base 'msa_workflow' not found to create a new workflow.");
 
   const newWorkflowId = `wf_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
@@ -753,12 +690,12 @@ export async function addWorkflow(name: string, description: string): Promise<Wo
     id: newWorkflowId,
     name,
     description: description || '',
-    steps: JSON.parse(JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE)),
+    steps: JSON.parse(JSON.stringify(msaWorkflow.steps)), // Use MSA workflow as base
   };
 
   workflows.push(newWorkflow);
   await writeDb(WORKFLOWS_DB_PATH, workflows);
-  console.log(`[WorkflowService] New workflow "${name}" (ID: ${newWorkflowId}) added with default standard steps. Total workflows: ${workflows.length}`);
+  console.log(`[WorkflowService] New workflow "${name}" (ID: ${newWorkflowId}) added based on MSa workflow. Total workflows: ${workflows.length}`);
   return newWorkflow;
 }
 
@@ -781,16 +718,10 @@ export async function updateWorkflow(workflowId: string, updatedWorkflowData: Pa
   if (workflowId === DEFAULT_WORKFLOW_ID) {
     finalUpdatedWorkflow.name = updatedWorkflowData.name || DEFAULT_WORKFLOW_NAME;
     finalUpdatedWorkflow.description = updatedWorkflowData.description || DEFAULT_WORKFLOW_DESCRIPTION;
-    if (!updatedWorkflowData.steps) {
-        finalUpdatedWorkflow.steps = JSON.parse(JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE));
-    }
   }
   else if (workflowId === "msa_workflow") {
     finalUpdatedWorkflow.name = updatedWorkflowData.name || "MSa Workflow";
     finalUpdatedWorkflow.description = updatedWorkflowData.description || "Workflow with parallel design uploads after survey.";
-    if (!updatedWorkflowData.steps) {
-        finalUpdatedWorkflow.steps = JSON.parse(JSON.stringify(MSA_WORKFLOW_STEPS));
-    }
   }
 
 

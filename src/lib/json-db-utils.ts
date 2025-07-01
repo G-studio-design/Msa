@@ -6,38 +6,33 @@ import * as path from 'path';
 
 /**
  * Reads and parses a JSON database file.
- * Handles file not found, empty, or corrupted JSON cases.
+ * Handles file not found, empty, or corrupted JSON cases safely for build processes.
  * @param dbPath The absolute path to the JSON file.
  * @param defaultData The default data (e.g., an empty array) to use if the file is new or invalid.
  * @returns A promise that resolves to the parsed data or the default data.
  */
 export async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
     try {
-        await fs.access(dbPath);
-    } catch (error) {
-        console.log(`[JSON DB Utils] Database file not found at ${path.basename(dbPath)}, creating a new one.`);
-        // Write the default data to the new file before returning it
-        try {
-            await fs.writeFile(dbPath, JSON.stringify(defaultData, null, 2), 'utf8');
-        } catch (writeError) {
-             console.error(`[JSON DB Utils] Failed to create new database file at ${path.basename(dbPath)}:`, writeError);
-             // If write fails, we still return the default data to avoid crashing
-        }
-        return defaultData;
-    }
-
-    try {
+        // We only try to read the file. We never write during a read operation.
         const data = await fs.readFile(dbPath, 'utf8');
+        // If the file is empty, return the default data.
         if (data.trim() === "") {
             console.warn(`[JSON DB Utils] Database file at ${path.basename(dbPath)} is empty. Returning default data.`);
             return defaultData;
         }
         return JSON.parse(data) as T;
-    } catch (error) {
-        console.error(`[JSON DB Utils] Error reading or parsing database at ${path.basename(dbPath)}. Returning default data. Error:`, error);
+    } catch (error: any) {
+        // If the file doesn't exist (ENOENT) or there's another read/parse error,
+        // we log it and safely return the default data without trying to write.
+        if (error.code === 'ENOENT') {
+          console.log(`[JSON DB Utils] Database file not found at ${path.basename(dbPath)}. Returning default data without creating file.`);
+        } else {
+          console.error(`[JSON DB Utils] Error reading or parsing database at ${path.basename(dbPath)}. Returning default data. Error:`, error);
+        }
         return defaultData;
     }
 }
+
 
 /**
  * Writes data to a JSON database file.

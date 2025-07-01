@@ -9,7 +9,7 @@ import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized uti
 import { notifyUsersByRole, deleteNotificationsByProjectId } from './notification-service';
 import { sanitizeForPath } from '@/lib/path-utils';
 import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants';
-import type { Workflow, WorkflowStep, WorkflowStepTransition } from './workflow-service';
+import type { Workflow, WorkflowStep, WorkflowStepTransition } from '@/types/workflow-types';
 import { getWorkflowById, getFirstStep, getTransitionInfo } from './workflow-service';
 import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
 
