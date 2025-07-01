@@ -1,4 +1,3 @@
-
 import { ImageResponse } from 'next/og'
 
 // Route segment config
@@ -19,7 +18,7 @@ export default function Icon() {
       <div
         style={{
           fontSize: 24,
-          background: '#0D47A1', // A deep blue color, similar to primary
+          background: '#1A237E', // Dark blue primary color from PRD
           width: '100%',
           height: '100%',
           display: 'flex',
