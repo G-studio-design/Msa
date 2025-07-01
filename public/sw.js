@@ -1,20 +1,21 @@
-// This file is designed to immediately unregister any existing service worker.
+// A "kill-switch" service worker to unregister previous service workers.
 self.addEventListener('install', () => {
-  // Skip over the "waiting" lifecycle state, to ensure the activate event
-  // fires as soon as possible.
+  // Skip waiting, allowing the new service worker to activate immediately.
   self.skipWaiting();
 });
 
 self.addEventListener('activate', () => {
-  // Unregister the service worker immediately.
-  self.registration
-    .unregister()
+  // Unregister this service worker and all other service workers.
+  self.registration.unregister()
     .then(() => {
-      // Once unregistered, match all clients (open pages) and reload them
-      // to ensure they are no longer controlled by the old service worker.
+      // Once unregistered, reload all clients to ensure they get the latest version without the service worker.
       return self.clients.matchAll();
     })
-    .then((clients) => {
-      clients.forEach((client) => client.navigate(client.url));
+    .then(clients => {
+      clients.forEach(client => {
+        if (client.url && 'navigate' in client) {
+          client.navigate(client.url);
+        }
+      });
     });
 });
