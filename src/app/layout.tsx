@@ -5,7 +5,6 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { LanguageProvider } from '@/context/LanguageContext'; // Import LanguageProvider
 import { AuthProvider } from '@/context/AuthContext'; // Corrected import path
-import { ServiceWorkerRegistrar } from '@/components/ServiceWorkerRegistrar';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -32,7 +31,6 @@ export default function RootLayout({
         {/* Wrap with AuthProvider first, then LanguageProvider */}
         <AuthProvider>
           <LanguageProvider>
-              <ServiceWorkerRegistrar />
               {children}
               <Toaster />
           </LanguageProvider>
