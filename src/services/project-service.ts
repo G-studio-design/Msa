@@ -410,26 +410,26 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
 
     } else {
          console.warn(`[ProjectService] No specific transition info for project ${projectId}, action "${actionTaken}" from status "${currentProject.status}" (Progress: ${currentProject.progress}). Updating files/notes if any, but status remains unchanged unless it's a terminal action.`);
-         if (!['Completed', 'Canceled'].includes(currentProject.status) && !['completed', 'rejected', 'revise_offer', 'revise_after_sidang', 'canceled_after_sidang', 'revision_completed_and_finish'].includes(actionTaken) ) {
-            projects[projectIndex] = updatedProject;
-            await writeDb(DB_PATH, projects);
-            return null;
-         }
+         
          if (actionTaken === 'completed') {
             updatedProject.status = 'Completed';
             updatedProject.progress = 100;
             updatedProject.nextAction = null;
             updatedProject.assignedDivision = "";
-         }
-         if (actionTaken === 'rejected' && currentProject.status === 'Pending Approval' && currentProject.progress === 20) { // Offer rejection
+         } else if (actionTaken === 'rejected' && currentProject.status === 'Pending Approval' && currentProject.progress === 20) { // Offer rejection
             updatedProject.status = 'Canceled';
             updatedProject.nextAction = null;
             updatedProject.assignedDivision = "";
-         }
-         if (actionTaken === 'canceled_after_sidang') {
+         } else if (actionTaken === 'canceled_after_sidang') {
             updatedProject.status = 'Canceled';
             updatedProject.nextAction = null;
             updatedProject.assignedDivision = "";
+         } else {
+             // If no transition and not a special terminal action, we just write the history and files but don't change status.
+             projects[projectIndex] = updatedProject;
+             await writeDb(DB_PATH, projects);
+             console.log(`[ProjectService] Project ${projectId} action "${actionTaken}" processed without status change.`);
+             return updatedProject; // Return the project with updated history/files
          }
     }
 

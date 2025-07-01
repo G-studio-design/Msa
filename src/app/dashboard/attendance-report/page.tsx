@@ -184,7 +184,7 @@ export default function AttendanceReportPage() {
       });
 
 
-      const combinedEvents = Array.from(eventMap.values()).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime() || a.user.displayName.localeCompare(b.user.displayName));
+      const combinedEvents = Array.from(eventMap.values()).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime() || (a.user.displayName || a.user.username).localeCompare(b.user.displayName || b.user.username));
 
       setReportData({
         users,
