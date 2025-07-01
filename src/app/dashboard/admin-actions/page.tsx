@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -51,7 +52,8 @@ import {
     type Project,
     type UpdateProjectParams 
 } from '@/services/project-service';
-import { getAllUniqueStatuses, type WorkflowStep } from '@/services/workflow-service';
+import { getAllUniqueStatuses } from '@/services/workflow-service';
+import type { WorkflowStep } from '@/types/workflow-types';
 import { clearAllNotifications } from '@/services/notification-service';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { getAppSettings, updateAttendanceSettings as saveAttendanceSettings, setAttendanceFeatureEnabled as updateFeatureSetting, type AppSettings, type AttendanceSettings } from '@/services/settings-service';
