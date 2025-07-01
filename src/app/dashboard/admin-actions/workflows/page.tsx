@@ -57,7 +57,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAllWorkflows, deleteWorkflow, addWorkflow, updateWorkflow, type Workflow, type WorkflowStep, DEFAULT_STANDARD_WORKFLOW_STRUCTURE } from '@/services/workflow-service';
+import { initializeWorkflows, deleteWorkflow, addWorkflow, updateWorkflow, type Workflow, type WorkflowStep } from '@/services/workflow-service';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -149,7 +149,7 @@ export default function ManageWorkflowsPage() {
     }
     setIsLoading(true);
     try {
-      const fetchedWorkflows = await getAllWorkflows();
+      const fetchedWorkflows = await initializeWorkflows();
       setWorkflows(fetchedWorkflows);
     } catch (error) {
       console.error("Failed to fetch workflows:", error);
