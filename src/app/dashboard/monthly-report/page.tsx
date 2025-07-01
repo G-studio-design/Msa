@@ -471,7 +471,7 @@ export default function MonthlyReportPage() {
                                         margin={{ left: language === 'id' ? 25 : 20, right: 35, top: 5, bottom: 5 }}
                                     >
                                         <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-                                        <XAxis type="number" allowDecimals={false} tick={{ fontSize: 10 }} />
+                                        <XAxis type="number" dataKey="count" allowDecimals={false} tick={{ fontSize: 10 }} />
                                         <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} stroke="#888888" fontSize={10} width={language === 'id' ? 105 : 75} interval={0}/>
                                         <ChartTooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent hideLabel />} />
                                         <Bar dataKey="count" radius={[4, 4, 0, 0]}>
