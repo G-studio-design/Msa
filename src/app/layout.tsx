@@ -11,9 +11,6 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 export const metadata: Metadata = {
   title: 'Msarch App',
   description: 'Employee task management application for various divisions.',
-  icons: {
-    icon: '/msarch-logo.png',
-  },
 };
 
 export default function RootLayout({
