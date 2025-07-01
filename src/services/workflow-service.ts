@@ -620,7 +620,39 @@ export const MSA_WORKFLOW_STEPS: WorkflowStep[] = [
 
 const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
 
-// The individual read/write functions are no longer needed here.
+/**
+ * Initializes workflows if they don't exist. This function WRITES to the filesystem
+ * and should only be called from dynamic contexts like Server Actions, not during build.
+ * To make it safer, we only write if the file doesn't exist at all.
+ */
+export async function initializeWorkflows(): Promise<Workflow[]> {
+    noStore();
+    let workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
+
+    // Only write if the workflows file is completely empty.
+    // This is safer for build processes and prevents overwriting user changes.
+    if (workflows.length === 0) {
+        console.log("[WorkflowService] Workflows file is empty. Initializing with default set.");
+        workflows = [
+            {
+                id: 'default_standard_workflow',
+                name: DEFAULT_WORKFLOW_NAME,
+                description: DEFAULT_WORKFLOW_DESCRIPTION,
+                steps: JSON.parse(JSON.stringify(FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE)),
+            },
+            {
+                id: 'msa_workflow',
+                name: 'MSa Workflow',
+                description: 'Workflow with parallel design uploads after survey.',
+                steps: JSON.parse(JSON.stringify(MSA_WORKFLOW_STEPS)),
+            }
+        ];
+        await writeDb(WORKFLOWS_DB_PATH, workflows);
+    }
+
+    return workflows;
+}
+
 
 /**
  * Reads workflows from the database. This is a read-only operation
@@ -628,36 +660,12 @@ const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workfl
  * write to the database file, preventing build errors.
  */
 export async function getAllWorkflows(): Promise<Workflow[]> {
-  // This is a pure read operation to be safe during build.
-  // It relies on readDb's ability to return an empty array if the file doesn't exist.
-  noStore();
-  const workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
-  return workflows;
-}
-
-/**
- * Initializes workflows if they don't exist. This function WRITES to the filesystem
- * and should only be called from dynamic contexts like Server Actions, not during build.
- */
-export async function initializeWorkflows(): Promise<Workflow[]> {
     noStore();
-    let workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
-    let saveNeeded = false;
-  
-    // Logic to ensure default workflows exist and are up-to-date
-    // ... same logic as before ...
-  
-    if (saveNeeded) {
-      await writeDb(WORKFLOWS_DB_PATH, workflows);
-    }
-  
-    return workflows;
+    return await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
 }
-
 
 export async function getWorkflowById(id: string): Promise<Workflow | null> {
-  noStore();
-  const workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []); // Pure read
+  const workflows = await getAllWorkflows();
   const workflow = workflows.find(wf => wf.id === id) || null;
   if (!workflow) {
     console.warn(`[WorkflowService] getWorkflowById: Workflow with ID "${id}" not found.`);
