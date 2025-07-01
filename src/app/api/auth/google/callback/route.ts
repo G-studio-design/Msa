@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     console.log('Tokens received:', {
         accessToken: tokens.access_token ? 'RECEIVED' : 'NOT RECEIVED',
         refreshToken: tokens.refresh_token ? 'RECEIVED' : 'NOT RECEIVED',
-        expiresIn: tokens.expires_in
+        expiresAt: tokens.expiry_date,
     });
 
 
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
       await updateUserGoogleTokens(user.id, {
         refreshToken: tokens.refresh_token || user.googleRefreshToken, // Keep existing refresh token if new one isn't provided
         accessToken: tokens.access_token,
-        accessTokenExpiresAt: Date.now() + (tokens.expiry_date || (tokens.expires_in || 3600) * 1000),
+        accessTokenExpiresAt: tokens.expiry_date || (Date.now() + 3600 * 1000), // Use expiry_date directly, fallback to 1 hour
       });
       // TODO: Maybe update user's displayName or profilePictureUrl if they are empty or different?
       // For now, we just link the Google account.
