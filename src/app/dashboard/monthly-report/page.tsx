@@ -258,7 +258,7 @@ export default function MonthlyReportPage() {
 
   const handleDownloadWord = async () => {
     if (!reportData) {
-        toast({ variant: 'destructive', title: reportDict.toast.error, description: reportDict.generateReportFirst });
+        toast({ variant: 'destructive', title: reportDict.toast.error, description: reportDict.toast.generateReportFirst });
         return;
     }
     setIsDownloading('word');
