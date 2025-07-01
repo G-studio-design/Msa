@@ -10,7 +10,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { checkIn, checkOut, getTodaysAttendance, type AttendanceRecord } from '@/services/attendance-service';
+import { checkIn, checkOut, getTodaysAttendance, getAttendanceForUser, type AttendanceRecord } from '@/services/attendance-service';
 import { format, parseISO, isSameDay, isWithinInterval, eachDayOfInterval, startOfDay, endOfDay } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 import { Calendar } from "@/components/ui/calendar";
