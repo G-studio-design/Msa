@@ -1,3 +1,4 @@
+
 // src/services/project-service.ts
 'use server';
 
@@ -571,7 +572,15 @@ export async function reviseProject(
 }
 
 export async function manuallyUpdateProjectStatusAndAssignment(
-    params: UpdateProjectParams & { newStatus: string; newAssignedDivision: string; newNextAction: string | null; newProgress: number; adminUsername: string; reasonNote: string }
+    params: {
+        projectId: string;
+        newStatus: string;
+        newAssignedDivision: string;
+        newNextAction: string | null;
+        newProgress: number;
+        adminUsername: string;
+        reasonNote: string;
+    }
 ): Promise<Project> {
     const { projectId, newStatus, newAssignedDivision, newNextAction, newProgress, adminUsername, reasonNote } = params;
     console.log(`[ProjectService] Manually updating project ID: ${projectId} by admin ${adminUsername}. New Status: ${newStatus}, New Division: ${newAssignedDivision}`);
