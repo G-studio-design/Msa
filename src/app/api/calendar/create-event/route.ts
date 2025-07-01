@@ -46,7 +46,7 @@ export async function POST(request: Request) {
                 await updateUserGoogleTokens(userId, {
                     accessToken: credentials.access_token!,
                     refreshToken: credentials.refresh_token || user.googleRefreshToken, // Google might not always return a new refresh token
-                    accessTokenExpiresAt: Date.now() + (credentials.expiry_date || (credentials.expires_in || 3600) * 1000),
+                    accessTokenExpiresAt: credentials.expiry_date || (Date.now() + (3600 * 1000)),
                 });
                 console.log(`Access token refreshed and updated for user ${userId}.`);
             } catch (refreshError: any) {
