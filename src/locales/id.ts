@@ -39,15 +39,6 @@ const id = {
     appTitle: 'Msarch App',
     appTitleShort: 'Msarch',
     toggleMenu: 'Buka/Tutup Panel Menu',
-    roles: {
-        owner: 'Pemilik',
-        akuntan: 'Akuntan', 
-        adminproyek: 'Admin Proyek',
-        arsitek: 'Arsitek',
-        struktur: 'Struktur',
-        mep: 'Insinyur MEP',
-        admindev: 'Developer',
-    },
   },
   // Dashboard Page
   dashboardPage: {
@@ -972,8 +963,8 @@ const id = {
       selectMonthYear: "Silakan pilih bulan dan tahun.",
       generationFailed: "Gagal membuat laporan.",
       downloadStarted: "Unduhan laporan Anda telah dimulai.",
-      noDataTitle: "Tidak Ada Data",
       noDataDesc: "Tidak ada catatan absensi yang ditemukan untuk periode yang dipilih.",
+      noDataTitle: "Tidak Ada Data",
       generateFirst: "Harap buat laporan terlebih dahulu sebelum mengunduh.",
     }
   },

@@ -39,15 +39,6 @@ const en = {
     appTitle: 'Msarch App',
     appTitleShort: 'Msarch',
     toggleMenu: 'Toggle Menu Panel',
-    roles: {
-        owner: 'Owner',
-        akuntan: 'Accountant', 
-        adminproyek: 'Project Admin',
-        arsitek: 'Architect',
-        struktur: 'Structure',
-        mep: 'MEP Engineer',
-        admindev: 'Developer',
-    },
   },
   // Dashboard Page
   dashboardPage: {
@@ -972,8 +963,8 @@ const en = {
       selectMonthYear: "Please select a month and year.",
       generationFailed: "Failed to generate the report.",
       downloadStarted: "Your report download has started.",
-      noDataTitle: "No Data",
       noDataDesc: "No attendance records found for the selected period.",
+      noDataTitle: "No Data",
       generateFirst: "Please generate the report first before downloading.",
     }
   },
