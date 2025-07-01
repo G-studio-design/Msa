@@ -41,7 +41,7 @@ export interface Workflow {
 }
 
 // Master definition of the default standard workflow structure.
-export const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
+const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
     {
       stepName: "Offer Submission",
       status: "Pending Offer",
@@ -406,7 +406,7 @@ export const FULL_DEFAULT_STANDARD_WORKFLOW_STRUCTURE: WorkflowStep[] = [
     }
 ];
 
-export const MSA_WORKFLOW_STEPS: WorkflowStep[] = [
+const MSA_WORKFLOW_STEPS: WorkflowStep[] = [
     // Steps from default up to Admin Files Submission
     {
       stepName: "Offer Submission", status: "Pending Offer", assignedDivision: "Admin Proyek", progress: 10, nextActionDescription: "Unggah Dokumen Penawaran",
