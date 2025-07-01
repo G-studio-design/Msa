@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "id": "notif_1751336528531_pv67t_ue2",
+    "userId": "usr_1747925369552_66ue2",
+    "projectId": "project_1751336455740_b0kr1",
+    "message": "Penawaran untuk proyek 'proyek villa bedugul ' telah disetujui oleh sudina. Mohon buat faktur DP.",
+    "timestamp": "2025-07-01T02:22:08.530Z",
+    "isRead": false
+  },
+  {
+    "id": "notif_1751336504485_suv0l_ult",
+    "userId": "usr_owner_default",
+    "projectId": "project_1751336455740_b0kr1",
+    "message": "Penawaran untuk proyek 'proyek villa bedugul ' telah diajukan oleh komangmerta dan menunggu persetujuan Anda.",
+    "timestamp": "2025-07-01T02:21:44.484Z",
+    "isRead": true
+  },
+  {
+    "id": "notif_1751336455778_o2u0t_22a",
+    "userId": "usr_1747799008584_4r22a",
+    "projectId": "project_1751336455740_b0kr1",
+    "message": "Proyek baru \"proyek villa bedugul \" telah dibuat oleh sudina dan memerlukan tindakan: Unggah Dokumen Penawaran.",
+    "timestamp": "2025-07-01T02:20:55.775Z",
+    "isRead": false
+  }
+]
