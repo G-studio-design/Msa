@@ -11,6 +11,10 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 export const metadata: Metadata = {
   title: 'Msarch App',
   description: 'Employee task management application for various divisions.',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+  },
 };
 
 export default function RootLayout({
