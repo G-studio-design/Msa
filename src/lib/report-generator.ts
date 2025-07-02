@@ -254,12 +254,12 @@ export async function generateWordReport({
         default: new Footer({
           children: [
             new Paragraph({
-              alignment: AlignmentType.CENTER, // Terapkan alignment langsung ke Paragraph
+              alignment: AlignmentType.CENTER,
               children: [
-                new TextRun({ text: ensureNonEmpty(translations.monthlyReportPage.page) + " ", size: 16, color: "888888" }), // Ukuran font disesuaikan
-                PageNumber.CURRENT,
+                new TextRun({ text: ensureNonEmpty(translations.monthlyReportPage.page) + " ", size: 16, color: "888888" }),
+                new TextRun({ children: [PageNumber.CURRENT], size: 16, color: "888888" }),
                 new TextRun({ text: " " + ensureNonEmpty(translations.monthlyReportPage.of) + " ", size: 16, color: "888888" }),
-                PageNumber.TOTAL_PAGES,
+                new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 16, color: "888888" }),
               ],
             }),
           ],

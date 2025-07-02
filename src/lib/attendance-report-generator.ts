@@ -205,7 +205,7 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
     sections: [{
       properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } },
       headers: { default: new Header({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: "Msarch App - Laporan Absensi Bulanan", italics: true, color: "7F8C8D" })] })] }) },
-      footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Halaman " }), PageNumber.CURRENT, new TextRun({ text: " dari " }), PageNumber.TOTAL_PAGES] })] }) },
+      footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun("Halaman "), new TextRun({ children: [PageNumber.CURRENT] }), new TextRun(" dari "), new TextRun({ children: [PageNumber.TOTAL_PAGES] })] })] }) },
       children: children,
     }]
   });
