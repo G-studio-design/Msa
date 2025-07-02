@@ -84,7 +84,7 @@ export async function generateWordReport({
   const translations = getDictionary(language);
   const currentLocale = language === 'id' ? IndonesianLocale : EnglishLocale;
 
-  const childrenForSection: (Paragraph | Table | ImageRun)[] = [];
+  const childrenForSection: (Paragraph | Table)[] = [];
 
   // Judul Laporan
   childrenForSection.push(
