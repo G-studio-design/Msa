@@ -12,10 +12,10 @@ export interface User {
     username: string;
     role: string;
     password?: string; // Plain text password for JSON, should be hashed in real DB
-    email?: string;
-    whatsappNumber?: string;
-    profilePictureUrl?: string;
-    displayName?: string;
+    email?: string | null;
+    whatsappNumber?: string | null;
+    profilePictureUrl?: string | null;
+    displayName?: string | null;
     createdAt?: string; // ISO date string
     googleRefreshToken?: string | null;
     googleAccessToken?: string | null;
@@ -323,7 +323,7 @@ export async function updateUserGoogleTokens(
         ...users[userIndex],
         googleRefreshToken: tokens.refreshToken !== undefined ? tokens.refreshToken : users[userIndex].googleRefreshToken,
         googleAccessToken: tokens.accessToken !== undefined ? tokens.accessToken : users[userIndex].googleAccessToken,
-        googleAccessTokenExpiresAt: tokens.accessTokenExpiresAt !== undefined ? tokens.accessTokenExpiresAt : users[userIndex].googleAccessTokenExpiresAt,
+        accessTokenExpiresAt: tokens.accessTokenExpiresAt !== undefined ? tokens.accessTokenExpiresAt : users[userIndex].googleAccessTokenExpiresAt,
     };
     
     await writeDb(DB_PATH, users);
