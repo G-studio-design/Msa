@@ -519,6 +519,7 @@ const id = {
         usernameExists: 'Nama pengguna sudah ada.',
         cannotDeleteSelf: 'Anda tidak dapat menghapus akun Anda sendiri.',
         cannotDeleteLastAdmin: 'Tidak dapat menghapus Akuntan terakhir.',
+        cannotChangeLastAdminRole: "Tidak dapat mengubah peran Akuntan terakhir.",
         permissionDenied: 'Izin Ditolak',
         editPermissionDenied: 'Anda tidak memiliki izin untuk mengedit pengguna ini.',
         cannotEditAdminDev: "Akun 'Developer' tidak dapat diedit melalui antarmuka ini.",
