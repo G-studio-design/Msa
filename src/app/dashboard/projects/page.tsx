@@ -1550,7 +1550,7 @@ export default function ProjectsPage() {
                              <CardDescription>{project.status === 'Pending Post-Sidang Revision' ? projectsDict.revisionChecklistDesc : projectsDict.adminParallelUploadsGuidance}</CardDescription>
                         </CardHeader>
                         <CardContent className="p-4 sm:p-6 pt-0 grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {(Object.entries(parallelUploadChecklist) as [keyof ParallelUploadChecklist, ChecklistItem[]][]).map(([division, items]) => (
+                            {(Object.entries(parallelUploadChecklist)).map(([division, items]) => (
                                 <div key={division}>
                                     <div className="flex justify-between items-center mb-2">
                                         <h4 className="font-semibold">{getTranslatedStatus(division)}</h4>
