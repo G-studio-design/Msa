@@ -1,3 +1,4 @@
+
 // src/services/project-service.ts
 'use server';
 
@@ -12,76 +13,11 @@ import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants';
 import type { Workflow, WorkflowStep, WorkflowStepTransition } from '@/types/workflow-types';
 import { getWorkflowById, getFirstStep, getTransitionInfo } from './workflow-service';
 import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
+import type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry } from '@/types/project-types';
 
+// Re-export types for consumers of this service
+export type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry };
 
-// Define the structure of a Workflow History entry
-export interface WorkflowHistoryEntry {
-    division: string;
-    action: string;
-    timestamp: string;
-    note?: string;
-}
-
-// Define the structure of an uploaded file entry
-export interface FileEntry {
-    name: string;
-    uploadedBy: string;
-    timestamp: string;
-    path: string; // Relative path from PROJECT_FILES_BASE_DIR/project_specific_folder
-}
-
-// Define the structure for project schedule details
-export interface ScheduleDetails {
-    date: string; // YYYY-MM-DD
-    time: string; // HH:MM
-    location: string;
-}
-
-// Define the structure for project survey details
-export interface SurveyDetails {
-    date: string; // YYYY-MM-DD
-    time: string; // HH:MM
-    description: string;
-}
-
-
-// Define the structure of a Project
-export interface Project {
-    id: string;
-    title: string;
-    status: string;
-    progress: number;
-    assignedDivision: string;
-    nextAction: string | null;
-    workflowHistory: WorkflowHistoryEntry[];
-    files: FileEntry[];
-    createdAt: string;
-    createdBy: string;
-    workflowId: string;
-    scheduleDetails?: ScheduleDetails;
-    surveyDetails?: SurveyDetails;
-    parallelUploadsCompletedBy?: string[]; // To track which divisions have completed their part
-}
-
-// Define the structure for adding a new project
-export interface AddProjectData {
-    title: string;
-    workflowId: string;
-    initialFiles: FileEntry[];
-    createdBy: string;
-}
-
-// Structure for updating project (used by client-side actions)
-export interface UpdateProjectParams {
-    projectId: string;
-    updaterRole: string;
-    updaterUsername: string;
-    actionTaken: string; // e.g., "submitted", "approved", "rejected", "scheduled"
-    files?: Omit<FileEntry, 'timestamp'>[]; // Files being uploaded in this action
-    note?: string; // Note for this specific action
-    scheduleDetails?: ScheduleDetails;
-    surveyDetails?: SurveyDetails;
-}
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
 
@@ -735,3 +671,4 @@ export async function markParallelUploadsAsCompleteByDivision(
     
     return project; // Return current project if already marked
 }
+
