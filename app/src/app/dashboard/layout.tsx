@@ -1,9 +1,8 @@
 
-import type { ReactNode } from 'react';
+'use client';
+
 import DashboardClientLayout from '@/components/layout/DashboardClientLayout';
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
-  return (
-    <DashboardClientLayout>{children}</DashboardClientLayout>
-  );
-}
+// Since this layout is now a client component, we can just export the
+// client layout component directly. This simplifies the component tree.
+export default DashboardClientLayout;
