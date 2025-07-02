@@ -94,9 +94,9 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
       tableHeader: true,
       children: [
         new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ children: [new TextRun({ text: dict.tableHeaderEmployee, bold: true, color: "FFFFFF", size: 24 })] })], verticalAlign: VerticalAlign.CENTER }),
-        new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ children: [new TextRun({ text: dict.tableHeaderPresent, bold: true, color: "FFFFFF", size: 24 })] })], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
-        new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ children: [new TextRun({ text: dict.tableHeaderLate, bold: true, color: "FFFFFF", size: 24 })] })], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
-        new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ children: [new TextRun({ text: dict.tableHeaderOnLeave, bold: true, color: "FFFFFF", size: 24 })] })], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
+        new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: dict.tableHeaderPresent, bold: true, color: "FFFFFF", size: 24 })] })], verticalAlign: VerticalAlign.CENTER }),
+        new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: dict.tableHeaderLate, bold: true, color: "FFFFFF", size: 24 })] })], verticalAlign: VerticalAlign.CENTER }),
+        new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: dict.tableHeaderOnLeave, bold: true, color: "FFFFFF", size: 24 })] })], verticalAlign: VerticalAlign.CENTER }),
       ]
     })
   ];
@@ -107,9 +107,9 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
     summaryRows.push(new TableRow({
       children: [
         new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(user.displayName || user.username))], verticalAlign: VerticalAlign.CENTER }),
-        new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(stats.present.toString()))], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
-        new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(stats.late.toString()))], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
-        new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(stats.on_leave.toString()))], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
+        new TableCell({ shading, children: [new Paragraph({ text: ensureNonEmpty(stats.present.toString()), alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER }),
+        new TableCell({ shading, children: [new Paragraph({ text: ensureNonEmpty(stats.late.toString()), alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER }),
+        new TableCell({ shading, children: [new Paragraph({ text: ensureNonEmpty(stats.on_leave.toString()), alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER }),
       ]
     }));
   });
@@ -154,9 +154,9 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
       children: [
         new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ children: [new TextRun({ text: dict.detailHeaderDate, bold: true, color: "FFFFFF", size: 24 })] })], verticalAlign: VerticalAlign.CENTER }),
         new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ children: [new TextRun({ text: dict.detailHeaderEmployee, bold: true, color: "FFFFFF", size: 24 })] })], verticalAlign: VerticalAlign.CENTER }),
-        new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ children: [new TextRun({ text: dict.detailHeaderCheckIn, bold: true, color: "FFFFFF", size: 24 })] })], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
-        new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ children: [new TextRun({ text: dict.detailHeaderCheckOut, bold: true, color: "FFFFFF", size: 24 })] })], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
-        new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ children: [new TextRun({ text: dict.detailHeaderStatus, bold: true, color: "FFFFFF", size: 24 })] })], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
+        new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: dict.detailHeaderCheckIn, bold: true, color: "FFFFFF", size: 24 })] })], verticalAlign: VerticalAlign.CENTER }),
+        new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: dict.detailHeaderCheckOut, bold: true, color: "FFFFFF", size: 24 })] })], verticalAlign: VerticalAlign.CENTER }),
+        new TableCell({ shading: { type: ShadingType.SOLID, color: "4A90E2", fill: "4A90E2" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: dict.detailHeaderStatus, bold: true, color: "FFFFFF", size: 24 })] })], verticalAlign: VerticalAlign.CENTER }),
       ]
     })
   ];
@@ -171,9 +171,9 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
         row = new TableRow({ children: [
             new TableCell({ shading, children: [new Paragraph(formattedDate)], verticalAlign: VerticalAlign.CENTER }),
             new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(attData.displayName))], verticalAlign: VerticalAlign.CENTER }),
-            new TableCell({ shading, children: [new Paragraph(formatTimeOnly(attData.checkInTime))], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
-            new TableCell({ shading, children: [new Paragraph(formatTimeOnly(attData.checkOutTime))], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
-            new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(dictGlobal.attendancePage.status[attData.status.toLowerCase() as keyof typeof dictGlobal.attendancePage.status] || attData.status))], alignment: AlignmentType.CENTER, verticalAlign: VerticalAlign.CENTER }),
+            new TableCell({ shading, children: [new Paragraph({ text: formatTimeOnly(attData.checkInTime), alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER }),
+            new TableCell({ shading, children: [new Paragraph({ text: formatTimeOnly(attData.checkOutTime), alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER }),
+            new TableCell({ shading, children: [new Paragraph({ text: ensureNonEmpty(dictGlobal.attendancePage.status[attData.status.toLowerCase() as keyof typeof dictGlobal.attendancePage.status] || attData.status), alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER }),
         ]});
     } else { // 'leave'
         const leaveData = event.data as LeaveRequest;
