@@ -106,7 +106,7 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
     const shading = index % 2 === 0 ? { type: ShadingType.SOLID, color: "F4F8FB", fill: "F4F8FB" } : undefined;
     summaryRows.push(new TableRow({
       children: [
-        new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(user.displayName || user.username))], verticalAlign: VerticalAlign.CENTER }),
+        new TableCell({ shading, children: [new Paragraph({ text: ensureNonEmpty(user.displayName || user.username) })], verticalAlign: VerticalAlign.CENTER }),
         new TableCell({ shading, children: [new Paragraph({ text: ensureNonEmpty(stats.present.toString()), alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER }),
         new TableCell({ shading, children: [new Paragraph({ text: ensureNonEmpty(stats.late.toString()), alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER }),
         new TableCell({ shading, children: [new Paragraph({ text: ensureNonEmpty(stats.on_leave.toString()), alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER }),
@@ -175,8 +175,8 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
     if (event.type === 'attendance') {
         const attData = event.data as AttendanceRecord;
         row = new TableRow({ children: [
-            new TableCell({ shading, children: [new Paragraph(formattedDate)], verticalAlign: VerticalAlign.CENTER }),
-            new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(attData.displayName))], verticalAlign: VerticalAlign.CENTER }),
+            new TableCell({ shading, children: [new Paragraph({ text: formattedDate })], verticalAlign: VerticalAlign.CENTER }),
+            new TableCell({ shading, children: [new Paragraph({ text: ensureNonEmpty(attData.displayName) })], verticalAlign: VerticalAlign.CENTER }),
             new TableCell({ shading, children: [new Paragraph({ text: formatTimeOnly(attData.checkInTime), alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER }),
             new TableCell({ shading, children: [new Paragraph({ text: formatTimeOnly(attData.checkOutTime), alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER }),
             new TableCell({ shading, children: [new Paragraph({ text: ensureNonEmpty(dictGlobal.attendancePage.status[attData.status.toLowerCase() as keyof typeof dictGlobal.attendancePage.status] || attData.status), alignment: AlignmentType.CENTER })], verticalAlign: VerticalAlign.CENTER }),
@@ -185,8 +185,8 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
         const leaveData = event.data as LeaveRequest;
         const leaveTypeText = dictGlobal.leaveRequestPage.leaveTypes[leaveData.leaveType.toLowerCase().replace(/ /g, '') as keyof typeof dictGlobal.leaveRequestPage.leaveTypes] || leaveData.leaveType;
         row = new TableRow({ children: [
-            new TableCell({ shading, children: [new Paragraph(formattedDate)], verticalAlign: VerticalAlign.CENTER }),
-            new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(event.user.displayName || event.user.username))], verticalAlign: VerticalAlign.CENTER }),
+            new TableCell({ shading, children: [new Paragraph({ text: formattedDate })], verticalAlign: VerticalAlign.CENTER }),
+            new TableCell({ shading, children: [new Paragraph({ text: ensureNonEmpty(event.user.displayName || event.user.username) })], verticalAlign: VerticalAlign.CENTER }),
             new TableCell({ shading, children: [new Paragraph({ text: `IZIN: ${leaveTypeText}`, alignment: AlignmentType.CENTER, style: "italic" })], verticalAlign: VerticalAlign.CENTER, columnSpan: 3 }),
         ]});
     }
@@ -205,7 +205,7 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
     sections: [{
       properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } },
       headers: { default: new Header({ children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: "Msarch App - Laporan Absensi Bulanan", italics: true, color: "7F8C8D" })] })] }) },
-      footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun("Halaman "), PageNumber.CURRENT, new TextRun(" dari "), PageNumber.TOTAL_PAGES] })] }) },
+      footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "Halaman " }), PageNumber.CURRENT, new TextRun({ text: " dari " }), PageNumber.TOTAL_PAGES] })] }) },
       children: children,
     }]
   });
