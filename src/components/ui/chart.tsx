@@ -41,27 +41,24 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null
   }
 
-  // Fix: Corrected the map logic and CSS variable generation
-  const cssVariables = colorConfig
-    .map(([key, itemConfig]) => {
-      // If theme is defined, use the light theme color as the base variable value.
-      // Dark theme overrides should be handled globally or via a .dark selector in CSS.
-      // If only color is defined, use that.
-      // If neither is explicitly defined, fall back to the default --chart-x variable (defined globally).
-      const colorValue = itemConfig.color || itemConfig.theme?.light; // Use light theme if theme object exists
-      return colorValue
-        ? `  --color-${key}: ${colorValue};`
-        : `  --color-${key}: var(--chart-${key as keyof ChartConfig});` // Fallback
-    })
-    .join("\n");
-
-  const styles = `
+  return (
+    <style
+      dangerouslySetInnerHTML={{
+        __html: `
 [data-chart=${id}] {
-${cssVariables}
-}
-`;
+${colorConfig
+  .map(([key, itemConfig]) => {
+    const color = itemConfig.color || (itemConfig.theme?.[THEMES.light] as string)
+    const colorDark = itemConfig.color || (itemConfig.theme?.[THEMES.dark] as string)
 
-  return <style dangerouslySetInnerHTML={{ __html: styles }} />
+    return `  --color-${key}: ${color};\n  --color-dark-${key}: ${colorDark};`
+  })
+  .join("\n")}
+}
+`,
+      }}
+    />
+  )
 }
 
 

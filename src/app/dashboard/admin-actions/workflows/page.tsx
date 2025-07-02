@@ -84,7 +84,7 @@ export default function ManageWorkflowsPage() {
   const [isClient, setIsClient] = React.useState(false);
   const [dict, setDict] = React.useState(defaultDict);
   const [workflowsDict, setWorkflowsDict] = React.useState(defaultDict.manageWorkflowsPage);
-  const [dashboardDict, setDashboardDict] = React.useState(defaultDict.dashboardPage);
+  const [manageUsersDict, setManageUsersDict] = React.useState(defaultDict.manageUsersPage);
 
 
   const [workflows, setWorkflows] = React.useState<Workflow[]>([]);
@@ -131,7 +131,7 @@ export default function ManageWorkflowsPage() {
     const newDict = getDictionary(language);
     setDict(newDict);
     setWorkflowsDict(newDict.manageWorkflowsPage);
-    setDashboardDict(newDict.dashboardPage);
+    setManageUsersDict(newDict.manageUsersPage);
   }, [language]);
   
   React.useEffect(() => {
@@ -258,17 +258,17 @@ export default function ManageWorkflowsPage() {
     }
   };
   
-  const getTranslatedRoleForStep = (roleName: string | string[] | null): string => {
+  const getTranslatedRoleForStep = React.useCallback((roleName: string | string[] | null): string => {
     if (!roleName) {
       return '';
     }
     if (Array.isArray(roleName)) {
       return roleName.map(name => getTranslatedRoleForStep(name)).join(', ');
     }
-    if (!isClient || !dashboardDict?.status) return roleName;
-    const key = roleName.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status;
-    return dashboardDict.status[key] || roleName;
-  };
+    if (!isClient || !manageUsersDict?.roles) return roleName;
+    const key = roleName.toLowerCase().replace(/ /g, '') as keyof typeof manageUsersDict.roles;
+    return manageUsersDict.roles[key] || roleName;
+  }, [isClient, manageUsersDict]);
 
   const moveStepUp = (index: number) => {
     if (index > 0 && currentEditableSteps) {
