@@ -53,7 +53,8 @@ import { cn } from '@/lib/utils';
 import { getNotificationsForUser, markNotificationAsRead, type Notification } from '@/services/notification-service';
 import { isAttendanceFeatureEnabled } from '@/services/settings-service';
 
-type LayoutDictKeys = keyof ReturnType<typeof getDictionary>['dashboardLayout'];
+type LayoutDict = ReturnType<typeof getDictionary>['dashboardLayout'];
+type LayoutDictKeys = keyof LayoutDict;
 
 // Helper functions moved outside component for better performance & organization
 const getUserRoleIcon = (role: string | undefined) => {
@@ -237,18 +238,26 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const menuItems = useMemo(() => {
     const allRoles = ["Owner", "Akuntan", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"];
     
-    const items = [
-      { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard" as LayoutDictKeys, roles: allRoles },
-      { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects" as LayoutDictKeys, roles: allRoles },
-      { href: "/dashboard/users", icon: Users, labelKey: "manageUsers" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Admin Developer"] },
-      { href: "/dashboard/attendance", icon: CalendarCheck, labelKey: "attendance" as LayoutDictKeys, roles: allRoles, featureFlag: true },
-      { href: "/dashboard/attendance-report", icon: FileClock, labelKey: "attendanceReport" as LayoutDictKeys, roles: ["Owner", "Admin Developer"], featureFlag: true },
-      { href: "/dashboard/leave-request/new", icon: Plane, labelKey: "requestLeave" as LayoutDictKeys, roles: allRoles },
-      { href: "/dashboard/admin-actions/leave-approvals", icon: ShieldCheck, labelKey: "leaveApprovals" as LayoutDictKeys, roles: ["Owner"] },
-      { href: "/dashboard/admin-actions", icon: Replace, labelKey: "adminActions" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Admin Developer"] },
-      { href: "/dashboard/admin-actions/workflows", icon: GitFork, labelKey: "manageWorkflows" as LayoutDictKeys, roles: ["Admin Developer"] },
-      { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport" as LayoutDictKeys, roles: ["Owner", "Akuntan", "Admin Proyek", "Admin Developer"] },
-      { href: "/dashboard/settings", icon: Settings, labelKey: "settings" as LayoutDictKeys, roles: allRoles },
+    type MenuItem = {
+      href: string;
+      icon: React.ComponentType<any>;
+      labelKey: LayoutDictKeys;
+      roles: string[];
+      featureFlag?: boolean;
+    };
+
+    const items: MenuItem[] = [
+      { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard", roles: allRoles },
+      { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects", roles: allRoles },
+      { href: "/dashboard/users", icon: Users, labelKey: "manageUsers", roles: ["Owner", "Akuntan", "Admin Proyek", "Admin Developer"] },
+      { href: "/dashboard/attendance", icon: CalendarCheck, labelKey: "attendance", roles: allRoles, featureFlag: true },
+      { href: "/dashboard/attendance-report", icon: FileClock, labelKey: "attendanceReport", roles: ["Owner", "Admin Developer"], featureFlag: true },
+      { href: "/dashboard/leave-request/new", icon: Plane, labelKey: "requestLeave", roles: allRoles },
+      { href: "/dashboard/admin-actions/leave-approvals", icon: ShieldCheck, labelKey: "leaveApprovals", roles: ["Owner"] },
+      { href: "/dashboard/admin-actions", icon: Replace, labelKey: "adminActions", roles: ["Owner", "Akuntan", "Admin Proyek", "Admin Developer"] },
+      { href: "/dashboard/admin-actions/workflows", icon: GitFork, labelKey: "manageWorkflows", roles: ["Admin Developer"] },
+      { href: "/dashboard/monthly-report", icon: FileBarChart, labelKey: "monthlyReport", roles: ["Owner", "Akuntan", "Admin Proyek", "Admin Developer"] },
+      { href: "/dashboard/settings", icon: Settings, labelKey: "settings", roles: allRoles },
     ];
     return items;
   }, []);
@@ -427,7 +436,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                              className="flex items-center gap-3 rounded-md px-3 py-2 text-primary-foreground/90 transition-colors hover:bg-primary-foreground/10 hover:text-primary-foreground"
                            >
                              <item.icon className="h-5 w-5" />
-                             <span>{layoutDict[item.labelKey as keyof typeof layoutDict]}</span>
+                             <span>{layoutDict[item.labelKey]}</span>
                            </Link>
                          ))
                      ) : (
