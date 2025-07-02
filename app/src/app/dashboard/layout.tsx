@@ -1,6 +1,6 @@
 
 import { Suspense, type ReactNode } from 'react';
-import DashboardClientLayout from '@/components/layout/DashboardClientLayout';
+import DashboardClientLayout from '../../components/layout/DashboardClientLayout';
 import { Loader2 } from 'lucide-react';
 
 function DashboardLoading() {
