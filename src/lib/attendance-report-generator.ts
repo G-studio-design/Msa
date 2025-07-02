@@ -146,7 +146,13 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
         });
     }
   });
-  const combinedEvents = Array.from(eventMap.values()).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime() || a.user.displayName.localeCompare(b.user.displayName));
+  const combinedEvents = Array.from(eventMap.values()).sort((a, b) => {
+    const dateComparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+    if (dateComparison !== 0) return dateComparison;
+    const nameA = a.user.displayName || a.user.username;
+    const nameB = b.user.displayName || b.user.username;
+    return nameA.localeCompare(nameB);
+  });
 
   const detailRows = [
     new TableRow({
@@ -180,7 +186,7 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
         const leaveTypeText = dictGlobal.leaveRequestPage.leaveTypes[leaveData.leaveType.toLowerCase().replace(/ /g, '') as keyof typeof dictGlobal.leaveRequestPage.leaveTypes] || leaveData.leaveType;
         row = new TableRow({ children: [
             new TableCell({ shading, children: [new Paragraph(formattedDate)], verticalAlign: VerticalAlign.CENTER }),
-            new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(event.user.displayName))], verticalAlign: VerticalAlign.CENTER }),
+            new TableCell({ shading, children: [new Paragraph(ensureNonEmpty(event.user.displayName || event.user.username))], verticalAlign: VerticalAlign.CENTER }),
             new TableCell({ shading, children: [new Paragraph({ text: `IZIN: ${leaveTypeText}`, alignment: AlignmentType.CENTER, style: "italic" })], verticalAlign: VerticalAlign.CENTER, columnSpan: 3 }),
         ]});
     }
