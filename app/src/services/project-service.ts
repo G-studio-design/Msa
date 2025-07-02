@@ -1,4 +1,3 @@
-
 // src/services/project-service.ts
 'use server';
 
@@ -160,14 +159,26 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
     await writeDb(DB_PATH, projects);
     console.log(`[ProjectService] Project "${newProject.title}" (ID: ${newProject.id}) added. Assigned to ${firstStep.assignedDivision} for "${firstStep.nextActionDescription}". Workflow: ${effectiveWorkflowId}`);
 
-    // The original 'if (firstStep.notification ...)' was incorrect because 'notification' is not a property of a step, but of a transition.
-    // The fallback logic is correct for sending an initial notification.
-    if (firstStep.assignedDivision) {
+    const transition = firstStep.transitions?.['submitted'] ?? null;
+    if (transition?.notification?.division) {
+        const notificationConfig = transition.notification;
+         let message = (notificationConfig.message || "Proyek baru '{projectName}' telah dibuat dan ditugaskan kepada Anda untuk {newStatus}.")
+            .replace('{projectName}', newProject.title)
+            .replace('{actorUsername}', projectData.createdBy)
+            .replace('{newStatus}', firstStep.nextActionDescription || firstStep.status);
+
+        const targetDivisions = Array.isArray(notificationConfig.division) ? notificationConfig.division : [notificationConfig.division];
+        for (const role of targetDivisions) {
+            if (role) {
+                await notifyUsersByRole(role, message, newProject.id);
+                console.log(`[ProjectService] Initial notification sent to role ${role} for project ${newProject.id}`);
+            }
+        }
+    } else if (firstStep.assignedDivision) {
         const message = `Proyek baru "${newProject.title}" telah dibuat oleh ${projectData.createdBy} dan memerlukan tindakan: ${firstStep.nextActionDescription || 'Langkah awal'}.`;
         await notifyUsersByRole(firstStep.assignedDivision, message, newProject.id);
         console.log(`[ProjectService] Fallback initial notification sent to ${firstStep.assignedDivision} for project ${newProject.id}`);
     }
-    
     return newProject;
 }
 
