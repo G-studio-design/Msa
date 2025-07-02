@@ -3,7 +3,6 @@
 
 import * as path from 'path';
 import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized utils
-import { getAllUsersForDisplay, findUserByUsername as findUserByUsernameInternal } from './user-service'; // findUserByUsernameInternal to avoid conflict
 import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
 import type { Project } from './project-service'; // Import Project type
 
