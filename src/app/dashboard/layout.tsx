@@ -54,7 +54,15 @@ import { getNotificationsForUser, markNotificationAsRead, type Notification } fr
 import { isAttendanceFeatureEnabled } from '@/services/settings-service';
 
 type LayoutDict = ReturnType<typeof getDictionary>['dashboardLayout'];
-type LayoutDictKeys = keyof LayoutDict;
+
+// FIX: Define a precise type for menu items to ensure type safety for labelKey.
+type MenuItem = {
+  href: string;
+  icon: React.ComponentType<any>;
+  labelKey: keyof LayoutDict; // This ensures the key is always valid for layoutDict
+  roles: string[];
+  featureFlag?: boolean;
+};
 
 // Helper functions moved outside component for better performance & organization
 const getUserRoleIcon = (role: string | undefined) => {
@@ -238,14 +246,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const menuItems = useMemo(() => {
     const allRoles = ["Owner", "Akuntan", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"];
     
-    type MenuItem = {
-      href: string;
-      icon: React.ComponentType<any>;
-      labelKey: LayoutDictKeys;
-      roles: string[];
-      featureFlag?: boolean;
-    };
-
+    // Use the explicitly defined MenuItem type here
     const items: MenuItem[] = [
       { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard", roles: allRoles },
       { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects", roles: allRoles },
