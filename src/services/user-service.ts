@@ -34,10 +34,10 @@ export interface UpdateProfileData {
     userId: string;
     username?: string;
     role?: string;
-    email?: string;
-    whatsappNumber?: string;
+    email?: string | null;
+    whatsappNumber?: string | null;
     profilePictureUrl?: string | null;
-    displayName?: string;
+    displayName?: string | null;
 }
 
 export interface UpdatePasswordData {
@@ -323,7 +323,7 @@ export async function updateUserGoogleTokens(
         ...users[userIndex],
         googleRefreshToken: tokens.refreshToken !== undefined ? tokens.refreshToken : users[userIndex].googleRefreshToken,
         googleAccessToken: tokens.accessToken !== undefined ? tokens.accessToken : users[userIndex].googleAccessToken,
-        accessTokenExpiresAt: tokens.accessTokenExpiresAt !== undefined ? tokens.accessTokenExpiresAt : users[userIndex].googleAccessTokenExpiresAt,
+        googleAccessTokenExpiresAt: tokens.accessTokenExpiresAt !== undefined ? tokens.accessTokenExpiresAt : users[userIndex].googleAccessTokenExpiresAt,
     };
     
     await writeDb(DB_PATH, users);
