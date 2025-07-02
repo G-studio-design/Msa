@@ -1,3 +1,4 @@
+
 'use client';
 
 // src/app/dashboard/settings/page.tsx
@@ -42,7 +43,7 @@ export default function SettingsPage() {
    const [username, setUsername] = React.useState('');
    const [email, setEmail] = React.useState('');
    const [whatsappNumber, setWhatsappNumber] = React.useState('');
-   const [currentProfilePictureUrl, setCurrentProfilePictureUrl] = React.useState<string | undefined>(undefined);
+   const [currentProfilePictureUrl, setCurrentProfilePictureUrl] = React.useState<string | null | undefined>(undefined);
    const [profilePicturePreview, setProfilePicturePreview] = React.useState<string | null>(null);
    const [isUploading, setIsUploading] = React.useState(false);
    const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
