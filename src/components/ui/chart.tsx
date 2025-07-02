@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -48,8 +47,8 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
 [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
-    const color = itemConfig.color || (itemConfig.theme?.[THEMES.light] as string)
-    const colorDark = itemConfig.color || (itemConfig.theme?.[THEMES.dark] as string)
+    const color = itemConfig.color || itemConfig.theme?.light
+    const colorDark = itemConfig.color || itemConfig.theme?.dark
 
     return `  --color-${key}: ${color};\n  --color-dark-${key}: ${colorDark};`
   })
