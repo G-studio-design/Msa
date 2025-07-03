@@ -2,7 +2,7 @@
 'use server';
 
 import * as path from 'path';
-import { readDb } from '@/lib/json-db-utils';
+import { readDb, writeDb } from '@/lib/json-db-utils';
 import type { User } from '@/types/user-types';
 
 const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');

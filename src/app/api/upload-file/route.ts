@@ -1,4 +1,3 @@
-
 // src/app/api/upload-file/route.ts
 import { NextResponse } from 'next/server';
 import * as fs from 'fs/promises';
@@ -6,6 +5,7 @@ import * as path from 'path';
 import { ensureProjectFilesBaseDirExists } from '@/services/project-service'; 
 import { sanitizeForPath } from '@/lib/path-utils'; 
 import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants';
+import { getAllUsers } from '@/services/data-access/user-data'; // Use the new data access layer
 
 // Define the allowed roles for file upload
 const ALLOWED_ROLES = ['Owner', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP', 'Admin Developer', 'Akuntan'];
@@ -32,17 +32,8 @@ export async function POST(request: Request) {
     console.log('[API Upload] All required fields are present. Proceeding with role check.');
 
     // --- Role Check ---
-    const usersFilePath = path.join(process.cwd(), 'src/database/users.json');
-    let users = [];
-    try {
-      const usersFileContent = await fs.readFile(usersFilePath, 'utf-8');
-      users = JSON.parse(usersFileContent);
-    } catch (readError) {
-      console.error('Error reading users.json:', readError);
-      return NextResponse.json({ message: 'Failed to read user data for authorization.' }, { status: 500 });
-    }
+    const users = await getAllUsers(); // Use the new data access layer
     console.log(`[API Upload] users.json read successfully. Searching for user ID: ${userId}`);
-
     const user = users.find((u: any) => u.id === userId);
 
     if (!user) {
