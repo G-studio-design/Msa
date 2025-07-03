@@ -23,7 +23,8 @@ import { LogIn, Loader2, AlertTriangle } from 'lucide-react'; // Removed ShieldC
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
-import { verifyUserCredentials, type User } from '@/services/user-service'; // Import local user service functions
+import { verifyUserCredentials } from '@/services/user-service'; // Import local user service functions
+import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 
 // Default dictionary for server render / pre-hydration
@@ -96,7 +97,7 @@ export default function LoginPage() {
             console.log('Login successful for user:', user.username, 'Role:', user.role);
             // --- Set Current User in Context ---
              // Password should not be included in user object returned by verifyUserCredentials
-             setCurrentUser(user); // Assuming verifyUserCredentials returns user without password
+             setCurrentUser(user as User);
             // --- End Set Current User ---
             toast({
                 title: dict.success,

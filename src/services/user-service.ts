@@ -1,55 +1,14 @@
 // src/services/user-service.ts
 'use server';
 
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized utils
-import { notifyUsersByRole } from './notification-service';
+import type { User, AddUserData, UpdateProfileData, UpdatePasswordData, UpdateUserGoogleTokensData } from '@/types/user-types';
 
-// Define the structure of a user
-export interface User {
-    id: string;
-    username: string;
-    role: string;
-    password?: string; // Plain text password for JSON, should be hashed in real DB
-    email?: string | null;
-    whatsappNumber?: string | null;
-    profilePictureUrl?: string | null;
-    displayName?: string | null;
-    createdAt?: string; // ISO date string
-    googleRefreshToken?: string | null;
-    googleAccessToken?: string | null;
-    googleAccessTokenExpiresAt?: number | null; // Unix timestamp (milliseconds)
-}
-
-export interface AddUserData {
-    username: string;
-    password: string;
-    role: string;
-    email?: string;
-    displayName?: string;
-}
-
-export interface UpdateProfileData {
-    userId: string;
-    username?: string;
-    role?: string;
-    email?: string | null;
-    whatsappNumber?: string | null;
-    profilePictureUrl?: string | null;
-    displayName?: string | null;
-}
-
-export interface UpdatePasswordData {
-    userId: string;
-    currentPassword?: string; // For verifying against current password
-    newPassword: string;
-}
-
-export interface UpdateUserGoogleTokensData {
-    refreshToken?: string | null;
-    accessToken: string | null;
-    accessTokenExpiresAt: number | null; // Unix timestamp (milliseconds)
+// Using dynamic import to break the circular dependency cycle
+// user-service -> notification-service -> user-service
+async function getNotificationService() {
+  return await import('./notification-service');
 }
 
 
@@ -253,6 +212,7 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
     console.log(`[UserService] User profile for ${updateData.userId} updated successfully.`);
     
     if (currentUserState.role !== 'Admin Developer' && (updateData.username || updateData.role)) {
+      const { notifyUsersByRole } = await getNotificationService();
       const adminRolesToNotify = ['Owner', 'Akuntan'];
       adminRolesToNotify.forEach(async (role) => {
           await notifyUsersByRole(role, `User profile for "${updatedUser.username}" (Role: ${updatedUser.role}) has been updated.`);
@@ -288,6 +248,7 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
     console.log(`[UserService] Password for user ${updateData.userId} updated successfully.`);
         
     if (user.role !== 'Admin Developer') {
+        const { notifyUsersByRole } = await getNotificationService();
         const adminRolesToNotify = ['Owner', 'Akuntan'];
         adminRolesToNotify.forEach(async (role) => {
             await notifyUsersByRole(role, `Password for user "${user.username}" (Role: ${user.role}) has been changed.`);
@@ -323,7 +284,7 @@ export async function updateUserGoogleTokens(
         ...users[userIndex],
         googleRefreshToken: tokens.refreshToken !== undefined ? tokens.refreshToken : users[userIndex].googleRefreshToken,
         googleAccessToken: tokens.accessToken !== undefined ? tokens.accessToken : users[userIndex].googleAccessToken,
-        googleAccessTokenExpiresAt: tokens.accessTokenExpiresAt !== undefined ? tokens.accessTokenExpiresAt : users[userIndex].googleAccessTokenExpiresAt,
+        accessTokenExpiresAt: tokens.accessTokenExpiresAt !== undefined ? tokens.accessTokenExpiresAt : users[userIndex].googleAccessTokenExpiresAt,
     };
     
     await writeDb(DB_PATH, users);

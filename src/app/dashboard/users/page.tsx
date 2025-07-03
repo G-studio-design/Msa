@@ -1,4 +1,3 @@
-
 'use client';
 
 // src/app/dashboard/users/page.tsx
@@ -68,9 +67,8 @@ import {
     addUser,
     updateUserProfile,
     deleteUser,
-    type User as UserType,
-    type UpdateProfileData,
 } from '@/services/user-service';
+import type { User as UserType, UpdateProfileData } from '@/types/user-types'; // CORRECT: Import from centralized types file
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 

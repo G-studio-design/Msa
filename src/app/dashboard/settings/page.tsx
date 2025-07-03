@@ -1,4 +1,3 @@
-
 'use client';
 
 // src/app/dashboard/settings/page.tsx
@@ -20,7 +19,8 @@ import { useLanguage } from '@/context/LanguageContext'; // Import language cont
 import { getDictionary } from '@/lib/translations'; // Import translation helper
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 import { Loader2, Upload, Link as LinkIcon, Unlink } from 'lucide-react'; // Import icons
-import { updatePassword, updateUserProfile, clearUserGoogleTokens, type User, type UpdateProfileData } from '@/services/user-service'; // Import user service functions
+import { updatePassword, updateUserProfile, clearUserGoogleTokens } from '@/services/user-service'; // Import user service functions
+import type { User, UpdateProfileData } from '@/types/user-types'; // CORRECT: Import from centralized types file
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
 import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
 import { Skeleton } from '@/components/ui/skeleton'; // Import Skeleton

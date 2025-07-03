@@ -21,7 +21,7 @@ import {
   SectionType,
   UnderlineType,
 } from 'docx';
-import type { Project } from '@/services/project-service';
+import type { Project } from '@/types/project-types';
 import type { Language } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { format, parseISO } from 'date-fns';

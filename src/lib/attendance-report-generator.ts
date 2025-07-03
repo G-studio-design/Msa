@@ -6,7 +6,7 @@ import {
   WidthType, BorderStyle, VerticalAlign, AlignmentType, ShadingType, Header, Footer, PageNumber, SectionType
 } from 'docx';
 import type { AttendanceRecord } from '@/services/attendance-service';
-import type { User } from '@/services/user-service';
+import type { User } from '@/types/user-types';
 import type { LeaveRequest } from '@/services/leave-request-service';
 import type { HolidayEntry } from '@/services/holiday-service';
 import type { Language } from '@/context/LanguageContext';
@@ -127,7 +127,7 @@ export async function generateAttendanceWordReport(data: ReportData): Promise<Bu
   }));
   
   // Combined events for detailed log
-  interface CombinedEvent { type: 'attendance' | 'leave'; date: string; user: User; data: AttendanceRecord | LeaveRequest; }
+  interface CombinedEvent { type: 'attendance' | 'leave'; date: string; user: Omit<User, 'password'>; data: AttendanceRecord | LeaveRequest; }
   const eventMap = new Map<string, CombinedEvent>();
   records.forEach(rec => {
     const user = users.find(u => u.id === rec.userId);

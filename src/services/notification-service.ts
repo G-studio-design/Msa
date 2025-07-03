@@ -3,8 +3,8 @@
 
 import * as path from 'path';
 import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized utils
-import { getAllUsersForDisplay, findUserByUsername as findUserByUsernameInternal, type User } from './user-service'; // findUserByUsernameInternal to avoid conflict if User type is also User
-import type { Project } from './project-service'; // Import Project type
+import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
+import type { Project } from '@/types/project-types'; // CORRECTED: Import from centralized types file
 
 // Define the structure of a Notification
 export interface Notification {
