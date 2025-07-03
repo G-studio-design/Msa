@@ -2,27 +2,17 @@
 'use server';
 
 import * as path from 'path';
-import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized utils
+import { readDb, writeDb } from '@/lib/json-db-utils';
+import { notifyUsersByRole } from './notification-service';
 import type { User, AddUserData, UpdateProfileData, UpdatePasswordData, UpdateUserGoogleTokensData } from '@/types/user-types';
-
-// Using dynamic import to break the circular dependency cycle
-// user-service -> notification-service -> (potentially other services) -> user-service
-async function getNotificationService() {
-  return await import('./notification-service');
-}
-
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
 
 // --- Helper Functions ---
 
-// The individual read/write functions are no longer needed here.
-// Instead, we create a helper that uses the generic `readDb` but adds
-// the specific logic for creating default users if the DB is empty.
 async function getUsers(): Promise<User[]> {
-    let users = await readDb<User[]>(DB_PATH, []); // Use default empty array
+    let users = await readDb<User[]>(DB_PATH, []);
     
-    // Special logic: If the database is freshly created/empty, populate with defaults.
     if (users.length === 0) {
         console.log("[UserService] User database is empty. Initializing with default users.");
         const defaultUsers: User[] = [
@@ -212,7 +202,6 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
     console.log(`[UserService] User profile for ${updateData.userId} updated successfully.`);
     
     if (currentUserState.role !== 'Admin Developer' && (updateData.username || updateData.role)) {
-      const { notifyUsersByRole } = await getNotificationService();
       const adminRolesToNotify = ['Owner', 'Akuntan'];
       adminRolesToNotify.forEach(async (role) => {
           await notifyUsersByRole(role, `User profile for "${updatedUser.username}" (Role: ${updatedUser.role}) has been updated.`);
@@ -248,7 +237,6 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
     console.log(`[UserService] Password for user ${updateData.userId} updated successfully.`);
         
     if (user.role !== 'Admin Developer') {
-        const { notifyUsersByRole } = await getNotificationService();
         const adminRolesToNotify = ['Owner', 'Akuntan'];
         adminRolesToNotify.forEach(async (role) => {
             await notifyUsersByRole(role, `Password for user "${user.username}" (Role: ${user.role}) has been changed.`);

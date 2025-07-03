@@ -2,9 +2,8 @@
 'use server';
 
 import * as path from 'path';
-import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized utils
-import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
-import type { Project } from '@/types/project-types'; // CORRECTED: Import from centralized types file
+import { readDb, writeDb } from '@/lib/json-db-utils';
+import type { User } from '@/types/user-types';
 
 // Define the structure of a Notification
 export interface Notification {
@@ -19,17 +18,11 @@ export interface Notification {
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
 const NOTIFICATION_LIMIT = 300; // Limit the total number of notifications stored
 
-// --- Helper Functions ---
-
-// The individual read/write functions are no longer needed here.
-// The new readDb/writeDb functions from json-db-utils handle file access.
-
 // This function needs to read users.json directly to get all users including developers
 async function getAllUsersIncludingDevelopers(): Promise<User[]> {
     const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     return await readDb<User[]>(USERS_DB_PATH, []);
 }
-
 
 async function findUsersByRole(role: string): Promise<User[]> {
     const allUsers = await getAllUsersIncludingDevelopers();
@@ -37,8 +30,6 @@ async function findUsersByRole(role: string): Promise<User[]> {
     console.log(`[NotificationService/findUsersByRole] Found ${usersInRole.length} user(s) with role "${role}" for notification.`);
     return usersInRole;
 }
-
-// --- Notification Service Functions ---
 
 export async function notifyUsersByRole(roleOrRoles: string | string[], message: string, projectId?: string): Promise<void> {
     const rolesToNotify = Array.isArray(roleOrRoles) ? roleOrRoles : [roleOrRoles];
@@ -127,7 +118,6 @@ export async function notifyUserById(userId: string, message: string, projectId?
         console.error(`[NotificationService] Error notifying user ID "${userId}":`, error);
     }
 }
-
 
 export async function getNotificationsForUser(userId: string): Promise<Notification[]> {
     const allNotifications = await readDb<Notification[]>(DB_PATH, []);
