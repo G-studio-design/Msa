@@ -1,3 +1,4 @@
+
 // src/services/data-access/user-data.ts
 'use server';
 
@@ -28,13 +29,6 @@ const DEFAULT_USERS: User[] = [
     }
 ];
 
-
-/**
- * Reads the entire user database, including developers.
- * Initializes with default users if the database is empty.
- * This is a low-level data access function.
- * @returns A promise that resolves to an array of all User objects.
- */
 export async function getAllUsers(): Promise<User[]> {
     let users = await readDb<User[]>(USERS_DB_PATH, []);
     
