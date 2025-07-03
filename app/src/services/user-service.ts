@@ -3,7 +3,7 @@
 
 import * as path from 'path';
 import { writeDb } from '@/lib/json-db-utils';
-import { notifyUsersByRole } from './notification-service';
+// REMOVED: import { notifyUsersByRole } from './notification-service';
 import type { User, AddUserData, UpdateProfileData, UpdatePasswordData, UpdateUserGoogleTokensData } from '@/types/user-types';
 import { getAllUsers } from './data-access/user-data'; // IMPORT FROM NEW DATA ACCESS LAYER
 
@@ -165,12 +165,9 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
     await writeDb(DB_PATH, users);
     console.log(`[UserService] User profile for ${updateData.userId} updated successfully.`);
     
-    if (currentUserState.role !== 'Admin Developer' && (updateData.username || updateData.role)) {
-      const adminRolesToNotify = ['Owner', 'Akuntan'];
-      adminRolesToNotify.forEach(async (role) => {
-          await notifyUsersByRole(role, `User profile for "${updatedUser.username}" (Role: ${updatedUser.role}) has been updated.`);
-      });
-    }
+    // REMOVED: Notification logic has been decoupled from this service.
+    // The calling component or action is now responsible for sending notifications if needed.
+
     const { password: _p, ...userWithoutPassword } = updatedUser;
     return userWithoutPassword;
 }
@@ -199,12 +196,7 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
     await writeDb(DB_PATH, users);
     console.log(`[UserService] Password for user ${updateData.userId} updated successfully.`);
         
-    if (user.role !== 'Admin Developer') {
-        const adminRolesToNotify = ['Owner', 'Akuntan'];
-        adminRolesToNotify.forEach(async (role) => {
-            await notifyUsersByRole(role, `Password for user "${user.username}" (Role: ${user.role}) has been changed.`);
-        });
-    }
+    // REMOVED: Notification logic has been decoupled from this service.
 }
 
 export async function getAllUsersForDisplay(): Promise<Omit<User, 'password'>[]> {
