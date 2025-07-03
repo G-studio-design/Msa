@@ -5,7 +5,7 @@ import * as path from 'path';
 import { writeDb } from '@/lib/json-db-utils';
 import { notifyUsersByRole } from './notification-service';
 import type { User, AddUserData, UpdateProfileData, UpdatePasswordData, UpdateUserGoogleTokensData } from '@/types/user-types';
-import { getAllUsers } from './data-access/user-data'; // IMPORT FROM NEW DATA ACCESS LAYER
+import { getAllUsers } from './data-access/user-data';
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
 

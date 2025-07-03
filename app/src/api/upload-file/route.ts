@@ -5,7 +5,7 @@ import * as path from 'path';
 import { ensureProjectFilesBaseDirExists } from '@/services/project-service'; 
 import { sanitizeForPath } from '@/lib/path-utils'; 
 import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants';
-import { getAllUsers } from '@/services/data-access/user-data'; // Use the new data access layer
+import { getAllUsers } from '@/services/data-access/user-data';
 
 // Define the allowed roles for file upload
 const ALLOWED_ROLES = ['Owner', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP', 'Admin Developer', 'Akuntan'];
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     console.log('[API Upload] All required fields are present. Proceeding with role check.');
 
     // --- Role Check ---
-    const users = await getAllUsers(); // Use the new data access layer
+    const users = await getAllUsers();
     console.log(`[API Upload] users.json read successfully. Searching for user ID: ${userId}`);
     const user = users.find((u: any) => u.id === userId);
 
