@@ -4,6 +4,7 @@
 import * as path from 'path';
 import { readDb, writeDb } from '@/lib/json-db-utils';
 import type { User } from '@/types/user-types';
+import { getAllUsers } from './data-access/user-data'; // IMPORT FROM NEW DATA ACCESS LAYER
 
 // Define the structure of a Notification
 export interface Notification {
@@ -18,14 +19,9 @@ export interface Notification {
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
 const NOTIFICATION_LIMIT = 300; // Limit the total number of notifications stored
 
-// This function needs to read users.json directly to get all users including developers
-async function getAllUsersIncludingDevelopers(): Promise<User[]> {
-    const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
-    return await readDb<User[]>(USERS_DB_PATH, []);
-}
 
 async function findUsersByRole(role: string): Promise<User[]> {
-    const allUsers = await getAllUsersIncludingDevelopers();
+    const allUsers = await getAllUsers(); // USE THE NEW DATA ACCESS FUNCTION
     const usersInRole = allUsers.filter(user => user.role === role);
     console.log(`[NotificationService/findUsersByRole] Found ${usersInRole.length} user(s) with role "${role}" for notification.`);
     return usersInRole;
@@ -141,25 +137,6 @@ export async function markNotificationAsRead(notificationId: string): Promise<vo
     } else {
         console.warn(`[NotificationService] Notification ${notificationId} not found to mark as read.`);
     }
-}
-
-export async function markAllNotificationsAsRead(userId: string): Promise<void> {
-     let changed = false;
-     const notifications = await readDb<Notification[]>(DB_PATH, []);
-     const updatedNotifications = notifications.map(n => {
-         if (n.userId === userId && !n.isRead) {
-             changed = true;
-             return { ...n, isRead: true };
-         }
-         return n;
-     });
-
-     if (changed) {
-         await writeDb(DB_PATH, updatedNotifications); 
-         console.log(`[NotificationService] All unread notifications marked as read for user ${userId}.`);
-     } else {
-         console.log(`[NotificationService] No unread notifications found for user ${userId} to mark as read.`);
-     }
 }
 
 export async function deleteNotificationsByProjectId(projectId: string): Promise<void> {

@@ -2,54 +2,19 @@
 'use server';
 
 import * as path from 'path';
-import { readDb, writeDb } from '@/lib/json-db-utils';
+import { writeDb } from '@/lib/json-db-utils';
 import { notifyUsersByRole } from './notification-service';
 import type { User, AddUserData, UpdateProfileData, UpdatePasswordData, UpdateUserGoogleTokensData } from '@/types/user-types';
+import { getAllUsers } from './data-access/user-data'; // IMPORT FROM NEW DATA ACCESS LAYER
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
-
-// --- Helper Functions ---
-
-async function getUsers(): Promise<User[]> {
-    let users = await readDb<User[]>(DB_PATH, []);
-    
-    if (users.length === 0) {
-        console.log("[UserService] User database is empty. Initializing with default users.");
-        const defaultUsers: User[] = [
-            {
-              id: "usr_dev_iwg",
-              username: "I.wayan_govina",
-              password: "Govina110900",
-              role: "Admin Developer",
-              email: "i.wayan_govina@example.dev",
-              displayName: "I Wayan Govina (Dev)",
-              createdAt: new Date().toISOString(),
-              whatsappNumber: ""
-            },
-            {
-              id: "usr_owner_default",
-              username: "owner_default",
-              password: "owner123",
-              role: "Owner",
-              email: "owner@example.com",
-              displayName: "Default Owner",
-              createdAt: new Date().toISOString()
-            }
-        ];
-        await writeDb(DB_PATH, defaultUsers);
-        return defaultUsers;
-    }
-    
-    return users;
-}
-
 
 // --- Main Service Functions ---
 
 export async function findUserByUsername(username: string): Promise<User | null> {
     console.log(`[UserService] Finding user by username: ${username}`);
     if (!username) return null;
-    const users = await getUsers();
+    const users = await getAllUsers();
     const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
     return user || null;
 }
@@ -57,7 +22,7 @@ export async function findUserByUsername(username: string): Promise<User | null>
 export async function findUserByEmail(email: string): Promise<User | null> {
     if (!email) return null;
     console.log(`[UserService] Finding user by email: ${email}`);
-    const users = await getUsers();
+    const users = await getAllUsers();
     const user = users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
     return user || null;
 }
@@ -65,7 +30,7 @@ export async function findUserByEmail(email: string): Promise<User | null> {
 export async function findUserById(userId: string): Promise<User | null> {
     console.log(`[UserService] Finding user by ID: ${userId}`);
     if(!userId) return null;
-    const users = await getUsers();
+    const users = await getAllUsers();
     const user = users.find(u => u.id === userId);
     return user || null;
 }
@@ -85,7 +50,6 @@ export async function verifyUserCredentials(usernameInput: string, passwordInput
         return null;
     }
 
-    // For JSON, we compare plain text passwords. In a real DB, this would be hashed.
     const isPasswordCorrect = passwordInput === user.password;
 
     if (isPasswordCorrect) {
@@ -100,7 +64,7 @@ export async function verifyUserCredentials(usernameInput: string, passwordInput
 
 export async function addUser(userData: AddUserData): Promise<Omit<User, 'password'>> {
     console.log('[UserService] Attempting to add user:', userData.username, userData.role);
-    const users = await getUsers();
+    const users = await getAllUsers();
 
     if (userData.role === 'Admin Developer') {
         console.error('[UserService] Cannot add user with role "Admin Developer" through this function.');
@@ -126,7 +90,7 @@ export async function addUser(userData: AddUserData): Promise<Omit<User, 'passwo
     const newUser: User = {
         id: userId,
         username: userData.username,
-        password: userData.password, // Storing plain text for JSON demo
+        password: userData.password,
         role: userData.role,
         email: userData.email || `${userData.username.toLowerCase().replace(/\s+/g, '_')}@example.com`,
         displayName: userData.displayName || userData.username,
@@ -142,7 +106,7 @@ export async function addUser(userData: AddUserData): Promise<Omit<User, 'passwo
 
 export async function deleteUser(userId: string): Promise<void> {
     console.log(`[UserService] Attempting to delete user with ID: ${userId}`);
-    let users = await getUsers();
+    let users = await getAllUsers();
     const userToDelete = users.find(user => user.id === userId);
 
     if (!userToDelete) {
@@ -162,7 +126,7 @@ export async function deleteUser(userId: string): Promise<void> {
 
 export async function updateUserProfile(updateData: UpdateProfileData): Promise<Omit<User, 'password'> | null> {
     console.log(`[UserService] Attempting to update profile for user ID: ${updateData.userId}`);
-    let users = await getUsers();
+    let users = await getAllUsers();
     const userIndex = users.findIndex(u => u.id === updateData.userId);
 
     if (userIndex === -1) {
@@ -207,14 +171,13 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
           await notifyUsersByRole(role, `User profile for "${updatedUser.username}" (Role: ${updatedUser.role}) has been updated.`);
       });
     }
-    // Return user without password for security, even though it's plain in JSON for demo
     const { password: _p, ...userWithoutPassword } = updatedUser;
     return userWithoutPassword;
 }
 
 export async function updatePassword(updateData: UpdatePasswordData): Promise<void> {
     console.log(`[UserService] Attempting to update password for user ID: ${updateData.userId}`);
-    let users = await getUsers();
+    let users = await getAllUsers();
     const userIndex = users.findIndex(u => u.id === updateData.userId);
 
     if (userIndex === -1) {
@@ -232,7 +195,7 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
         console.log(`[UserService] Current password verified for user ${updateData.userId}.`);
     }
 
-    users[userIndex].password = updateData.newPassword; // Storing new plain text password
+    users[userIndex].password = updateData.newPassword;
     await writeDb(DB_PATH, users);
     console.log(`[UserService] Password for user ${updateData.userId} updated successfully.`);
         
@@ -246,7 +209,7 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
 
 export async function getAllUsersForDisplay(): Promise<Omit<User, 'password'>[]> {
     console.log("[UserService] Fetching all users for display (excluding Admin Developer).");
-    const users = await getUsers();
+    const users = await getAllUsers();
     return users
         .filter(user => user.role !== 'Admin Developer')
         .map(user => {
@@ -260,7 +223,7 @@ export async function updateUserGoogleTokens(
     tokens: UpdateUserGoogleTokensData
 ): Promise<void> {
     console.log(`[UserService] Updating Google tokens for user ID: ${userId}`);
-    let users = await getUsers();
+    let users = await getAllUsers();
     const userIndex = users.findIndex(u => u.id === userId);
 
     if (userIndex === -1) {
@@ -272,7 +235,7 @@ export async function updateUserGoogleTokens(
         ...users[userIndex],
         googleRefreshToken: tokens.refreshToken !== undefined ? tokens.refreshToken : users[userIndex].googleRefreshToken,
         googleAccessToken: tokens.accessToken !== undefined ? tokens.accessToken : users[userIndex].googleAccessToken,
-        accessTokenExpiresAt: tokens.accessTokenExpiresAt !== undefined ? tokens.accessTokenExpiresAt : users[userIndex].googleAccessTokenExpiresAt,
+        accessTokenExpiresAt: tokens.accessTokenExpiresAt !== undefined ? tokens.accessTokenExpiresAt : users[userIndex].accessTokenExpiresAt,
     };
     
     await writeDb(DB_PATH, users);
@@ -281,7 +244,7 @@ export async function updateUserGoogleTokens(
 
 export async function clearUserGoogleTokens(userId: string): Promise<Omit<User, 'password'> | null> {
     console.log(`[UserService] Clearing Google tokens for user ID: ${userId}`);
-    let users = await getUsers();
+    let users = await getAllUsers();
     const userIndex = users.findIndex(u => u.id === userId);
 
     if (userIndex === -1) {
@@ -291,17 +254,11 @@ export async function clearUserGoogleTokens(userId: string): Promise<Omit<User, 
 
     const user = { ...users[userIndex] };
     
-    // Set fields to null/undefined
-    user.googleRefreshToken = null;
-    user.googleAccessToken = null;
-    user.googleAccessTokenExpiresAt = null;
-
+    delete user.googleRefreshToken;
+    delete user.googleAccessToken;
+    delete user.accessTokenExpiresAt;
+    
     users[userIndex] = user;
-
-    // We can also delete the keys if we want to be cleaner
-    delete users[userIndex].googleRefreshToken;
-    delete users[userIndex].googleAccessToken;
-    delete users[userIndex].googleAccessTokenExpiresAt;
     
     await writeDb(DB_PATH, users);
     console.log(`[UserService] Google tokens for user ${userId} cleared successfully.`);
