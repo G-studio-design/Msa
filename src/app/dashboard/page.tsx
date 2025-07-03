@@ -16,11 +16,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
-import { getAllProjects, type Project } from '@/services/project-service';
+import { getAllProjects } from '@/services/project-service';
+import type { Project } from '@/types/project-types';
 import { getApprovedLeaveRequests, type LeaveRequest } from '@/services/leave-request-service';
 import { getAllHolidays, type HolidayEntry } from '@/services/holiday-service';
 import { getAllUsersForDisplay } from '@/services/user-service';
-import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
+import type { User } from '@/types/user-types';
 import { getTodaysAttendanceForAllUsers, type AttendanceRecord } from '@/services/attendance-service';
 import Link from 'next/link';
 import { Calendar } from "@/components/ui/calendar";

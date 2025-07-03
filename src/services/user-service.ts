@@ -6,7 +6,7 @@ import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized uti
 import type { User, AddUserData, UpdateProfileData, UpdatePasswordData, UpdateUserGoogleTokensData } from '@/types/user-types';
 
 // Using dynamic import to break the circular dependency cycle
-// user-service -> notification-service -> user-service
+// user-service -> notification-service -> (potentially other services) -> user-service
 async function getNotificationService() {
   return await import('./notification-service');
 }

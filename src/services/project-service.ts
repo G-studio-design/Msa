@@ -5,11 +5,10 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
-import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized utils
+import { readDb, writeDb } from '@/lib/json-db-utils';
 import { notifyUsersByRole, deleteNotificationsByProjectId } from './notification-service';
 import { sanitizeForPath } from '@/lib/path-utils';
 import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants';
-import type { Workflow, WorkflowStep, WorkflowStepTransition } from '@/types/workflow-types';
 import { getWorkflowById, getFirstStep, getTransitionInfo } from './workflow-service';
 import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
 import type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry } from '@/types/project-types';
@@ -21,10 +20,6 @@ export type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleD
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
 
 // --- Helper Functions ---
-
-// The individual read/write functions are no longer needed here.
-// The new readDb/writeDb functions from json-db-utils handle file access.
-
 
 export async function ensureProjectFilesBaseDirExists(): Promise<void> {
     try {

@@ -2,9 +2,9 @@
 'use server';
 
 import * as path from 'path';
-import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized utils
+import { readDb, writeDb } from '@/lib/json-db-utils';
 import { notifyUsersByRole, notifyUserById } from './notification-service';
-import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
+import type { User } from '@/types/user-types';
 
 export interface LeaveRequest {
   id: string;
@@ -33,8 +33,6 @@ export interface AddLeaveRequestData {
 }
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
-
-// The individual read/write functions are no longer needed here.
 
 export async function addLeaveRequest(data: AddLeaveRequestData): Promise<LeaveRequest> {
   const leaveRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
