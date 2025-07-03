@@ -2,7 +2,7 @@
 'use server';
 
 import * as path from 'path';
-import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized utils
+import { readDb, writeDb } from '@/lib/json-db-utils';
 
 export interface HolidayEntry {
   id: string;
@@ -13,8 +13,6 @@ export interface HolidayEntry {
 }
 
 const HOLIDAYS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'holidays.json');
-
-// The individual read/write functions are no longer needed here.
 
 export async function getAllHolidays(): Promise<HolidayEntry[]> {
   console.log("[HolidayService] Fetching all holidays.");

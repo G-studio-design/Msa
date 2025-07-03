@@ -2,7 +2,7 @@
 'use server';
 
 import * as path from 'path';
-import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized utils
+import { readDb, writeDb } from '@/lib/json-db-utils';
 import type { User, AddUserData, UpdateProfileData, UpdatePasswordData, UpdateUserGoogleTokensData } from '@/types/user-types';
 
 // Using dynamic import to break the circular dependency cycle
@@ -11,18 +11,12 @@ async function getNotificationService() {
   return await import('./notification-service');
 }
 
-
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
 
 // --- Helper Functions ---
-
-// The individual read/write functions are no longer needed here.
-// Instead, we create a helper that uses the generic `readDb` but adds
-// the specific logic for creating default users if the DB is empty.
 async function getUsers(): Promise<User[]> {
-    let users = await readDb<User[]>(DB_PATH, []); // Use default empty array
+    let users = await readDb<User[]>(DB_PATH, []);
     
-    // Special logic: If the database is freshly created/empty, populate with defaults.
     if (users.length === 0) {
         console.log("[UserService] User database is empty. Initializing with default users.");
         const defaultUsers: User[] = [
@@ -95,7 +89,6 @@ export async function verifyUserCredentials(usernameInput: string, passwordInput
         return null;
     }
 
-    // For JSON, we compare plain text passwords. In a real DB, this would be hashed.
     const isPasswordCorrect = passwordInput === user.password;
 
     if (isPasswordCorrect) {
@@ -136,7 +129,7 @@ export async function addUser(userData: AddUserData): Promise<Omit<User, 'passwo
     const newUser: User = {
         id: userId,
         username: userData.username,
-        password: userData.password, // Storing plain text for JSON demo
+        password: userData.password,
         role: userData.role,
         email: userData.email || `${userData.username.toLowerCase().replace(/\s+/g, '_')}@example.com`,
         displayName: userData.displayName || userData.username,
@@ -218,7 +211,7 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
           await notifyUsersByRole(role, `User profile for "${updatedUser.username}" (Role: ${updatedUser.role}) has been updated.`);
       });
     }
-    // Return user without password for security, even though it's plain in JSON for demo
+
     const { password: _p, ...userWithoutPassword } = updatedUser;
     return userWithoutPassword;
 }
@@ -243,7 +236,7 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
         console.log(`[UserService] Current password verified for user ${updateData.userId}.`);
     }
 
-    users[userIndex].password = updateData.newPassword; // Storing new plain text password
+    users[userIndex].password = updateData.newPassword;
     await writeDb(DB_PATH, users);
     console.log(`[UserService] Password for user ${updateData.userId} updated successfully.`);
         
@@ -303,17 +296,11 @@ export async function clearUserGoogleTokens(userId: string): Promise<Omit<User, 
 
     const user = { ...users[userIndex] };
     
-    // Set fields to null/undefined
-    user.googleRefreshToken = null;
-    user.googleAccessToken = null;
-    user.googleAccessTokenExpiresAt = null;
-
+    delete user.googleRefreshToken;
+    delete user.googleAccessToken;
+    delete user.googleAccessTokenExpiresAt;
+    
     users[userIndex] = user;
-
-    // We can also delete the keys if we want to be cleaner
-    delete users[userIndex].googleRefreshToken;
-    delete users[userIndex].googleAccessToken;
-    delete users[userIndex].googleAccessTokenExpiresAt;
     
     await writeDb(DB_PATH, users);
     console.log(`[UserService] Google tokens for user ${userId} cleared successfully.`);

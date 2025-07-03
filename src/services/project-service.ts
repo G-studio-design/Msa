@@ -13,13 +13,7 @@ import { getWorkflowById, getFirstStep, getTransitionInfo } from './workflow-ser
 import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
 import type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry } from '@/types/project-types';
 
-// Re-export types for consumers of this service
-export type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry };
-
-
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
-
-// --- Helper Functions ---
 
 export async function ensureProjectFilesBaseDirExists(): Promise<void> {
     try {
@@ -29,8 +23,6 @@ export async function ensureProjectFilesBaseDirExists(): Promise<void> {
         throw new Error('Failed to create project files base directory.');
     }
 }
-
-// --- Main Service Functions ---
 
 export async function addProject(projectData: AddProjectData): Promise<Project> {
     const effectiveWorkflowId = projectData.workflowId || DEFAULT_WORKFLOW_ID;
@@ -190,7 +182,6 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
     const now = new Date().toISOString();
     const filesWithTimestamp = newFilesData.map(file => ({ ...file, timestamp: now }));
 
-    // Handle special in-step action for architect uploading initial images
     if (actionTaken === 'architect_uploaded_initial_images_for_struktur') {
         const historyAction = `${updaterUsername} (${updaterRole}) uploaded initial reference images for Struktur & MEP.`;
         const newWorkflowHistoryEntry: WorkflowHistoryEntry = {
@@ -216,7 +207,7 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
         const notificationMessageMEP = `Gambar referensi awal dari Arsitek (${updaterUsername}) untuk proyek '${updatedProject.title}' telah diunggah. Anda bisa mulai melakukan perencanaan MEP awal.`
             .replace('{projectName}', updatedProject.title)
             .replace('{actorUsername}', updaterUsername);
-        await notifyUsersByRole("MEP", notificationMessageMEP, projectId); // Notify MEP
+        await notifyUsersByRole("MEP", notificationMessageMEP, projectId);
 
         console.log(`[ProjectService] Notifications sent to Struktur and MEP for project ${projectId} (Initial Architect Images)`);
         return updatedProject;
@@ -225,7 +216,6 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
     const transitionInfo = await getTransitionInfo(projectWorkflowId, currentProject.status, currentProject.progress, actionTaken);
     console.log(`[ProjectService] Update for P_ID ${projectId}, Current Status: ${currentProject.status}, Progress: ${currentProject.progress}, Action: ${actionTaken}, TransitionInfo found:`, !!transitionInfo, transitionInfo ? `to ${transitionInfo.targetStatus}` : 'No transition');
 
-    // Special handling for file uploads during parallel design phase
     if ((currentProject.status === 'Pending Parallel Design Uploads' || currentProject.status === 'Pending Post-Sidang Revision') && actionTaken === 'submitted' && newFilesData.length > 0) {
         const historyAction = `${updaterUsername} (${updaterRole}) uploaded file(s).`;
         const newWorkflowHistoryEntry: WorkflowHistoryEntry = {
@@ -241,7 +231,7 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
         };
         projects[projectIndex] = updatedProject;
         await writeDb(DB_PATH, projects);
-        // Notify Admin Proyek about the specific upload
+
         const notificationMessage = `${updaterRole} baru saja mengunggah file untuk proyek "${updatedProject.title}".`;
         await notifyUsersByRole('Admin Proyek', notificationMessage, projectId);
         console.log(`[ProjectService] Project ${projectId} updated with new files by ${updaterUsername}. Status remains ${currentProject.status}. Admin Proyek notified.`);
@@ -270,7 +260,6 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
     } else if (actionTaken === 'revision_completed_and_finish') {
         historyActionText = `${updaterUsername} (${updaterRole}) completed post-sidang revisions and moved to final documentation.`;
     }
-
 
     const newWorkflowHistoryEntry: WorkflowHistoryEntry = {
         division: updaterRole,
@@ -301,7 +290,6 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
         updatedProject.nextAction = transitionInfo.targetNextActionDescription;
         updatedProject.progress = transitionInfo.targetProgress;
 
-        // Reset the completion tracker when moving to a new parallel/revision phase
         if (updatedProject.status === 'Pending Parallel Design Uploads' || updatedProject.status === 'Pending Post-Sidang Revision') {
             updatedProject.parallelUploadsCompletedBy = [];
         }
@@ -314,20 +302,16 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
                 .replace('{actorUsername}', updaterUsername)
                 .replace('{reasonNote}', note || '');
 
-            // Format survey date if placeholder exists
             if (message.includes('{surveyDate}') && surveyDetails?.date && surveyDetails?.time) {
                 try {
                     const date = parseISO(`${surveyDetails.date}T${surveyDetails.time}`);
-                    // Format to "Rabu, 26 Juni 2025 pukul 14:00"
                     const formattedDate = format(date, "EEEE, d MMMM yyyy 'pukul' HH:mm", { locale: IndonesianLocale });
                     message = message.replace('{surveyDate}', formattedDate);
                 } catch (e) {
                     console.error("[ProjectService] Error formatting surveyDate for notification:", e);
-                    // Fallback to just the date if formatting fails, to avoid sending the raw placeholder
                     message = message.replace('{surveyDate}', surveyDetails.date);
                 }
             }
-
 
             const targetDivisions = Array.isArray(notificationConfig.division) ? notificationConfig.division : [notificationConfig.division];
             for (const role of targetDivisions) {
@@ -337,7 +321,6 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
                 }
             }
         }
-
     } else {
          console.warn(`[ProjectService] No specific transition info for project ${projectId}, action "${actionTaken}" from status "${currentProject.status}" (Progress: ${currentProject.progress}). Updating files/notes if any, but status remains unchanged unless it's a terminal action.`);
          
@@ -346,7 +329,7 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
             updatedProject.progress = 100;
             updatedProject.nextAction = null;
             updatedProject.assignedDivision = "";
-         } else if (actionTaken === 'rejected' && currentProject.status === 'Pending Approval' && currentProject.progress === 20) { // Offer rejection
+         } else if (actionTaken === 'rejected' && currentProject.status === 'Pending Approval' && currentProject.progress === 20) {
             updatedProject.status = 'Canceled';
             updatedProject.nextAction = null;
             updatedProject.assignedDivision = "";
@@ -355,11 +338,10 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
             updatedProject.nextAction = null;
             updatedProject.assignedDivision = "";
          } else {
-             // If no transition and not a special terminal action, we just write the history and files but don't change status.
              projects[projectIndex] = updatedProject;
              await writeDb(DB_PATH, projects);
              console.log(`[ProjectService] Project ${projectId} action "${actionTaken}" processed without status change.`);
-             return updatedProject; // Return the project with updated history/files
+             return updatedProject;
          }
     }
 
@@ -369,7 +351,6 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
     if (surveyDetails) {
         updatedProject.surveyDetails = surveyDetails;
     }
-
 
     projects[projectIndex] = updatedProject;
     await writeDb(DB_PATH, projects);
@@ -431,7 +412,7 @@ export async function reviseProject(
     reviserUsername: string,
     reviserRole: string,
     revisionNote?: string,
-    actionTaken: string = 'revise' // Default to 'revise', can be 'revise_offer' etc.
+    actionTaken: string = 'revise'
 ): Promise<Project | null> {
     console.log(`[ProjectService] Revising project ID: ${projectId} by ${reviserRole} (${reviserUsername}) with action "${actionTaken}". Note: "${revisionNote || 'N/A'}"`);
     let projects = await readDb<Project[]>(DB_PATH, []);
@@ -604,7 +585,6 @@ export async function deleteProject(projectId: string, deleterUsername: string):
     await writeDb(DB_PATH, projects);
     console.log(`[ProjectService] Project "${projectToDelete.title}" (ID: ${projectId}) removed from projects.json.`);
 
-    // Delete associated project files directory
     const projectTitleSanitized = sanitizeForPath(projectToDelete.title);
     const projectSpecificDirRelative = `${projectId}-${projectTitleSanitized}`;
     const projectSpecificDirAbsolute = path.join(PROJECT_FILES_BASE_DIR, projectSpecificDirRelative);
@@ -656,12 +636,11 @@ export async function markParallelUploadsAsCompleteByDivision(
 
         await writeDb(DB_PATH, projects);
 
-        // Notify Admin Proyek
         const notificationMessage = `Divisi ${division} telah menyelesaikan unggahan mereka untuk proyek "${project.title}".`;
         await notifyUsersByRole('Admin Proyek', notificationMessage, projectId);
 
         return project;
     }
     
-    return project; // Return current project if already marked
+    return project;
 }

@@ -2,12 +2,12 @@
 import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
 import { findUserById, updateUserGoogleTokens } from '@/services/user-service';
-import type { CalendarEvent } from '@/services/google-calendar'; // Assuming this type is defined
+import type { CalendarEvent } from '@/types/google-types';
 
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI // Though not directly used for redirect here, it's part of client setup
+  process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI
 );
 
 export async function POST(request: Request) {
@@ -31,10 +31,8 @@ export async function POST(request: Request) {
     oauth2Client.setCredentials({
       access_token: user.googleAccessToken,
       refresh_token: user.googleRefreshToken,
-      // scope, token_type, expiry_date are also available on tokens obj from getToken
     });
     
-    // Check if access token is expired or about to expire (e.g., within 5 minutes)
     const fiveMinutesInMs = 5 * 60 * 1000;
     if (user.googleAccessTokenExpiresAt && user.googleAccessTokenExpiresAt < (Date.now() + fiveMinutesInMs)) {
         if (user.googleRefreshToken) {
@@ -42,16 +40,14 @@ export async function POST(request: Request) {
             try {
                 const { credentials } = await oauth2Client.refreshAccessToken();
                 oauth2Client.setCredentials(credentials);
-                // Update the stored tokens for the user
                 await updateUserGoogleTokens(userId, {
                     accessToken: credentials.access_token!,
-                    refreshToken: credentials.refresh_token || user.googleRefreshToken, // Google might not always return a new refresh token
+                    refreshToken: credentials.refresh_token || user.googleRefreshToken,
                     accessTokenExpiresAt: credentials.expiry_date || (Date.now() + (3600 * 1000)),
                 });
                 console.log(`Access token refreshed and updated for user ${userId}.`);
             } catch (refreshError: any) {
                  console.error(`Failed to refresh access token for user ${userId}:`, refreshError.message);
-                 // If refresh fails (e.g., refresh token revoked), user needs to re-authenticate
                  return NextResponse.json({ error: 'Failed to refresh Google access token. Please re-link your Google account.', details: refreshError.message }, { status: 401 });
             }
         } else {
@@ -68,25 +64,24 @@ export async function POST(request: Request) {
       location: eventDetails.location,
       description: eventDetails.description,
       start: {
-        dateTime: eventDetails.startTime, // e.g., '2024-08-15T09:00:00-07:00'
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, // Or a specific timezone
+        dateTime: eventDetails.startTime,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
       end: {
         dateTime: eventDetails.endTime,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
-      // attendees: [{ email: 'user@example.com' }], // Optional: add attendees
       reminders: {
         useDefault: false,
         overrides: [
-          { method: 'email', minutes: 24 * 60 }, // 1 day before
-          { method: 'popup', minutes: 30 },      // 30 minutes before
+          { method: 'email', minutes: 24 * 60 },
+          { method: 'popup', minutes: 30 },
         ],
       },
     };
 
     const createdEvent = await calendar.events.insert({
-      calendarId: 'primary', // Use 'primary' for the user's main calendar
+      calendarId: 'primary',
       requestBody: event,
     });
 

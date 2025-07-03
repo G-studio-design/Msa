@@ -2,9 +2,8 @@
 'use server';
 
 import * as path from 'path';
-import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized utils
+import { readDb, writeDb } from '@/lib/json-db-utils';
 import { notifyUsersByRole, notifyUserById } from './notification-service';
-import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
 
 export interface LeaveRequest {
   id: string;
@@ -34,8 +33,6 @@ export interface AddLeaveRequestData {
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
 
-// The individual read/write functions are no longer needed here.
-
 export async function addLeaveRequest(data: AddLeaveRequestData): Promise<LeaveRequest> {
   const leaveRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
   const now = new Date();
@@ -57,7 +54,7 @@ export async function addLeaveRequest(data: AddLeaveRequestData): Promise<LeaveR
   await writeDb(DB_PATH, leaveRequests);
 
   const notificationMessage = `Permintaan izin baru dari ${newRequest.displayName} (${newRequest.leaveType}) dari tanggal ${newRequest.startDate} hingga ${newRequest.endDate}.`;
-  await notifyUsersByRole('Owner', notificationMessage); // Assuming Owner approves
+  await notifyUsersByRole('Owner', notificationMessage);
 
   console.log(`[LeaveRequestService] Leave request added for ${data.username}. Owners notified.`);
   return newRequest;
@@ -67,7 +64,6 @@ export async function getAllLeaveRequests(): Promise<LeaveRequest[]> {
   const allRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
   return allRequests.sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());
 }
-
 
 export async function getApprovedLeaveRequests(): Promise<LeaveRequest[]> {
   const allRequests = await readDb<LeaveRequest[]>(DB_PATH, []);

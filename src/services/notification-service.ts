@@ -2,34 +2,25 @@
 'use server';
 
 import * as path from 'path';
-import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized utils
-import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
-import type { Project } from '@/types/project-types'; // CORRECTED: Import from centralized types file
+import { readDb, writeDb } from '@/lib/json-db-utils';
+import type { User } from '@/types/user-types';
 
-// Define the structure of a Notification
 export interface Notification {
     id: string;
-    userId: string; // ID of the user to receive the notification
-    projectId?: string; // Optional project ID related to the notification
+    userId: string;
+    projectId?: string;
     message: string;
-    timestamp: string; // ISO string
+    timestamp: string;
     isRead: boolean;
 }
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
-const NOTIFICATION_LIMIT = 300; // Limit the total number of notifications stored
+const NOTIFICATION_LIMIT = 300;
 
-// --- Helper Functions ---
-
-// The individual read/write functions are no longer needed here.
-// The new readDb/writeDb functions from json-db-utils handle file access.
-
-// This function needs to read users.json directly to get all users including developers
 async function getAllUsersIncludingDevelopers(): Promise<User[]> {
     const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     return await readDb<User[]>(USERS_DB_PATH, []);
 }
-
 
 async function findUsersByRole(role: string): Promise<User[]> {
     const allUsers = await getAllUsersIncludingDevelopers();
@@ -37,8 +28,6 @@ async function findUsersByRole(role: string): Promise<User[]> {
     console.log(`[NotificationService/findUsersByRole] Found ${usersInRole.length} user(s) with role "${role}" for notification.`);
     return usersInRole;
 }
-
-// --- Notification Service Functions ---
 
 export async function notifyUsersByRole(roleOrRoles: string | string[], message: string, projectId?: string): Promise<void> {
     const rolesToNotify = Array.isArray(roleOrRoles) ? roleOrRoles : [roleOrRoles];
@@ -55,7 +44,7 @@ export async function notifyUsersByRole(roleOrRoles: string | string[], message:
         let notificationsAdded = 0;
 
         for (const role of rolesToNotify) {
-            if (!role) continue; // Skip if a role in the array is empty or null
+            if (!role) continue;
 
             const targetUsers = await findUsersByRole(role);
             if (targetUsers.length === 0) {
@@ -65,7 +54,7 @@ export async function notifyUsersByRole(roleOrRoles: string | string[], message:
 
             targetUsers.forEach(user => {
                 const newNotification: Notification = {
-                    id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${user.id.slice(-3)}`, // Make ID more unique
+                    id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${user.id.slice(-3)}`,
                     userId: user.id,
                     projectId: projectId,
                     message: message,
@@ -79,15 +68,11 @@ export async function notifyUsersByRole(roleOrRoles: string | string[], message:
         }
         
         if (notificationsAdded > 0) {
-            // Sort by timestamp descending (newest first) to prepare for trimming
             notifications.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
-            // Keep only the most recent notifications up to the limit
             if (notifications.length > NOTIFICATION_LIMIT) {
               console.log(`[NotificationService] Notification limit (${NOTIFICATION_LIMIT}) reached. Trimming ${notifications.length - NOTIFICATION_LIMIT} oldest notifications.`);
               notifications = notifications.slice(0, NOTIFICATION_LIMIT);
             }
-
             await writeDb(DB_PATH, notifications);
             console.log(`[NotificationService] ${notificationsAdded} notification(s) successfully written.`);
         } else {
@@ -128,7 +113,6 @@ export async function notifyUserById(userId: string, message: string, projectId?
     }
 }
 
-
 export async function getNotificationsForUser(userId: string): Promise<Notification[]> {
     const allNotifications = await readDb<Notification[]>(DB_PATH, []);
     const userNotifications = allNotifications.filter(n => n.userId === userId);
@@ -153,23 +137,14 @@ export async function markNotificationAsRead(notificationId: string): Promise<vo
     }
 }
 
-export async function markAllNotificationsAsRead(userId: string): Promise<void> {
-     let changed = false;
-     const notifications = await readDb<Notification[]>(DB_PATH, []);
-     const updatedNotifications = notifications.map(n => {
-         if (n.userId === userId && !n.isRead) {
-             changed = true;
-             return { ...n, isRead: true };
-         }
-         return n;
-     });
-
-     if (changed) {
-         await writeDb(DB_PATH, updatedNotifications); 
-         console.log(`[NotificationService] All unread notifications marked as read for user ${userId}.`);
-     } else {
-         console.log(`[NotificationService] No unread notifications found for user ${userId} to mark as read.`);
-     }
+export async function clearAllNotifications(): Promise<void> {
+    try {
+        await writeDb(DB_PATH, []); 
+        console.log("[NotificationService] All notifications have been cleared.");
+    } catch (error) {
+        console.error("[NotificationService] Failed to clear notifications:", error);
+        throw new Error("Could not clear notification data.");
+    }
 }
 
 export async function deleteNotificationsByProjectId(projectId: string): Promise<void> {
@@ -194,15 +169,5 @@ export async function deleteNotificationsByProjectId(projectId: string): Promise
 
     } catch (error) {
         console.error(`[NotificationService] Error deleting notifications for project ID "${projectId}":`, error);
-    }
-}
-
-export async function clearAllNotifications(): Promise<void> {
-    try {
-        await writeDb(DB_PATH, []); 
-        console.log("[NotificationService] All notifications have been cleared.");
-    } catch (error) {
-        console.error("[NotificationService] Failed to clear notifications:", error);
-        throw new Error("Could not clear notification data.");
     }
 }

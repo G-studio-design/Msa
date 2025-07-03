@@ -16,24 +16,22 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'; // Added CardDescription
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Added Alert components
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from '@/hooks/use-toast';
-import { LogIn, Loader2, AlertTriangle } from 'lucide-react'; // Removed ShieldCheck
+import { LogIn, Loader2, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
-import { verifyUserCredentials } from '@/services/user-service'; // Import local user service functions
-import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
-import { useAuth } from '@/context/AuthContext'; // Import useAuth hook
+import { verifyUserCredentials } from '@/services/user-service';
+import type { User } from '@/types/user-types';
+import { useAuth } from '@/context/AuthContext';
 
-// Default dictionary for server render / pre-hydration
 const defaultDict = getDictionary('en');
 
-// Define schema using a function to access translations
 const getLoginSchema = (dictValidation: ReturnType<typeof getDictionary>['login']['validation']) => z.object({
-    username: z.string().min(1, dictValidation.usernameRequired), // Use translated message
-    password: z.string().min(1, dictValidation.passwordRequired), // Use translated message
+    username: z.string().min(1, dictValidation.usernameRequired),
+    password: z.string().min(1, dictValidation.passwordRequired),
 });
 
 
@@ -41,13 +39,11 @@ export default function LoginPage() {
   const { toast } = useToast();
   const router = useRouter();
   const { language } = useLanguage();
-  const { setCurrentUser } = useAuth(); // Get setCurrentUser from AuthContext
-  const [dict, setDict] = React.useState(defaultDict.login); // Initialize with default dict section
+  const { setCurrentUser } = useAuth();
+  const [dict, setDict] = React.useState(defaultDict.login);
   const [isClient, setIsClient] = React.useState(false);
-  // Removed isBypassing state
-  const [loginError, setLoginError] = React.useState<string | null>(null); // State for specific login errors
-  const [isSubmitting, setIsSubmitting] = React.useState(false); // State for login submission
-
+  const [loginError, setLoginError] = React.useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   React.useEffect(() => {
       setIsClient(true);
@@ -55,83 +51,73 @@ export default function LoginPage() {
 
    React.useEffect(() => {
        const newDict = getDictionary(language);
-       setDict(newDict.login); // Update login dict
+       setDict(newDict.login);
    }, [language]);
 
-  // Initialize schemas based on current language dict using useMemo
    const loginSchema = React.useMemo(() => {
-        // Use the correct validation object from the dict
         const validationDict = dict?.validation ?? defaultDict.login.validation;
         return getLoginSchema(validationDict);
-   }, [dict]); // Re-create schema only when dict changes
+   }, [dict]);
 
   type LoginFormValues = z.infer<typeof loginSchema>;
 
   const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema), // Pass the memoized schema
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       username: '',
       password: '',
     },
-    context: { dict: dict?.validation }, // Pass validation context
+    context: { dict: dict?.validation },
   });
 
-  // Re-validate forms if language/dict changes
    React.useEffect(() => {
        if (isClient) {
-           form.trigger(); // Trigger validation on client side only after dict update
-           setLoginError(null); // Clear error when language changes
+           form.trigger();
+           setLoginError(null);
        }
    }, [dict, form, isClient]);
 
   const onSubmit = async (data: LoginFormValues) => {
-    setIsSubmitting(true); // Set submitting state to true
+    setIsSubmitting(true);
     console.log('Login attempt:', data.username);
-    form.clearErrors(); // Clear previous zod errors
-    setLoginError(null); // Clear previous custom error
+    form.clearErrors();
+    setLoginError(null);
 
     try {
         const user = await verifyUserCredentials(data.username, data.password);
 
         if (user) {
             console.log('Login successful for user:', user.username, 'Role:', user.role);
-            // --- Set Current User in Context ---
-             // Password should not be included in user object returned by verifyUserCredentials
              setCurrentUser(user as User);
-            // --- End Set Current User ---
             toast({
                 title: dict.success,
                 description: dict.redirecting,
             });
-            router.push('/dashboard'); // Redirect to dashboard on success
-            // No need to set isSubmitting to false here as we are navigating away
+            router.push('/dashboard');
         } else {
             console.log('Invalid credentials for:', data.username);
-            setLoginError(dict.invalidCredentials); // Set custom error message
-            form.setError('username', { type: 'manual', message: ' ' }); // Add error marker without specific message
-            form.setError('password', { type: 'manual', message: ' '}); // Add error marker
+            setLoginError(dict.invalidCredentials);
+            form.setError('username', { type: 'manual', message: ' ' });
+            form.setError('password', { type: 'manual', message: ' '});
             form.resetField('password');
-            setIsSubmitting(false); // Reset submitting state on failure
+            setIsSubmitting(false);
         }
     } catch (error: any) {
         console.error('Login error:', error);
         const errorMessage = error.message || 'An unexpected error occurred during login.';
-         setLoginError(errorMessage); // Set custom error message
+         setLoginError(errorMessage);
          toast({
             variant: 'destructive',
             title: dict.fail,
             description: errorMessage,
         });
         form.resetField('password');
-        setIsSubmitting(false); // Reset submitting state on error
+        setIsSubmitting(false);
     }
   };
 
-  // Removed handleBypassLogin function
-
-
   return (
-     <div className="flex min-h-screen items-center justify-center bg-secondary p-4"> {/* Added padding */}
+     <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
        <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
            <CardTitle className="text-center text-2xl font-bold text-primary">
@@ -163,7 +149,7 @@ export default function LoginPage() {
                          placeholder={isClient ? dict.usernamePlaceholder : defaultDict.login.usernamePlaceholder}
                          {...field}
                          autoComplete="off"
-                         disabled={isSubmitting} // Removed isBypassing from disabled state
+                         disabled={isSubmitting}
                       />
                     </FormControl>
                     <FormMessage />
@@ -182,7 +168,7 @@ export default function LoginPage() {
                         placeholder={isClient ? dict.passwordPlaceholder : defaultDict.login.passwordPlaceholder}
                         {...field}
                         autoComplete="current-password"
-                        disabled={isSubmitting} // Removed isBypassing from disabled state
+                        disabled={isSubmitting}
                       />
                     </FormControl>
                     <FormMessage />
@@ -192,15 +178,13 @@ export default function LoginPage() {
               <Button
                  type="submit"
                  className="w-full accent-teal"
-                 disabled={isSubmitting} // Removed isBypassing from disabled state
+                 disabled={isSubmitting}
               >
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
                  {isClient ? (isSubmitting ? dict.loggingIn : dict.loginButton) : defaultDict.login.loginButton}
               </Button>
             </form>
           </Form>
-
-           {/* Removed Bypass Login section */}
 
         </CardContent>
       </Card>

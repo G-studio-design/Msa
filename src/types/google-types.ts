@@ -1,3 +1,5 @@
+// src/types/google-types.ts
+
 /**
  * Represents an event to be scheduled in Google Calendar.
  */
