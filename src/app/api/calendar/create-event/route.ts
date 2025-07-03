@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     });
     
     const fiveMinutesInMs = 5 * 60 * 1000;
-    if (user.googleAccessTokenExpiresAt && user.googleAccessTokenExpiresAt < (Date.now() + fiveMinutesInMs)) {
+    if (user.accessTokenExpiresAt && user.accessTokenExpiresAt < (Date.now() + fiveMinutesInMs)) {
         if (user.googleRefreshToken) {
             console.log(`Access token for user ${userId} expired or expiring soon. Refreshing...`);
             try {
