@@ -3,8 +3,8 @@
 
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation'; // Import useRouter
-import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
+import { useRouter } from 'next/navigation';
+import type { User } from '@/types/user-types';
 
 // Define the shape of the context value
 interface AuthContextProps {

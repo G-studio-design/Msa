@@ -9,71 +9,12 @@ import { readDb, writeDb } from '@/lib/json-db-utils';
 import { notifyUsersByRole, deleteNotificationsByProjectId } from './notification-service';
 import { sanitizeForPath } from '@/lib/path-utils';
 import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants';
-import type { Workflow, WorkflowStep, WorkflowStepTransition } from '@/types/workflow-types';
 import { getWorkflowById, getFirstStep, getTransitionInfo } from './workflow-service';
 import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
+import type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry } from '@/types/project-types';
 
-// Original type definitions are kept here to revert the structure
-export interface WorkflowHistoryEntry {
-    division: string;
-    action: string;
-    timestamp: string;
-    note?: string;
-}
-
-export interface FileEntry {
-    name: string;
-    uploadedBy: string;
-    timestamp: string;
-    path: string;
-}
-
-export interface ScheduleDetails {
-    date: string;
-    time: string;
-    location: string;
-}
-
-export interface SurveyDetails {
-    date: string;
-    time: string;
-    description: string;
-}
-
-export interface Project {
-    id: string;
-    title: string;
-    status: string;
-    progress: number;
-    assignedDivision: string;
-    nextAction: string | null;
-    workflowHistory: WorkflowHistoryEntry[];
-    files: FileEntry[];
-    createdAt: string;
-    createdBy: string;
-    workflowId: string;
-    scheduleDetails?: ScheduleDetails;
-    surveyDetails?: SurveyDetails;
-    parallelUploadsCompletedBy?: string[];
-}
-
-export interface AddProjectData {
-    title: string;
-    workflowId: string;
-    initialFiles: FileEntry[];
-    createdBy: string;
-}
-
-export interface UpdateProjectParams {
-    projectId: string;
-    updaterRole: string;
-    updaterUsername: string;
-    actionTaken: string;
-    files?: Omit<FileEntry, 'timestamp'>[];
-    note?: string;
-    scheduleDetails?: ScheduleDetails;
-    surveyDetails?: SurveyDetails;
-}
+// Re-export types for consumers of this service
+export type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry };
 
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');

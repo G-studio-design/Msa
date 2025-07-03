@@ -4,7 +4,7 @@
 import * as path from 'path';
 import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized utils
 import { notifyUsersByRole, notifyUserById } from './notification-service';
-import { User } from './user-service';
+import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
 
 export interface LeaveRequest {
   id: string;

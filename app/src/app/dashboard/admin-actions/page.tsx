@@ -48,7 +48,8 @@ import {
     updateProjectTitle,
     manuallyUpdateProjectStatusAndAssignment,
     deleteProject, 
-    type Project
+    type Project,
+    type UpdateProjectParams 
 } from '@/services/project-service';
 import { getAllUniqueStatuses } from '@/services/workflow-service';
 import type { WorkflowStep } from '@/types/workflow-types';
