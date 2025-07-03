@@ -3,13 +3,14 @@ import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
 import { findUserByEmail, updateUserGoogleTokens, addUser } from '@/services/user-service'; // Assuming addUser might be needed
 
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI
-);
-
 export async function GET(request: Request) {
+  // DEFER client instantiation until request time
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI
+  );
+
   const url = new URL(request.url);
   const code = url.searchParams.get('code');
   const error = url.searchParams.get('error');
