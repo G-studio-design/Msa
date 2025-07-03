@@ -86,7 +86,6 @@ export async function POST(request: Request) {
       requestBody: event,
     });
 
-    console.log('Google Calendar event created:', createdEvent.data.id, createdEvent.data.htmlLink);
     return NextResponse.json({ 
         message: 'Event created successfully in Google Calendar!', 
         eventId: createdEvent.data.id,

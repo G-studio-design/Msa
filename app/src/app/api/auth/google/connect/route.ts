@@ -19,8 +19,6 @@ export async function GET(request: Request) {
   );
 
   // Define the scopes needed.
-  // 'offline' access type is crucial for getting a refresh token.
-  // 'consent' prompt ensures the user sees the consent screen every time, which helps in getting a refresh token on re-authentication.
   const scopes = [
     'https://www.googleapis.com/auth/calendar.events',
     'https://www.googleapis.com/auth/userinfo.email',
@@ -33,8 +31,6 @@ export async function GET(request: Request) {
     scope: scopes,
   });
 
-  console.log(`[API/GoogleConnect] Generated OAuth URL, redirecting user: ${authUrl}`);
-  
   // Redirect the user to the generated URL.
   return NextResponse.redirect(authUrl);
 }
