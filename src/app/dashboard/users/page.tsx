@@ -113,7 +113,7 @@ export default function ManageUsersPage() {
       setIsLoading(true);
       try {
           const fetchedUsers = await getAllUsersForDisplay(); 
-          setUsers(fetchedUsers);
+          setUsers(fetchedUsers as UserType[]);
       } catch (error) {
           console.error("Failed to fetch users:", error);
           if (isClient && usersDict?.toast?.error) {

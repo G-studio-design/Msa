@@ -6,7 +6,7 @@ import { readDb, writeDb } from '@/lib/json-db-utils';
 import { format } from 'date-fns';
 import { getAppSettings } from './settings-service';
 import { notifyUsersByRole } from './notification-service';
-import type { User } from '@/types/user-types';
+import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
 
 export interface AttendanceRecord {
   id: string;
