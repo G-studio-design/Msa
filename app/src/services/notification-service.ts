@@ -3,8 +3,7 @@
 
 import * as path from 'path';
 import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized utils
-import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
-import type { Project } from '@/types/project-types'; // CORRECTED: Import from centralized types file
+import { User, findUserByUsername } from './user-service'; // Original import causing cycle
 
 // Define the structure of a Notification
 export interface Notification {
@@ -18,11 +17,6 @@ export interface Notification {
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
 const NOTIFICATION_LIMIT = 300; // Limit the total number of notifications stored
-
-// --- Helper Functions ---
-
-// The individual read/write functions are no longer needed here.
-// The new readDb/writeDb functions from json-db-utils handle file access.
 
 // This function needs to read users.json directly to get all users including developers
 async function getAllUsersIncludingDevelopers(): Promise<User[]> {

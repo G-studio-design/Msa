@@ -4,26 +4,61 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { readDb, writeDb } from '@/lib/json-db-utils'; // Import centralized utils
-import type { User, AddUserData, UpdateProfileData, UpdatePasswordData, UpdateUserGoogleTokensData } from '@/types/user-types';
-
-// Using dynamic import to break the circular dependency cycle
-// user-service -> notification-service -> user-service
-async function getNotificationService() {
-  return await import('./notification-service');
-}
+import { notifyUsersByRole } from './notification-service';
 
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
 
+// --- Types (Kept here to revert to original state) ---
+export interface User {
+    id: string;
+    username: string;
+    role: string;
+    password?: string;
+    email?: string | null;
+    whatsappNumber?: string | null;
+    profilePictureUrl?: string | null;
+    displayName?: string | null;
+    createdAt?: string;
+    googleRefreshToken?: string | null;
+    googleAccessToken?: string | null;
+    googleAccessTokenExpiresAt?: number | null;
+}
+
+export interface AddUserData {
+    username: string;
+    password: string;
+    role: string;
+    email?: string;
+    displayName?: string;
+}
+
+export interface UpdateProfileData {
+    userId: string;
+    username?: string;
+    role?: string;
+    email?: string | null;
+    whatsappNumber?: string | null;
+    profilePictureUrl?: string | null;
+    displayName?: string | null;
+}
+
+export interface UpdatePasswordData {
+    userId: string;
+    currentPassword?: string;
+    newPassword: string;
+}
+
+export interface UpdateUserGoogleTokensData {
+    refreshToken?: string | null;
+    accessToken: string | null;
+    accessTokenExpiresAt: number | null;
+}
+
 // --- Helper Functions ---
 
-// The individual read/write functions are no longer needed here.
-// Instead, we create a helper that uses the generic `readDb` but adds
-// the specific logic for creating default users if the DB is empty.
 async function getUsers(): Promise<User[]> {
-    let users = await readDb<User[]>(DB_PATH, []); // Use default empty array
-    
-    // Special logic: If the database is freshly created/empty, populate with defaults.
+    let users = await readDb<User[]>(DB_PATH, []);
     if (users.length === 0) {
         console.log("[UserService] User database is empty. Initializing with default users.");
         const defaultUsers: User[] = [
@@ -50,7 +85,6 @@ async function getUsers(): Promise<User[]> {
         await writeDb(DB_PATH, defaultUsers);
         return defaultUsers;
     }
-    
     return users;
 }
 
@@ -213,7 +247,6 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
     console.log(`[UserService] User profile for ${updateData.userId} updated successfully.`);
     
     if (currentUserState.role !== 'Admin Developer' && (updateData.username || updateData.role)) {
-      const { notifyUsersByRole } = await getNotificationService();
       const adminRolesToNotify = ['Owner', 'Akuntan'];
       adminRolesToNotify.forEach(async (role) => {
           await notifyUsersByRole(role, `User profile for "${updatedUser.username}" (Role: ${updatedUser.role}) has been updated.`);
@@ -249,7 +282,6 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
     console.log(`[UserService] Password for user ${updateData.userId} updated successfully.`);
         
     if (user.role !== 'Admin Developer') {
-        const { notifyUsersByRole } = await getNotificationService();
         const adminRolesToNotify = ['Owner', 'Akuntan'];
         adminRolesToNotify.forEach(async (role) => {
             await notifyUsersByRole(role, `Password for user "${user.username}" (Role: ${user.role}) has been changed.`);

@@ -1,4 +1,3 @@
-
 'use client';
 
 // src/app/dashboard/page.tsx
@@ -20,8 +19,7 @@ import { getDictionary } from '@/lib/translations';
 import { getAllProjects, type Project } from '@/services/project-service';
 import { getApprovedLeaveRequests, type LeaveRequest } from '@/services/leave-request-service';
 import { getAllHolidays, type HolidayEntry } from '@/services/holiday-service';
-import { getAllUsersForDisplay } from '@/services/user-service';
-import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
+import { getAllUsersForDisplay, type User } from '@/services/user-service';
 import { getTodaysAttendanceForAllUsers, type AttendanceRecord } from '@/services/attendance-service';
 import Link from 'next/link';
 import { Calendar } from "@/components/ui/calendar";
@@ -141,7 +139,7 @@ export default function DashboardPage() {
         setProjects(fetchedProjects);
         setLeaveRequests(fetchedLeave);
         setHolidays(fetchedHolidays);
-        setAllUsers(fetchedUsers as User[]);
+        setAllUsers(fetchedUsers);
         setTodaysAttendance(fetchedTodaysAttendance);
         setAttendanceEnabled(settings.feature_attendance_enabled);
       } catch (error) {

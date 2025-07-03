@@ -1,4 +1,3 @@
-
 'use client';
 
 // src/app/dashboard/attendance-report/page.tsx
@@ -17,8 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format, parseISO, eachDayOfInterval, isWithinInterval } from 'date-fns';
 import { id as idLocale, enUS as enLocale } from 'date-fns/locale';
 import { getMonthlyAttendanceReportData, type AttendanceRecord } from '@/services/attendance-service';
-import { getAllUsersForDisplay } from '@/services/user-service';
-import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
+import { getAllUsersForDisplay, type User } from '@/services/user-service';
 import { getApprovedLeaveRequests, type LeaveRequest } from '@/services/leave-request-service';
 import { getAllHolidays, type HolidayEntry } from '@/services/holiday-service';
 import { isAttendanceFeatureEnabled } from '@/services/settings-service';
