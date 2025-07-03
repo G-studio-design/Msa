@@ -254,11 +254,17 @@ export async function clearUserGoogleTokens(userId: string): Promise<Omit<User, 
 
     const user = { ...users[userIndex] };
     
-    delete user.googleRefreshToken;
-    delete user.googleAccessToken;
-    delete user.accessTokenExpiresAt;
-    
+    // Set fields to null/undefined
+    user.googleRefreshToken = null;
+    user.googleAccessToken = null;
+    user.accessTokenExpiresAt = null;
+
     users[userIndex] = user;
+
+    // We can also delete the keys if we want to be cleaner
+    delete users[userIndex].googleRefreshToken;
+    delete users[userIndex].googleAccessToken;
+    delete users[userIndex].accessTokenExpiresAt;
     
     await writeDb(DB_PATH, users);
     console.log(`[UserService] Google tokens for user ${userId} cleared successfully.`);
