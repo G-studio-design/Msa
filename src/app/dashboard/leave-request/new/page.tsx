@@ -27,7 +27,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
-import { addLeaveRequest, type AddLeaveRequestData } from '@/services/leave-request-service';
+import { addLeaveRequest } from '@/services/leave-request-service';
+import type { AddLeaveRequestData } from '@/types/leave-request-types';
 import { Loader2, CalendarIcon, Send } from 'lucide-react';
 import { format, differenceInDays, addDays } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
@@ -92,7 +93,6 @@ export default function NewLeaveRequestPage() {
       endDate: undefined,
       reason: '',
     },
-    // context: { dict: leaveRequestDict.validation } // Removed context
   });
   
   React.useEffect(() => {

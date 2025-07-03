@@ -1,6 +1,6 @@
-// src/app/dashboard/page.tsx
 'use client';
 
+// src/app/dashboard/page.tsx
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import {
   Card,
@@ -17,11 +17,13 @@ import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { getAllProjects } from '@/services/project-service';
-import { getApprovedLeaveRequests, type LeaveRequest } from '@/services/leave-request-service';
-import { getAllHolidays, type HolidayEntry } from '@/services/holiday-service';
+import { getApprovedLeaveRequests } from '@/services/leave-request-service';
+import { getAllHolidays } from '@/services/holiday-service';
 import { getAllUsersForDisplay } from '@/services/user-service';
 import { getTodaysAttendanceForAllUsers } from '@/services/attendance-service';
 import type { AttendanceRecord } from '@/services/attendance-service';
+import type { LeaveRequest } from '@/types/leave-request-types';
+import type { HolidayEntry } from '@/services/holiday-service';
 import type { Project } from '@/types/project-types';
 import type { User } from '@/types/user-types';
 import Link from 'next/link';

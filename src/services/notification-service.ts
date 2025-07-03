@@ -4,7 +4,7 @@
 import * as path from 'path';
 import { readDb, writeDb } from '@/lib/json-db-utils';
 import type { User } from '@/types/user-types';
-import { getAllUsers } from './data-access/user-data';
+import { getAllUsers } from './data-access/user-data'; // IMPORT FROM NEW DATA ACCESS LAYER
 
 // Define the structure of a Notification
 export interface Notification {
@@ -21,7 +21,7 @@ const NOTIFICATION_LIMIT = 300; // Limit the total number of notifications store
 
 
 async function findUsersByRole(role: string): Promise<User[]> {
-    const allUsers = await getAllUsers();
+    const allUsers = await getAllUsers(); // USE THE NEW DATA ACCESS FUNCTION
     const usersInRole = allUsers.filter(user => user.role === role);
     console.log(`[NotificationService/findUsersByRole] Found ${usersInRole.length} user(s) with role "${role}" for notification.`);
     return usersInRole;

@@ -15,6 +15,8 @@ import type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleD
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
 
+// --- Helper Functions ---
+
 export async function ensureProjectFilesBaseDirExists(): Promise<void> {
     try {
         await fs.mkdir(PROJECT_FILES_BASE_DIR, { recursive: true });
@@ -23,6 +25,8 @@ export async function ensureProjectFilesBaseDirExists(): Promise<void> {
         throw new Error('Failed to create project files base directory.');
     }
 }
+
+// --- Main Service Functions ---
 
 export async function addProject(projectData: AddProjectData): Promise<Project> {
     const effectiveWorkflowId = projectData.workflowId || DEFAULT_WORKFLOW_ID;

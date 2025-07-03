@@ -15,7 +15,7 @@ export interface User {
     createdAt?: string;
     googleRefreshToken?: string | null;
     googleAccessToken?: string | null;
-    googleAccessTokenExpiresAt?: number | null;
+    accessTokenExpiresAt?: number | null;
 }
 
 export interface AddUserData {
