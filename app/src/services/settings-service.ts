@@ -3,7 +3,6 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { unstable_noStore as noStore } from 'next/cache';
 
 interface WorkingHours {
   isWorkDay: boolean;
@@ -47,7 +46,6 @@ const DEFAULT_SETTINGS: AppSettings = {
 };
 
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
-    noStore();
     try {
         await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
@@ -81,7 +79,7 @@ export async function isAttendanceFeatureEnabled(): Promise<boolean> {
   return settings.feature_attendance_enabled;
 }
 
-export async function setAttendanceFeatureEnabled(isEnabled: boolean): Promise<AppSettings> {
+export async function updateFeatureSetting(isEnabled: boolean): Promise<AppSettings> {
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
   console.log(`[SettingsService] Setting attendance feature to: ${isEnabled}`);
   const settings = await getAppSettings();

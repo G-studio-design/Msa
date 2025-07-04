@@ -4,7 +4,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User } from '@/types/user-types';
-import { unstable_noStore as noStore } from 'next/cache';
 
 const DEFAULT_USERS: User[] = [
     {
@@ -29,7 +28,6 @@ const DEFAULT_USERS: User[] = [
 ];
 
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
-    noStore();
     try {
         await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
@@ -40,7 +38,6 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
     } catch (error: any) {
         if (error.code === 'ENOENT') {
           // IMPORTANT: Do NOT write the file here. This function should be read-only.
-          // The file should be created manually or by a separate seeding script if it doesn't exist.
           console.warn(`[DB Read] File not found at ${path.basename(dbPath)}. Returning default data in memory.`);
           return defaultData;
         }
