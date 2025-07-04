@@ -3,6 +3,7 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export interface HolidayEntry {
   id: string;
@@ -13,6 +14,7 @@ export interface HolidayEntry {
 }
 
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    noStore();
     try {
         await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');

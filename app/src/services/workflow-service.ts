@@ -9,8 +9,10 @@ import {
     DEFAULT_WORKFLOW_DESCRIPTION
 } from '@/config/workflow-constants';
 import type { Workflow, WorkflowStep, WorkflowStepTransition } from '@/types/workflow-types';
+import { unstable_noStore as noStore } from 'next/cache';
 
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    noStore();
     try {
         await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');

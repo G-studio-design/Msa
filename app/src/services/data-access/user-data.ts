@@ -4,6 +4,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User } from '@/types/user-types';
+import { unstable_noStore as noStore } from 'next/cache';
 
 const DEFAULT_USERS: User[] = [
     {
@@ -46,12 +47,6 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
     }
 }
 
-async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    const dbDir = path.dirname(dbPath);
-    await fs.mkdir(dbDir, { recursive: true });
-    await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
-}
-
 /**
  * Reads the entire user database, including developers.
  * Initializes with default users if the database is empty.
@@ -59,6 +54,7 @@ async function writeDb<T>(dbPath: string, data: T): Promise<void> {
  * @returns A promise that resolves to an array of all User objects.
  */
 export async function getAllUsers(): Promise<User[]> {
+    noStore();
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     let users = await readDb<User[]>(DB_PATH, DEFAULT_USERS);
 
@@ -68,9 +64,4 @@ export async function getAllUsers(): Promise<User[]> {
     }
 
     return users;
-}
-
-export async function writeAllUsers(users: User[]): Promise<void> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
-    await writeDb(DB_PATH, users);
 }

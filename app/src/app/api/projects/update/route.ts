@@ -63,7 +63,8 @@ export async function POST(request: Request) {
                  return NextResponse.json({ message: 'Missing title for update.' }, { status: 400 });
              }
              await updateProjectTitle(body.projectId, body.title, body.updaterUsername);
-             updatedProject = await updateProject(body); // a bit redundant, but gets the updated project
+             // Return the full project object after title update for consistency
+             updatedProject = await updateProject(body);
              break;
         default:
             updatedProject = await updateProject(body);

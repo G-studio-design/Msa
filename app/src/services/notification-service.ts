@@ -5,6 +5,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User } from '@/types/user-types';
 import { getAllUsers } from './data-access/user-data';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export interface Notification {
     id: string;
@@ -18,6 +19,7 @@ export interface Notification {
 const NOTIFICATION_LIMIT = 300; 
 
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    noStore();
     try {
         await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
