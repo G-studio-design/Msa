@@ -4,7 +4,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User } from '@/types/user-types';
-import { unstable_noStore as noStore } from 'next/cache';
 
 const DEFAULT_USERS: User[] = [
     {
@@ -54,7 +53,6 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
  * @returns A promise that resolves to an array of all User objects.
  */
 export async function getAllUsers(): Promise<User[]> {
-    noStore();
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     let users = await readDb<User[]>(DB_PATH, DEFAULT_USERS);
 
