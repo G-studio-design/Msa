@@ -4,6 +4,8 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User } from '@/types/user-types';
+import { unstable_noStore as noStore } from 'next/cache';
+import { readDb } from '@/lib/db-utils';
 
 const DEFAULT_USERS: User[] = [
     {
@@ -27,22 +29,6 @@ const DEFAULT_USERS: User[] = [
     }
 ];
 
-async function readDb(): Promise<User[]> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
-    try {
-        const data = await fs.readFile(DB_PATH, 'utf8');
-        return JSON.parse(data) as User[];
-    } catch (error: any) {
-        if (error.code === 'ENOENT') {
-            console.warn(`[UserData] users.json not found. Creating it with default users.`);
-            await fs.writeFile(DB_PATH, JSON.stringify(DEFAULT_USERS, null, 2), 'utf8');
-            return DEFAULT_USERS;
-        }
-        console.error(`[UserData] Error reading users.json:`, error);
-        throw new Error('Could not read user database.');
-    }
-}
-
 /**
  * Reads the entire user database, including developers.
  * Initializes with default users if the database is empty.
@@ -50,5 +36,20 @@ async function readDb(): Promise<User[]> {
  * @returns A promise that resolves to an array of all User objects.
  */
 export async function getAllUsers(): Promise<User[]> {
-    return await readDb();
+    noStore();
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
+    
+    let users = await readDb<User[]>(DB_PATH, DEFAULT_USERS);
+
+    // If the database file was empty or didn't exist, and we got the default users,
+    // let's ensure the file is created on the first run for subsequent reads.
+    // This is a one-time setup action.
+    try {
+        await fs.access(DB_PATH);
+    } catch (error) {
+        console.log(`[UserData] users.json not found. Creating it with default users.`);
+        await fs.writeFile(DB_PATH, JSON.stringify(DEFAULT_USERS, null, 2), 'utf8');
+    }
+
+    return users;
 }

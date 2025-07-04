@@ -3,6 +3,8 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { unstable_noStore as noStore } from 'next/cache';
+import { readDb, writeDb } from '@/lib/db-utils';
 
 interface WorkingHours {
   isWorkDay: boolean;
@@ -45,57 +47,37 @@ const DEFAULT_SETTINGS: AppSettings = {
   }
 };
 
-async function readDb(): Promise<AppSettings> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
-    try {
-        const data = await fs.readFile(DB_PATH, 'utf8');
-        return JSON.parse(data) as AppSettings;
-    } catch (error: any) {
-        if (error.code === 'ENOENT') {
-          return DEFAULT_SETTINGS;
-        }
-        console.error(`[SettingsService] Error reading database:`, error);
-        throw new Error('Failed to read settings database.');
-    }
-}
-
-async function writeDb(data: AppSettings): Promise<void> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
-    try {
-        await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        console.error(`[SettingsService] Error writing to database:`, error);
-        throw new Error('Failed to save settings data.');
-    }
-}
-
-
 export async function getAppSettings(): Promise<AppSettings> {
+  noStore();
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
   console.log("[SettingsService] Fetching app settings.");
-  return await readDb();
+  return await readDb<AppSettings>(DB_PATH, DEFAULT_SETTINGS);
 }
 
 export async function isAttendanceFeatureEnabled(): Promise<boolean> {
+  noStore();
   const settings = await getAppSettings();
   return settings.feature_attendance_enabled;
 }
 
 export async function setAttendanceFeatureEnabled(isEnabled: boolean): Promise<AppSettings> {
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
   console.log(`[SettingsService] Setting attendance feature to: ${isEnabled}`);
   const settings = await getAppSettings();
   const updatedSettings: AppSettings = { ...settings, feature_attendance_enabled: isEnabled };
-  await writeDb(updatedSettings);
+  await writeDb(DB_PATH, updatedSettings);
   return updatedSettings;
 }
 
 export async function updateAttendanceSettings(newSettings: AttendanceSettings): Promise<AppSettings> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
     console.log('[SettingsService] Updating attendance settings:', newSettings);
     const currentSettings = await getAppSettings();
     const updatedSettings: AppSettings = {
       ...currentSettings,
       ...newSettings,
     };
-    await writeDb(updatedSettings);
+    await writeDb(DB_PATH, updatedSettings);
     console.log('[SettingsService] Attendance settings updated successfully.');
     return updatedSettings;
 }
