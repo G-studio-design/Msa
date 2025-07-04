@@ -24,7 +24,7 @@ export async function PUT(
   } catch (error: any) {
     console.error(`[API/Projects/Title] Error updating title for project ${params.projectId}:`, error);
     let errorMessage = 'Failed to update project title.';
-    if (error.message === 'PROJECT_NOT_FOUND') {
+    if (error instanceof Error && error.message === 'PROJECT_NOT_FOUND') {
       errorMessage = 'Project not found.';
     }
     return NextResponse.json({ message: errorMessage }, { status: 500 });
