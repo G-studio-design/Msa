@@ -104,9 +104,9 @@ export default function LoginPage() {
 
     } catch (error: any) {
         console.error('Login error:', error);
-        const errorMessage = error.message || 'An unexpected error occurred during login.';
+        const errorMessage = error.message || dict.invalidCredentials;
         setLoginError(errorMessage);
-        if (error.message.toLowerCase().includes('invalid')) {
+        if (errorMessage.toLowerCase().includes('invalid')) {
             form.setError('username', { type: 'manual', message: ' ' });
             form.setError('password', { type: 'manual', message: ' '});
         }
