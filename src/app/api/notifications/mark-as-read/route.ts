@@ -1,7 +1,4 @@
-
 // src/app/api/notifications/mark-as-read/route.ts
-'use server';
-
 import { NextResponse } from 'next/server';
 import { markNotificationAsRead as markAsReadService } from '@/services/notification-service';
 

@@ -6,8 +6,6 @@ import * as path from 'path';
 import { format } from 'date-fns';
 import { getAppSettings } from './settings-service';
 import { notifyUsersByRole } from './notification-service';
-import type { User } from '@/types/user-types';
-import { unstable_noStore as noStore } from 'next/cache';
 
 export interface AttendanceRecord {
   id: string;
@@ -47,6 +45,7 @@ export interface CheckOutResult {
 
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
     try {
+        await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
         if (data.trim() === "") {
             return defaultData;
@@ -54,24 +53,18 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
         return JSON.parse(data) as T;
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-          // Do not write file on read. Assume file exists or return default.
-          console.warn(`[DB Read] File not found at ${dbPath}, returning default data.`);
           return defaultData;
         }
-        console.error(`[DB Read] Error reading or parsing database at ${dbPath}.`, error);
+        console.error(`[DB Read Error] Error reading or parsing database at ${path.basename(dbPath)}.`, error);
         return defaultData;
     }
 }
 
 async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    try {
-        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        console.error(`[DB Write] Error writing to database at ${path.basename(dbPath)}:`, error);
-        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
-    }
+    const dbDir = path.dirname(dbPath);
+    await fs.mkdir(dbDir, { recursive: true });
+    await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
 }
-
 
 // Helper function to calculate distance between two lat/lon points in meters
 function getDistanceInMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -91,7 +84,6 @@ function getDistanceInMeters(lat1: number, lon1: number, lat2: number, lon2: num
 
 
 export async function getTodaysAttendance(userId: string): Promise<AttendanceRecord | null> {
-  noStore();
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const attendanceRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
@@ -99,7 +91,6 @@ export async function getTodaysAttendance(userId: string): Promise<AttendanceRec
 }
 
 export async function getTodaysAttendanceForAllUsers(): Promise<AttendanceRecord[]> {
-  noStore();
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const allRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
@@ -197,14 +188,12 @@ export async function checkOut(userId: string, reason: 'Normal' | 'Survei' | 'Si
 
 
 export async function getAttendanceForUser(userId: string): Promise<AttendanceRecord[]> {
-  noStore();
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const attendanceRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
   return attendanceRecords.filter(r => r.userId === userId);
 }
 
 export async function getMonthlyAttendanceReportData(month: number, year: number): Promise<AttendanceRecord[]> {
-  noStore();
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const allRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
   const monthStr = month.toString().padStart(2, '0');

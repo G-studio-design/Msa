@@ -3,7 +3,6 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { unstable_noStore as noStore } from 'next/cache';
 
 export interface HolidayEntry {
   id: string;
@@ -15,6 +14,7 @@ export interface HolidayEntry {
 
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
     try {
+        await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
         if (data.trim() === "") {
             return defaultData;
@@ -22,18 +22,15 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
         return JSON.parse(data) as T;
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-          // Do not write file on read. Assume file exists or return default.
-          console.warn(`[DB Read] File not found at ${dbPath}, returning default data.`);
           return defaultData;
         }
-        console.error(`[DB Read] Error reading or parsing database at ${dbPath}.`, error);
+        console.error(`[DB Read Error] Error reading or parsing database at ${path.basename(dbPath)}.`, error);
         return defaultData;
     }
 }
 
 export async function getAllHolidays(): Promise<HolidayEntry[]> {
-  noStore();
-  const HOLIDAYS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'holidays.json');
-  const holidays = await readDb<HolidayEntry[]>(HOLIDAYS_DB_PATH, []);
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'holidays.json');
+  const holidays = await readDb<HolidayEntry[]>(DB_PATH, []);
   return holidays.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 }

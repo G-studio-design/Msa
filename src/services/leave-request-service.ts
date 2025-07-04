@@ -5,10 +5,10 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { notifyUsersByRole, notifyUserById } from './notification-service';
 import type { LeaveRequest, AddLeaveRequestData } from '@/types/leave-request-types';
-import { unstable_noStore as noStore } from 'next/cache';
 
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
     try {
+        await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
         if (data.trim() === "") {
             return defaultData;
@@ -16,24 +16,18 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
         return JSON.parse(data) as T;
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-          // Do not write file on read. Assume file exists or return default.
-          console.warn(`[DB Read] File not found at ${dbPath}, returning default data.`);
           return defaultData;
         }
-        console.error(`[DB Read] Error reading or parsing database at ${dbPath}.`, error);
+        console.error(`[DB Read Error] Error reading or parsing database at ${path.basename(dbPath)}.`, error);
         return defaultData;
     }
 }
 
 async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    try {
-        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        console.error(`[DB Write] Error writing to database at ${path.basename(dbPath)}:`, error);
-        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
-    }
+    const dbDir = path.dirname(dbPath);
+    await fs.mkdir(dbDir, { recursive: true });
+    await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
 }
-
 
 export async function addLeaveRequest(data: AddLeaveRequestData): Promise<LeaveRequest> {
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
@@ -64,14 +58,12 @@ export async function addLeaveRequest(data: AddLeaveRequestData): Promise<LeaveR
 }
 
 export async function getAllLeaveRequests(): Promise<LeaveRequest[]> {
-  noStore();
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
   const allRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
   return allRequests.sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());
 }
 
 export async function getApprovedLeaveRequests(): Promise<LeaveRequest[]> {
-  noStore();
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
   const allRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
   return allRequests.filter(req => req.status === 'Approved');
@@ -137,7 +129,6 @@ export async function rejectLeaveRequest(requestId: string, rejectorUserId: stri
 }
 
 export async function getLeaveRequestsByUserId(userId: string): Promise<LeaveRequest[]> {
-    noStore();
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
     const allRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
     return allRequests.filter(req => req.userId === userId).sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());

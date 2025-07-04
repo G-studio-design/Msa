@@ -1,7 +1,4 @@
-
 // src/app/api/notifications/route.ts
-'use server';
-
 import { NextResponse, type NextRequest } from 'next/server';
 import { getNotificationsForUser } from '@/services/notification-service';
 

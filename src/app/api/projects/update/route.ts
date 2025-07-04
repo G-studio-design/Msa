@@ -1,31 +1,66 @@
 // src/app/api/projects/update/route.ts
 import { NextResponse } from 'next/server';
-import { updateProject, reviseProject, markParallelUploadsAsCompleteByDivision } from '@/services/project-service';
+import { 
+    updateProject, 
+    reviseProject, 
+    markParallelUploadsAsCompleteByDivision,
+    manuallyUpdateProjectStatusAndAssignment
+} from '@/services/project-service';
 import type { UpdateProjectParams } from '@/types/project-types';
+
+interface SpecialActionBody extends UpdateProjectParams {
+    specialAction?: 'revise' | 'markDivisionComplete' | 'manualUpdate';
+    newStatus?: string;
+    newAssignedDivision?: string;
+    newNextAction?: string | null;
+    newProgress?: number;
+    adminUsername?: string;
+    reasonNote?: string;
+}
+
 
 export async function POST(request: Request) {
   try {
-    const body: UpdateProjectParams & { specialAction?: 'revise' | 'markDivisionComplete' } = await request.json();
+    const body: SpecialActionBody = await request.json();
     
     let updatedProject;
 
-    if (body.specialAction === 'revise') {
-        updatedProject = await reviseProject(
-            body.projectId,
-            body.updaterUsername,
-            body.updaterRole,
-            body.note,
-            body.actionTaken
-        );
-    } else if (body.specialAction === 'markDivisionComplete') {
-        updatedProject = await markParallelUploadsAsCompleteByDivision(
-            body.projectId,
-            body.updaterRole,
-            body.updaterUsername
-        );
-    } else {
-        updatedProject = await updateProject(body);
+    switch (body.specialAction) {
+        case 'revise':
+            updatedProject = await reviseProject(
+                body.projectId,
+                body.updaterUsername,
+                body.updaterRole,
+                body.note,
+                body.actionTaken
+            );
+            break;
+        case 'markDivisionComplete':
+            updatedProject = await markParallelUploadsAsCompleteByDivision(
+                body.projectId,
+                body.updaterRole,
+                body.updaterUsername
+            );
+            break;
+        case 'manualUpdate':
+             if (!body.newStatus || !body.adminUsername || !body.reasonNote || typeof body.newProgress === 'undefined') {
+                return NextResponse.json({ message: 'Missing required fields for manual update.' }, { status: 400 });
+            }
+            updatedProject = await manuallyUpdateProjectStatusAndAssignment({
+                projectId: body.projectId,
+                newStatus: body.newStatus,
+                newAssignedDivision: body.newAssignedDivision || '',
+                newNextAction: body.newNextAction || null,
+                newProgress: body.newProgress,
+                adminUsername: body.adminUsername,
+                reasonNote: body.reasonNote,
+            });
+            break;
+        default:
+            updatedProject = await updateProject(body);
+            break;
     }
+
 
     if (!updatedProject) {
         return NextResponse.json({ message: 'Failed to update project or project not found.' }, { status: 404 });

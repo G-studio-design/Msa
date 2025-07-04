@@ -4,7 +4,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User } from '@/types/user-types';
-import { unstable_noStore as noStore } from 'next/cache';
 
 const DEFAULT_USERS: User[] = [
     {
@@ -30,32 +29,20 @@ const DEFAULT_USERS: User[] = [
 
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
     try {
+        await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
         if (data.trim() === "") {
-            console.warn(`[JSON DB Utils] Database file at ${path.basename(dbPath)} is empty. Returning default data.`);
             return defaultData;
         }
         return JSON.parse(data) as T;
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-          console.log(`[JSON DB Utils] Database file not found at ${path.basename(dbPath)}. Returning default data and creating it.`);
-          await fs.writeFile(dbPath, JSON.stringify(defaultData, null, 2), 'utf8');
-        } else {
-          console.error(`[JSON DB Utils] Error reading or parsing database at ${path.basename(dbPath)}. Returning default data. Error:`, error);
+          return defaultData;
         }
+        console.error(`[DB Read Error] Error reading or parsing database at ${path.basename(dbPath)}.`, error);
         return defaultData;
     }
 }
-
-async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    try {
-        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        console.error(`[JSON DB Utils] Error writing to database at ${path.basename(dbPath)}:`, error);
-        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
-    }
-}
-
 
 /**
  * Reads the entire user database, including developers.
@@ -64,8 +51,12 @@ async function writeDb<T>(dbPath: string, data: T): Promise<void> {
  * @returns A promise that resolves to an array of all User objects.
  */
 export async function getAllUsers(): Promise<User[]> {
-    noStore();
-    const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
-    const users = await readDb<User[]>(USERS_DB_PATH, DEFAULT_USERS);
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
+    let users = await readDb<User[]>(DB_PATH, DEFAULT_USERS);
+
+    if (users.length === 0) {
+        return DEFAULT_USERS;
+    }
+
     return users;
 }

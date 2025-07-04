@@ -5,22 +5,17 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User, AddUserData, UpdateProfileData, UpdatePasswordData, UpdateUserGoogleTokensData } from '@/types/user-types';
 import { getAllUsers } from './data-access/user-data';
-import { unstable_noStore as noStore } from 'next/cache';
 
-async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    try {
-        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        console.error(`Error writing to database at ${path.basename(dbPath)}:`, error);
-        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
-    }
+const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
+
+async function writeAllUsers(data: User[]): Promise<void> {
+    const dbDir = path.dirname(DB_PATH);
+    await fs.mkdir(dbDir, { recursive: true });
+    await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
 }
 
 
-// --- Main Service Functions ---
-
 export async function findUserByUsername(username: string): Promise<User | null> {
-    noStore();
     if (!username) return null;
     const users = await getAllUsers();
     const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
@@ -28,7 +23,6 @@ export async function findUserByUsername(username: string): Promise<User | null>
 }
 
 export async function findUserByEmail(email: string): Promise<User | null> {
-    noStore();
     if (!email) return null;
     const users = await getAllUsers();
     const user = users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
@@ -36,7 +30,6 @@ export async function findUserByEmail(email: string): Promise<User | null> {
 }
 
 export async function findUserById(userId: string): Promise<User | null> {
-    noStore();
     if(!userId) return null;
     const users = await getAllUsers();
     const user = users.find(u => u.id === userId);
@@ -44,67 +37,47 @@ export async function findUserById(userId: string): Promise<User | null> {
 }
 
 export async function verifyUserCredentials(usernameInput: string, passwordInput: string): Promise<Omit<User, 'password'> | null> {
-    noStore();
     const user = await findUserByUsername(usernameInput);
 
-    if (!user) {
+    if (!user || !user.password || passwordInput !== user.password) {
         return null;
     }
 
-    if (!user.password) {
-        return null;
-    }
-
-    const isPasswordCorrect = passwordInput === user.password;
-
-    if (isPasswordCorrect) {
-        const { password: _p, ...userWithoutPassword } = user;
-        return userWithoutPassword;
-    } else {
-        return null;
-    }
+    const { password: _p, ...userWithoutPassword } = user;
+    return userWithoutPassword;
 }
 
 export async function addUser(userData: AddUserData): Promise<Omit<User, 'password'>> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     const users = await getAllUsers();
 
     if (userData.role === 'Admin Developer') {
         throw new Error('INVALID_ROLE_CREATION_ATTEMPT');
     }
 
-    const existingUser = users.find(u => u.username.toLowerCase() === userData.username.toLowerCase());
-    if (existingUser) {
+    if (users.some(u => u.username.toLowerCase() === userData.username.toLowerCase())) {
         throw new Error('USERNAME_EXISTS');
     }
-    if (userData.email) {
-        const existingEmail = users.find(u => u.email && u.email.toLowerCase() === userData.email!.toLowerCase());
-        if (existingEmail) {
-            throw new Error('EMAIL_EXISTS');
-        }
+    if (userData.email && users.some(u => u.email && u.email.toLowerCase() === userData.email!.toLowerCase())) {
+        throw new Error('EMAIL_EXISTS');
     }
 
-    const userId = `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    const now = new Date();
-
     const newUser: User = {
-        id: userId,
+        id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         username: userData.username,
         password: userData.password,
         role: userData.role,
         email: userData.email || `${userData.username.toLowerCase().replace(/\s+/g, '_')}@example.com`,
         displayName: userData.displayName || userData.username,
-        createdAt: now.toISOString(),
+        createdAt: new Date().toISOString(),
     };
 
     users.push(newUser);
-    await writeDb(DB_PATH, users);
+    await writeAllUsers(users);
     const { password: _p, ...newUserWithoutPassword } = newUser;
     return newUserWithoutPassword;
 }
 
 export async function deleteUser(userId: string): Promise<void> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     let users = await getAllUsers();
     const userToDelete = users.find(user => user.id === userId);
 
@@ -116,12 +89,11 @@ export async function deleteUser(userId: string): Promise<void> {
         throw new Error('CANNOT_DELETE_ADMIN_DEVELOPER');
     }
 
-    users = users.filter(user => user.id !== userId);
-    await writeDb(DB_PATH, users);
+    const remainingUsers = users.filter(user => user.id !== userId);
+    await writeAllUsers(remainingUsers);
 }
 
-export async function updateUserProfile(updateData: UpdateProfileData): Promise<Omit<User, 'password'> | null> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
+export async function updateUserProfile(updateData: UpdateProfileData): Promise<Omit<User, 'password'>> {
     let users = await getAllUsers();
     const userIndex = users.findIndex(u => u.id === updateData.userId);
 
@@ -139,28 +111,25 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
     }
 
     if (updateData.username && updateData.username.toLowerCase() !== currentUserState.username.toLowerCase()) {
-        const existingUser = users.find(u => u.id !== updateData.userId && u.username.toLowerCase() === updateData.username!.toLowerCase());
-        if (existingUser) {
+        if (users.some(u => u.id !== updateData.userId && u.username.toLowerCase() === updateData.username!.toLowerCase())) {
             throw new Error('USERNAME_EXISTS');
         }
     }
     if (updateData.email && updateData.email.toLowerCase() !== (currentUserState.email || '').toLowerCase()) {
-        const existingEmailUser = users.find(u => u.id !== updateData.userId && u.email && u.email.toLowerCase() === updateData.email!.toLowerCase());
-        if (existingEmailUser) {
+        if (users.some(u => u.id !== updateData.userId && u.email && u.email.toLowerCase() === updateData.email!.toLowerCase())) {
             throw new Error('EMAIL_EXISTS');
         }
     }
     
     const updatedUser = { ...currentUserState, ...updateData };
     users[userIndex] = updatedUser;
-    await writeDb(DB_PATH, users);
+    await writeAllUsers(users);
     
     const { password: _p, ...userWithoutPassword } = updatedUser;
     return userWithoutPassword;
 }
 
 export async function updatePassword(updateData: UpdatePasswordData): Promise<void> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     let users = await getAllUsers();
     const userIndex = users.findIndex(u => u.id === updateData.userId);
 
@@ -177,11 +146,10 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
     }
 
     users[userIndex].password = updateData.newPassword;
-    await writeDb(DB_PATH, users);
+    await writeAllUsers(users);
 }
 
 export async function getAllUsersForDisplay(): Promise<Omit<User, 'password'>[]> {
-    noStore();
     const users = await getAllUsers();
     return users
         .filter(user => user.role !== 'Admin Developer')
@@ -195,7 +163,6 @@ export async function updateUserGoogleTokens(
     userId: string,
     tokens: UpdateUserGoogleTokensData
 ): Promise<void> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     let users = await getAllUsers();
     const userIndex = users.findIndex(u => u.id === userId);
 
@@ -210,11 +177,10 @@ export async function updateUserGoogleTokens(
         accessTokenExpiresAt: tokens.accessTokenExpiresAt !== undefined ? tokens.accessTokenExpiresAt : users[userIndex].accessTokenExpiresAt,
     };
     
-    await writeDb(DB_PATH, users);
+    await writeAllUsers(users);
 }
 
-export async function clearUserGoogleTokens(userId: string): Promise<Omit<User, 'password'> | null> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
+export async function clearUserGoogleTokens(userId: string): Promise<Omit<User, 'password'>> {
     let users = await getAllUsers();
     const userIndex = users.findIndex(u => u.id === userId);
 
@@ -224,17 +190,13 @@ export async function clearUserGoogleTokens(userId: string): Promise<Omit<User, 
 
     const user = { ...users[userIndex] };
     
-    user.googleRefreshToken = null;
-    user.googleAccessToken = null;
-    user.accessTokenExpiresAt = null;
+    delete user.googleRefreshToken;
+    delete user.googleAccessToken;
+    delete user.accessTokenExpiresAt;
 
     users[userIndex] = user;
-
-    delete users[userIndex].googleRefreshToken;
-    delete users[userIndex].googleAccessToken;
-    delete users[userIndex].accessTokenExpiresAt;
     
-    await writeDb(DB_PATH, users);
+    await writeAllUsers(users);
     const { password: _p, ...userWithoutPassword } = users[userIndex];
     return userWithoutPassword;
 }
