@@ -19,6 +19,7 @@ export interface Notification {
 const NOTIFICATION_LIMIT = 300; 
 
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    noStore();
     try {
         await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
@@ -36,14 +37,9 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
 }
 
 async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    try {
-        const dbDir = path.dirname(dbPath);
-        await fs.mkdir(dbDir, { recursive: true });
-        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        console.error(`[DB Write Error] Error writing to database at ${path.basename(dbPath)}:`, error);
-        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
-    }
+    const dbDir = path.dirname(dbPath);
+    await fs.mkdir(dbDir, { recursive: true });
+    await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
 }
 
 async function findUsersByRole(role: string): Promise<User[]> {
@@ -121,7 +117,6 @@ export async function notifyUserById(userId: string, message: string, projectId?
 }
 
 export async function getNotificationsForUser(userId: string): Promise<Notification[]> {
-    noStore();
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     const allNotifications = await readDb<Notification[]>(DB_PATH, []);
     const userNotifications = allNotifications.filter(n => n.userId === userId);

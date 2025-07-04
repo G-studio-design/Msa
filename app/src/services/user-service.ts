@@ -1,6 +1,8 @@
 // src/services/user-service.ts
 'use server';
 
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import type { User, AddUserData, UpdateProfileData, UpdatePasswordData, UpdateUserGoogleTokensData } from '@/types/user-types';
 import { getAllUsers, writeAllUsers } from './data-access/user-data';
 import { unstable_noStore as noStore } from 'next/cache';
@@ -165,7 +167,6 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
 }
 
 export async function getAllUsersForDisplay(): Promise<Omit<User, 'password'>[]> {
-    noStore();
     const users = await getAllUsers();
     return users
         .filter(user => user.role !== 'Admin Developer')

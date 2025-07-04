@@ -27,7 +27,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
-import { addLeaveRequest } from '@/services/leave-request-service';
 import type { AddLeaveRequestData } from '@/types/leave-request-types';
 import { Loader2, CalendarIcon, Send } from 'lucide-react';
 import { format, differenceInDays, addDays } from 'date-fns';
@@ -120,7 +119,17 @@ export default function NewLeaveRequestPage() {
     };
 
     try {
-      await addLeaveRequest(leaveData);
+      const response = await fetch('/api/leave-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(leaveData),
+      });
+
+      if (!response.ok) {
+        const errorResult = await response.json();
+        throw new Error(errorResult.error || leaveRequestDict.toast.submissionFailed);
+      }
+      
       toast({ title: leaveRequestDict.toast.successTitle, description: leaveRequestDict.toast.requestSubmitted });
       form.reset({ // Reset form to initial default values
         leaveType: undefined,

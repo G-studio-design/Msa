@@ -14,6 +14,7 @@ export interface HolidayEntry {
 }
 
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    noStore();
     try {
         await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
@@ -31,7 +32,6 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
 }
 
 export async function getAllHolidays(): Promise<HolidayEntry[]> {
-  noStore();
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'holidays.json');
   const holidays = await readDb<HolidayEntry[]>(DB_PATH, []);
   return holidays.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());

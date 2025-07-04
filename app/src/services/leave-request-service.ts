@@ -8,6 +8,7 @@ import type { LeaveRequest, AddLeaveRequestData } from '@/types/leave-request-ty
 import { unstable_noStore as noStore } from 'next/cache';
 
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    noStore();
     try {
         await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
@@ -25,14 +26,9 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
 }
 
 async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    try {
-        const dbDir = path.dirname(dbPath);
-        await fs.mkdir(dbDir, { recursive: true });
-        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        console.error(`[DB Write Error] Error writing to database at ${path.basename(dbPath)}:`, error);
-        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
-    }
+    const dbDir = path.dirname(dbPath);
+    await fs.mkdir(dbDir, { recursive: true });
+    await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
 }
 
 export async function addLeaveRequest(data: AddLeaveRequestData): Promise<LeaveRequest> {
@@ -64,14 +60,12 @@ export async function addLeaveRequest(data: AddLeaveRequestData): Promise<LeaveR
 }
 
 export async function getAllLeaveRequests(): Promise<LeaveRequest[]> {
-  noStore();
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
   const allRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
   return allRequests.sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());
 }
 
 export async function getApprovedLeaveRequests(): Promise<LeaveRequest[]> {
-  noStore();
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
   const allRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
   return allRequests.filter(req => req.status === 'Approved');
@@ -137,7 +131,6 @@ export async function rejectLeaveRequest(requestId: string, rejectorUserId: stri
 }
 
 export async function getLeaveRequestsByUserId(userId: string): Promise<LeaveRequest[]> {
-    noStore();
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
     const allRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
     return allRequests.filter(req => req.userId === userId).sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());

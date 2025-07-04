@@ -29,6 +29,7 @@ const DEFAULT_USERS: User[] = [
 ];
 
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    noStore();
     try {
         await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
@@ -38,6 +39,9 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
         return JSON.parse(data) as T;
     } catch (error: any) {
         if (error.code === 'ENOENT') {
+          // IMPORTANT: Do NOT write the file here. This function should be read-only.
+          // The file should be created manually or by a separate seeding script if it doesn't exist.
+          console.warn(`[DB Read] File not found at ${path.basename(dbPath)}. Returning default data in memory.`);
           return defaultData;
         }
         console.error(`[DB Read Error] Error reading or parsing database at ${path.basename(dbPath)}.`, error);
@@ -46,14 +50,9 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
 }
 
 async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    try {
-        const dbDir = path.dirname(dbPath);
-        await fs.mkdir(dbDir, { recursive: true });
-        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        console.error(`[DB Write Error] Error writing to database at ${path.basename(dbPath)}:`, error);
-        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
-    }
+    const dbDir = path.dirname(dbPath);
+    await fs.mkdir(dbDir, { recursive: true });
+    await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
 }
 
 /**
@@ -63,15 +62,11 @@ async function writeDb<T>(dbPath: string, data: T): Promise<void> {
  * @returns A promise that resolves to an array of all User objects.
  */
 export async function getAllUsers(): Promise<User[]> {
-    noStore();
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
-    let users = await readDb<User[]>(DB_PATH, []);
+    let users = await readDb<User[]>(DB_PATH, DEFAULT_USERS);
 
-    // If the database was empty (or didn't exist), readDb returns an empty array.
-    // We then populate it with default users and write it back.
+    // This logic is now safe because readDb no longer writes files.
     if (users.length === 0) {
-        console.log(`[UserData] users.json is empty or was not found. Initializing with default users.`);
-        await writeDb(DB_PATH, DEFAULT_USERS);
         return DEFAULT_USERS;
     }
 

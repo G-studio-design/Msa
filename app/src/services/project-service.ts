@@ -1,4 +1,3 @@
-
 // src/services/project-service.ts
 'use server';
 
@@ -15,6 +14,7 @@ import { unstable_noStore as noStore } from 'next/cache';
 export type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry };
 
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    noStore();
     try {
         await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
@@ -32,14 +32,9 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
 }
 
 async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    try {
-        const dbDir = path.dirname(dbPath);
-        await fs.mkdir(dbDir, { recursive: true });
-        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        console.error(`[DB Write Error] Error writing to database at ${path.basename(dbPath)}:`, error);
-        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
-    }
+    const dbDir = path.dirname(dbPath);
+    await fs.mkdir(dbDir, { recursive: true });
+    await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
 }
 
 export async function addProject(projectData: Omit<AddProjectData, 'initialFiles'>): Promise<Project> {
@@ -110,7 +105,6 @@ export async function addFilesToProject(projectId: string, filesToAdd: FileEntry
 
 
 export async function getAllProjects(): Promise<Project[]> {
-    noStore();
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     let projects = await readDb<Project[]>(DB_PATH, []);
     
@@ -119,7 +113,6 @@ export async function getAllProjects(): Promise<Project[]> {
 }
 
 export async function getProjectById(projectId: string): Promise<Project | null> {
-    noStore();
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     const projects = await readDb<Project[]>(DB_PATH, []);
     const project = projects.find(p => p.id === projectId) || null;
