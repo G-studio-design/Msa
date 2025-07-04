@@ -2,34 +2,23 @@ import React, { Suspense } from 'react';
 import AttendancePageClient from '@/components/dashboard/AttendancePageClient';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { isAttendanceFeatureEnabled, getAppSettings } from '@/services/settings-service';
+import { getAppSettings } from '@/services/settings-service';
 import { getApprovedLeaveRequests } from '@/services/leave-request-service';
 import { getAllHolidays } from '@/services/holiday-service';
-import { getAttendanceForUser } from '@/services/attendance-service';
-import { headers } from 'next/headers'; // To satisfy build process for getting user in server component
 
 export const dynamic = 'force-dynamic';
 
-// A mock function to satisfy the build process for extracting user from headers
-// In a real scenario, this would involve a library like next-auth or clerk
-async function getUserIdFromSession() {
-    headers(); 
-    return null; 
-}
-
-
 export default async function AttendancePage() {
-    const userId = await getUserIdFromSession(); // This is for build compliance; logic is client-side
-
-    const [attendanceEnabled, settings, leaves, holidays] = await Promise.all([
-        isAttendanceFeatureEnabled(),
+    // Fetch all necessary data on the server
+    const [settings, leaves, holidays] = await Promise.all([
         getAppSettings(),
         getApprovedLeaveRequests(),
         getAllHolidays()
     ]);
 
+    // Consolidate initial data for the client component
     const initialData = {
-        attendanceEnabled,
+        attendanceEnabled: settings.feature_attendance_enabled,
         settings,
         leaves,
         holidays

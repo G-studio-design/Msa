@@ -1,4 +1,6 @@
 // src/services/user-service.ts
+'use server';
+
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User, AddUserData, UpdateProfileData, UpdatePasswordData, UpdateUserGoogleTokensData } from '@/types/user-types';

@@ -228,6 +228,7 @@ export async function generateWordReport({
   childrenForSection.push(new Paragraph({ children: [new TextRun(ensureNonEmpty(null, " "))], spacing: { before: 400 } })); // Spacing
 
   const doc = new Document({
+    // TIDAK ADA properti 'styles' di sini untuk sementara
     creator: ensureNonEmpty("Msarch App"),
     title: ensureNonEmpty(`${translations.monthlyReportPage.reportFor} ${monthName} ${year}`),
     description: ensureNonEmpty(translations.monthlyReportPage.description),

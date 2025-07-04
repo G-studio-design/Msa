@@ -5,10 +5,8 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { notifyUsersByRole, notifyUserById } from './notification-service';
 import type { LeaveRequest, AddLeaveRequestData } from '@/types/leave-request-types';
-import { unstable_noStore as noStore } from 'next/cache';
 
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
-    noStore();
     try {
         await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');

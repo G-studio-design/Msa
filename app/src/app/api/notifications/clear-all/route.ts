@@ -1,24 +1,20 @@
 // src/app/api/notifications/clear-all/route.ts
-'use server';
-
 import { NextResponse } from 'next/server';
 import { clearAllNotifications as clearNotificationsService } from '@/services/notification-service';
-import { findUserById } from '@/services/user-service'; // Assuming you might want to protect this endpoint
+import { findUserById } from '@/services/user-service';
 
-// Note: You might want to add authentication/authorization checks here
-// to ensure only authorized users can perform this action.
 export async function POST(request: Request) {
     try {
         const body = await request.json();
         const { userId } = body;
         
         if (!userId) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+            return NextResponse.json({ error: 'Unauthorized: User ID is required.' }, { status: 403 });
         }
 
         const user = await findUserById(userId);
         if (!user || !['Owner', 'Admin Developer'].includes(user.role)) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+            return NextResponse.json({ error: 'Unauthorized: Insufficient permissions.' }, { status: 403 });
         }
 
         await clearNotificationsService();
