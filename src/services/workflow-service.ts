@@ -1,3 +1,4 @@
+
 // src/services/workflow-service.ts
 'use server';
 
@@ -11,9 +12,9 @@ import {
 import { unstable_noStore as noStore } from 'next/cache';
 import type { Workflow, WorkflowStep, WorkflowStepTransition } from '@/types/workflow-types';
 
-const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
 
 export async function getAllWorkflows(): Promise<Workflow[]> {
+  const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
   noStore();
   const workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
   return workflows;
@@ -100,6 +101,7 @@ export async function getTransitionInfo(
 }
 
 export async function addWorkflow(name: string, description: string): Promise<Workflow> {
+  const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
   console.log(`[WorkflowService] Attempting to add workflow: ${name}`);
   let workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
   const msaWorkflow = workflows.find(wf => wf.id === 'msa_workflow');
@@ -121,6 +123,7 @@ export async function addWorkflow(name: string, description: string): Promise<Wo
 }
 
 export async function updateWorkflow(workflowId: string, updatedWorkflowData: Partial<Omit<Workflow, 'id'>>): Promise<Workflow | null> {
+  const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
   console.log(`[WorkflowService] Attempting to update workflow ID: ${workflowId}`);
   let workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
   const index = workflows.findIndex(wf => wf.id === workflowId);
@@ -154,6 +157,7 @@ export async function updateWorkflow(workflowId: string, updatedWorkflowData: Pa
 }
 
 export async function deleteWorkflow(workflowId: string): Promise<void> {
+  const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
   console.log(`[WorkflowService] Attempting to delete workflow ID: ${workflowId}`);
   let workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
   const initialLength = workflows.length;

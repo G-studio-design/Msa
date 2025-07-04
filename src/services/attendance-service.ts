@@ -1,3 +1,4 @@
+
 // src/services/attendance-service.ts
 'use server';
 
@@ -44,7 +45,6 @@ export interface CheckOutResult {
   error?: string;
 }
 
-const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
 
 // Helper function to calculate distance between two lat/lon points in meters
 function getDistanceInMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -64,12 +64,14 @@ function getDistanceInMeters(lat1: number, lon1: number, lat2: number, lon2: num
 
 
 export async function getTodaysAttendance(userId: string): Promise<AttendanceRecord | null> {
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const attendanceRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
   return attendanceRecords.find(r => r.userId === userId && r.date === todayStr) || null;
 }
 
 export async function getTodaysAttendanceForAllUsers(): Promise<AttendanceRecord[]> {
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const allRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
   return allRecords.filter(r => r.date === todayStr);
@@ -77,6 +79,7 @@ export async function getTodaysAttendanceForAllUsers(): Promise<AttendanceRecord
 
 export async function checkIn(data: CheckInData): Promise<CheckInResult> {
   try {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
     const settings = await getAppSettings();
 
     if (!data.location) {
@@ -131,6 +134,7 @@ export async function checkIn(data: CheckInData): Promise<CheckInResult> {
 
 export async function checkOut(userId: string, reason: 'Normal' | 'Survei' | 'Sidang' = 'Normal'): Promise<CheckOutResult> {
   try {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
     const attendanceRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     const recordIndex = attendanceRecords.findIndex(r => r.userId === userId && r.date === todayStr);
@@ -164,11 +168,13 @@ export async function checkOut(userId: string, reason: 'Normal' | 'Survei' | 'Si
 
 
 export async function getAttendanceForUser(userId: string): Promise<AttendanceRecord[]> {
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const attendanceRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
   return attendanceRecords.filter(r => r.userId === userId);
 }
 
 export async function getMonthlyAttendanceReportData(month: number, year: number): Promise<AttendanceRecord[]> {
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const allRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
   const monthStr = month.toString().padStart(2, '0');
   const yearStr = year.toString();

@@ -1,3 +1,4 @@
+
 // src/app/api/upload-file/route.ts
 import { NextResponse } from 'next/server';
 import * as fs from 'fs/promises';
@@ -12,9 +13,9 @@ const ALLOWED_ROLES = ['Owner', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP', 'A
 
 export async function POST(request: Request) {
   try {
-    const formData = await request.formData();
     await ensureProjectFilesBaseDirExists(); // Make sure the base directory exists
 
+    const formData = await request.formData();
     const file = formData.get('file') as File | null;
     const projectId = formData.get('projectId') as string | null;
     const projectTitle = formData.get('projectTitle') as string | null;

@@ -1,3 +1,4 @@
+
 // src/services/settings-service.ts
 'use server';
 
@@ -30,7 +31,6 @@ export interface AppSettings {
 export type AttendanceSettings = Omit<AppSettings, 'feature_attendance_enabled'>;
 
 
-const SETTINGS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
 const DEFAULT_SETTINGS: AppSettings = {
   feature_attendance_enabled: true,
   office_latitude: -8.6414837,
@@ -48,6 +48,7 @@ const DEFAULT_SETTINGS: AppSettings = {
 };
 
 export async function getAppSettings(): Promise<AppSettings> {
+  const SETTINGS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
   noStore();
   console.log("[SettingsService] Fetching app settings.");
   return await readDb<AppSettings>(SETTINGS_DB_PATH, DEFAULT_SETTINGS);
@@ -60,6 +61,7 @@ export async function isAttendanceFeatureEnabled(): Promise<boolean> {
 }
 
 export async function setAttendanceFeatureEnabled(isEnabled: boolean): Promise<AppSettings> {
+  const SETTINGS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
   noStore();
   console.log(`[SettingsService] Setting attendance feature to: ${isEnabled}`);
   const settings = await getAppSettings();
@@ -69,6 +71,7 @@ export async function setAttendanceFeatureEnabled(isEnabled: boolean): Promise<A
 }
 
 export async function updateAttendanceSettings(newSettings: AttendanceSettings): Promise<AppSettings> {
+    const SETTINGS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
     noStore();
     console.log('[SettingsService] Updating attendance settings:', newSettings);
     const currentSettings = await getAppSettings();

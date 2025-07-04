@@ -1,3 +1,4 @@
+
 // src/services/leave-request-service.ts
 'use server';
 
@@ -6,9 +7,8 @@ import { readDb, writeDb } from '@/lib/json-db-utils';
 import { notifyUsersByRole, notifyUserById } from './notification-service';
 import type { LeaveRequest, AddLeaveRequestData } from '@/types/leave-request-types';
 
-const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
-
 export async function addLeaveRequest(data: AddLeaveRequestData): Promise<LeaveRequest> {
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
   const leaveRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
   const now = new Date();
 
@@ -36,16 +36,19 @@ export async function addLeaveRequest(data: AddLeaveRequestData): Promise<LeaveR
 }
 
 export async function getAllLeaveRequests(): Promise<LeaveRequest[]> {
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
   const allRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
   return allRequests.sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());
 }
 
 export async function getApprovedLeaveRequests(): Promise<LeaveRequest[]> {
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
   const allRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
   return allRequests.filter(req => req.status === 'Approved');
 }
 
 export async function approveLeaveRequest(requestId: string, approverUserId: string, approverUsername: string): Promise<LeaveRequest | null> {
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
   const leaveRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
   const requestIndex = leaveRequests.findIndex(req => req.id === requestId);
 
@@ -74,6 +77,7 @@ export async function approveLeaveRequest(requestId: string, approverUserId: str
 }
 
 export async function rejectLeaveRequest(requestId: string, rejectorUserId: string, rejectorUsername: string, rejectionReason: string): Promise<LeaveRequest | null> {
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
   const leaveRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
   const requestIndex = leaveRequests.findIndex(req => req.id === requestId);
 
@@ -103,6 +107,7 @@ export async function rejectLeaveRequest(requestId: string, rejectorUserId: stri
 }
 
 export async function getLeaveRequestsByUserId(userId: string): Promise<LeaveRequest[]> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
     const allRequests = await readDb<LeaveRequest[]>(DB_PATH, []);
     return allRequests.filter(req => req.userId === userId).sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime());
 }
