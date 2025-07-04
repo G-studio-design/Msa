@@ -1,12 +1,17 @@
 // src/app/api/projects/route.ts
 'use server';
 import { NextResponse } from 'next/server';
-import { addProject } from '@/services/project-service';
+import { addProject, getAllProjects } from '@/services/project-service';
 import type { Project } from '@/types/project-types';
 
 export async function GET(request: Request) {
-  // This is a placeholder. You can implement fetching all projects here if needed.
-  return NextResponse.json({ message: 'Fetching all projects is handled by server components directly.' });
+  try {
+    const projects = await getAllProjects();
+    return NextResponse.json(projects);
+  } catch (error) {
+    console.error('[API/Projects GET All] Error:', error);
+    return NextResponse.json({ message: "Failed to fetch projects." }, { status: 500 });
+  }
 }
 
 

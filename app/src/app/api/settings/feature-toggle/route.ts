@@ -1,6 +1,6 @@
 // src/app/api/settings/feature-toggle/route.ts
 import { NextResponse } from 'next/server';
-import { updateFeatureSetting } from '@/services/settings-service';
+import { setAttendanceFeatureEnabled } from '@/services/settings-service';
 
 interface FeatureToggleRequest {
     feature: string;
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Invalid feature specified.' }, { status: 400 });
         }
 
-        const updatedSettings = await updateFeatureSetting(enabled);
+        const updatedSettings = await setAttendanceFeatureEnabled(enabled);
         return NextResponse.json(updatedSettings);
 
     } catch (error: any) {

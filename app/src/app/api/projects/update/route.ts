@@ -4,20 +4,18 @@ import {
     updateProject, 
     reviseProject, 
     markParallelUploadsAsCompleteByDivision,
-    updateProjectTitle,
     manuallyUpdateProjectStatusAndAssignment
 } from '@/services/project-service';
 import type { UpdateProjectParams } from '@/types/project-types';
 
 interface SpecialActionBody extends UpdateProjectParams {
-    specialAction?: 'revise' | 'markDivisionComplete' | 'manualUpdate' | 'updateTitle';
+    specialAction?: 'revise' | 'markDivisionComplete' | 'manualUpdate';
     newStatus?: string;
     newAssignedDivision?: string;
     newNextAction?: string | null;
     newProgress?: number;
     adminUsername?: string;
     reasonNote?: string;
-    title?: string;
 }
 
 
@@ -58,14 +56,6 @@ export async function POST(request: Request) {
                 reasonNote: body.reasonNote,
             });
             break;
-        case 'updateTitle':
-             if (!body.title || !body.updaterUsername) {
-                 return NextResponse.json({ message: 'Missing title for update.' }, { status: 400 });
-             }
-             await updateProjectTitle(body.projectId, body.title, body.updaterUsername);
-             // Return the full project object after title update for consistency
-             updatedProject = await updateProject(body);
-             break;
         default:
             updatedProject = await updateProject(body);
             break;

@@ -1,6 +1,4 @@
 // src/services/settings-service.ts
-'use server';
-
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -45,6 +43,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   }
 };
 
+const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
+
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
     try {
         await fs.access(dbPath);
@@ -70,7 +70,6 @@ async function writeDb<T>(dbPath: string, data: T): Promise<void> {
 
 
 export async function getAppSettings(): Promise<AppSettings> {
-  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
   return await readDb<AppSettings>(DB_PATH, DEFAULT_SETTINGS);
 }
 
@@ -79,9 +78,7 @@ export async function isAttendanceFeatureEnabled(): Promise<boolean> {
   return settings.feature_attendance_enabled;
 }
 
-export async function updateFeatureSetting(isEnabled: boolean): Promise<AppSettings> {
-  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
-  console.log(`[SettingsService] Setting attendance feature to: ${isEnabled}`);
+export async function setAttendanceFeatureEnabled(isEnabled: boolean): Promise<AppSettings> {
   const settings = await getAppSettings();
   const updatedSettings: AppSettings = { ...settings, feature_attendance_enabled: isEnabled };
   await writeDb(DB_PATH, updatedSettings);
@@ -89,14 +86,11 @@ export async function updateFeatureSetting(isEnabled: boolean): Promise<AppSetti
 }
 
 export async function updateAttendanceSettings(newSettings: AttendanceSettings): Promise<AppSettings> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
-    console.log('[SettingsService] Updating attendance settings:', newSettings);
     const currentSettings = await getAppSettings();
     const updatedSettings: AppSettings = {
       ...currentSettings,
       ...newSettings,
     };
     await writeDb(DB_PATH, updatedSettings);
-    console.log('[SettingsService] Attendance settings updated successfully.');
     return updatedSettings;
 }

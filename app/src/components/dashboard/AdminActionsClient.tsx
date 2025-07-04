@@ -1,3 +1,4 @@
+// src/components/dashboard/AdminActionsClient.tsx
 'use client';
 
 import * as React from 'react';
@@ -48,7 +49,6 @@ import type { WorkflowStep } from '@/types/workflow-types';
 import type { AppSettings, AttendanceSettings } from '@/services/settings-service';
 import { cn } from '@/lib/utils';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-
 
 const defaultGlobalDict = getDictionary('en');
 
@@ -182,12 +182,10 @@ export default function AdminActionsClient({ initialData }: AdminActionsClientPr
 
     setIsSaving(true);
     try {
-        const response = await fetch('/api/projects/update', {
-          method: 'POST',
+        const response = await fetch(`/api/projects/${projectId}/title`, {
+          method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
-            specialAction: 'updateTitle', 
-            projectId, 
             title: newTitle,
             updaterUsername: currentUser.username
           }),
@@ -334,7 +332,7 @@ export default function AdminActionsClient({ initialData }: AdminActionsClientPr
             const response = await fetch('/api/notifications/clear-all', { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: currentUser?.id }) // Optional: for authorization
+                body: JSON.stringify({ userId: currentUser?.id })
              });
             if (!response.ok) throw new Error('Failed to clear notifications');
             

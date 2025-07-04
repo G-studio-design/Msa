@@ -1,6 +1,6 @@
+// src/components/dashboard/ProjectsPageClient.tsx
 'use client';
 
-// src/components/dashboard/ProjectsPageClient.tsx
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -41,7 +41,6 @@ import {
   FileLock,
   CalendarIcon,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -109,7 +108,6 @@ const projectStatuses = [
 
 const MAX_FILES_UPLOAD = 10;
 
-// Define types for checklist items and the overall checklist status
 interface ChecklistItem {
     name: string;
     uploaded: boolean;
@@ -118,7 +116,7 @@ interface ChecklistItem {
     originalFileName?: string;
 }
 interface ParallelUploadChecklist {
-    [key: string]: ChecklistItem[] | undefined; // Make it indexable by string
+    [key: string]: ChecklistItem[] | undefined;
     Arsitek?: ChecklistItem[];
     Struktur?: ChecklistItem[];
     MEP?: ChecklistItem[];
@@ -150,7 +148,7 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
 
 
   const [allProjects, setAllProjects] = React.useState<Project[]>(initialProjects);
-  const [isLoadingProjects, setIsLoadingProjects] = React.useState(false); // Only for refetches
+  const [isLoadingProjects, setIsLoadingProjects] = React.useState(false);
   const [selectedProject, setSelectedProject] = React.useState<Project | null>(null);
 
   const [description, setDescription] = React.useState('');
@@ -198,22 +196,22 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
 
   const projectIdFromUrl = searchParams.get('projectId');
 
-  const fetchProjects = React.useCallback(async () => {
-    if (currentUser) {
-      setIsLoadingProjects(true);
-      try {
+  const fetchAllProjects = React.useCallback(async () => {
+    setIsLoadingProjects(true);
+    try {
         const response = await fetch('/api/projects');
-        if (!response.ok) throw new Error('Failed to fetch projects');
-        const fetchedProjects = await response.json();
-        setAllProjects(fetchedProjects);
-      } catch (error) {
+        if (!response.ok) {
+            throw new Error('Failed to fetch projects');
+        }
+        const data = await response.json();
+        setAllProjects(data);
+    } catch (error) {
         console.error("Failed to fetch projects:", error);
         toast({ variant: 'destructive', title: projectsDict.toast.error, description: projectsDict.toast.couldNotLoadProjects });
-      } finally {
+    } finally {
         setIsLoadingProjects(false);
-      }
     }
-  }, [currentUser, projectsDict.toast.couldNotLoadProjects, projectsDict.toast.error, toast]);
+  }, [toast, projectsDict.toast.error, projectsDict.toast.couldNotLoadProjects]);
 
   const fetchProjectById = async (id: string): Promise<Project | null> => {
     try {
@@ -234,7 +232,6 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
         const projectToSelect = allProjects.find(p => p.id === projectIdFromUrl);
         if (projectToSelect) {
           setSelectedProject(projectToSelect);
-          // Reset form fields
           setDescription('');
           setUploadedFiles([]);
           setScheduleDate(projectToSelect.scheduleDetails?.date ? parseISO(projectToSelect.scheduleDetails.date) : undefined);
@@ -638,7 +635,7 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
          setIsSubmitting(false);
          if (isArchitectInitialImageUpload) setIsSubmittingInitialImages(false);
       }
-  }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus, initialImageFiles, initialImageDescription, rescheduleDate, rescheduleTime, parallelUploadChecklist]);
+  }, [currentUser, selectedProject, uploadedFiles, description, scheduleDate, scheduleTime, scheduleLocation, surveyDate, surveyTime, surveyDescription, projectsDict, toast, getTranslatedStatus, initialImageFiles, initialImageDescription, rescheduleDate, rescheduleTime, parallelUploadChecklist, router]);
 
   const handleSurveyScheduleSubmit = React.useCallback(async () => {
         if (!currentUser || !selectedProject ) { 
@@ -697,17 +694,9 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
         });
         return;
     }
-    setIsSubmitting(true);
-    try {
-        await handleProgressSubmit('reschedule_survey_from_parallel', [], rescheduleFromParallelNote);
-    } catch (error: any) {
-        console.error("Error rescheduling survey from parallel phase:", error);
-        toast({ variant: 'destructive', title: projectsDict.toast.error, description: error.message || "Gagal menjadwalkan ulang survei." });
-    } finally {
-        setIsSubmitting(false);
-        setIsRescheduleFromParallelDialogOpen(false);
-        setRescheduleFromParallelNote('');
-    }
+    await handleProgressSubmit('reschedule_survey_from_parallel', [], rescheduleFromParallelNote);
+    setIsRescheduleFromParallelDialogOpen(false);
+    setRescheduleFromParallelNote('');
   }, [selectedProject, currentUser, rescheduleFromParallelNote, projectsDict, toast, handleProgressSubmit]);
 
   const handleDecision = React.useCallback((decision: 'approved' | 'rejected' | 'completed' | 'revise_offer' | 'revise_dp' | 'canceled_after_sidang' | 'revision_completed_and_finish' | 'mark_division_complete' | 'reschedule_sidang') => {
@@ -726,7 +715,6 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
         return;
     }
 
-    // New logic for 'completed' action from final documents step
     if (decision === 'completed' && selectedProject.status === 'Pending Final Documents' && !['Admin Proyek', 'Owner'].includes(currentUser.role)) {
         toast({ variant: 'destructive', title: projectsDict.toast.permissionDenied, description: "Only Admin Proyek or Owner can complete the project at this stage." });
         return;
@@ -949,7 +937,6 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
                 throw new Error(result.message || projectsDict.toast.fileDeleteError);
             }
 
-            // Refetch project data to update UI
             const updatedProject = await fetchProjectById(selectedProject.id);
             if (updatedProject) {
                 setAllProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
@@ -966,7 +953,7 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
         } finally {
             setIsDeletingFile(null);
         }
-    }, [selectedProject, currentUser, projectsDict.toast, toast]);
+    }, [selectedProject, currentUser, projectsDict.toast, toast, router]);
 
     const handleReviseSubmit = React.useCallback(async () => {
       if (!currentUser || !selectedProject) {
@@ -987,7 +974,7 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
       }
 
       setIsRevising(true);
-      setIsGenericRevisionDialogOpen(false); // Close the dialog immediately
+      setIsGenericRevisionDialogOpen(false);
 
       try {
         const response = await fetch('/api/projects/update', {
@@ -1028,14 +1015,13 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
       } finally {
         setIsRevising(false);
       }
-    }, [currentUser, selectedProject, revisionNote, projectsDict, toast, getTranslatedStatus]);
+    }, [currentUser, selectedProject, revisionNote, projectsDict, toast, getTranslatedStatus, router]);
 
     const showUploadSection = React.useMemo(() => {
         if (!selectedProject || !currentUser) return false;
         
         const userRole = currentUser.role.trim();
     
-        // Logic for parallel/revision uploads
         if (selectedProject.workflowId === 'msa_workflow' &&
             (selectedProject.status === 'Pending Parallel Design Uploads' || selectedProject.status === 'Pending Post-Sidang Revision')) {
             return ['Arsitek', 'Struktur', 'MEP'].includes(userRole);
@@ -1045,12 +1031,10 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
             return false;
         }
 
-        // The assigned user must match the current user's role
         if (userRole !== selectedProject.assignedDivision?.trim()) {
             return false;
         }
 
-        // List of statuses where the assigned user is expected to upload
         const statusesExpectingUpload = [
             'Pending Offer', 
             'Pending DP Invoice', 
@@ -1059,7 +1043,6 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
             'Pending Structure Files', 
             'Pending MEP Files',
             'Pending Consultation Docs'
-            // 'Survey Scheduled' is handled by showSurveyCompletionSection to avoid showing two upload sections
         ];
     
         return statusesExpectingUpload.includes(selectedProject.status);
@@ -1096,12 +1079,10 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
    const showOwnerDecisionSection = React.useMemo(() => {
     if (!selectedProject || !currentUser) return false;
     
-    // Check if the user is an Owner and can perform the action
     if (currentUser.role !== 'Owner' || !canPerformSelectedProjectAction) {
         return false;
     }
     
-    // Check if the project is in the specific "Pending Approval" state
     const isOfferApproval = selectedProject.status === 'Pending Approval' && selectedProject.progress === 20;
     const isDPInvoiceApproval = selectedProject.status === 'Pending Approval' && selectedProject.progress === 30;
     
@@ -1183,7 +1164,7 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
         } finally {
             setIsSubmitting(false);
         }
-    }, [selectedProject, currentUser, toast, projectsDict, getTranslatedStatus]);
+    }, [selectedProject, currentUser, toast, projectsDict, getTranslatedStatus, router]);
 
     const handleNotifyDivision = async (division: 'Arsitek' | 'Struktur' | 'MEP') => {
         if (!selectedProject || !currentUser) return;
@@ -1234,14 +1215,12 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
         const translations = projectsDict.workflowActions;
         if (!translations) return action;
 
-        // Pattern: Created Project with workflow: ...
         const createdMatch = action.match(/^(Created Project with workflow|Proyek dibuat dengan alur kerja): (.*)$/i);
         if (createdMatch) {
             return (translations.createdProjectWithWorkflow || "Created Project with workflow: {workflowId}")
                 .replace('{workflowId}', createdMatch[2]);
         }
 
-        // Pattern: Assigned to ... for ...
         const assignedMatch = action.match(/^(Assigned to|Ditugaskan kepada) (.*?) for (.*)$/i);
         if (assignedMatch) {
             const division = getTranslatedStatus(assignedMatch[2]);
@@ -1251,14 +1230,12 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
                 .replace('{nextAction}', nextAction);
         }
         
-        // Pattern: Uploaded initial file: ...
         const uploadedFileMatch = action.match(/^(Uploaded initial file|Mengunggah file awal): (.*)$/i);
         if (uploadedFileMatch) {
             return (translations.uploadedInitialFile || "Uploaded initial file: {fileName}")
                 .replace('{fileName}', uploadedFileMatch[2]);
         }
 
-        // Pattern: {user} ({role}) submitted for "{task}"
         const submittedMatch = action.match(/^(.*?) \((.*?)\) (submitted for|menyerahkan untuk) "(.*)"$/i);
         if (submittedMatch) {
             return (translations.submittedFor || "{username} ({role}) submitted for \"{task}\"")
@@ -1267,7 +1244,6 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
                 .replace('{task}', submittedMatch[4]);
         }
         
-        // Pattern: {user} ({role}) approved: {task}
         const approvedMatch = action.match(/^(.*?) \((.*?)\) (approved|menyetujui): (.*)$/i);
         if (approvedMatch) {
             return (translations.approvedAction || "{username} ({role}) approved: {task}")
@@ -1276,7 +1252,7 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
                 .replace('{task}', approvedMatch[4]);
         }
 
-        return action; // Fallback for actions that don't match
+        return action;
     }, [projectsDict.workflowActions, getTranslatedStatus]);
 
     const groupedAndSortedHistory = React.useMemo(() => {
@@ -1311,7 +1287,6 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
              const reqKeywords = reqName.toLowerCase().split(' ').filter(k => k);
              const uploadedFile = projectFiles.find(file => {
                  const fileNameLower = file.name.toLowerCase();
-                 // Special handling for 'Dokumen Final'
                  if (reqName === 'Dokumen Final') {
                      return fileNameLower.includes('dokumen') && fileNameLower.includes('final');
                  }
@@ -1844,7 +1819,7 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
                                   <TooltipProvider>
                                     <Tooltip delayDuration={100}>
                                         <TooltipTrigger asChild>
-                                            <div className="w-full sm:w-auto"> {/* Tooltip needs a non-disabled element wrapper for disabled state */}
+                                            <div className="w-full sm:w-auto">
                                                 <Button 
                                                     onClick={handleSurveyCompletionSubmit} 
                                                     disabled={isSubmitting || !isSurveyDatePassed} 
@@ -1909,7 +1884,7 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
                         )}
                         {showOwnerDecisionSection && (
                             <div className="space-y-4 border-t pt-4 mt-4">
-                            {project.progress === 20 && ( // Offer Approval
+                            {project.progress === 20 && (
                                 <>
                                     <h3 className="text-lg font-semibold">{projectsDict.ownerActionTitle}</h3>
                                     <p className="text-sm text-muted-foreground">{projectsDict.ownerActionDesc}</p>
@@ -1923,7 +1898,7 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
                                     </div>
                                 </>
                             )}
-                            {project.progress === 30 && ( // DP Invoice Approval
+                            {project.progress === 30 && (
                                 <>
                                     <h3 className="text-lg font-semibold">{projectsDict.dpInvoiceApprovalTitle}</h3>
                                     <p className="text-sm text-muted-foreground">{projectsDict.dpInvoiceApprovalDesc}</p>
