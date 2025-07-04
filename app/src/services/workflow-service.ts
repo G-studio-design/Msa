@@ -1,7 +1,6 @@
 // src/services/workflow-service.ts
 'use server';
 
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import {
     DEFAULT_WORKFLOW_ID,
@@ -14,8 +13,8 @@ import { readDb, writeDb } from '@/lib/db-utils';
 
 export async function getAllWorkflows(): Promise<Workflow[]> {
   noStore();
-  const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
-  const workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
+  const workflows = await readDb<Workflow[]>(DB_PATH, []);
   return workflows;
 }
 
@@ -100,9 +99,9 @@ export async function getTransitionInfo(
 }
 
 export async function addWorkflow(name: string, description: string): Promise<Workflow> {
-  const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
   console.log(`[WorkflowService] Attempting to add workflow: ${name}`);
-  let workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
+  let workflows = await readDb<Workflow[]>(DB_PATH, []);
   const msaWorkflow = workflows.find(wf => wf.id === 'msa_workflow');
   if(!msaWorkflow) throw new Error("Base 'msa_workflow' not found to create a new workflow.");
 
@@ -116,15 +115,15 @@ export async function addWorkflow(name: string, description: string): Promise<Wo
   };
 
   workflows.push(newWorkflow);
-  await writeDb(WORKFLOWS_DB_PATH, workflows);
+  await writeDb(DB_PATH, workflows);
   console.log(`[WorkflowService] New workflow "${name}" (ID: ${newWorkflowId}) added based on MSa workflow. Total workflows: ${workflows.length}`);
   return newWorkflow;
 }
 
 export async function updateWorkflow(workflowId: string, updatedWorkflowData: Partial<Omit<Workflow, 'id'>>): Promise<Workflow | null> {
-  const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
   console.log(`[WorkflowService] Attempting to update workflow ID: ${workflowId}`);
-  let workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
+  let workflows = await readDb<Workflow[]>(DB_PATH, []);
   const index = workflows.findIndex(wf => wf.id === workflowId);
 
   if (index === -1) {
@@ -150,15 +149,15 @@ export async function updateWorkflow(workflowId: string, updatedWorkflowData: Pa
 
   workflows[index] = finalUpdatedWorkflow;
 
-  await writeDb(WORKFLOWS_DB_PATH, workflows);
+  await writeDb(DB_PATH, workflows);
   console.log(`[WorkflowService] Workflow "${workflows[index].name}" (ID: ${workflowId}) updated.`);
   return workflows[index];
 }
 
 export async function deleteWorkflow(workflowId: string): Promise<void> {
-  const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
   console.log(`[WorkflowService] Attempting to delete workflow ID: ${workflowId}`);
-  let workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
+  let workflows = await readDb<Workflow[]>(DB_PATH, []);
   const initialLength = workflows.length;
 
   if (workflowId === DEFAULT_WORKFLOW_ID || workflowId === "msa_workflow") {
@@ -174,7 +173,7 @@ export async function deleteWorkflow(workflowId: string): Promise<void> {
     console.log(`[WorkflowService] Workflow with ID ${workflowId} deleted. Remaining workflows: ${workflows.length}`);
   }
 
-  await writeDb(WORKFLOWS_DB_PATH, workflows);
+  await writeDb(DB_PATH, workflows);
 }
 
 export async function getAllUniqueStatuses(): Promise<string[]> {

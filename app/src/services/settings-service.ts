@@ -1,7 +1,6 @@
 // src/services/settings-service.ts
 'use server';
 
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import { unstable_noStore as noStore } from 'next/cache';
 import { readDb, writeDb } from '@/lib/db-utils';
@@ -50,12 +49,10 @@ const DEFAULT_SETTINGS: AppSettings = {
 export async function getAppSettings(): Promise<AppSettings> {
   noStore();
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
-  console.log("[SettingsService] Fetching app settings.");
   return await readDb<AppSettings>(DB_PATH, DEFAULT_SETTINGS);
 }
 
 export async function isAttendanceFeatureEnabled(): Promise<boolean> {
-  noStore();
   const settings = await getAppSettings();
   return settings.feature_attendance_enabled;
 }

@@ -1,12 +1,10 @@
 // src/services/attendance-service.ts
 'use server';
 
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import { format } from 'date-fns';
 import { getAppSettings } from './settings-service';
 import { notifyUsersByRole } from './notification-service';
-import type { User } from '@/types/user-types';
 import { unstable_noStore as noStore } from 'next/cache';
 import { readDb, writeDb } from '@/lib/db-utils';
 

@@ -1,7 +1,6 @@
 // src/services/holiday-service.ts
 'use server';
 
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import { unstable_noStore as noStore } from 'next/cache';
 import { readDb } from '@/lib/db-utils';

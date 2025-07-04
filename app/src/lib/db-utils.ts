@@ -38,6 +38,8 @@ export async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
  */
 export async function writeDb<T>(dbPath: string, data: T): Promise<void> {
     try {
+        const dbDir = path.dirname(dbPath);
+        await fs.mkdir(dbDir, { recursive: true });
         await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
     } catch (error) {
         console.error(`[DB Write Error] Error writing to database at ${path.basename(dbPath)}:`, error);

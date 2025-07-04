@@ -1,24 +1,22 @@
 // src/services/notification-service.ts
 'use server';
 
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User } from '@/types/user-types';
 import { getAllUsers } from './data-access/user-data';
 import { unstable_noStore as noStore } from 'next/cache';
 import { readDb, writeDb } from '@/lib/db-utils';
 
-// Define the structure of a Notification
 export interface Notification {
     id: string;
-    userId: string; // ID of the user to receive the notification
-    projectId?: string; // Optional project ID related to the notification
+    userId: string; 
+    projectId?: string; 
     message: string;
-    timestamp: string; // ISO string
+    timestamp: string; 
     isRead: boolean;
 }
 
-const NOTIFICATION_LIMIT = 300; // Limit the total number of notifications stored
+const NOTIFICATION_LIMIT = 300; 
 
 async function findUsersByRole(role: string): Promise<User[]> {
     const allUsers = await getAllUsers();
@@ -39,7 +37,7 @@ export async function notifyUsersByRole(roleOrRoles: string | string[], message:
     let notificationsAdded = 0;
 
     for (const role of rolesToNotify) {
-        if (!role) continue; // Skip if a role in the array is empty or null
+        if (!role) continue;
 
         const targetUsers = await findUsersByRole(role);
         if (targetUsers.length === 0) {
@@ -48,7 +46,7 @@ export async function notifyUsersByRole(roleOrRoles: string | string[], message:
 
         targetUsers.forEach(user => {
             const newNotification: Notification = {
-                id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${user.id.slice(-3)}`, // Make ID more unique
+                id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${user.id.slice(-3)}`,
                 userId: user.id,
                 projectId: projectId,
                 message: message,

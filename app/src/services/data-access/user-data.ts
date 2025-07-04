@@ -1,11 +1,10 @@
 // src/services/data-access/user-data.ts
 'use server';
 
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User } from '@/types/user-types';
 import { unstable_noStore as noStore } from 'next/cache';
-import { readDb } from '@/lib/db-utils';
+import { readDb, writeDb } from '@/lib/db-utils';
 
 const DEFAULT_USERS: User[] = [
     {
@@ -38,18 +37,20 @@ const DEFAULT_USERS: User[] = [
 export async function getAllUsers(): Promise<User[]> {
     noStore();
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
-    
-    let users = await readDb<User[]>(DB_PATH, DEFAULT_USERS);
+    let users = await readDb<User[]>(DB_PATH, []);
 
-    // If the database file was empty or didn't exist, and we got the default users,
-    // let's ensure the file is created on the first run for subsequent reads.
-    // This is a one-time setup action.
-    try {
-        await fs.access(DB_PATH);
-    } catch (error) {
-        console.log(`[UserData] users.json not found. Creating it with default users.`);
-        await fs.writeFile(DB_PATH, JSON.stringify(DEFAULT_USERS, null, 2), 'utf8');
+    // If the database was empty (or didn't exist), readDb returns an empty array.
+    // We then populate it with default users and write it back.
+    if (users.length === 0) {
+        console.log(`[UserData] users.json is empty or was not found. Initializing with default users.`);
+        await writeDb(DB_PATH, DEFAULT_USERS);
+        return DEFAULT_USERS;
     }
 
     return users;
+}
+
+export async function writeAllUsers(users: User[]): Promise<void> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
+    await writeDb(DB_PATH, users);
 }
