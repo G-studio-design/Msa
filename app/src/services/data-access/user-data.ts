@@ -5,7 +5,6 @@ import * as path from 'path';
 import { readDb, writeDb } from '@/lib/json-db-utils';
 import type { User } from '@/types/user-types';
 
-const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
 const DEFAULT_USERS: User[] = [
     {
       id: "usr_dev_iwg",
@@ -36,6 +35,7 @@ const DEFAULT_USERS: User[] = [
  * @returns A promise that resolves to an array of all User objects.
  */
 export async function getAllUsers(): Promise<User[]> {
+    const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     let users = await readDb<User[]>(USERS_DB_PATH, []);
     
     if (users.length === 0) {

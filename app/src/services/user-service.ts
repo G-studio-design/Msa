@@ -7,7 +7,6 @@ import { writeDb } from '@/lib/json-db-utils';
 import type { User, AddUserData, UpdateProfileData, UpdatePasswordData, UpdateUserGoogleTokensData } from '@/types/user-types';
 import { getAllUsers } from './data-access/user-data'; // IMPORT FROM NEW DATA ACCESS LAYER
 
-const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
 
 // --- Main Service Functions ---
 
@@ -63,6 +62,7 @@ export async function verifyUserCredentials(usernameInput: string, passwordInput
 }
 
 export async function addUser(userData: AddUserData): Promise<Omit<User, 'password'>> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     console.log('[UserService] Attempting to add user:', userData.username, userData.role);
     const users = await getAllUsers();
 
@@ -105,6 +105,7 @@ export async function addUser(userData: AddUserData): Promise<Omit<User, 'passwo
 }
 
 export async function deleteUser(userId: string): Promise<void> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     console.log(`[UserService] Attempting to delete user with ID: ${userId}`);
     let users = await getAllUsers();
     const userToDelete = users.find(user => user.id === userId);
@@ -125,6 +126,7 @@ export async function deleteUser(userId: string): Promise<void> {
 }
 
 export async function updateUserProfile(updateData: UpdateProfileData): Promise<Omit<User, 'password'> | null> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     console.log(`[UserService] Attempting to update profile for user ID: ${updateData.userId}`);
     let users = await getAllUsers();
     const userIndex = users.findIndex(u => u.id === updateData.userId);
@@ -173,6 +175,7 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
 }
 
 export async function updatePassword(updateData: UpdatePasswordData): Promise<void> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     console.log(`[UserService] Attempting to update password for user ID: ${updateData.userId}`);
     let users = await getAllUsers();
     const userIndex = users.findIndex(u => u.id === updateData.userId);
@@ -214,6 +217,7 @@ export async function updateUserGoogleTokens(
     userId: string,
     tokens: UpdateUserGoogleTokensData
 ): Promise<void> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     console.log(`[UserService] Updating Google tokens for user ID: ${userId}`);
     let users = await getAllUsers();
     const userIndex = users.findIndex(u => u.id === userId);
@@ -235,6 +239,7 @@ export async function updateUserGoogleTokens(
 }
 
 export async function clearUserGoogleTokens(userId: string): Promise<Omit<User, 'password'> | null> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     console.log(`[UserService] Clearing Google tokens for user ID: ${userId}`);
     let users = await getAllUsers();
     const userIndex = users.findIndex(u => u.id === userId);

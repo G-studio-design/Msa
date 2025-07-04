@@ -4,7 +4,6 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { ensureProjectFilesBaseDirExists } from '@/services/project-service'; 
 import { sanitizeForPath } from '@/lib/path-utils'; 
-import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants';
 import { getAllUsers } from '@/services/data-access/user-data';
 
 // Define the allowed roles for file upload
@@ -12,6 +11,7 @@ const ALLOWED_ROLES = ['Owner', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP', 'A
 
 export async function POST(request: Request) {
   try {
+    const PROJECT_FILES_BASE_DIR = path.resolve(process.cwd(), 'src', 'database', 'project_files');
     const formData = await request.formData();
     await ensureProjectFilesBaseDirExists(); // Make sure the base directory exists
 

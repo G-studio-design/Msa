@@ -8,7 +8,6 @@ import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 import { readDb, writeDb } from '@/lib/json-db-utils';
 import { notifyUsersByRole, deleteNotificationsByProjectId } from './notification-service';
 import { sanitizeForPath } from '@/lib/path-utils';
-import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants';
 import { getWorkflowById, getFirstStep, getTransitionInfo } from './workflow-service';
 import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
 import type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry } from '@/types/project-types';
@@ -16,12 +15,10 @@ import type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleD
 // Re-export types for consumers of this service
 export type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry };
 
-
-const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
-
 // --- Helper Functions ---
 
 export async function ensureProjectFilesBaseDirExists(): Promise<void> {
+    const PROJECT_FILES_BASE_DIR = path.resolve(process.cwd(), 'src', 'database', 'project_files');
     try {
         await fs.mkdir(PROJECT_FILES_BASE_DIR, { recursive: true });
     } catch (error) {
@@ -33,6 +30,8 @@ export async function ensureProjectFilesBaseDirExists(): Promise<void> {
 // --- Main Service Functions ---
 
 export async function addProject(projectData: AddProjectData): Promise<Project> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
+    const PROJECT_FILES_BASE_DIR = path.resolve(process.cwd(), 'src', 'database', 'project_files');
     const effectiveWorkflowId = projectData.workflowId || DEFAULT_WORKFLOW_ID;
     console.log(`[ProjectService] Attempting to add project: "${projectData.title}", by: ${projectData.createdBy}. Effective Workflow ID: "${effectiveWorkflowId}" (Received: "${projectData.workflowId}")`);
 
@@ -113,6 +112,7 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
 }
 
 export async function getAllProjects(): Promise<Project[]> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     let projects = await readDb<Project[]>(DB_PATH, []);
     let projectsModified = false;
 
@@ -136,6 +136,7 @@ export async function getAllProjects(): Promise<Project[]> {
 }
 
 export async function getProjectById(projectId: string): Promise<Project | null> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     let projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
 
@@ -159,6 +160,7 @@ export async function getProjectById(projectId: string): Promise<Project | null>
 }
 
 export async function updateProject(params: UpdateProjectParams): Promise<Project | null> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     const {
         projectId,
         updaterRole,
@@ -379,6 +381,8 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
 }
 
 export async function updateProjectTitle(projectId: string, newTitle: string): Promise<void> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
+    const PROJECT_FILES_BASE_DIR = path.resolve(process.cwd(), 'src', 'database', 'project_files');
     console.log(`[ProjectService] Updating title for project ID: ${projectId} to "${newTitle}"`);
     await ensureProjectFilesBaseDirExists();
     let projects = await readDb<Project[]>(DB_PATH, []);
@@ -433,6 +437,7 @@ export async function reviseProject(
     revisionNote?: string,
     actionTaken: string = 'revise' // Default to 'revise', can be 'revise_offer' etc.
 ): Promise<Project | null> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     console.log(`[ProjectService] Revising project ID: ${projectId} by ${reviserRole} (${reviserUsername}) with action "${actionTaken}". Note: "${revisionNote || 'N/A'}"`);
     let projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
@@ -512,6 +517,7 @@ export async function manuallyUpdateProjectStatusAndAssignment(
         reasonNote: string;
     }
 ): Promise<Project> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     const { projectId, newStatus, newAssignedDivision, newNextAction, newProgress, adminUsername, reasonNote } = params;
     console.log(`[ProjectService] Manually updating project ID: ${projectId} by admin ${adminUsername}. New Status: ${newStatus}, New Division: ${newAssignedDivision}`);
     let projects = await readDb<Project[]>(DB_PATH, []);
@@ -557,6 +563,7 @@ export async function manuallyUpdateProjectStatusAndAssignment(
 }
 
 export async function deleteProjectFile(projectId: string, filePath: string, deleterUsername: string): Promise<void> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     console.log(`[ProjectService] Deleting file record for project ${projectId}, path: ${filePath} by ${deleterUsername}`);
     let projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
@@ -588,6 +595,8 @@ export async function deleteProjectFile(projectId: string, filePath: string, del
 }
 
 export async function deleteProject(projectId: string, deleterUsername: string): Promise<void> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
+    const PROJECT_FILES_BASE_DIR = path.resolve(process.cwd(), 'src', 'database', 'project_files');
     console.log(`[ProjectService] Attempting to delete project ID: ${projectId} by user: ${deleterUsername}`);
     let projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
@@ -629,6 +638,7 @@ export async function markParallelUploadsAsCompleteByDivision(
     division: string,
     username: string
 ): Promise<Project | null> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     console.log(`[ProjectService] Marking parallel uploads complete for project ${projectId} by division ${division}`);
     let projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);

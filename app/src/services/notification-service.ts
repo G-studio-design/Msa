@@ -16,7 +16,6 @@ export interface Notification {
     isRead: boolean;
 }
 
-const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
 const NOTIFICATION_LIMIT = 300; // Limit the total number of notifications stored
 
 
@@ -28,6 +27,7 @@ async function findUsersByRole(role: string): Promise<User[]> {
 }
 
 export async function notifyUsersByRole(roleOrRoles: string | string[], message: string, projectId?: string): Promise<void> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     const rolesToNotify = Array.isArray(roleOrRoles) ? roleOrRoles : [roleOrRoles];
     console.log(`[NotificationService] Attempting to send notification to role(s) "${rolesToNotify.join(', ')}": ${message}${projectId ? ` (Project: ${projectId})` : ''}`);
     
@@ -87,6 +87,7 @@ export async function notifyUsersByRole(roleOrRoles: string | string[], message:
 }
 
 export async function notifyUserById(userId: string, message: string, projectId?: string): Promise<void> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     console.log(`[NotificationService] Sending notification to user ID "${userId}": ${message}${projectId ? ` (Project: ${projectId})` : ''}`);
     try {
         if (!userId) {
@@ -116,6 +117,7 @@ export async function notifyUserById(userId: string, message: string, projectId?
 }
 
 export async function getNotificationsForUser(userId: string): Promise<Notification[]> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     const allNotifications = await readDb<Notification[]>(DB_PATH, []);
     const userNotifications = allNotifications.filter(n => n.userId === userId);
     userNotifications.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -123,6 +125,7 @@ export async function getNotificationsForUser(userId: string): Promise<Notificat
 }
 
 export async function markNotificationAsRead(notificationId: string): Promise<void> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     const notifications = await readDb<Notification[]>(DB_PATH, []);
     const notificationIndex = notifications.findIndex(n => n.id === notificationId);
 
@@ -140,6 +143,7 @@ export async function markNotificationAsRead(notificationId: string): Promise<vo
 }
 
 export async function deleteNotificationsByProjectId(projectId: string): Promise<void> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     console.log(`[NotificationService] Deleting notifications for project ID: ${projectId}`);
     try {
         if (!projectId) {
@@ -165,6 +169,7 @@ export async function deleteNotificationsByProjectId(projectId: string): Promise
 }
 
 export async function clearAllNotifications(): Promise<void> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     try {
         await writeDb(DB_PATH, []); 
         console.log("[NotificationService] All notifications have been cleared.");
