@@ -1,20 +1,38 @@
 // src/services/project-service.ts
 'use server';
 
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale } from 'date-fns/locale';
-import { readDb, writeDb } from '@/lib/json-db-utils';
 import { notifyUsersByRole, deleteNotificationsByProjectId } from './notification-service';
 import { getWorkflowById, getFirstStep, getTransitionInfo } from './workflow-service';
 import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
 import type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry } from '@/types/project-types';
-import * as path from 'path';
 
 // Re-export types for consumers of this service
 export type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry };
 
-// This service is now ONLY responsible for JSON data manipulation.
-// ALL file system operations (mkdir, unlink, rename) are handled in API routes.
+async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    try {
+        const data = await fs.readFile(dbPath, 'utf8');
+        if (data.trim() === "") return defaultData;
+        return JSON.parse(data) as T;
+    } catch (error: any) {
+        if (error.code === 'ENOENT') return defaultData;
+        console.error(`Error reading database at ${path.basename(dbPath)}.`, error);
+        return defaultData;
+    }
+}
+
+async function writeDb<T>(dbPath: string, data: T): Promise<void> {
+    try {
+        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        console.error(`Error writing to database at ${path.basename(dbPath)}:`, error);
+        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
+    }
+}
 
 export async function addProject(projectData: Omit<AddProjectData, 'initialFiles'>): Promise<Project> {
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
@@ -51,7 +69,6 @@ export async function addProject(projectData: Omit<AddProjectData, 'initialFiles
     await writeDb(DB_PATH, projects);
     console.log(`[ProjectService] Project entry "${newProject.title}" (ID: ${newProject.id}) created.`);
     
-    // Initial notification can be sent here
     if (firstStep.assignedDivision) {
         const message = `Proyek baru "${newProject.title}" telah dibuat oleh ${projectData.createdBy} dan memerlukan tindakan: ${firstStep.nextActionDescription || 'Langkah awal'}.`;
         await notifyUsersByRole(firstStep.assignedDivision, message, newProject.id);
@@ -204,7 +221,6 @@ export async function updateProjectTitle(projectId: string, newTitle: string): P
     const projectIndex = projects.findIndex(p => p.id === projectId);
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND');
 
-    // Folder renaming logic is removed from here. The folder name is now based on the immutable projectId.
     projects[projectIndex].title = newTitle;
     await writeDb(DB_PATH, projects);
 }
@@ -242,8 +258,6 @@ export async function deleteProject(projectId: string, deleterUsername: string):
     await writeDb(DB_PATH, projects);
     
     await deleteNotificationsByProjectId(projectId);
-    // Physical folder deletion is now handled by an API route to keep services clean.
-    // The UI should call that API route. For now, this only deletes the JSON record.
     return projectTitle;
 }
 

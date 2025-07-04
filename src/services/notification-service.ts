@@ -1,10 +1,10 @@
 // src/services/notification-service.ts
 'use server';
 
+import * as fs from 'fs/promises';
 import * as path from 'path';
-import { readDb, writeDb } from '@/lib/json-db-utils';
 import type { User } from '@/types/user-types';
-import { getAllUsers } from './data-access/user-data'; // IMPORT FROM NEW DATA ACCESS LAYER
+import { getAllUsers } from './data-access/user-data';
 
 // Define the structure of a Notification
 export interface Notification {
@@ -18,9 +18,30 @@ export interface Notification {
 
 const NOTIFICATION_LIMIT = 300; // Limit the total number of notifications stored
 
+async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    try {
+        const data = await fs.readFile(dbPath, 'utf8');
+        if (data.trim() === "") return defaultData;
+        return JSON.parse(data) as T;
+    } catch (error: any) {
+        if (error.code === 'ENOENT') return defaultData;
+        console.error(`Error reading database at ${path.basename(dbPath)}.`, error);
+        return defaultData;
+    }
+}
+
+async function writeDb<T>(dbPath: string, data: T): Promise<void> {
+    try {
+        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        console.error(`Error writing to database at ${path.basename(dbPath)}:`, error);
+        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
+    }
+}
+
 
 async function findUsersByRole(role: string): Promise<User[]> {
-    const allUsers = await getAllUsers(); // USE THE NEW DATA ACCESS FUNCTION
+    const allUsers = await getAllUsers();
     const usersInRole = allUsers.filter(user => user.role === role);
     return usersInRole;
 }

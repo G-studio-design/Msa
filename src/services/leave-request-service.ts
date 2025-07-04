@@ -1,11 +1,32 @@
-
 // src/services/leave-request-service.ts
 'use server';
 
+import * as fs from 'fs/promises';
 import * as path from 'path';
-import { readDb, writeDb } from '@/lib/json-db-utils';
 import { notifyUsersByRole, notifyUserById } from './notification-service';
 import type { LeaveRequest, AddLeaveRequestData } from '@/types/leave-request-types';
+
+async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    try {
+        const data = await fs.readFile(dbPath, 'utf8');
+        if (data.trim() === "") return defaultData;
+        return JSON.parse(data) as T;
+    } catch (error: any) {
+        if (error.code === 'ENOENT') return defaultData;
+        console.error(`Error reading database at ${path.basename(dbPath)}.`, error);
+        return defaultData;
+    }
+}
+
+async function writeDb<T>(dbPath: string, data: T): Promise<void> {
+    try {
+        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        console.error(`Error writing to database at ${path.basename(dbPath)}:`, error);
+        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
+    }
+}
+
 
 export async function addLeaveRequest(data: AddLeaveRequestData): Promise<LeaveRequest> {
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');

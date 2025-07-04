@@ -1,13 +1,12 @@
-
 // src/services/attendance-service.ts
 'use server';
 
+import * as fs from 'fs/promises';
 import * as path from 'path';
-import { readDb, writeDb } from '@/lib/json-db-utils';
 import { format } from 'date-fns';
 import { getAppSettings } from './settings-service';
 import { notifyUsersByRole } from './notification-service';
-import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
+import type { User } from '@/types/user-types';
 
 export interface AttendanceRecord {
   id: string;
@@ -45,6 +44,26 @@ export interface CheckOutResult {
   error?: string;
 }
 
+async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    try {
+        const data = await fs.readFile(dbPath, 'utf8');
+        if (data.trim() === "") return defaultData;
+        return JSON.parse(data) as T;
+    } catch (error: any) {
+        if (error.code === 'ENOENT') return defaultData;
+        console.error(`Error reading database at ${path.basename(dbPath)}.`, error);
+        return defaultData;
+    }
+}
+
+async function writeDb<T>(dbPath: string, data: T): Promise<void> {
+    try {
+        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        console.error(`Error writing to database at ${path.basename(dbPath)}:`, error);
+        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
+    }
+}
 
 // Helper function to calculate distance between two lat/lon points in meters
 function getDistanceInMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -78,8 +97,8 @@ export async function getTodaysAttendanceForAllUsers(): Promise<AttendanceRecord
 }
 
 export async function checkIn(data: CheckInData): Promise<CheckInResult> {
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   try {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
     const settings = await getAppSettings();
 
     if (!data.location) {
@@ -101,7 +120,7 @@ export async function checkIn(data: CheckInData): Promise<CheckInResult> {
     const now = new Date();
     const todayStr = format(now, 'yyyy-MM-dd');
 
-    const existingRecord = await getTodaysAttendance(data.userId);
+    const existingRecord = attendanceRecords.find(r => r.userId === data.userId && r.date === todayStr);
     if (existingRecord) {
       return { error: "Anda sudah melakukan check-in hari ini." };
     }
@@ -133,8 +152,8 @@ export async function checkIn(data: CheckInData): Promise<CheckInResult> {
 }
 
 export async function checkOut(userId: string, reason: 'Normal' | 'Survei' | 'Sidang' = 'Normal'): Promise<CheckOutResult> {
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   try {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
     const attendanceRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     const recordIndex = attendanceRecords.findIndex(r => r.userId === userId && r.date === todayStr);

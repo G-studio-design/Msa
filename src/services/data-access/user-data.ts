@@ -1,8 +1,8 @@
 // src/services/data-access/user-data.ts
 'use server';
 
+import * as fs from 'fs/promises';
 import * as path from 'path';
-import { readDb, writeDb } from '@/lib/json-db-utils';
 import type { User } from '@/types/user-types';
 
 const DEFAULT_USERS: User[] = [
@@ -27,22 +27,41 @@ const DEFAULT_USERS: User[] = [
     }
 ];
 
-
-/**
- * Reads the entire user database, including developers.
- * Initializes with default users if the database is empty.
- * This is a low-level data access function.
- * @returns A promise that resolves to an array of all User objects.
- */
-export async function getAllUsers(): Promise<User[]> {
+async function readUsersDb(): Promise<User[]> {
     const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
-    let users = await readDb<User[]>(USERS_DB_PATH, []);
-    
+    try {
+        const data = await fs.readFile(USERS_DB_PATH, 'utf8');
+        if (data.trim() === "") return [];
+        return JSON.parse(data) as User[];
+    } catch (error: any) {
+        if (error.code === 'ENOENT') {
+            return [];
+        }
+        console.error(`[user-data] Error reading user database.`, error);
+        return [];
+    }
+}
+
+async function writeUsersDb(data: User[]): Promise<void> {
+    const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
+    try {
+        await fs.writeFile(USERS_DB_PATH, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        console.error(`[user-data] Error writing to user database:`, error);
+        throw new Error(`Failed to save user data.`);
+    }
+}
+
+export async function getAllUsers(): Promise<User[]> {
+    let users = await readUsersDb();
     if (users.length === 0) {
         console.log("[user-data] User database is empty. Initializing with default users.");
-        await writeDb(USERS_DB_PATH, DEFAULT_USERS);
+        await writeUsersDb(DEFAULT_USERS);
         return DEFAULT_USERS;
     }
-    
     return users;
+}
+
+export async function saveAllUsers(users: User[]): Promise<void> {
+    await writeUsersDb(users);
 }
