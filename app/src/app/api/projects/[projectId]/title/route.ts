@@ -9,16 +9,16 @@ export async function PUT(
   try {
     const projectId = params.projectId;
     const body = await request.json();
-    const { title, updaterUsername } = body;
+    const { title } = body;
 
     if (!projectId) {
       return NextResponse.json({ message: 'Project ID is required.' }, { status: 400 });
     }
-    if (!title || !updaterUsername) {
-      return NextResponse.json({ message: 'New title and updater username are required.' }, { status: 400 });
+    if (!title) {
+      return NextResponse.json({ message: 'New title is required.' }, { status: 400 });
     }
 
-    await updateProjectTitle(projectId, title, updaterUsername);
+    await updateProjectTitle(projectId, title);
     return NextResponse.json({ message: 'Project title updated successfully.' });
 
   } catch (error: any) {

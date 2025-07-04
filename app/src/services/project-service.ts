@@ -1,4 +1,6 @@
 // src/services/project-service.ts
+'use server';
+
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { format, parseISO } from 'date-fns';
@@ -184,15 +186,15 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
     return currentProject;
 }
 
-export async function updateProjectTitle(projectId: string, newTitle: string, updaterUsername: string): Promise<void> {
+export async function updateProjectTitle(projectId: string, newTitle: string): Promise<void> {
     const projects = await readDb();
     const projectIndex = projects.findIndex(p => p.id === projectId);
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND');
 
     const oldTitle = projects[projectIndex].title;
     projects[projectIndex].title = newTitle;
-     projects[projectIndex].workflowHistory.push({
-        division: updaterUsername,
+    projects[projectIndex].workflowHistory.push({
+        division: "Admin", // Generic admin action
         action: `Manually changed project title from "${oldTitle}" to "${newTitle}".`,
         timestamp: new Date().toISOString(),
     });

@@ -6,21 +6,10 @@ import { isAttendanceFeatureEnabled, getAppSettings } from '@/services/settings-
 import { getApprovedLeaveRequests } from '@/services/leave-request-service';
 import { getAllHolidays } from '@/services/holiday-service';
 import { getAttendanceForUser } from '@/services/attendance-service';
-import { headers } from 'next/headers'; // To satisfy build process for getting user in server component
 
 export const dynamic = 'force-dynamic';
 
-// A mock function to satisfy the build process for extracting user from headers
-// In a real scenario, this would involve a library like next-auth or clerk
-async function getUserIdFromSession() {
-    headers(); 
-    return null; 
-}
-
-
 export default async function AttendancePage() {
-    const userId = await getUserIdFromSession(); // This is for build compliance; logic is client-side
-
     const [attendanceEnabled, settings, leaves, holidays] = await Promise.all([
         isAttendanceFeatureEnabled(),
         getAppSettings(),
