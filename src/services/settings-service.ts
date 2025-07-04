@@ -1,3 +1,4 @@
+// src/services/settings-service.ts
 'use server';
 
 import * as fs from 'fs/promises';
@@ -44,24 +45,32 @@ const DEFAULT_SETTINGS: AppSettings = {
   }
 };
 
-
-// --- Internal DB Functions (Isolated) ---
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
     try {
         const data = await fs.readFile(dbPath, 'utf8');
+        if (data.trim() === "") {
+            return defaultData;
+        }
         return JSON.parse(data) as T;
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-            return defaultData;
+          // Do not write file on read. Assume file exists or return default.
+          console.warn(`[DB Read] File not found at ${dbPath}, returning default data.`);
+          return defaultData;
         }
-        throw error;
+        console.error(`[DB Read] Error reading or parsing database at ${dbPath}.`, error);
+        return defaultData;
     }
 }
 
 async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+    try {
+        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        console.error(`[DB Write] Error writing to database at ${path.basename(dbPath)}:`, error);
+        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
+    }
 }
-// --- End Internal DB Functions ---
 
 
 export async function getAppSettings(): Promise<AppSettings> {

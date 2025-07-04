@@ -1,6 +1,6 @@
+// src/components/dashboard/DashboardPageClient.tsx
 'use client';
 
-// src/components/dashboard/DashboardPageClient.tsx
 import React, { useState, useMemo, useCallback } from 'react';
 import {
   Card,
@@ -26,13 +26,10 @@ import { format, parseISO, startOfToday, isSameDay, addDays, isWithinInterval, e
 import { id as idLocale, enUS as enLocale } from 'date-fns/locale';
 import { Progress } from '@/components/ui/progress';
 import {
-    Activity,
     AlertTriangle,
     CheckCircle,
     Clock,
-    Loader2,
     PlusCircle,
-    ExternalLink,
     Briefcase,
     CalendarClock,
     MapPin,
@@ -43,7 +40,6 @@ import {
     UserCog,
     PartyPopper,
     Building,
-    Users as UsersIcon,
     UserCheck,
     UserX
 } from 'lucide-react';
@@ -54,7 +50,6 @@ import {
   ChartConfig,
 } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LabelList, Cell } from "recharts";
-import { cn } from '@/lib/utils';
 
 // Unified event type for the calendar
 type CalendarEventType = 'sidang' | 'survey' | 'leave' | 'holiday' | 'company_event';

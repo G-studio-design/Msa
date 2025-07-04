@@ -1,3 +1,4 @@
+// src/services/workflow-service.ts
 'use server';
 
 import * as fs from 'fs/promises';
@@ -7,30 +8,41 @@ import {
     DEFAULT_WORKFLOW_NAME,
     DEFAULT_WORKFLOW_DESCRIPTION
 } from '@/config/workflow-constants';
+import { unstable_noStore as noStore } from 'next/cache';
 import type { Workflow, WorkflowStep, WorkflowStepTransition } from '@/types/workflow-types';
 
-// --- Internal DB Functions (Isolated) ---
-async function readDb<T>(dbPath: string): Promise<T[]> {
+async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
     try {
         const data = await fs.readFile(dbPath, 'utf8');
-        return JSON.parse(data) as T[];
+        if (data.trim() === "") {
+            return defaultData;
+        }
+        return JSON.parse(data) as T;
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-            return []; // Return empty array if file doesn't exist
+          // Do not write file on read. Assume file exists or return default.
+          console.warn(`[DB Read] File not found at ${dbPath}, returning default data.`);
+          return defaultData;
         }
-        throw error;
+        console.error(`[DB Read] Error reading or parsing database at ${dbPath}.`, error);
+        return defaultData;
     }
 }
 
 async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+    try {
+        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        console.error(`[DB Write] Error writing to database at ${path.basename(dbPath)}:`, error);
+        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
+    }
 }
-// --- End Internal DB Functions ---
 
 
 export async function getAllWorkflows(): Promise<Workflow[]> {
+  noStore();
   const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
-  const workflows = await readDb<Workflow>(WORKFLOWS_DB_PATH);
+  const workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
   return workflows;
 }
 
@@ -117,7 +129,7 @@ export async function getTransitionInfo(
 export async function addWorkflow(name: string, description: string): Promise<Workflow> {
   const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
   console.log(`[WorkflowService] Attempting to add workflow: ${name}`);
-  let workflows = await readDb<Workflow>(WORKFLOWS_DB_PATH);
+  let workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
   const msaWorkflow = workflows.find(wf => wf.id === 'msa_workflow');
   if(!msaWorkflow) throw new Error("Base 'msa_workflow' not found to create a new workflow.");
 
@@ -139,7 +151,7 @@ export async function addWorkflow(name: string, description: string): Promise<Wo
 export async function updateWorkflow(workflowId: string, updatedWorkflowData: Partial<Omit<Workflow, 'id'>>): Promise<Workflow | null> {
   const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
   console.log(`[WorkflowService] Attempting to update workflow ID: ${workflowId}`);
-  let workflows = await readDb<Workflow>(WORKFLOWS_DB_PATH);
+  let workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
   const index = workflows.findIndex(wf => wf.id === workflowId);
 
   if (index === -1) {
@@ -173,7 +185,7 @@ export async function updateWorkflow(workflowId: string, updatedWorkflowData: Pa
 export async function deleteWorkflow(workflowId: string): Promise<void> {
   const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
   console.log(`[WorkflowService] Attempting to delete workflow ID: ${workflowId}`);
-  let workflows = await readDb<Workflow>(WORKFLOWS_DB_PATH);
+  let workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
   const initialLength = workflows.length;
 
   if (workflowId === DEFAULT_WORKFLOW_ID || workflowId === "msa_workflow") {
