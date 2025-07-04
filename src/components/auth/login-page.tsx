@@ -23,7 +23,6 @@ import { LogIn, Loader2, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
-import { verifyUserCredentials } from '@/services/user-service';
 import type { User } from '@/types/user-types';
 import { useAuth } from '@/context/AuthContext';
 
@@ -79,38 +78,38 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true);
-    console.log('Login attempt:', data.username);
     form.clearErrors();
     setLoginError(null);
 
     try {
-        const user = await verifyUserCredentials(data.username, data.password);
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
 
-        if (user) {
-            console.log('Login successful for user:', user.username, 'Role:', user.role);
-             setCurrentUser(user as User);
-            toast({
-                title: dict.success,
-                description: dict.redirecting,
-            });
-            router.push('/dashboard');
-        } else {
-            console.log('Invalid credentials for:', data.username);
-            setLoginError(dict.invalidCredentials);
-            form.setError('username', { type: 'manual', message: ' ' });
-            form.setError('password', { type: 'manual', message: ' '});
-            form.resetField('password');
-            setIsSubmitting(false);
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || 'An unexpected error occurred.');
         }
+
+        console.log('Login successful for user:', result.username, 'Role:', result.role);
+        setCurrentUser(result as User);
+        toast({
+            title: dict.success,
+            description: dict.redirecting,
+        });
+        router.push('/dashboard');
+
     } catch (error: any) {
         console.error('Login error:', error);
-        const errorMessage = error.message || 'An unexpected error occurred during login.';
-         setLoginError(errorMessage);
-         toast({
-            variant: 'destructive',
-            title: dict.fail,
-            description: errorMessage,
-        });
+        const errorMessage = error.message || dict.invalidCredentials;
+        setLoginError(errorMessage);
+        if (errorMessage.toLowerCase().includes('invalid')) {
+            form.setError('username', { type: 'manual', message: ' ' });
+            form.setError('password', { type: 'manual', message: ' '});
+        }
         form.resetField('password');
         setIsSubmitting(false);
     }
