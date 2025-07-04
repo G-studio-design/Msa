@@ -1,4 +1,3 @@
-
 // src/services/data-access/user-data.ts
 'use server';
 
@@ -6,7 +5,6 @@ import * as path from 'path';
 import { readDb, writeDb } from '@/lib/json-db-utils';
 import type { User } from '@/types/user-types';
 
-const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
 const DEFAULT_USERS: User[] = [
     {
       id: "usr_dev_iwg",
@@ -29,7 +27,15 @@ const DEFAULT_USERS: User[] = [
     }
 ];
 
+
+/**
+ * Reads the entire user database, including developers.
+ * Initializes with default users if the database is empty.
+ * This is a low-level data access function.
+ * @returns A promise that resolves to an array of all User objects.
+ */
 export async function getAllUsers(): Promise<User[]> {
+    const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     let users = await readDb<User[]>(USERS_DB_PATH, []);
     
     if (users.length === 0) {

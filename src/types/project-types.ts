@@ -1,5 +1,7 @@
-
 // src/types/project-types.ts
+
+// This file contains type definitions related to projects,
+// separated from the server-side logic to comply with 'use server' module constraints.
 
 export interface WorkflowHistoryEntry {
     division: string;

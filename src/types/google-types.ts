@@ -1,4 +1,3 @@
-
 // src/types/google-types.ts
 
 export interface CalendarEvent {

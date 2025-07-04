@@ -1,3 +1,5 @@
+'use server';
+
 // src/config/file-constants.ts
 import * as path from 'path';
 

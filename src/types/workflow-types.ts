@@ -1,4 +1,3 @@
-
 // src/types/workflow-types.ts
 
 export interface WorkflowStepTransition {

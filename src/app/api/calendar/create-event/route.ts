@@ -4,14 +4,15 @@ import { NextResponse } from 'next/server';
 import { findUserById, updateUserGoogleTokens } from '@/services/user-service';
 import type { CalendarEvent } from '@/types/google-types';
 
-const oauth2Client = new google.auth.OAuth2(
-  process.env.GOOGLE_CLIENT_ID,
-  process.env.GOOGLE_CLIENT_SECRET,
-  process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI
-);
-
 export async function POST(request: Request) {
   try {
+    // DEFER client instantiation until request time
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI
+    );
+
     const body = await request.json();
     const { userId, eventDetails } = body as { userId: string; eventDetails: CalendarEvent };
 
@@ -85,7 +86,6 @@ export async function POST(request: Request) {
       requestBody: event,
     });
 
-    console.log('Google Calendar event created:', createdEvent.data.id, createdEvent.data.htmlLink);
     return NextResponse.json({ 
         message: 'Event created successfully in Google Calendar!', 
         eventId: createdEvent.data.id,

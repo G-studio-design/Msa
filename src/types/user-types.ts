@@ -1,5 +1,7 @@
-
 // src/types/user-types.ts
+
+// This file contains type definitions related to users,
+// separated from the server-side logic to comply with 'use server' module constraints.
 
 export interface User {
     id: string;

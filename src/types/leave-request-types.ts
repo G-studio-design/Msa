@@ -1,4 +1,3 @@
-
 // src/types/leave-request-types.ts
 
 export interface LeaveRequest {
