@@ -77,8 +77,8 @@ export async function getTodaysAttendanceForAllUsers(): Promise<AttendanceRecord
 }
 
 export async function checkIn(data: CheckInData): Promise<CheckInResult> {
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   try {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
     const settings = await getAppSettings();
 
     if (!data.location) {
@@ -132,8 +132,8 @@ export async function checkIn(data: CheckInData): Promise<CheckInResult> {
 }
 
 export async function checkOut(userId: string, reason: 'Normal' | 'Survei' | 'Sidang' = 'Normal'): Promise<CheckOutResult> {
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   try {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
     const attendanceRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     const recordIndex = attendanceRecords.findIndex(r => r.userId === userId && r.date === todayStr);

@@ -8,19 +8,21 @@ import { notifyUsersByRole, deleteNotificationsByProjectId } from './notificatio
 import { getWorkflowById, getFirstStep, getTransitionInfo } from './workflow-service';
 import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
 import type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry } from '@/types/project-types';
+import * as path from 'path';
 
 // Re-export types for consumers of this service
 export type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry };
 
-export async function addProject(projectData: AddProjectData): Promise<Project> {
-    const DB_PATH = '/app/src/database/projects.json';
-    console.log(`[ProjectService] Attempting to add project: "${projectData.title}", by: ${projectData.createdBy}. Effective Workflow ID: "${projectData.workflowId || DEFAULT_WORKFLOW_ID}"`);
+// This service is now ONLY responsible for JSON data manipulation.
+// ALL file system operations (mkdir, unlink, rename) are handled in API routes.
+
+export async function addProject(projectData: Omit<AddProjectData, 'initialFiles'>): Promise<Project> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
+    console.log(`[ProjectService] Adding project entry: "${projectData.title}"`);
 
     const projects = await readDb<Project[]>(DB_PATH, []);
     const now = new Date().toISOString();
     const projectId = `project_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-
-    // Directory creation is now handled by the /api/upload-file route on first upload.
     
     const firstStep = await getFirstStep(projectData.workflowId);
     if (!firstStep) {
@@ -37,38 +39,53 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
         nextAction: firstStep.nextActionDescription,
         workflowId: projectData.workflowId,
         workflowHistory: [
-            { division: projectData.createdBy, action: `Created Project with workflow: ${projectData.workflowId}`, timestamp: now, note: `Initial files: ${projectData.initialFiles.length}` },
-            ...projectData.initialFiles.map(file => ({
-                 division: file.uploadedBy,
-                 action: `Uploaded initial file: ${file.name}`,
-                 timestamp: file.timestamp || now,
-            })),
+            { division: projectData.createdBy, action: `Created Project with workflow: ${projectData.workflowId}`, timestamp: now, note: `Project entry created.` },
             { division: 'System', action: `Assigned to ${firstStep.assignedDivision} for ${firstStep.nextActionDescription || 'initial step'}`, timestamp: now }
         ],
-        files: projectData.initialFiles.map(file => ({...file, timestamp: file.timestamp || now })),
+        files: [], // Files will be added in a separate step
         createdAt: now,
         createdBy: projectData.createdBy,
     };
 
     projects.push(newProject);
     await writeDb(DB_PATH, projects);
-    console.log(`[ProjectService] Project "${newProject.title}" (ID: ${newProject.id}) added to database.`);
-
-    const transition = firstStep.transitions?.['submitted'] ?? null;
-    const notificationConfig = transition?.notification;
-    if (notificationConfig?.division) {
-        let message = (notificationConfig.message || "Proyek baru '{projectName}' telah dibuat dan ditugaskan kepada Anda untuk {newStatus}.")
-            .replace('{projectName}', newProject.title)
-            .replace('{actorUsername}', projectData.createdBy)
-            .replace('{newStatus}', firstStep.nextActionDescription || firstStep.status);
-        await notifyUsersByRole(notificationConfig.division, message, newProject.id);
+    console.log(`[ProjectService] Project entry "${newProject.title}" (ID: ${newProject.id}) created.`);
+    
+    // Initial notification can be sent here
+    if (firstStep.assignedDivision) {
+        const message = `Proyek baru "${newProject.title}" telah dibuat oleh ${projectData.createdBy} dan memerlukan tindakan: ${firstStep.nextActionDescription || 'Langkah awal'}.`;
+        await notifyUsersByRole(firstStep.assignedDivision, message, newProject.id);
     }
 
     return newProject;
 }
 
+export async function addFilesToProject(projectId: string, filesToAdd: FileEntry[], actorUsername: string): Promise<Project | null> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
+    const projects = await readDb<Project[]>(DB_PATH, []);
+    const projectIndex = projects.findIndex(p => p.id === projectId);
+    if (projectIndex === -1) {
+        console.error(`[ProjectService] Project with ID "${projectId}" not found to add files.`);
+        return null;
+    }
+
+    const project = projects[projectIndex];
+    project.files.push(...filesToAdd);
+    project.workflowHistory.push({
+        division: actorUsername,
+        action: `Uploaded initial file(s): ${filesToAdd.map(f => f.name).join(', ')}`,
+        timestamp: new Date().toISOString(),
+    });
+    
+    projects[projectIndex] = project;
+    await writeDb(DB_PATH, projects);
+    
+    return project;
+}
+
+
 export async function getAllProjects(): Promise<Project[]> {
-    const DB_PATH = '/app/src/database/projects.json';
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     let projects = await readDb<Project[]>(DB_PATH, []);
     let projectsModified = false;
 
@@ -90,7 +107,7 @@ export async function getAllProjects(): Promise<Project[]> {
 }
 
 export async function getProjectById(projectId: string): Promise<Project | null> {
-    const DB_PATH = '/app/src/database/projects.json';
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     const projects = await readDb<Project[]>(DB_PATH, []);
     const project = projects.find(p => p.id === projectId) || null;
     if (project) {
@@ -101,7 +118,7 @@ export async function getProjectById(projectId: string): Promise<Project | null>
 }
 
 export async function updateProject(params: UpdateProjectParams): Promise<Project | null> {
-    const DB_PATH = '/app/src/database/projects.json';
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     const { projectId, updaterRole, updaterUsername, actionTaken, files: newFilesData = [], note, scheduleDetails, surveyDetails } = params;
 
     const projects = await readDb<Project[]>(DB_PATH, []);
@@ -116,12 +133,10 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
     const now = new Date().toISOString();
     const filesWithTimestamp = newFilesData.map(file => ({ ...file, timestamp: now }));
     
-    // Most business logic for transitions and notifications remains here
     const transitionInfo = await getTransitionInfo(projectWorkflowId, currentProject.status, currentProject.progress, actionTaken);
 
     let historyActionText = `${updaterUsername} (${updaterRole}) ${actionTaken} for "${currentProject.nextAction || 'progress'}"`;
-    // ... [rest of historyActionText logic remains the same]
-     if (actionTaken === 'scheduled' && scheduleDetails) {
+    if (actionTaken === 'scheduled' && scheduleDetails) {
         historyActionText = `${updaterUsername} (${updaterRole}) scheduled Sidang on ${scheduleDetails.date} at ${scheduleDetails.time}`;
     } else if ((actionTaken === 'submitted' || actionTaken === 'reschedule_survey') && surveyDetails) {
         if (actionTaken === 'reschedule_survey') {
@@ -183,27 +198,19 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
     return currentProject;
 }
 
-export async function updateProjectTitle(projectId: string, newTitle: string, adminUsername: string): Promise<void> {
-    const DB_PATH = '/app/src/database/projects.json';
+export async function updateProjectTitle(projectId: string, newTitle: string): Promise<void> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     const projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND');
 
+    // Folder renaming logic is removed from here. The folder name is now based on the immutable projectId.
     projects[projectIndex].title = newTitle;
-    projects[projectIndex].workflowHistory.push({
-        division: adminUsername,
-        action: `Project title changed to "${newTitle}"`,
-        timestamp: new Date().toISOString()
-    });
-    
-    // Folder renaming is removed to prevent build issues and add robustness.
-    // The folder name is now based on the immutable project ID.
     await writeDb(DB_PATH, projects);
 }
 
-
 export async function deleteProjectFile(projectId: string, filePath: string, deleterUsername: string): Promise<void> {
-    const DB_PATH = '/app/src/database/projects.json';
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     const projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
 
@@ -224,7 +231,7 @@ export async function deleteProjectFile(projectId: string, filePath: string, del
 }
 
 export async function deleteProject(projectId: string, deleterUsername: string): Promise<string> {
-    const DB_PATH = '/app/src/database/projects.json';
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     const projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND_FOR_DELETION');
@@ -234,16 +241,11 @@ export async function deleteProject(projectId: string, deleterUsername: string):
     projects.splice(projectIndex, 1);
     await writeDb(DB_PATH, projects);
     
-    // IMPORTANT: Physical folder deletion logic is now entirely in the /api/delete-project route
-    // to avoid server-only module usage in this service file.
-    
     await deleteNotificationsByProjectId(projectId);
+    // Physical folder deletion is now handled by an API route to keep services clean.
+    // The UI should call that API route. For now, this only deletes the JSON record.
     return projectTitle;
 }
-
-// Other functions like manuallyUpdateProjectStatusAndAssignment, reviseProject, markParallelUploadsAsCompleteByDivision
-// can be refactored similarly to primarily manage the JSON state and delegate file-system/API-specific
-// logic to API routes where they are called from. For this fix, we focus on the core build-breaking issues.
 
 export async function manuallyUpdateProjectStatusAndAssignment(
     params: {
@@ -256,7 +258,7 @@ export async function manuallyUpdateProjectStatusAndAssignment(
         reasonNote: string;
     }
 ): Promise<Project> {
-    const DB_PATH = '/app/src/database/projects.json';
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     const { projectId, newStatus, newAssignedDivision, newNextAction, newProgress, adminUsername, reasonNote } = params;
     let projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
@@ -287,10 +289,6 @@ export async function manuallyUpdateProjectStatusAndAssignment(
     return currentProject;
 }
 
-// reviseProject and markParallelUploadsAsCompleteByDivision can follow the same pattern of only
-// modifying the JSON data and letting API routes handle any specific side-effects.
-// For now, let's assume they are structured correctly to avoid further changes, as the main issue
-// was file-system access.
 export async function reviseProject(
     projectId: string,
     reviserUsername: string,
@@ -298,7 +296,7 @@ export async function reviseProject(
     revisionNote?: string,
     actionTaken: string = 'revise'
 ): Promise<Project | null> {
-    const DB_PATH = '/app/src/database/projects.json';
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     let projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND');
@@ -339,7 +337,7 @@ export async function markParallelUploadsAsCompleteByDivision(
     division: string,
     username: string
 ): Promise<Project | null> {
-    const DB_PATH = '/app/src/database/projects.json';
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     let projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
 

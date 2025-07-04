@@ -13,6 +13,7 @@ export async function POST(request: Request) {
   const PROJECT_FILES_BASE_DIR = path.resolve(process.cwd(), 'src', 'database', 'project_files');
   
   try {
+    // Ensure the base directory for all project files exists
     await fs.mkdir(PROJECT_FILES_BASE_DIR, { recursive: true });
 
     const formData = await request.formData();
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
     const originalFilename = file.name;
     const safeFilenameForPath = sanitizeForPath(originalFilename) || `file_${Date.now()}`;
 
+    // The relative path is now simpler and more robust
     const relativeFilePath = path.join(projectSpecificDirRelative, safeFilenameForPath);
     const absoluteFilePath = path.join(PROJECT_FILES_BASE_DIR, relativeFilePath);
 

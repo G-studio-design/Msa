@@ -35,6 +35,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: 'File record not found in project data.' }, { status: 404 });
     }
     
+    // Authorization Check: Allow if user is an admin OR if the user's role matches the uploader's role.
     const canDelete = ALLOWED_ROLES_TO_DELETE.includes(user.role) || user.role === fileToDelete.uploadedBy;
 
     if (!canDelete) {
@@ -43,18 +44,25 @@ export async function POST(request: Request) {
 
     // Physical file deletion
     const absoluteFilePath = path.join(PROJECT_FILES_BASE_DIR, filePath);
+    // Security check: ensure the path is within the base directory
     if (!absoluteFilePath.startsWith(PROJECT_FILES_BASE_DIR)) {
         console.error(`Attempt to access file outside base directory: ${filePath}`);
         return NextResponse.json({ message: 'Invalid file path.' }, { status: 403 });
     }
 
-    if (fsSync.existsSync(absoluteFilePath)) {
-        await fs.unlink(absoluteFilePath);
-        console.log(`[API/DeleteFile] Physically deleted file: ${absoluteFilePath}`);
-    } else {
-        console.warn(`[API/DeleteFile] Physical file not found, skipping unlink: ${absoluteFilePath}`);
+    try {
+        if (fsSync.existsSync(absoluteFilePath)) {
+            await fs.unlink(absoluteFilePath);
+            console.log(`[API/DeleteFile] Physically deleted file: ${absoluteFilePath}`);
+        } else {
+            console.warn(`[API/DeleteFile] Physical file not found, skipping unlink: ${absoluteFilePath}`);
+        }
+    } catch (error: any) {
+        console.error(`Error deleting physical file ${absoluteFilePath}:`, error);
+        // Do not block DB update if physical file deletion fails (it might be gone already)
     }
     
+    // Database record deletion
     await deleteFileRecord(projectId, filePath, user.username);
 
     return NextResponse.json({ message: 'File deleted successfully.' }, { status: 200 });

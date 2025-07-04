@@ -19,11 +19,13 @@ export async function GET(request: NextRequest) {
   try {
     const absoluteFilePath = path.join(PROJECT_FILES_BASE_DIR, filePathParam);
 
+    // Security check: Ensure the resolved path is still within the base directory
     if (!absoluteFilePath.startsWith(PROJECT_FILES_BASE_DIR)) {
         console.error(`Attempt to access file outside base directory: ${filePathParam}`);
         return NextResponse.json({ message: 'Invalid file path.' }, { status: 403 });
     }
     
+    // Check if file exists
     try {
         await fs.access(absoluteFilePath, fsSync.constants.F_OK);
     } catch (accessError) {
@@ -32,7 +34,7 @@ export async function GET(request: NextRequest) {
     }
 
     const fileBuffer = await fs.readFile(absoluteFilePath);
-    const filename = path.basename(absoluteFilePath);
+    const filename = path.basename(absoluteFilePath); // Get the original filename
 
     const headers = new Headers();
     headers.append('Content-Disposition', `attachment; filename="${filename}"`);
