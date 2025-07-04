@@ -1,3 +1,4 @@
+// src/components/dashboard/AdminActionsClient.tsx
 'use client';
 
 import * as React from 'react';
@@ -43,20 +44,11 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-    getAllProjects,
-    updateProjectTitle,
-    manuallyUpdateProjectStatusAndAssignment,
-    deleteProject, 
-    type Project,
-    type UpdateProjectParams 
-} from '@/services/project-service';
-import { getAllUniqueStatuses } from '@/services/workflow-service';
+import type { Project } from '@/types/project-types';
 import type { WorkflowStep } from '@/types/workflow-types';
-import { clearAllNotifications } from '@/services/notification-service';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { getAppSettings, updateAttendanceSettings as saveAttendanceSettings, setAttendanceFeatureEnabled as updateFeatureSetting, type AppSettings, type AttendanceSettings } from '@/services/settings-service';
+import type { AppSettings, AttendanceSettings } from '@/services/settings-service';
 import { cn } from '@/lib/utils';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const defaultGlobalDict = getDictionary('en');
 
@@ -135,11 +127,22 @@ export default function AdminActionsClient({ initialData }: AdminActionsClientPr
         if (currentUser && ['Owner', 'Akuntan', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role.trim())) {
             setIsLoadingProjects(true);
             try {
-                const [fetchedProjects, statuses, settings] = await Promise.all([
-                   getAllProjects(),
-                   getAllUniqueStatuses(),
-                   getAppSettings()
+                const [projectsRes, statusesRes, settingsRes] = await Promise.all([
+                   fetch('/api/projects'),
+                   fetch('/api/workflows/statuses'),
+                   fetch('/api/settings')
                 ]);
+
+                if (!projectsRes.ok || !statusesRes.ok || !settingsRes.ok) {
+                  throw new Error('Failed to fetch initial data');
+                }
+
+                const [fetchedProjects, statuses, settings] = await Promise.all([
+                  projectsRes.json(),
+                  statusesRes.json(),
+                  settingsRes.json(),
+                ]);
+
                 setProjects(fetchedProjects);
                 setAvailableStatuses(statuses);
                 setAttendanceFeatureEnabled(settings.feature_attendance_enabled);
@@ -172,16 +175,21 @@ export default function AdminActionsClient({ initialData }: AdminActionsClientPr
   };
 
   const handleSaveTitle = async (projectId: string) => {
-    if (!newTitle.trim()) {
+    if (!newTitle.trim() || !currentUser) {
       toast({ variant: 'destructive', title: adminDict.toast.error, description: adminDict.toast.titleEmpty });
       return;
     }
 
     setIsSaving(true);
-    console.log(`Saving new title for project ${projectId}: ${newTitle}`);
-
     try {
-        await updateProjectTitle(projectId, newTitle);
+        const response = await fetch(`/api/projects/${projectId}/title`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: newTitle }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message);
+
         fetchData(); 
         toast({ title: adminDict.toast.titleUpdated, description: adminDict.toast.titleUpdatedDesc.replace('{id}', projectId) });
         handleCancelEdit();
@@ -230,15 +238,23 @@ export default function AdminActionsClient({ initialData }: AdminActionsClientPr
     setIsSaving(true);
     const finalAssignedDivision = newAssignedDivision === "_NONE_" ? "" : newAssignedDivision;
     try {
-        await manuallyUpdateProjectStatusAndAssignment({
-            projectId: projectForStatusChange.id,
-            newStatus,
-            newAssignedDivision: finalAssignedDivision,
-            newNextAction: newNextAction || null,
-            newProgress: typeof newProgress === 'string' ? parseInt(newProgress, 10) : newProgress,
-            adminUsername: currentUser.username,
-            reasonNote
+        const response = await fetch('/api/projects/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              specialAction: 'manualUpdate',
+              projectId: projectForStatusChange.id,
+              newStatus,
+              newAssignedDivision: finalAssignedDivision,
+              newNextAction: newNextAction || null,
+              newProgress: typeof newProgress === 'string' ? parseInt(newProgress, 10) : newProgress,
+              adminUsername: currentUser.username,
+              reasonNote
+            }),
         });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message);
+
         fetchData(); 
         toast({ title: adminDict.toast.statusChangeSuccess, description: adminDict.toast.statusChangeSuccessDesc.replace('{title}', projectForStatusChange.title).replace('{status}', getTranslatedStatus(newStatus) || newStatus).replace('{division}', getTranslatedRole(finalAssignedDivision) || finalAssignedDivision ) });
         setIsStatusChangeDialogOpen(false);
@@ -286,13 +302,17 @@ export default function AdminActionsClient({ initialData }: AdminActionsClientPr
    }
 
    const handleDeleteProject = async (projectId: string, projectTitle: string) => {
-       if (!currentUser || !['Owner', 'Akuntan', 'Admin Developer'].includes(currentUser.role.trim())) {
-           toast({ variant: 'destructive', title: adminDict.toast.error, description: adminDict.toast.deletePermissionDenied || "You do not have permission to delete projects." });
-           return;
-       }
+       if (!currentUser) return;
        setIsDeleting(true);
        try {
-           await deleteProject(projectId, currentUser.username);
+           const response = await fetch(`/api/projects/${projectId}`, {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ deleterUserId: currentUser.id }),
+           });
+           const result = await response.json();
+           if (!response.ok) throw new Error(result.message);
+           
            fetchData(); 
            toast({ title: adminDict.toast.projectDeletedTitle || "Project Deleted", description: (adminDict.toast.projectDeletedDesc || "Project \"{title}\" has been deleted.").replace('{title}', projectTitle) });
        } catch (error: any) {
@@ -306,7 +326,13 @@ export default function AdminActionsClient({ initialData }: AdminActionsClientPr
     const handleClearAllNotifications = async () => {
         setIsClearingNotifications(true);
         try {
-            await clearAllNotifications();
+            const response = await fetch('/api/notifications/clear-all', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: currentUser?.id })
+             });
+            if (!response.ok) throw new Error('Failed to clear notifications');
+            
             toast({
                 title: "Notifikasi Dibersihkan",
                 description: "Semua riwayat notifikasi telah berhasil dihapus.",
@@ -326,7 +352,13 @@ export default function AdminActionsClient({ initialData }: AdminActionsClientPr
     const handleFeatureToggle = async (enabled: boolean) => {
       setIsUpdatingFeature(true);
       try {
-        await updateFeatureSetting(enabled);
+        const response = await fetch('/api/settings/feature-toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled }),
+        });
+        if (!response.ok) throw new Error('Failed to update feature setting.');
+
         setAttendanceFeatureEnabled(enabled);
         toast({
           title: adminDict.toast.featureToggleTitle,
@@ -368,7 +400,12 @@ export default function AdminActionsClient({ initialData }: AdminActionsClientPr
     if (!attendanceSettings) return;
     setIsUpdatingAttendanceSettings(true);
     try {
-        await saveAttendanceSettings(attendanceSettings);
+        const response = await fetch('/api/settings/attendance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(attendanceSettings),
+        });
+        if (!response.ok) throw new Error('Failed to save attendance settings.');
         toast({
             title: "Pengaturan Absensi Disimpan",
             description: "Pengaturan lokasi, radius, dan jam kerja telah berhasil diperbarui.",

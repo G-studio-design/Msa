@@ -1,6 +1,6 @@
+// src/components/dashboard/WorkflowsPageClient.tsx
 'use client';
 
-// src/components/dashboard/WorkflowsPageClient.tsx
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -57,7 +57,6 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAllWorkflows, deleteWorkflow, addWorkflow, updateWorkflow } from '@/services/workflow-service';
 import type { Workflow, WorkflowStep } from '@/types/workflow-types';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -144,7 +143,9 @@ export default function WorkflowsPageClient({ initialWorkflows }: WorkflowsPageC
     }
     setIsLoading(true);
     try {
-      const fetchedWorkflows = await getAllWorkflows();
+      const response = await fetch('/api/workflows');
+      if (!response.ok) throw new Error('Failed to fetch workflows.');
+      const fetchedWorkflows = await response.json();
       setWorkflows(fetchedWorkflows);
     } catch (error) {
       console.error("Failed to fetch workflows:", error);
@@ -165,7 +166,14 @@ export default function WorkflowsPageClient({ initialWorkflows }: WorkflowsPageC
     setIsProcessing(true);
 
     try {
-      const newWorkflow = await addWorkflow(data.name, data.description || '');
+      const response = await fetch('/api/workflows', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const newWorkflow = await response.json();
+      if (!response.ok) throw new Error(newWorkflow.message || 'Failed to add workflow.');
+      
       fetchWorkflowsData(); 
       toast({ title: workflowsDict.toast.addSuccessTitle, description: workflowsDict.toast.addSuccessDesc.replace('{name}', newWorkflow.name) });
       setIsAddWorkflowDialogOpen(false);
@@ -205,16 +213,19 @@ export default function WorkflowsPageClient({ initialWorkflows }: WorkflowsPageC
         steps: currentEditableSteps,
       };
 
-      const updated = await updateWorkflow(editingWorkflow.id, updatedData);
-      if (updated) {
-        fetchWorkflowsData(); 
-        toast({ title: workflowsDict.toast.editSuccessTitle, description: workflowsDict.toast.editSuccessDesc.replace('{name}', updated.name) });
-        setIsEditWorkflowDialogOpen(false);
-        setEditingWorkflow(null);
-        setStepsOrderChanged(false);
-      } else {
-        throw new Error(workflowsDict.toast.editError);
-      }
+      const response = await fetch(`/api/workflows/${editingWorkflow.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData),
+      });
+      const updated = await response.json();
+      if (!response.ok) throw new Error(updated.message || 'Failed to update workflow.');
+
+      fetchWorkflowsData(); 
+      toast({ title: workflowsDict.toast.editSuccessTitle, description: workflowsDict.toast.editSuccessDesc.replace('{name}', updated.name) });
+      setIsEditWorkflowDialogOpen(false);
+      setEditingWorkflow(null);
+      setStepsOrderChanged(false);
     } catch (error: any) {
       console.error("Failed to edit workflow:", error);
       toast({ variant: 'destructive', title: workflowsDict.toast.error, description: error.message || workflowsDict.toast.editError });
@@ -228,15 +239,21 @@ export default function WorkflowsPageClient({ initialWorkflows }: WorkflowsPageC
     if (!canManage) return;
     setIsProcessing(true);
     try {
-      await deleteWorkflow(workflowId);
+      const response = await fetch(`/api/workflows/${workflowId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const result = await response.json();
+        throw new Error(result.message || 'Failed to delete workflow.');
+      }
       fetchWorkflowsData(); 
       toast({ title: workflowsDict.toast.deleteSuccessTitle, description: workflowsDict.toast.deleteSuccessDesc.replace('{name}', workflowName) });
     } catch (error: any)
      {
       console.error("Failed to delete workflow:", error);
       let desc = error.message || workflowsDict.toast.deleteError;
-      if (error.message === 'CANNOT_DELETE_LAST_OR_DEFAULT_WORKFLOW') {
-          desc = workflowsDict.toast.cannotDeleteDefaultWorkflowError || "Cannot delete the last or default workflow.";
+      if (error.message === 'CANNOT_DELETE_PROTECTED_WORKFLOW') {
+          desc = workflowsDict.toast.cannotDeleteDefaultWorkflowError || "Cannot delete the default or MSA workflow.";
       }
       toast({ variant: 'destructive', title: workflowsDict.toast.error, description: desc });
     } finally {
@@ -381,7 +398,7 @@ export default function WorkflowsPageClient({ initialWorkflows }: WorkflowsPageC
                     <TableRow key={workflow.id}>
                       <TableCell className="font-medium break-words">
                         <div className="flex items-center gap-2">
-                          {workflow.id === 'default_standard_workflow' ? <Settings2 className="h-4 w-4 text-primary flex-shrink-0" /> : <GitFork className="h-4 w-4 text-primary flex-shrink-0" />}
+                          {(workflow.id === 'default_standard_workflow' || workflow.id === 'msa_workflow') ? <Settings2 className="h-4 w-4 text-primary flex-shrink-0" /> : <GitFork className="h-4 w-4 text-primary flex-shrink-0" />}
                           <span className="truncate">{workflow.name}</span>
                         </div>
                       </TableCell>
@@ -393,8 +410,8 @@ export default function WorkflowsPageClient({ initialWorkflows }: WorkflowsPageC
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                             <Button variant="ghost" size="icon" disabled={isProcessing || isLoading || (workflow.id === 'default_standard_workflow' && workflows.length <= 1)} title={workflow.id === 'default_standard_workflow' && workflows.length <=1 ? workflowsDict.cannotDeleteDefaultTooltip : workflowsDict.deleteAction}>
-                              <Trash2 className={`h-4 w-4 ${(workflow.id === 'default_standard_workflow' && workflows.length <= 1) ? 'text-muted-foreground' : 'text-destructive'}`} />
+                             <Button variant="ghost" size="icon" disabled={isProcessing || isLoading || workflow.id === 'default_standard_workflow' || workflow.id === 'msa_workflow'} title={(workflow.id === 'default_standard_workflow' || workflow.id === 'msa_workflow') ? workflowsDict.cannotDeleteDefaultTooltip : workflowsDict.deleteAction}>
+                              <Trash2 className={`h-4 w-4 ${(workflow.id === 'default_standard_workflow' || workflow.id === 'msa_workflow') ? 'text-muted-foreground' : 'text-destructive'}`} />
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -543,7 +560,6 @@ export default function WorkflowsPageClient({ initialWorkflows }: WorkflowsPageC
           )}
         </DialogContent>
       </Dialog>
-
     </div>
   );
 }
