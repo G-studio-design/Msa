@@ -4,32 +4,7 @@
 import * as path from 'path';
 import { readDb, writeDb } from '@/lib/json-db-utils';
 import { notifyUsersByRole, notifyUserById } from './notification-service';
-
-export interface LeaveRequest {
-  id: string;
-  userId: string; 
-  username: string; 
-  displayName?: string; 
-  requestDate: string; // ISO string
-  leaveType: string; 
-  startDate: string; // ISO string (date only)
-  endDate: string; // ISO string (date only)
-  reason: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
-  approvedRejectedBy?: string; 
-  approvedRejectedAt?: string; // ISO string
-  rejectionReason?: string; 
-}
-
-export interface AddLeaveRequestData {
-  userId: string;
-  username: string;
-  displayName?: string;
-  leaveType: string;
-  startDate: string;
-  endDate: string;
-  reason: string;
-}
+import type { LeaveRequest, AddLeaveRequestData } from '@/types/leave-request-types';
 
 export async function addLeaveRequest(data: AddLeaveRequestData): Promise<LeaveRequest> {
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'leave_requests.json');
