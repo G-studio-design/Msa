@@ -1,4 +1,3 @@
-// src/services/settings-service.ts
 'use server';
 
 import * as fs from 'fs/promises';
@@ -45,26 +44,25 @@ const DEFAULT_SETTINGS: AppSettings = {
   }
 };
 
+
+// --- Internal DB Functions (Isolated) ---
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
     try {
         const data = await fs.readFile(dbPath, 'utf8');
-        if (data.trim() === "") return defaultData;
         return JSON.parse(data) as T;
     } catch (error: any) {
-        if (error.code === 'ENOENT') return defaultData;
-        console.error(`Error reading database at ${path.basename(dbPath)}.`, error);
-        return defaultData;
+        if (error.code === 'ENOENT') {
+            return defaultData;
+        }
+        throw error;
     }
 }
 
 async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    try {
-        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        console.error(`Error writing to database at ${path.basename(dbPath)}:`, error);
-        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
-    }
+    await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
 }
+// --- End Internal DB Functions ---
+
 
 export async function getAppSettings(): Promise<AppSettings> {
   const SETTINGS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');

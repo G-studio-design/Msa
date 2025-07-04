@@ -1,4 +1,3 @@
-// src/services/notification-service.ts
 'use server';
 
 import * as fs from 'fs/promises';
@@ -18,26 +17,23 @@ export interface Notification {
 
 const NOTIFICATION_LIMIT = 300; // Limit the total number of notifications stored
 
-async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+// --- Internal DB Functions (Isolated) ---
+async function readDb<T>(dbPath: string): Promise<T[]> {
     try {
         const data = await fs.readFile(dbPath, 'utf8');
-        if (data.trim() === "") return defaultData;
-        return JSON.parse(data) as T;
+        return JSON.parse(data) as T[];
     } catch (error: any) {
-        if (error.code === 'ENOENT') return defaultData;
-        console.error(`Error reading database at ${path.basename(dbPath)}.`, error);
-        return defaultData;
+        if (error.code === 'ENOENT') {
+            return []; // Return empty array if file doesn't exist
+        }
+        throw error;
     }
 }
 
 async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    try {
-        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        console.error(`Error writing to database at ${path.basename(dbPath)}:`, error);
-        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
-    }
+    await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
 }
+// --- End Internal DB Functions ---
 
 
 async function findUsersByRole(role: string): Promise<User[]> {
@@ -54,7 +50,7 @@ export async function notifyUsersByRole(roleOrRoles: string | string[], message:
         return;
     }
 
-    let notifications = await readDb<Notification[]>(DB_PATH, []);
+    let notifications = await readDb<Notification>(DB_PATH);
     const now = new Date().toISOString();
     let notificationsAdded = 0;
 
@@ -97,7 +93,7 @@ export async function notifyUserById(userId: string, message: string, projectId?
         return;
     }
 
-    const notifications = await readDb<Notification[]>(DB_PATH, []);
+    const notifications = await readDb<Notification>(DB_PATH);
     const now = new Date().toISOString();
 
     const newNotification: Notification = {
@@ -115,7 +111,7 @@ export async function notifyUserById(userId: string, message: string, projectId?
 
 export async function getNotificationsForUser(userId: string): Promise<Notification[]> {
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
-    const allNotifications = await readDb<Notification[]>(DB_PATH, []);
+    const allNotifications = await readDb<Notification>(DB_PATH);
     const userNotifications = allNotifications.filter(n => n.userId === userId);
     userNotifications.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     return userNotifications;
@@ -123,7 +119,7 @@ export async function getNotificationsForUser(userId: string): Promise<Notificat
 
 export async function markNotificationAsRead(notificationId: string): Promise<void> {
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
-    const notifications = await readDb<Notification[]>(DB_PATH, []);
+    const notifications = await readDb<Notification>(DB_PATH);
     const notificationIndex = notifications.findIndex(n => n.id === notificationId);
 
     if (notificationIndex !== -1) {
@@ -140,7 +136,7 @@ export async function deleteNotificationsByProjectId(projectId: string): Promise
         return;
     }
 
-    const notifications = await readDb<Notification[]>(DB_PATH, []);
+    const notifications = await readDb<Notification>(DB_PATH);
     const filteredNotifications = notifications.filter(n => n.projectId !== projectId);
     
     if (notifications.length !== filteredNotifications.length) {

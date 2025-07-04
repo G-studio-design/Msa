@@ -1,4 +1,3 @@
-// src/services/data-access/user-data.ts
 'use server';
 
 import * as fs from 'fs/promises';
@@ -27,41 +26,50 @@ const DEFAULT_USERS: User[] = [
     }
 ];
 
-async function readUsersDb(): Promise<User[]> {
-    const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
+
+// --- Internal DB Functions (Isolated) ---
+async function readDb<T>(dbPath: string): Promise<T[]> {
     try {
-        const data = await fs.readFile(USERS_DB_PATH, 'utf8');
-        if (data.trim() === "") return [];
-        return JSON.parse(data) as User[];
+        const data = await fs.readFile(dbPath, 'utf8');
+        return JSON.parse(data) as T[];
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-            return [];
+            return []; // Return empty array if file doesn't exist
         }
-        console.error(`[user-data] Error reading user database.`, error);
-        return [];
+        throw error;
     }
 }
 
-async function writeUsersDb(data: User[]): Promise<void> {
-    const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
-    try {
-        await fs.writeFile(USERS_DB_PATH, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        console.error(`[user-data] Error writing to user database:`, error);
-        throw new Error(`Failed to save user data.`);
-    }
+async function writeDb<T>(dbPath: string, data: T): Promise<void> {
+    await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
 }
+// --- End Internal DB Functions ---
 
+
+/**
+ * Reads the entire user database, including developers.
+ * Initializes with default users if the database is empty.
+ * This is a low-level data access function.
+ * @returns A promise that resolves to an array of all User objects.
+ */
 export async function getAllUsers(): Promise<User[]> {
-    let users = await readUsersDb();
+    const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
+    let users = await readDb<User>(USERS_DB_PATH);
+    
     if (users.length === 0) {
         console.log("[user-data] User database is empty. Initializing with default users.");
-        await writeUsersDb(DEFAULT_USERS);
+        await writeDb(USERS_DB_PATH, DEFAULT_USERS);
         return DEFAULT_USERS;
     }
+    
     return users;
 }
 
+/**
+ * Saves the entire user array back to the database file.
+ * @param users The complete array of users to save.
+ */
 export async function saveAllUsers(users: User[]): Promise<void> {
-    await writeUsersDb(users);
+    const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
+    await writeDb(USERS_DB_PATH, users);
 }

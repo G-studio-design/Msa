@@ -1,311 +1,69 @@
-
-'use client';
-
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import {
-  Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useAuth } from '@/context/AuthContext';
-import { useLanguage } from '@/context/LanguageContext';
-import { getDictionary } from '@/lib/translations';
-import { getAllProjects, type Project } from '@/services/project-service';
-import { getApprovedLeaveRequests, type LeaveRequest } from '@/services/leave-request-service';
-import { getAllHolidays, type HolidayEntry } from '@/services/holiday-service';
-import { getAllUsersForDisplay, type User } from '@/services/user-service';
-import { getTodaysAttendanceForAllUsers, type AttendanceRecord } from '@/services/attendance-service';
-import Link from 'next/link';
-import { Calendar } from "@/components/ui/calendar";
-import { format, parseISO, startOfToday, isSameDay, addDays, isWithinInterval, endOfDay } from 'date-fns';
-import { id as idLocale, enUS as enLocale } from 'date-fns/locale';
-import { Progress } from '@/components/ui/progress';
-import {
-    Briefcase, CalendarClock, CheckCircle, Clock, Code, Loader2, MapPin, PartyPopper, Plane, PlusCircle,
-    User as UserIcon, UserCheck, UserCog, UserX, Wrench, Building,
-} from 'lucide-react';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LabelList, Cell } from "recharts";
+// src/app/dashboard/page.tsx
+import React, { Suspense } from 'react';
+import { getAllProjects } from '@/services/project-service';
+import { getApprovedLeaveRequests } from '@/services/leave-request-service';
+import { getAllHolidays } from '@/services/holiday-service';
+import { getAllUsersForDisplay } from '@/services/user-service';
+import { getTodaysAttendanceForAllUsers } from '@/services/attendance-service';
 import { getAppSettings } from '@/services/settings-service';
+import DashboardPageClient from '@/components/dashboard/DashboardPageClient';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
-type CalendarEventType = 'sidang' | 'survey' | 'leave' | 'holiday' | 'company_event';
-interface UnifiedEvent {
-    id: string; type: CalendarEventType; date: Date; title: string;
-    time?: string; location?: string; description?: string;
-    originalData: Project | LeaveRequest | HolidayEntry;
-}
+// This is a React Server Component (RSC)
+// It fetches data on the server and passes it to the client component.
+export default async function DashboardPage() {
 
-const getProgressColor = (progress: number, status: string): string => {
-    if (status === 'Canceled') return 'hsl(240 4.8% 95.9%)';
-    if (progress === 100) return 'hsl(142.1 76.2% 36.3%)';
-    if (progress >= 70) return 'hsl(221.2 83.2% 53.3%)';
-    if (progress >= 30) return 'hsl(35.6 91.6% 56.5%)';
-    return 'hsl(0 84.2% 60.2%)';
-};
+  // Fetch all necessary data in parallel on the server
+  const [
+    projects,
+    leaveRequests,
+    holidays,
+    allUsers,
+    todaysAttendance,
+    settings,
+  ] = await Promise.all([
+    getAllProjects(),
+    getApprovedLeaveRequests(),
+    getAllHolidays(),
+    getAllUsersForDisplay(),
+    getTodaysAttendanceForAllUsers(),
+    getAppSettings()
+  ]);
 
-export default function DashboardPage() {
-  const { currentUser } = useAuth();
-  const { language } = useLanguage();
-  const [isClient, setIsClient] = useState(false);
-
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
-  const [holidays, setHolidays] = useState<HolidayEntry[]>([]);
-  const [allUsers, setAllUsers] = useState<Omit<User, 'password'>[]>([]);
-  const [todaysAttendance, setTodaysAttendance] = useState<AttendanceRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [attendanceEnabled, setAttendanceEnabled] = useState(false);
-
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  
-  const dashboardDict = useMemo(() => getDictionary(language).dashboardPage, [language]);
-  const projectsDict = useMemo(() => getDictionary(language).projectsPage, [language]);
-  const currentLocale = useMemo(() => language === 'id' ? idLocale : enLocale, [language]);
-
-  useEffect(() => { setIsClient(true); }, []);
-
-  const fetchData = useCallback(async () => {
-    if (!currentUser) return;
-    setIsLoading(true);
-    try {
-        const [
-            fetchedProjects, fetchedLeave, fetchedHolidays,
-            fetchedUsers, fetchedTodaysAttendance, settings
-        ] = await Promise.all([
-          getAllProjects(), getApprovedLeaveRequests(), getAllHolidays(),
-          getAllUsersForDisplay(), getTodaysAttendanceForAllUsers(), getAppSettings()
-        ]);
-        setProjects(fetchedProjects);
-        setLeaveRequests(fetchedLeave);
-        setHolidays(fetchedHolidays);
-        setAllUsers(fetchedUsers);
-        setTodaysAttendance(fetchedTodaysAttendance);
-        setAttendanceEnabled(settings.feature_attendance_enabled);
-    } catch (error) {
-        console.error('[DashboardPage] Failed to fetch page data:', error);
-    } finally {
-        setIsLoading(false);
-    }
-  }, [currentUser]);
-
-  useEffect(() => {
-    if (isClient && currentUser) {
-      fetchData();
-    }
-  }, [isClient, currentUser, fetchData]);
-
-  const { eventsByDate, upcomingEvents } = useMemo(() => {
-    const eventMap: Record<string, UnifiedEvent[]> = {};
-    const upcoming: UnifiedEvent[] = [];
-    const today = startOfToday();
-    const threeDaysFromNow = addDays(today, 3);
-
-    projects.forEach(p => {
-      if (p.scheduleDetails?.date) {
-        const eventDate = parseISO(`${p.scheduleDetails.date}T${p.scheduleDetails.time || '00:00:00'}`);
-        const key = format(eventDate, 'yyyy-MM-dd');
-        if (!eventMap[key]) eventMap[key] = [];
-        eventMap[key].push({ id: `sidang-${p.id}`, type: 'sidang', date: eventDate, title: p.title, time: p.scheduleDetails.time, location: p.scheduleDetails.location, originalData: p });
-      }
-      if (p.surveyDetails?.date) {
-        const eventDate = parseISO(`${p.surveyDetails.date}T${p.surveyDetails.time || '00:00:00'}`);
-        const key = format(eventDate, 'yyyy-MM-dd');
-        if (!eventMap[key]) eventMap[key] = [];
-        eventMap[key].push({ id: `survey-${p.id}`, type: 'survey', date: eventDate, title: p.title, time: p.surveyDetails.time, description: p.surveyDetails.description, originalData: p });
-      }
-    });
-
-    leaveRequests.forEach(l => {
-        eachDayOfInterval({ start: parseISO(l.startDate), end: parseISO(l.endDate) }).forEach(day => {
-            const key = format(day, 'yyyy-MM-dd');
-            if (!eventMap[key]) eventMap[key] = [];
-            eventMap[key].push({ id: `leave-${l.id}-${key}`, type: 'leave', date: day, title: l.displayName || l.username, description: l.reason, originalData: l });
-        });
-    });
-
-    holidays.forEach(h => {
-        const eventDate = parseISO(h.date);
-        const key = format(eventDate, 'yyyy-MM-dd');
-        if (!eventMap[key]) eventMap[key] = [];
-        eventMap[key].push({ id: `holiday-${h.id}`, type: 'holiday', date: eventDate, title: h.name, description: h.description, originalData: h });
-    });
-
-    Object.values(eventMap).forEach(dayEvents => {
-      dayEvents.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
-      dayEvents.forEach(event => {
-        if (isWithinInterval(event.date, { start: today, end: threeDaysFromNow }) && (event.type === 'sidang' || event.type === 'survey')) {
-            upcoming.push(event);
-        }
-      });
-    });
-
-    upcoming.sort((a,b) => a.date.getTime() - b.date.getTime());
-    return { eventsByDate: eventMap, upcomingEvents: upcoming };
-  }, [projects, leaveRequests, holidays]);
-  
-  const attendanceSummary = useMemo(() => {
-    const today = new Date();
-    const todayHoliday = holidays.find(h => isSameDay(parseISO(h.date), today));
-    if (todayHoliday) return { isHoliday: true, holidayName: todayHoliday.name, checkedIn: 0, onLeave: 0, notCheckedIn: 0 };
-
-    const onLeaveToday = new Set<string>(leaveRequests.filter(l => isWithinInterval(today, { start: parseISO(l.startDate), end: endOfDay(parseISO(l.endDate)) })).map(l => l.userId));
-    const activeUsersToday = allUsers.filter(u => !onLeaveToday.has(u.id));
-    const notCheckedInCount = activeUsersToday.filter(u => !todaysAttendance.some(a => a.userId === u.id)).length;
-
-    return { isHoliday: false, holidayName: null, checkedIn: todaysAttendance.length, onLeave: onLeaveToday.size, notCheckedIn: notCheckedInCount };
-  }, [allUsers, todaysAttendance, leaveRequests, holidays]);
-
-  const activeProjects = useMemo(() => projects.filter(p => !['Completed', 'Canceled'].includes(p.status)), [projects]);
-  const getTranslatedStatus = useCallback((statusKey: string): string => dashboardDict.status[statusKey?.toLowerCase().replace(/ /g,'') as keyof typeof dashboardDict.status] || statusKey, [dashboardDict]);
-  const getEventTypeIcon = (type: CalendarEventType) => ({
-      sidang: <Briefcase className="h-4 w-4 text-primary" />, survey: <MapPin className="h-4 w-4 text-orange-500" />,
-      leave: <Plane className="h-4 w-4 text-blue-500" />, holiday: <PartyPopper className="h-4 w-4 text-fuchsia-500" />,
-      company_event: <Building className="h-4 w-4 text-teal-500" />,
-  })[type] || <CheckCircle className="h-4 w-4 text-muted-foreground" />;
-
-  const chartConfig = { progress: { label: dashboardDict.progressChart.label } } as ChartConfig;
-
-  if (isLoading) return (
-    <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <Skeleton className="h-10 w-2/5" /><Skeleton className="h-10 w-44" />
-      </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
-          <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-40 w-full" /></CardContent></Card>
-          <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-1/2" /></CardHeader><CardContent><Skeleton className="h-32 w-full" /></CardContent></Card>
-        </div>
-        <div className="lg:col-span-1 space-y-6"><Card><CardHeader><Skeleton className="h-6 w-1/2 mb-2" /><Skeleton className="h-4 w-full" /></CardHeader><CardContent><Skeleton className="h-80 w-full" /></CardContent></Card></div>
-      </div>
-    </div>
-  );
+  const initialData = {
+    projects,
+    leaveRequests,
+    holidays,
+    allUsers,
+    todaysAttendance,
+    attendanceEnabled: settings.feature_attendance_enabled,
+  };
 
   return (
-    <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-primary">{dashboardDict.title}</h1>
-        {currentUser && ['Owner', 'Admin Proyek', 'Admin Developer'].includes(currentUser.role.trim()) && (
-          <Button asChild className="w-full sm:w-auto accent-teal"><Link href="/dashboard/add-project"><PlusCircle className="mr-2 h-5 w-5" />{dashboardDict.addNewProject}</Link></Button>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
-          {(attendanceEnabled || currentUser?.role === 'Admin Developer') && (
-            <Card>
-              <CardHeader><CardTitle>{dashboardDict.attendanceSummary.title}</CardTitle><CardDescription>{format(new Date(), 'eeee, dd MMMM yyyy', { locale: currentLocale })}</CardDescription></CardHeader>
-              <CardContent>
-                {attendanceSummary.isHoliday ? (
-                  <div className="flex items-center gap-3 text-muted-foreground p-4 bg-secondary rounded-lg">
-                    <PartyPopper className="h-8 w-8 text-fuchsia-500" />
-                    <div><p className="font-semibold text-foreground">{dashboardDict.attendanceSummary.holiday}</p><p className="text-sm">{attendanceSummary.holidayName}</p></div>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    <div className="flex items-center gap-3"><UserCheck className="h-7 w-7 text-green-500" /><div><p className="text-lg font-bold">{attendanceSummary.checkedIn}</p><p className="text-xs text-muted-foreground">{dashboardDict.attendanceSummary.present}</p></div></div>
-                    <div className="flex items-center gap-3"><Plane className="h-7 w-7 text-blue-500" /><div><p className="text-lg font-bold">{attendanceSummary.onLeave}</p><p className="text-xs text-muted-foreground">{dashboardDict.attendanceSummary.onLeave}</p></div></div>
-                    <div className="flex items-center gap-3"><UserX className="h-7 w-7 text-red-500" /><div><p className="text-lg font-bold">{attendanceSummary.notCheckedIn}</p><p className="text-xs text-muted-foreground">{dashboardDict.attendanceSummary.absent}</p></div></div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          <Card>
-            <CardHeader><CardTitle>{dashboardDict.activeProjects}</CardTitle><CardDescription>{dashboardDict.allProjectsDesc}</CardDescription></CardHeader>
-            <CardContent>
-              {activeProjects.length > 0 ? (
-                <div className="space-y-4">
-                  {activeProjects.slice(0, 4).map(project => (
-                    <Link href={`/dashboard/projects?projectId=${project.id}`} key={project.id} passHref>
-                      <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
-                        <CardContent className="p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                          <div className="flex-1 overflow-hidden w-full min-w-0"><p className="font-semibold truncate">{project.title}</p><p className="text-xs text-muted-foreground truncate">{projectsDict.nextActionLabel}: {project.nextAction || projectsDict.none}</p></div>
-                          <div className="flex-shrink-0 flex items-center gap-2 w-full sm:w-auto"><Badge variant="outline" className="flex-shrink-0">{getTranslatedStatus(project.assignedDivision)}</Badge><Progress value={project.progress} className="w-full sm:w-20 h-2" /></div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              ) : (<p className="text-muted-foreground">{dashboardDict.noProjects}</p>)}
-            </CardContent>
-            <CardFooter><Link href="/dashboard/projects" passHref className="w-full"><Button variant="outline" className="w-full">{`View All ${activeProjects.length} Active Projects`}</Button></Link></CardFooter>
-          </Card>
-          
-          <Card>
-            <CardHeader><CardTitle>{dashboardDict.projectProgressChartTitle}</CardTitle><CardDescription>{dashboardDict.projectProgressChartDesc}</CardDescription></CardHeader>
-            <CardContent className="pl-0 pr-4 sm:pl-2">
-              {activeProjects.length > 0 ? (
-                <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                  <ResponsiveContainer>
-                    <BarChart data={activeProjects} layout="vertical" margin={{ right: 40, left: 10 }}>
-                      <XAxis type="number" dataKey="progress" domain={[0, 100]} tickFormatter={(value) => `${value}%`} tick={{ fontSize: 10 }} />
-                      <YAxis type="category" dataKey="title" tick={{ fontSize: 10, width: 80, textAnchor: 'end' }} interval={0} tickFormatter={(value) => value.length > 15 ? `${value.substring(0, 15)}...` : value} />
-                      <ChartTooltip cursor={{ fill: 'hsl(var(--muted))' }} content={<ChartTooltipContent />} />
-                      <Bar dataKey="progress" radius={[0, 4, 4, 0]}>
-                         <LabelList dataKey="progress" position="right" offset={8} className="fill-foreground" fontSize={12} formatter={(value: number) => `${value}%`} />
-                         {activeProjects.map((p, i) => <Cell key={`cell-${i}`} fill={getProgressColor(p.progress, p.status)} />)}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </ChartContainer>
-              ) : (<p className="text-sm text-muted-foreground">{dashboardDict.noProjectsForChart}</p>)}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader><CardTitle>{dashboardDict.upcomingAgendaTitle}</CardTitle><CardDescription>{dashboardDict.upcomingAgendaDesc}</CardDescription></CardHeader>
-            <CardContent>
-              {upcomingEvents.length > 0 ? (
-                <ul className="space-y-3">
-                  {upcomingEvents.slice(0, 5).map(event => (
-                    <li key={event.id} className="flex items-start gap-3">
-                      <div className="flex-shrink-0 mt-1">{getEventTypeIcon(event.type)}</div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{event.title}</p>
-                        <p className="text-xs text-muted-foreground">{format(event.date, 'eeee, MMM d', { locale: currentLocale })}{event.time ? ` @ ${event.time}` : ''}</p>
-                        {event.type === 'survey' && event.description && <p className="text-xs text-muted-foreground truncate">{dashboardDict.surveyDescriptionLabel} {event.description}</p>}
-                        {event.type === 'sidang' && event.location && <p className="text-xs text-muted-foreground truncate">{dashboardDict.eventLocationLabel} {event.location}</p>}
-                      </div>
-                      <Badge variant="secondary" className="capitalize flex-shrink-0">{dashboardDict.eventTypes[event.type]}</Badge>
-                    </li>
-                  ))}
-                </ul>
-              ) : (<p className="text-sm text-muted-foreground">{dashboardDict.noUpcomingAgenda}</p>)}
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="lg:col-span-1">
-          <Card>
-            <CardHeader><CardTitle>{dashboardDict.scheduleAgendaTitle}</CardTitle><CardDescription>{dashboardDict.scheduleAgendaDesc}</CardDescription></CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-center">
-                <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} className="rounded-md border" locale={currentLocale} modifiers={{ hasEvent: Object.keys(eventsByDate).map(d => parseISO(d)) }} modifiersClassNames={{ hasEvent: "relative !bg-primary/10" }} />
-              </div>
-              <div className="space-y-3 pt-4 border-t h-48 overflow-y-auto pr-2">
-                <h3 className="text-md font-semibold">{selectedDate ? `${dashboardDict.scheduleDetailsTitle} ${format(selectedDate, 'PPPP', { locale: currentLocale })}` : dashboardDict.selectDatePrompt}</h3>
-                {selectedDate && eventsByDate[format(selectedDate, 'yyyy-MM-dd')] ? (
-                  eventsByDate[format(selectedDate, 'yyyy-MM-dd')].map(event => (
-                    <div key={event.id} className="flex gap-3">
-                      <div className="flex-shrink-0 mt-1">{getEventTypeIcon(event.type)}</div>
-                      <div>
-                        <p className="text-sm font-medium leading-tight">{event.title}</p>
-                        <p className="text-xs text-muted-foreground">{dashboardDict.eventTypes[event.type]}</p>
-                        {event.time && <p className="text-xs text-muted-foreground">{dashboardDict.eventTimeLabel} {event.time}</p>}
-                        {event.location && <p className="text-xs text-muted-foreground">{dashboardDict.eventLocationLabel} {event.location}</p>}
-                        {event.type === 'survey' && event.description && <p className="text-xs text-muted-foreground">{dashboardDict.surveyDescriptionLabel} {event.description}</p>}
-                        {event.type === 'leave' && event.description && <p className="text-xs text-muted-foreground">{dashboardDict.reasonLabel}: {event.description}</p>}
-                      </div>
-                    </div>
-                  ))
-                ) : (<p className="text-sm text-muted-foreground">{dashboardDict.noEventsOnDate}</p>)}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardPageClient initialData={initialData} />
+    </Suspense>
   );
+}
+
+// A skeleton component to show while the server component is rendering
+function DashboardSkeleton() {
+    return (
+      <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <Skeleton className="h-10 w-2/5" />
+          <Skeleton className="h-10 w-44" />
+        </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-6">
+            <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-40 w-full" /></CardContent></Card>
+            <Card><CardHeader><Skeleton className="h-6 w-1/3 mb-2" /><Skeleton className="h-4 w-1/2" /></CardHeader><CardContent><Skeleton className="h-32 w-full" /></CardContent></Card>
+          </div>
+          <div className="lg:col-span-1 space-y-6">
+            <Card><CardHeader><Skeleton className="h-6 w-1/2 mb-2" /><Skeleton className="h-4 w-full" /></CardHeader><CardContent><Skeleton className="h-80 w-full" /></CardContent></Card>
+          </div>
+        </div>
+      </div>
+    );
 }
