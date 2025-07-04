@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { ReactNode } from 'react';
@@ -50,21 +51,18 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { getNotificationsForUser, markNotificationAsRead, type Notification } from '@/services/notification-service';
-import { isAttendanceFeatureEnabled } from '@/services/settings-service';
+import type { Notification } from '@/services/notification-service';
 
 type LayoutDict = ReturnType<typeof getDictionary>['dashboardLayout'];
 
-// FIX: Define a precise type for menu items to ensure type safety for labelKey.
 type MenuItem = {
   href: string;
   icon: React.ComponentType<any>;
-  labelKey: keyof LayoutDict; // This ensures the key is always valid for layoutDict
+  labelKey: keyof LayoutDict; 
   roles: string[];
   featureFlag?: boolean;
 };
 
-// Helper functions moved outside component for better performance & organization
 const getUserRoleIcon = (role: string | undefined) => {
     if (!role) return User;
     const roleLower = role.toLowerCase().trim();
@@ -89,8 +87,12 @@ const getUserInitials = (name: string | undefined): string => {
                .slice(0, 2);
 };
 
+interface DashboardClientLayoutProps {
+  children: ReactNode;
+  attendanceEnabled: boolean; // Receive this as a prop from the server layout
+}
 
-export default function DashboardClientLayout({ children }: { children: ReactNode }) {
+export default function DashboardClientLayout({ children, attendanceEnabled }: DashboardClientLayoutProps) {
   const { language } = useLanguage();
   const { currentUser, logout } = useAuth();
   const { toast } = useToast();
@@ -100,15 +102,9 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   const [isClient, setIsClient] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [attendanceEnabled, setAttendanceEnabled] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-    const checkFeatureFlag = async () => {
-      const enabled = await isAttendanceFeatureEnabled();
-      setAttendanceEnabled(enabled);
-    };
-    checkFeatureFlag();
   }, []);
 
   const { layoutDict, notificationsDict, manageUsersDict } = useMemo(() => {
@@ -153,7 +149,12 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   const fetchAndProcessNotifications = useCallback(async () => {
     if (isClient && currentUser) {
       try {
-        const fetchedNotifications = await getNotificationsForUser(currentUser.id);
+        const response = await fetch(`/api/notifications?userId=${currentUser.id}`);
+        if (!response.ok) {
+           console.error("Failed to fetch notifications from API");
+           return;
+        }
+        const fetchedNotifications: Notification[] = await response.json();
         
         const newUnreadNotifications = fetchedNotifications.filter(n =>
             !n.isRead && !notifiedIds.current.has(n.id)
@@ -246,7 +247,6 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   const menuItems = useMemo(() => {
     const allRoles = ["Owner", "Akuntan", "Admin Proyek", "Arsitek", "Struktur", "MEP", "Admin Developer"];
     
-    // Use the explicitly defined MenuItem type here
     const items: MenuItem[] = [
       { href: "/dashboard", icon: LayoutDashboard, labelKey: "dashboard", roles: allRoles },
       { href: "/dashboard/projects", icon: ClipboardList, labelKey: "projects", roles: allRoles },
@@ -310,19 +310,20 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
    const projectIdFromUrl = searchParams.get('projectId');
 
    const handleNotificationClick = useCallback(async (notification: Notification) => {
-       if (!notification.isRead) {
-           try {
-               await markNotificationAsRead(notification.id);
-               setNotifications(prev =>
-                   prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
-               );
-           } catch (error) {
-                console.error("Failed to mark notification as read:", error);
-           }
+       setIsPopoverOpen(false); 
+       try {
+            await fetch(`/api/notifications/mark-as-read`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ notificationId: notification.id }),
+            });
+            setNotifications(prev =>
+                prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
+            );
+       } catch (error) {
+           console.error("Failed to mark notification as read via API:", error);
        }
        
-       setIsPopoverOpen(false); 
-
        if (notification.projectId) {
            const targetPath = '/dashboard/projects';
            const targetProjectId = notification.projectId;
