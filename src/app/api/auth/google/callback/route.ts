@@ -1,4 +1,3 @@
-
 // src/app/api/auth/google/callback/route.ts
 import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
