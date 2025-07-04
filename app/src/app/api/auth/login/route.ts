@@ -13,7 +13,9 @@ export async function POST(request: Request) {
     const user = await verifyUserCredentials(username, password);
 
     if (user) {
-      return NextResponse.json(user);
+      // Return user data without the password
+      const { password, ...userToReturn } = user;
+      return NextResponse.json(userToReturn);
     } else {
       return NextResponse.json({ message: 'Invalid username or password.' }, { status: 401 });
     }
