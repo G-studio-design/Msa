@@ -51,8 +51,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import type { Notification } from '@/services/notification-service'; 
-import { isAttendanceFeatureEnabled } from '@/services/settings-service';
+import type { Notification } from '@/services/notification-service';
 
 type LayoutDict = ReturnType<typeof getDictionary>['dashboardLayout'];
 
@@ -88,8 +87,12 @@ const getUserInitials = (name: string | undefined): string => {
                .slice(0, 2);
 };
 
+interface DashboardClientLayoutProps {
+  children: ReactNode;
+  attendanceEnabled: boolean; // Receive this as a prop from the server layout
+}
 
-export default function DashboardClientLayout({ children }: { children: ReactNode }) {
+export default function DashboardClientLayout({ children, attendanceEnabled }: DashboardClientLayoutProps) {
   const { language } = useLanguage();
   const { currentUser, logout } = useAuth();
   const { toast } = useToast();
@@ -99,20 +102,9 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
   const [isClient, setIsClient] = useState(false);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [attendanceEnabled, setAttendanceEnabled] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-    const checkFeatureFlag = async () => {
-      try {
-        const enabled = await isAttendanceFeatureEnabled();
-        setAttendanceEnabled(enabled);
-      } catch (e) {
-         console.error("Failed to check attendance feature flag:", e);
-         setAttendanceEnabled(false); 
-      }
-    };
-    checkFeatureFlag();
   }, []);
 
   const { layoutDict, notificationsDict, manageUsersDict } = useMemo(() => {
@@ -278,6 +270,7 @@ export default function DashboardClientLayout({ children }: { children: ReactNod
       return menuItems.filter(item => {
         const hasRole = item.roles.includes(userRoleCleaned);
         if (item.featureFlag) {
+          // Dev always sees it, others see it if flag is on
           return (userRoleCleaned === 'Admin Developer') || (hasRole && attendanceEnabled);
         }
         return hasRole;
