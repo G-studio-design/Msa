@@ -1,8 +1,6 @@
 // src/app/api/projects/route.ts
-'use server';
 import { NextResponse } from 'next/server';
 import { addProject, getAllProjects } from '@/services/project-service';
-import type { Project } from '@/types/project-types';
 
 export async function GET(request: Request) {
   try {

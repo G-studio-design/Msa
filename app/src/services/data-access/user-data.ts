@@ -1,6 +1,4 @@
 // src/services/data-access/user-data.ts
-'use server';
-
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User } from '@/types/user-types';
@@ -27,28 +25,18 @@ const DEFAULT_USERS: User[] = [
     }
 ];
 
+// This function ONLY READS. It does not create files, making it safe for build processes.
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
     try {
-        await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
-        if (data.trim() === "") {
-            // If the file is empty, write default data and return it.
-            const dbDir = path.dirname(dbPath);
-            await fs.mkdir(dbDir, { recursive: true });
-            await fs.writeFile(dbPath, JSON.stringify(defaultData, null, 2), 'utf8');
-            return defaultData;
-        }
-        return JSON.parse(data) as T;
+        return data ? (JSON.parse(data) as T) : defaultData;
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-          // If the file doesn't exist, create it with default data.
-          const dbDir = path.dirname(dbPath);
-          await fs.mkdir(dbDir, { recursive: true });
-          await fs.writeFile(dbPath, JSON.stringify(defaultData, null, 2), 'utf8');
+          // File doesn't exist, return default data without trying to create it.
           return defaultData;
         }
         console.error(`[DB Read Error] Error reading or parsing database at ${path.basename(dbPath)}.`, error);
-        // Fallback to in-memory default data if writing fails for other reasons.
+        // Fallback to in-memory default data on other errors.
         return defaultData;
     }
 }
@@ -62,5 +50,5 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
 export async function getAllUsers(): Promise<User[]> {
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     const users = await readDb<User[]>(DB_PATH, DEFAULT_USERS);
-    return users;
+    return users.length > 0 ? users : DEFAULT_USERS;
 }
