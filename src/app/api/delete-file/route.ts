@@ -1,16 +1,17 @@
-
 // src/app/api/delete-file/route.ts
 import { NextResponse } from 'next/server';
 import * as fs from 'fs/promises';
 import * as fsSync from 'fs';
 import * as path from 'path';
-import { PROJECT_FILES_BASE_DIR } from '@/config/file-constants';
 import { deleteProjectFile as deleteFileRecord, getProjectById } from '@/services/project-service';
 import { findUserById } from '@/services/user-service';
 
 const ALLOWED_ROLES_TO_DELETE = ['Owner', 'Admin Proyek', 'Admin Developer'];
 
 export async function POST(request: Request) {
+  // Define base directory safely within the handler
+  const PROJECT_FILES_BASE_DIR = path.resolve(process.cwd(), 'src', 'database', 'project_files');
+  
   try {
     const body = await request.json();
     const { projectId, filePath, userId } = body as { projectId: string; filePath: string; userId: string; };
@@ -43,6 +44,7 @@ export async function POST(request: Request) {
 
     // Physical file deletion
     const absoluteFilePath = path.join(PROJECT_FILES_BASE_DIR, filePath);
+    // Security check: ensure the path is within the base directory
     if (!absoluteFilePath.startsWith(PROJECT_FILES_BASE_DIR)) {
         console.error(`Attempt to access file outside base directory: ${filePath}`);
         return NextResponse.json({ message: 'Invalid file path.' }, { status: 403 });

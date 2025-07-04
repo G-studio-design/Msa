@@ -14,15 +14,14 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
-import { addProject } from '@/services/project-service';
-import type { FileEntry, AddProjectData } from '@/types/project-types';
+import { addProject, addFilesToProject } from '@/services/project-service';
+import type { FileEntry } from '@/types/project-types';
 import { Loader2, Upload, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
 
 const MAX_FILES_UPLOAD = 10;
 
-// Updated schema: workflowId is removed from form validation
 const getAddProjectSchema = (dictValidation: ReturnType<typeof getDictionary>['addProjectPage']['validation']) => z.object({
   title: z.string().min(5, dictValidation.titleMin),
 });
@@ -42,7 +41,6 @@ export default function AddProjectPage() {
 
   const [isLoading, setIsLoading] = React.useState(false);
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
-  // Workflow related states are no longer needed
 
   React.useEffect(() => {
     setIsClient(true);
@@ -67,8 +65,6 @@ export default function AddProjectPage() {
   const canAddProject = React.useMemo(() => {
     if (!currentUser) return false;
     const userRole = currentUser.role.trim();
-    // Allow Owner, Admin Proyek, Admin Developer to add projects
-    // Other roles might view the page but won't be able to submit
     return ['Owner', 'Admin Proyek', 'Admin Developer', 'Arsitek', 'Struktur', 'MEP'].includes(userRole);
   }, [currentUser]);
 
@@ -99,86 +95,79 @@ export default function AddProjectPage() {
   }, [isClient, dashboardDict]);
 
   const onSubmit = async (data: AddProjectFormValues) => {
-    if (!canAddProject || !currentUser) {
-        return;
-    }
+    if (!canAddProject || !currentUser) return;
 
     setIsLoading(true);
     form.clearErrors();
-    
-    const actualFileEntriesForService: Omit<FileEntry, 'timestamp'>[] = [];
-
-    if (selectedFiles.length > 0) {
-      for (const file of selectedFiles) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('projectId', 'temp-id-for-upload'); 
-        formData.append('projectTitle', data.title);
-        formData.append('userId', currentUser.id);
-
-        try {
-          const response = await fetch('/api/upload-file', { method: 'POST', body: formData });
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ message: `Failed to upload ${file.name}` }));
-            throw new Error(errorData.message || `Failed to upload ${file.name}`);
-          }
-          const result = await response.json();
-          actualFileEntriesForService.push({
-            name: result.originalName,
-            uploadedBy: currentUser.username,
-            path: result.relativePath,
-          });
-        } catch (error: any) {
-          console.error('File upload error:', file.name, error);
-          toast({ variant: 'destructive', title: addProjectDict.toast.error, description: error.message || `Failed to upload ${file.name}.` });
-          setIsLoading(false);
-          return; 
-        }
-      }
-    }
-    
-    // WorkflowId is now hardcoded to the default
-    const effectiveWorkflowId = DEFAULT_WORKFLOW_ID;
-    console.log('[AddProjectPage] Submitting with implicit workflowId:', effectiveWorkflowId);
-
-    const newProjectData: AddProjectData = {
-      title: data.title,
-      workflowId: effectiveWorkflowId, // Use default workflow ID
-      initialFiles: actualFileEntriesForService.map(f => ({...f, timestamp: new Date().toISOString()})),
-      createdBy: currentUser.username,
-    };
 
     try {
-      const createdProject = await addProject(newProjectData);
-      console.log('Project created successfully on server:', createdProject);
-      
-      const firstStepAssignedDivision = createdProject.assignedDivision;
+      // Step 1: Create the project entry in the database to get a permanent ID
+      const newProject = await addProject({
+        title: data.title,
+        workflowId: DEFAULT_WORKFLOW_ID,
+        createdBy: currentUser.username,
+      });
+
+      // Step 2: Upload files using the permanent project ID
+      const uploadedFileEntries: FileEntry[] = [];
+      if (selectedFiles.length > 0) {
+        for (const file of selectedFiles) {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('projectId', newProject.id); // Use the real project ID
+          formData.append('userId', currentUser.id);
+
+          try {
+            const response = await fetch('/api/upload-file', { method: 'POST', body: formData });
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({ message: `Failed to upload ${file.name}` }));
+              throw new Error(errorData.message || `Failed to upload ${file.name}`);
+            }
+            const result = await response.json();
+            uploadedFileEntries.push({
+              name: result.originalName,
+              uploadedBy: currentUser.username,
+              path: result.relativePath,
+              timestamp: new Date().toISOString(),
+            });
+          } catch (uploadError: any) {
+            console.error('File upload error:', file.name, uploadError);
+            toast({ variant: 'destructive', title: addProjectDict.toast.error, description: uploadError.message || `Failed to upload ${file.name}.` });
+            // Note: In a real-world scenario, you might want to handle cleanup of the created project entry here.
+            setIsLoading(false);
+            return; 
+          }
+        }
+        
+        // Step 3: Update the project entry with the file metadata
+        if (uploadedFileEntries.length > 0) {
+          await addFilesToProject(newProject.id, uploadedFileEntries, currentUser.username);
+        }
+      }
+
+      // Step 4: Success feedback and redirect
+      const firstStepAssignedDivision = newProject.assignedDivision;
       const translatedDivision = getTranslatedStatus(firstStepAssignedDivision) || firstStepAssignedDivision;
 
-      // Simplified toast message, removing workflowName as it's implicit
       toast({
         title: addProjectDict.toast.success,
         description: (addProjectDict.toast.successDesc || defaultDict.addProjectPage.toast.successDesc)
-          .replace('{title}', `"${createdProject.title}"`) 
-          .replace(' using workflow "{workflowName}"', '') // Remove workflow name part
-          .replace(' dengan alur kerja "{workflowName}"', '') // Remove Indonesian version too
+          .replace('{title}', `"${newProject.title}"`) 
+          .replace(' using workflow "{workflowName}"', '') 
+          .replace(' dengan alur kerja "{workflowName}"', '') 
           .replace('{division}', translatedDivision),
       });
-      form.reset({ title: ''}); // Only reset title
+
+      form.reset({ title: ''});
       setSelectedFiles([]);
       router.push('/dashboard/projects'); 
+
     } catch (error: any) {
       console.error('Failed to add project:', error);
-      let desc = addProjectDict.toast.error;
-      if (error.message === 'WORKFLOW_INVALID') {
-        desc = `The default workflow ("MSa Workflow") is invalid or missing steps. Please contact an administrator.`;
-      } else {
-        desc = error.message || 'An unexpected error occurred while creating the project.';
-      }
       toast({
         variant: 'destructive',
         title: addProjectDict.toast.error,
-        description: desc,
+        description: error.message || 'An unexpected error occurred while creating the project.',
       });
     } finally {
       setIsLoading(false);
@@ -243,8 +232,6 @@ export default function AddProjectPage() {
                   </FormItem>
                 )}
               />
-
-              {/* WorkflowId FormField removed */}
 
               <div className="space-y-2">
                  <Label htmlFor="project-files">{addProjectDict.filesLabel}</Label>
