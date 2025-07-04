@@ -5,7 +5,6 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User, AddUserData, UpdateProfileData, UpdatePasswordData, UpdateUserGoogleTokensData } from '@/types/user-types';
 import { getAllUsers } from './data-access/user-data';
-import { unstable_noStore as noStore } from 'next/cache';
 
 async function writeDb(data: User[]): Promise<void> {
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
@@ -21,7 +20,6 @@ async function writeDb(data: User[]): Promise<void> {
 // --- Main Service Functions ---
 
 export async function findUserByUsername(username: string): Promise<User | null> {
-    noStore();
     if (!username) return null;
     const users = await getAllUsers();
     const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
@@ -29,7 +27,6 @@ export async function findUserByUsername(username: string): Promise<User | null>
 }
 
 export async function findUserByEmail(email: string): Promise<User | null> {
-    noStore();
     if (!email) return null;
     const users = await getAllUsers();
     const user = users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
@@ -37,7 +34,6 @@ export async function findUserByEmail(email: string): Promise<User | null> {
 }
 
 export async function findUserById(userId: string): Promise<User | null> {
-    noStore();
     if(!userId) return null;
     const users = await getAllUsers();
     const user = users.find(u => u.id === userId);
@@ -45,7 +41,6 @@ export async function findUserById(userId: string): Promise<User | null> {
 }
 
 export async function verifyUserCredentials(usernameInput: string, passwordInput: string): Promise<Omit<User, 'password'> | null> {
-    noStore();
     const user = await findUserByUsername(usernameInput);
 
     if (!user) {
@@ -178,7 +173,6 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
 }
 
 export async function getAllUsersForDisplay(): Promise<Omit<User, 'password'>[]> {
-    noStore();
     const users = await getAllUsers();
     return users
         .filter(user => user.role !== 'Admin Developer')
