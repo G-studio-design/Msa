@@ -10,10 +10,36 @@ import { getWorkflowById, getFirstStep, getTransitionInfo } from './workflow-ser
 import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
 import type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry } from '@/types/project-types';
 import { unstable_noStore as noStore } from 'next/cache';
-import { readDb, writeDb } from '@/lib/db-utils';
 
-// Re-export types for consumers of this service
 export type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry };
+
+async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    try {
+        await fs.access(dbPath);
+        const data = await fs.readFile(dbPath, 'utf8');
+        if (data.trim() === "") {
+            return defaultData;
+        }
+        return JSON.parse(data) as T;
+    } catch (error: any) {
+        if (error.code === 'ENOENT') {
+          return defaultData;
+        }
+        console.error(`[DB Read Error] Error reading or parsing database at ${path.basename(dbPath)}.`, error);
+        return defaultData;
+    }
+}
+
+async function writeDb<T>(dbPath: string, data: T): Promise<void> {
+    try {
+        const dbDir = path.dirname(dbPath);
+        await fs.mkdir(dbDir, { recursive: true });
+        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        console.error(`[DB Write Error] Error writing to database at ${path.basename(dbPath)}:`, error);
+        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
+    }
+}
 
 export async function addProject(projectData: Omit<AddProjectData, 'initialFiles'>): Promise<Project> {
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');

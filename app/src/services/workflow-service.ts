@@ -1,6 +1,7 @@
 // src/services/workflow-service.ts
 'use server';
 
+import * as fs from 'fs/promises';
 import * as path from 'path';
 import {
     DEFAULT_WORKFLOW_ID,
@@ -9,7 +10,34 @@ import {
 } from '@/config/workflow-constants';
 import { unstable_noStore as noStore } from 'next/cache';
 import type { Workflow, WorkflowStep, WorkflowStepTransition } from '@/types/workflow-types';
-import { readDb, writeDb } from '@/lib/db-utils';
+
+async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    try {
+        await fs.access(dbPath);
+        const data = await fs.readFile(dbPath, 'utf8');
+        if (data.trim() === "") {
+            return defaultData;
+        }
+        return JSON.parse(data) as T;
+    } catch (error: any) {
+        if (error.code === 'ENOENT') {
+          return defaultData;
+        }
+        console.error(`[DB Read Error] Error reading or parsing database at ${path.basename(dbPath)}.`, error);
+        return defaultData;
+    }
+}
+
+async function writeDb<T>(dbPath: string, data: T): Promise<void> {
+    try {
+        const dbDir = path.dirname(dbPath);
+        await fs.mkdir(dbDir, { recursive: true });
+        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        console.error(`[DB Write Error] Error writing to database at ${path.basename(dbPath)}:`, error);
+        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
+    }
+}
 
 export async function getAllWorkflows(): Promise<Workflow[]> {
   noStore();
@@ -20,6 +48,7 @@ export async function getAllWorkflows(): Promise<Workflow[]> {
 
 
 export async function getWorkflowById(id: string): Promise<Workflow | null> {
+  noStore();
   const workflows = await getAllWorkflows();
   const workflow = workflows.find(wf => wf.id === id) || null;
   if (!workflow) {
@@ -29,6 +58,7 @@ export async function getWorkflowById(id: string): Promise<Workflow | null> {
 }
 
 export async function getFirstStep(workflowId: string): Promise<WorkflowStep | null> {
+  noStore();
   const workflow = await getWorkflowById(workflowId);
   if (workflow && workflow.steps && workflow.steps.length > 0) {
     return workflow.steps[0];
@@ -42,6 +72,7 @@ export async function getCurrentStepDetails(
   currentStatus: string,
   currentProgress: number
 ): Promise<WorkflowStep | null> {
+  noStore();
   const workflow = await getWorkflowById(workflowId);
   if (!workflow) {
     console.warn(`[WorkflowService] Workflow with ID ${workflowId} not found when trying to get current step details.`);
@@ -72,6 +103,7 @@ export async function getTransitionInfo(
   currentProgress: number,
   actionTaken: string = 'submitted'
 ): Promise<WorkflowStepTransition | null> {
+  noStore();
   const workflow = await getWorkflowById(workflowId);
   if (!workflow) {
     console.error(`[WorkflowService] Workflow with ID ${workflowId} not found for transition.`);
@@ -177,6 +209,7 @@ export async function deleteWorkflow(workflowId: string): Promise<void> {
 }
 
 export async function getAllUniqueStatuses(): Promise<string[]> {
+    noStore();
     const workflows = await getAllWorkflows(); 
     const allStatuses = new Set<string>();
     workflows.forEach(wf => {
