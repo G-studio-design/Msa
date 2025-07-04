@@ -8,13 +8,11 @@ import {
     DEFAULT_WORKFLOW_NAME,
     DEFAULT_WORKFLOW_DESCRIPTION
 } from '@/config/workflow-constants';
-import { unstable_noStore as noStore } from 'next/cache';
 import type { Workflow, WorkflowStep, WorkflowStepTransition } from '@/types/workflow-types';
 
 
 export async function getAllWorkflows(): Promise<Workflow[]> {
   const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
-  noStore();
   const workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
   return workflows;
 }
