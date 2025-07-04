@@ -355,7 +355,7 @@ export default function AdminActionsClient({ initialData }: AdminActionsClientPr
         const response = await fetch('/api/settings/feature-toggle', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ feature: 'attendance', enabled }),
+          body: JSON.stringify({ enabled }),
         });
         if (!response.ok) throw new Error('Failed to update feature setting.');
 

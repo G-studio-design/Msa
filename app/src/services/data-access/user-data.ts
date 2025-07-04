@@ -32,34 +32,35 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
         await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
         if (data.trim() === "") {
+            // If the file is empty, write default data and return it.
+            const dbDir = path.dirname(dbPath);
+            await fs.mkdir(dbDir, { recursive: true });
+            await fs.writeFile(dbPath, JSON.stringify(defaultData, null, 2), 'utf8');
             return defaultData;
         }
         return JSON.parse(data) as T;
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-          // IMPORTANT: Do NOT write the file here. This function should be read-only.
-          console.warn(`[DB Read] File not found at ${path.basename(dbPath)}. Returning default data in memory.`);
+          // If the file doesn't exist, create it with default data.
+          const dbDir = path.dirname(dbPath);
+          await fs.mkdir(dbDir, { recursive: true });
+          await fs.writeFile(dbPath, JSON.stringify(defaultData, null, 2), 'utf8');
           return defaultData;
         }
         console.error(`[DB Read Error] Error reading or parsing database at ${path.basename(dbPath)}.`, error);
+        // Fallback to in-memory default data if writing fails for other reasons.
         return defaultData;
     }
 }
 
 /**
  * Reads the entire user database, including developers.
- * Initializes with default users if the database is empty.
+ * Initializes with default users if the database is empty or doesn't exist.
  * This is a low-level data access function.
  * @returns A promise that resolves to an array of all User objects.
  */
 export async function getAllUsers(): Promise<User[]> {
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
-    let users = await readDb<User[]>(DB_PATH, DEFAULT_USERS);
-
-    // This logic is now safe because readDb no longer writes files.
-    if (users.length === 0) {
-        return DEFAULT_USERS;
-    }
-
+    const users = await readDb<User[]>(DB_PATH, DEFAULT_USERS);
     return users;
 }
