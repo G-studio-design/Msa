@@ -202,13 +202,19 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
     return currentProject;
 }
 
-export async function updateProjectTitle(projectId: string, newTitle: string): Promise<void> {
+export async function updateProjectTitle(projectId: string, newTitle: string, updaterUsername: string): Promise<void> {
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
     const projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND');
 
+    const oldTitle = projects[projectIndex].title;
     projects[projectIndex].title = newTitle;
+     projects[projectIndex].workflowHistory.push({
+        division: updaterUsername,
+        action: `Manually changed project title from "${oldTitle}" to "${newTitle}".`,
+        timestamp: new Date().toISOString(),
+    });
     await writeDb(DB_PATH, projects);
 }
 

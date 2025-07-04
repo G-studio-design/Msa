@@ -43,7 +43,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Project, UpdateProjectParams } from '@/types/project-types';
+import type { Project } from '@/types/project-types';
 import type { WorkflowStep } from '@/types/workflow-types';
 import type { AppSettings, AttendanceSettings } from '@/services/settings-service';
 import { cn } from '@/lib/utils';
@@ -129,8 +129,8 @@ export default function AdminActionsClient({ initialData }: AdminActionsClientPr
             try {
                 const [projectsRes, statusesRes, settingsRes] = await Promise.all([
                    fetch('/api/projects'),
-                   fetch('/api/workflows/statuses'), // Assuming an API route for statuses
-                   fetch('/api/settings') // Assuming an API route for settings
+                   fetch('/api/workflows/statuses'),
+                   fetch('/api/settings')
                 ]);
 
                 if (!projectsRes.ok || !statusesRes.ok || !settingsRes.ok) {
@@ -175,7 +175,7 @@ export default function AdminActionsClient({ initialData }: AdminActionsClientPr
   };
 
   const handleSaveTitle = async (projectId: string) => {
-    if (!newTitle.trim()) {
+    if (!newTitle.trim() || !currentUser) {
       toast({ variant: 'destructive', title: adminDict.toast.error, description: adminDict.toast.titleEmpty });
       return;
     }
@@ -189,7 +189,7 @@ export default function AdminActionsClient({ initialData }: AdminActionsClientPr
             specialAction: 'updateTitle', 
             projectId, 
             title: newTitle,
-            updaterUsername: currentUser?.username
+            updaterUsername: currentUser.username
           }),
         });
         const result = await response.json();
@@ -331,7 +331,11 @@ export default function AdminActionsClient({ initialData }: AdminActionsClientPr
     const handleClearAllNotifications = async () => {
         setIsClearingNotifications(true);
         try {
-            const response = await fetch('/api/notifications/clear-all', { method: 'POST' });
+            const response = await fetch('/api/notifications/clear-all', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: currentUser?.id }) // Optional: for authorization
+             });
             if (!response.ok) throw new Error('Failed to clear notifications');
             
             toast({
