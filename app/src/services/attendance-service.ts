@@ -1,12 +1,13 @@
 // src/services/attendance-service.ts
 'use server';
 
+import * as fs from 'fs/promises';
 import * as path from 'path';
-import { readDb, writeDb } from '@/lib/json-db-utils';
 import { format } from 'date-fns';
 import { getAppSettings } from './settings-service';
 import { notifyUsersByRole } from './notification-service';
-import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
+import type { User } from '@/types/user-types';
+import { unstable_noStore as noStore } from 'next/cache';
 
 export interface AttendanceRecord {
   id: string;
@@ -63,6 +64,7 @@ function getDistanceInMeters(lat1: number, lon1: number, lat2: number, lon2: num
 
 
 export async function getTodaysAttendance(userId: string): Promise<AttendanceRecord | null> {
+  noStore();
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const attendanceRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
@@ -70,6 +72,7 @@ export async function getTodaysAttendance(userId: string): Promise<AttendanceRec
 }
 
 export async function getTodaysAttendanceForAllUsers(): Promise<AttendanceRecord[]> {
+  noStore();
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const allRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
@@ -100,7 +103,7 @@ export async function checkIn(data: CheckInData): Promise<CheckInResult> {
     const now = new Date();
     const todayStr = format(now, 'yyyy-MM-dd');
 
-    const existingRecord = await getTodaysAttendance(data.userId);
+    const existingRecord = attendanceRecords.find(r => r.userId === data.userId && r.date === todayStr);
     if (existingRecord) {
       return { error: "Anda sudah melakukan check-in hari ini." };
     }
@@ -167,16 +170,47 @@ export async function checkOut(userId: string, reason: 'Normal' | 'Survei' | 'Si
 
 
 export async function getAttendanceForUser(userId: string): Promise<AttendanceRecord[]> {
+  noStore();
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const attendanceRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
   return attendanceRecords.filter(r => r.userId === userId);
 }
 
 export async function getMonthlyAttendanceReportData(month: number, year: number): Promise<AttendanceRecord[]> {
+  noStore();
   const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const allRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
   const monthStr = month.toString().padStart(2, '0');
   const yearStr = year.toString();
   
   return allRecords.filter(r => r.date.startsWith(`${yearStr}-${monthStr}`));
+}
+
+// --- Internal DB Functions ---
+
+async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    try {
+        const data = await fs.readFile(dbPath, 'utf8');
+        if (data.trim() === "") {
+            console.warn(`[JSON DB Utils] Database file at ${path.basename(dbPath)} is empty. Returning default data.`);
+            return defaultData;
+        }
+        return JSON.parse(data) as T;
+    } catch (error: any) {
+        if (error.code === 'ENOENT') {
+          console.log(`[JSON DB Utils] Database file not found at ${path.basename(dbPath)}. Returning default data without creating file.`);
+        } else {
+          console.error(`[JSON DB Utils] Error reading or parsing database at ${path.basename(dbPath)}. Returning default data. Error:`, error);
+        }
+        return defaultData;
+    }
+}
+
+async function writeDb<T>(dbPath: string, data: T): Promise<void> {
+    try {
+        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        console.error(`[JSON DB Utils] Error writing to database at ${path.basename(dbPath)}:`, error);
+        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
+    }
 }

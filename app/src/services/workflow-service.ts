@@ -1,17 +1,19 @@
 // src/services/workflow-service.ts
 'use server';
 
+import * as fs from 'fs/promises';
 import * as path from 'path';
-import { readDb, writeDb } from '@/lib/json-db-utils';
 import {
     DEFAULT_WORKFLOW_ID,
     DEFAULT_WORKFLOW_NAME,
     DEFAULT_WORKFLOW_DESCRIPTION
 } from '@/config/workflow-constants';
+import { unstable_noStore as noStore } from 'next/cache';
 import type { Workflow, WorkflowStep, WorkflowStepTransition } from '@/types/workflow-types';
 
 
 export async function getAllWorkflows(): Promise<Workflow[]> {
+  noStore();
   const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
   const workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
   return workflows;
@@ -99,6 +101,7 @@ export async function getTransitionInfo(
 
 export async function addWorkflow(name: string, description: string): Promise<Workflow> {
   const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
+  console.log(`[WorkflowService] Attempting to add workflow: ${name}`);
   let workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
   const msaWorkflow = workflows.find(wf => wf.id === 'msa_workflow');
   if(!msaWorkflow) throw new Error("Base 'msa_workflow' not found to create a new workflow.");
@@ -114,15 +117,18 @@ export async function addWorkflow(name: string, description: string): Promise<Wo
 
   workflows.push(newWorkflow);
   await writeDb(WORKFLOWS_DB_PATH, workflows);
+  console.log(`[WorkflowService] New workflow "${name}" (ID: ${newWorkflowId}) added based on MSa workflow. Total workflows: ${workflows.length}`);
   return newWorkflow;
 }
 
 export async function updateWorkflow(workflowId: string, updatedWorkflowData: Partial<Omit<Workflow, 'id'>>): Promise<Workflow | null> {
   const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
+  console.log(`[WorkflowService] Attempting to update workflow ID: ${workflowId}`);
   let workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
   const index = workflows.findIndex(wf => wf.id === workflowId);
 
   if (index === -1) {
+    console.error(`[WorkflowService] Workflow with ID ${workflowId} not found for update.`);
     return null;
   }
 
@@ -145,15 +151,18 @@ export async function updateWorkflow(workflowId: string, updatedWorkflowData: Pa
   workflows[index] = finalUpdatedWorkflow;
 
   await writeDb(WORKFLOWS_DB_PATH, workflows);
+  console.log(`[WorkflowService] Workflow "${workflows[index].name}" (ID: ${workflowId}) updated.`);
   return workflows[index];
 }
 
 export async function deleteWorkflow(workflowId: string): Promise<void> {
   const WORKFLOWS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
+  console.log(`[WorkflowService] Attempting to delete workflow ID: ${workflowId}`);
   let workflows = await readDb<Workflow[]>(WORKFLOWS_DB_PATH, []);
   const initialLength = workflows.length;
 
   if (workflowId === DEFAULT_WORKFLOW_ID || workflowId === "msa_workflow") {
+       console.warn(`[WorkflowService] Deleting protected workflows ('${DEFAULT_WORKFLOW_ID}', 'msa_workflow') is not allowed.`);
        throw new Error('CANNOT_DELETE_PROTECTED_WORKFLOW');
   }
 
@@ -161,6 +170,8 @@ export async function deleteWorkflow(workflowId: string): Promise<void> {
 
   if (workflows.length === initialLength) {
       console.warn(`[WorkflowService] Workflow with ID ${workflowId} not found for deletion.`);
+  } else {
+    console.log(`[WorkflowService] Workflow with ID ${workflowId} deleted. Remaining workflows: ${workflows.length}`);
   }
 
   await writeDb(WORKFLOWS_DB_PATH, workflows);
@@ -174,7 +185,38 @@ export async function getAllUniqueStatuses(): Promise<string[]> {
             wf.steps.forEach(step => {
                 allStatuses.add(step.status);
             });
+        } else {
+            console.warn(`[WorkflowService] Workflow "${wf.name}" (ID: ${wf.id}) has no steps or steps is not an array.`);
         }
     });
     return Array.from(allStatuses);
+}
+
+// --- Internal DB Functions ---
+
+async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    try {
+        const data = await fs.readFile(dbPath, 'utf8');
+        if (data.trim() === "") {
+            console.warn(`[JSON DB Utils] Database file at ${path.basename(dbPath)} is empty. Returning default data.`);
+            return defaultData;
+        }
+        return JSON.parse(data) as T;
+    } catch (error: any) {
+        if (error.code === 'ENOENT') {
+          console.log(`[JSON DB Utils] Database file not found at ${path.basename(dbPath)}. Returning default data without creating file.`);
+        } else {
+          console.error(`[JSON DB Utils] Error reading or parsing database at ${path.basename(dbPath)}. Returning default data. Error:`, error);
+        }
+        return defaultData;
+    }
+}
+
+async function writeDb<T>(dbPath: string, data: T): Promise<void> {
+    try {
+        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        console.error(`[JSON DB Utils] Error writing to database at ${path.basename(dbPath)}:`, error);
+        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
+    }
 }

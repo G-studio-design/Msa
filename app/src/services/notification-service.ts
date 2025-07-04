@@ -1,10 +1,11 @@
 // src/services/notification-service.ts
 'use server';
 
+import * as fs from 'fs/promises';
 import * as path from 'path';
-import { readDb, writeDb } from '@/lib/json-db-utils';
 import type { User } from '@/types/user-types';
-import { getAllUsers } from './data-access/user-data'; // IMPORT FROM NEW DATA ACCESS LAYER
+import { getAllUsers } from './data-access/user-data';
+import { unstable_noStore as noStore } from 'next/cache';
 
 // Define the structure of a Notification
 export interface Notification {
@@ -20,7 +21,7 @@ const NOTIFICATION_LIMIT = 300; // Limit the total number of notifications store
 
 
 async function findUsersByRole(role: string): Promise<User[]> {
-    const allUsers = await getAllUsers(); // USE THE NEW DATA ACCESS FUNCTION
+    const allUsers = await getAllUsers();
     const usersInRole = allUsers.filter(user => user.role === role);
     return usersInRole;
 }
@@ -93,6 +94,7 @@ export async function notifyUserById(userId: string, message: string, projectId?
 }
 
 export async function getNotificationsForUser(userId: string): Promise<Notification[]> {
+    noStore();
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     const allNotifications = await readDb<Notification[]>(DB_PATH, []);
     const userNotifications = allNotifications.filter(n => n.userId === userId);
@@ -134,5 +136,34 @@ export async function clearAllNotifications(): Promise<void> {
     } catch (error) {
         console.error("[NotificationService] Failed to clear notifications:", error);
         throw new Error("Could not clear notification data.");
+    }
+}
+
+// --- Internal DB Functions ---
+
+async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    try {
+        const data = await fs.readFile(dbPath, 'utf8');
+        if (data.trim() === "") {
+            console.warn(`[JSON DB Utils] Database file at ${path.basename(dbPath)} is empty. Returning default data.`);
+            return defaultData;
+        }
+        return JSON.parse(data) as T;
+    } catch (error: any) {
+        if (error.code === 'ENOENT') {
+          console.log(`[JSON DB Utils] Database file not found at ${path.basename(dbPath)}. Returning default data without creating file.`);
+        } else {
+          console.error(`[JSON DB Utils] Error reading or parsing database at ${path.basename(dbPath)}. Returning default data. Error:`, error);
+        }
+        return defaultData;
+    }
+}
+
+async function writeDb<T>(dbPath: string, data: T): Promise<void> {
+    try {
+        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        console.error(`[JSON DB Utils] Error writing to database at ${path.basename(dbPath)}:`, error);
+        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
     }
 }
