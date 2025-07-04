@@ -4,6 +4,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User } from '@/types/user-types';
+import { unstable_noStore as noStore } from 'next/cache';
 
 const DEFAULT_USERS: User[] = [
     {
@@ -27,33 +28,21 @@ const DEFAULT_USERS: User[] = [
     }
 ];
 
-async function readUsersDb(): Promise<User[]> {
+async function readDb(): Promise<User[]> {
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     try {
         const data = await fs.readFile(DB_PATH, 'utf8');
         return JSON.parse(data) as User[];
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-            // If file doesn't exist, return default users but do not create the file.
-            // This prevents build-time write operations.
-            console.warn(`[UserData] users.json not found. Returning default users. Please ensure the file exists for persistence.`);
+            console.warn(`[UserData] users.json not found. Creating it with default users.`);
+            await fs.writeFile(DB_PATH, JSON.stringify(DEFAULT_USERS, null, 2), 'utf8');
             return DEFAULT_USERS;
         }
         console.error(`[UserData] Error reading users.json:`, error);
         throw new Error('Could not read user database.');
     }
 }
-
-export async function writeUsersDb(data: User[]): Promise<void> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
-    try {
-        await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        console.error(`[UserData] Error writing to users.json:`, error);
-        throw new Error('Failed to save user data.');
-    }
-}
-
 
 /**
  * Reads the entire user database, including developers.
@@ -62,5 +51,6 @@ export async function writeUsersDb(data: User[]): Promise<void> {
  * @returns A promise that resolves to an array of all User objects.
  */
 export async function getAllUsers(): Promise<User[]> {
-    return await readUsersDb();
+    noStore();
+    return await readDb();
 }

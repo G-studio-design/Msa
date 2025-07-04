@@ -1,0 +1,55 @@
+import React, { Suspense } from 'react';
+import AttendancePageClient from '@/components/dashboard/AttendancePageClient';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { isAttendanceFeatureEnabled, getAppSettings } from '@/services/settings-service';
+import { getApprovedLeaveRequests } from '@/services/leave-request-service';
+import { getAllHolidays } from '@/services/holiday-service';
+import { getAttendanceForUser } from '@/services/attendance-service';
+import { headers } from 'next/headers'; // To satisfy build process for getting user in server component
+
+export const dynamic = 'force-dynamic';
+
+// A mock function to satisfy the build process for extracting user from headers
+// In a real scenario, this would involve a library like next-auth or clerk
+async function getUserIdFromSession() {
+    headers(); 
+    return null; 
+}
+
+
+export default async function AttendancePage() {
+    const userId = await getUserIdFromSession(); // This is for build compliance; logic is client-side
+
+    const [attendanceEnabled, settings, leaves, holidays] = await Promise.all([
+        isAttendanceFeatureEnabled(),
+        getAppSettings(),
+        getApprovedLeaveRequests(),
+        getAllHolidays()
+    ]);
+
+    const initialData = {
+        attendanceEnabled,
+        settings,
+        leaves,
+        holidays
+    };
+
+    return (
+        <Suspense fallback={<PageSkeleton />}>
+            <AttendancePageClient initialData={initialData} />
+        </Suspense>
+    );
+}
+
+function PageSkeleton() {
+    return (
+        <div className="container mx-auto py-4 px-4 md:px-6 space-y-6">
+            <Skeleton className="h-8 w-1/3 mb-4" />
+            <div className="grid gap-6 md:grid-cols-2">
+                <Card><CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader><CardContent><Skeleton className="h-24 w-full" /></CardContent></Card>
+                <Card><CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
+            </div>
+        </div>
+    );
+}
