@@ -3,7 +3,6 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { unstable_noStore as noStore } from 'next/cache';
 
 export interface HolidayEntry {
   id: string;
@@ -13,24 +12,21 @@ export interface HolidayEntry {
   description?: string;
 }
 
-async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+async function readDb(): Promise<HolidayEntry[]> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'holidays.json');
     try {
-        const data = await fs.readFile(dbPath, 'utf8');
-        if (data.trim() === "") {
-            return defaultData;
-        }
-        return JSON.parse(data) as T;
+        const data = await fs.readFile(DB_PATH, 'utf8');
+        return JSON.parse(data) as HolidayEntry[];
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-          await fs.writeFile(dbPath, JSON.stringify(defaultData, null, 2), 'utf8');
+          return [];
         }
-        return defaultData;
+        console.error(`[HolidayService] Error reading database:`, error);
+        throw new Error('Failed to read holiday database.');
     }
 }
 
 export async function getAllHolidays(): Promise<HolidayEntry[]> {
-  noStore();
-  const HOLIDAYS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'holidays.json');
-  const holidays = await readDb<HolidayEntry[]>(HOLIDAYS_DB_PATH, []);
+  const holidays = await readDb();
   return holidays.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 }

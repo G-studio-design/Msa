@@ -5,7 +5,6 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User } from '@/types/user-types';
 import { getAllUsers } from './data-access/user-data';
-import { unstable_noStore as noStore } from 'next/cache';
 
 // Define the structure of a Notification
 export interface Notification {
@@ -19,27 +18,27 @@ export interface Notification {
 
 const NOTIFICATION_LIMIT = 300; // Limit the total number of notifications stored
 
-async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+async function readDb(): Promise<Notification[]> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     try {
-        const data = await fs.readFile(dbPath, 'utf8');
-        if (data.trim() === "") {
-            return defaultData;
-        }
-        return JSON.parse(data) as T;
+        const data = await fs.readFile(DB_PATH, 'utf8');
+        return JSON.parse(data) as Notification[];
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-          await fs.writeFile(dbPath, JSON.stringify(defaultData, null, 2), 'utf8');
+          return [];
         }
-        return defaultData;
+        console.error(`[NotificationService] Error reading database:`, error);
+        throw new Error('Failed to read notification database.');
     }
 }
 
-async function writeDb<T>(dbPath: string, data: T): Promise<void> {
+async function writeDb(data: Notification[]): Promise<void> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     try {
-        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+        await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
     } catch (error) {
-        console.error(`[JSON DB Utils] Error writing to database at ${path.basename(dbPath)}:`, error);
-        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
+        console.error(`[NotificationService] Error writing to database:`, error);
+        throw new Error('Failed to save notification data.');
     }
 }
 
@@ -51,14 +50,13 @@ async function findUsersByRole(role: string): Promise<User[]> {
 }
 
 export async function notifyUsersByRole(roleOrRoles: string | string[], message: string, projectId?: string): Promise<void> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     const rolesToNotify = Array.isArray(roleOrRoles) ? roleOrRoles : [roleOrRoles];
     
     if (rolesToNotify.length === 0 || rolesToNotify.every(r => !r)) {
         return;
     }
 
-    let notifications = await readDb<Notification[]>(DB_PATH, []);
+    let notifications = await readDb();
     const now = new Date().toISOString();
     let notificationsAdded = 0;
 
@@ -91,17 +89,16 @@ export async function notifyUsersByRole(roleOrRoles: string | string[], message:
           notifications = notifications.slice(0, NOTIFICATION_LIMIT);
         }
 
-        await writeDb(DB_PATH, notifications);
+        await writeDb(notifications);
     }
 }
 
 export async function notifyUserById(userId: string, message: string, projectId?: string): Promise<void> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     if (!userId) {
         return;
     }
 
-    const notifications = await readDb<Notification[]>(DB_PATH, []);
+    const notifications = await readDb();
     const now = new Date().toISOString();
 
     const newNotification: Notification = {
@@ -115,49 +112,44 @@ export async function notifyUserById(userId: string, message: string, projectId?
     notifications.push(newNotification);
     notifications.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-    await writeDb(DB_PATH, notifications);
+    await writeDb(notifications);
 }
 
 export async function getNotificationsForUser(userId: string): Promise<Notification[]> {
-    noStore();
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
-    const allNotifications = await readDb<Notification[]>(DB_PATH, []);
+    const allNotifications = await readDb();
     const userNotifications = allNotifications.filter(n => n.userId === userId);
     userNotifications.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     return userNotifications;
 }
 
 export async function markNotificationAsRead(notificationId: string): Promise<void> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
-    const notifications = await readDb<Notification[]>(DB_PATH, []);
+    const notifications = await readDb();
     const notificationIndex = notifications.findIndex(n => n.id === notificationId);
 
     if (notificationIndex !== -1) {
         if (!notifications[notificationIndex].isRead) {
             notifications[notificationIndex].isRead = true;
-            await writeDb(DB_PATH, notifications); 
+            await writeDb(notifications); 
         }
     }
 }
 
 export async function deleteNotificationsByProjectId(projectId: string): Promise<void> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     if (!projectId) {
         return;
     }
 
-    const notifications = await readDb<Notification[]>(DB_PATH, []);
+    const notifications = await readDb();
     const filteredNotifications = notifications.filter(n => n.projectId !== projectId);
     
     if (notifications.length !== filteredNotifications.length) {
-        await writeDb(DB_PATH, filteredNotifications);
+        await writeDb(filteredNotifications);
     }
 }
 
 export async function clearAllNotifications(): Promise<void> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     try {
-        await writeDb(DB_PATH, []); 
+        await writeDb([]); 
     } catch (error) {
         console.error("[NotificationService] Failed to clear notifications:", error);
         throw new Error("Could not clear notification data.");

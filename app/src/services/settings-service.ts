@@ -3,7 +3,6 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { unstable_noStore as noStore } from 'next/cache';
 
 interface WorkingHours {
   isWorkDay: boolean;
@@ -46,62 +45,57 @@ const DEFAULT_SETTINGS: AppSettings = {
   }
 };
 
-async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+async function readDb(): Promise<AppSettings> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
     try {
-        const data = await fs.readFile(dbPath, 'utf8');
-        if (data.trim() === "") {
-            return defaultData;
-        }
-        return JSON.parse(data) as T;
+        const data = await fs.readFile(DB_PATH, 'utf8');
+        return JSON.parse(data) as AppSettings;
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-          await fs.writeFile(dbPath, JSON.stringify(defaultData, null, 2), 'utf8');
+          return DEFAULT_SETTINGS;
         }
-        return defaultData;
+        console.error(`[SettingsService] Error reading database:`, error);
+        throw new Error('Failed to read settings database.');
     }
 }
 
-async function writeDb<T>(dbPath: string, data: T): Promise<void> {
+async function writeDb(data: AppSettings): Promise<void> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
     try {
-        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+        await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
     } catch (error) {
-        console.error(`[JSON DB Utils] Error writing to database at ${path.basename(dbPath)}:`, error);
-        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
+        console.error(`[SettingsService] Error writing to database:`, error);
+        throw new Error('Failed to save settings data.');
     }
 }
 
 
 export async function getAppSettings(): Promise<AppSettings> {
-  noStore();
-  const SETTINGS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
   console.log("[SettingsService] Fetching app settings.");
-  return await readDb<AppSettings>(SETTINGS_DB_PATH, DEFAULT_SETTINGS);
+  return await readDb();
 }
 
 export async function isAttendanceFeatureEnabled(): Promise<boolean> {
-  noStore();
   const settings = await getAppSettings();
   return settings.feature_attendance_enabled;
 }
 
 export async function setAttendanceFeatureEnabled(isEnabled: boolean): Promise<AppSettings> {
-  const SETTINGS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
   console.log(`[SettingsService] Setting attendance feature to: ${isEnabled}`);
   const settings = await getAppSettings();
   const updatedSettings: AppSettings = { ...settings, feature_attendance_enabled: isEnabled };
-  await writeDb(SETTINGS_DB_PATH, updatedSettings);
+  await writeDb(updatedSettings);
   return updatedSettings;
 }
 
 export async function updateAttendanceSettings(newSettings: AttendanceSettings): Promise<AppSettings> {
-    const SETTINGS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'app_settings.json');
     console.log('[SettingsService] Updating attendance settings:', newSettings);
     const currentSettings = await getAppSettings();
     const updatedSettings: AppSettings = {
       ...currentSettings,
       ...newSettings,
     };
-    await writeDb(SETTINGS_DB_PATH, updatedSettings);
+    await writeDb(updatedSettings);
     console.log('[SettingsService] Attendance settings updated successfully.');
     return updatedSettings;
 }

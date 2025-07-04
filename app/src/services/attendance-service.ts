@@ -7,7 +7,6 @@ import { format } from 'date-fns';
 import { getAppSettings } from './settings-service';
 import { notifyUsersByRole } from './notification-service';
 import type { User } from '@/types/user-types';
-import { unstable_noStore as noStore } from 'next/cache';
 
 export interface AttendanceRecord {
   id: string;
@@ -45,27 +44,27 @@ export interface CheckOutResult {
   error?: string;
 }
 
-async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+async function readDb(): Promise<AttendanceRecord[]> {
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
     try {
-        const data = await fs.readFile(dbPath, 'utf8');
-        if (data.trim() === "") {
-            return defaultData;
-        }
-        return JSON.parse(data) as T;
+        const data = await fs.readFile(DB_PATH, 'utf8');
+        return JSON.parse(data) as AttendanceRecord[];
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-          await fs.writeFile(dbPath, JSON.stringify(defaultData, null, 2), 'utf8');
+          return []; // Return empty array if file doesn't exist
         }
-        return defaultData;
+        console.error(`[AttendanceService] Error reading database:`, error);
+        throw new Error('Failed to read attendance database.');
     }
 }
 
-async function writeDb<T>(dbPath: string, data: T): Promise<void> {
+async function writeDb(data: AttendanceRecord[]): Promise<void> {
+  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
     try {
-        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+        await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
     } catch (error) {
-        console.error(`[JSON DB Utils] Error writing to database at ${path.basename(dbPath)}:`, error);
-        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
+        console.error(`[AttendanceService] Error writing to database:`, error);
+        throw new Error('Failed to save attendance data.');
     }
 }
 
@@ -88,23 +87,18 @@ function getDistanceInMeters(lat1: number, lon1: number, lat2: number, lon2: num
 
 
 export async function getTodaysAttendance(userId: string): Promise<AttendanceRecord | null> {
-  noStore();
-  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const todayStr = format(new Date(), 'yyyy-MM-dd');
-  const attendanceRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
+  const attendanceRecords = await readDb();
   return attendanceRecords.find(r => r.userId === userId && r.date === todayStr) || null;
 }
 
 export async function getTodaysAttendanceForAllUsers(): Promise<AttendanceRecord[]> {
-  noStore();
-  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const todayStr = format(new Date(), 'yyyy-MM-dd');
-  const allRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
+  const allRecords = await readDb();
   return allRecords.filter(r => r.date === todayStr);
 }
 
 export async function checkIn(data: CheckInData): Promise<CheckInResult> {
-  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   try {
     const settings = await getAppSettings();
 
@@ -123,7 +117,7 @@ export async function checkIn(data: CheckInData): Promise<CheckInResult> {
       return { error: `Anda berada di luar radius kantor yang diizinkan (${Math.round(distance)}m > ${settings.attendance_radius_meters}m). Absensi gagal.` };
     }
 
-    const attendanceRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
+    const attendanceRecords = await readDb();
     const now = new Date();
     const todayStr = format(now, 'yyyy-MM-dd');
 
@@ -150,7 +144,7 @@ export async function checkIn(data: CheckInData): Promise<CheckInResult> {
     };
 
     attendanceRecords.push(newRecord);
-    await writeDb(DB_PATH, attendanceRecords);
+    await writeDb(attendanceRecords);
     return { record: newRecord };
   } catch (e: any) {
     console.error("[AttendanceService/checkIn] Unexpected error:", e);
@@ -159,9 +153,8 @@ export async function checkIn(data: CheckInData): Promise<CheckInResult> {
 }
 
 export async function checkOut(userId: string, reason: 'Normal' | 'Survei' | 'Sidang' = 'Normal'): Promise<CheckOutResult> {
-  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   try {
-    const attendanceRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
+    const attendanceRecords = await readDb();
     const todayStr = format(new Date(), 'yyyy-MM-dd');
     const recordIndex = attendanceRecords.findIndex(r => r.userId === userId && r.date === todayStr);
 
@@ -177,7 +170,7 @@ export async function checkOut(userId: string, reason: 'Normal' | 'Survei' | 'Si
     record.checkOutTime = new Date().toISOString();
     record.checkOutReason = reason;
 
-    await writeDb(DB_PATH, attendanceRecords);
+    await writeDb(attendanceRecords);
     
     if (reason === 'Survei' || reason === 'Sidang') {
         const message = `${record.displayName} telah check-out lebih awal untuk keperluan ${reason}.`;
@@ -194,16 +187,12 @@ export async function checkOut(userId: string, reason: 'Normal' | 'Survei' | 'Si
 
 
 export async function getAttendanceForUser(userId: string): Promise<AttendanceRecord[]> {
-  noStore();
-  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
-  const attendanceRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
+  const attendanceRecords = await readDb();
   return attendanceRecords.filter(r => r.userId === userId);
 }
 
 export async function getMonthlyAttendanceReportData(month: number, year: number): Promise<AttendanceRecord[]> {
-  noStore();
-  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
-  const allRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
+  const allRecords = await readDb();
   const monthStr = month.toString().padStart(2, '0');
   const yearStr = year.toString();
   

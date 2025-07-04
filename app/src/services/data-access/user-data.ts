@@ -4,7 +4,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User } from '@/types/user-types';
-import { unstable_noStore as noStore } from 'next/cache';
 
 const DEFAULT_USERS: User[] = [
     {
@@ -28,31 +27,30 @@ const DEFAULT_USERS: User[] = [
     }
 ];
 
-async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+async function readUsersDb(): Promise<User[]> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     try {
-        const data = await fs.readFile(dbPath, 'utf8');
-        if (data.trim() === "") {
-            console.warn(`[JSON DB Utils] Database file at ${path.basename(dbPath)} is empty. Returning default data.`);
-            return defaultData;
-        }
-        return JSON.parse(data) as T;
+        const data = await fs.readFile(DB_PATH, 'utf8');
+        return JSON.parse(data) as User[];
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-          console.log(`[JSON DB Utils] Database file not found at ${path.basename(dbPath)}. Returning default data and creating it.`);
-          await fs.writeFile(dbPath, JSON.stringify(defaultData, null, 2), 'utf8');
-        } else {
-          console.error(`[JSON DB Utils] Error reading or parsing database at ${path.basename(dbPath)}. Returning default data. Error:`, error);
+            // If file doesn't exist, return default users but do not create the file.
+            // This prevents build-time write operations.
+            console.warn(`[UserData] users.json not found. Returning default users. Please ensure the file exists for persistence.`);
+            return DEFAULT_USERS;
         }
-        return defaultData;
+        console.error(`[UserData] Error reading users.json:`, error);
+        throw new Error('Could not read user database.');
     }
 }
 
-async function writeDb<T>(dbPath: string, data: T): Promise<void> {
+export async function writeUsersDb(data: User[]): Promise<void> {
+    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     try {
-        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+        await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
     } catch (error) {
-        console.error(`[JSON DB Utils] Error writing to database at ${path.basename(dbPath)}:`, error);
-        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
+        console.error(`[UserData] Error writing to users.json:`, error);
+        throw new Error('Failed to save user data.');
     }
 }
 
@@ -64,8 +62,5 @@ async function writeDb<T>(dbPath: string, data: T): Promise<void> {
  * @returns A promise that resolves to an array of all User objects.
  */
 export async function getAllUsers(): Promise<User[]> {
-    noStore();
-    const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
-    const users = await readDb<User[]>(USERS_DB_PATH, DEFAULT_USERS);
-    return users;
+    return await readUsersDb();
 }
