@@ -12,9 +12,9 @@ const ALLOWED_ROLES = ['Owner', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP', 'A
 export async function POST(request: Request) {
   try {
     const PROJECT_FILES_BASE_DIR = path.resolve(process.cwd(), 'src', 'database', 'project_files');
-    const formData = await request.formData();
     await ensureProjectFilesBaseDirExists(); // Make sure the base directory exists
 
+    const formData = await request.formData();
     const file = formData.get('file') as File | null;
     const projectId = formData.get('projectId') as string | null;
     const projectTitle = formData.get('projectTitle') as string | null;
