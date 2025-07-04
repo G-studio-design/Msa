@@ -6,6 +6,9 @@ import * as path from 'path';
 import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
+  // Define base directory safely within the handler
+  const PROJECT_FILES_BASE_DIR = path.resolve(process.cwd(), 'src', 'database', 'project_files');
+
   const searchParams = request.nextUrl.searchParams;
   const filePathParam = searchParams.get('filePath');
 
@@ -14,19 +17,13 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Define base directory safely within the handler
-    const PROJECT_FILES_BASE_DIR = path.resolve(process.cwd(), 'src', 'database', 'project_files');
-    
-    // Construct the absolute path to the file on the server
     const absoluteFilePath = path.join(PROJECT_FILES_BASE_DIR, filePathParam);
 
-    // Security check: Ensure the resolved path is still within the base directory
     if (!absoluteFilePath.startsWith(PROJECT_FILES_BASE_DIR)) {
         console.error(`Attempt to access file outside base directory: ${filePathParam}`);
         return NextResponse.json({ message: 'Invalid file path.' }, { status: 403 });
     }
     
-    // Check if file exists
     try {
         await fs.access(absoluteFilePath, fsSync.constants.F_OK);
     } catch (accessError) {
@@ -35,9 +32,8 @@ export async function GET(request: NextRequest) {
     }
 
     const fileBuffer = await fs.readFile(absoluteFilePath);
-    const filename = path.basename(absoluteFilePath); // Get the original filename
+    const filename = path.basename(absoluteFilePath);
 
-    // Set headers for file download
     const headers = new Headers();
     headers.append('Content-Disposition', `attachment; filename="${filename}"`);
     headers.append('Content-Type', 'application/octet-stream'); 

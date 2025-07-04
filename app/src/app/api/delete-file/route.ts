@@ -9,6 +9,9 @@ import { findUserById } from '@/services/user-service';
 const ALLOWED_ROLES_TO_DELETE = ['Owner', 'Admin Proyek', 'Admin Developer'];
 
 export async function POST(request: Request) {
+  // Define base directory safely within the handler
+  const PROJECT_FILES_BASE_DIR = path.resolve(process.cwd(), 'src', 'database', 'project_files');
+  
   try {
     const body = await request.json();
     const { projectId, filePath, userId } = body as { projectId: string; filePath: string; userId: string; };
@@ -32,15 +35,11 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: 'File record not found in project data.' }, { status: 404 });
     }
     
-    // Authorization Check: Allow if user is an admin OR if the user's role matches the uploader's role.
     const canDelete = ALLOWED_ROLES_TO_DELETE.includes(user.role) || user.role === fileToDelete.uploadedBy;
 
     if (!canDelete) {
         return NextResponse.json({ message: 'You are not authorized to delete this file.' }, { status: 403 });
     }
-
-    // Define base directory safely within the handler
-    const PROJECT_FILES_BASE_DIR = path.resolve(process.cwd(), 'src', 'database', 'project_files');
 
     // Physical file deletion
     const absoluteFilePath = path.join(PROJECT_FILES_BASE_DIR, filePath);
@@ -49,19 +48,13 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: 'Invalid file path.' }, { status: 403 });
     }
 
-    try {
-        if (fsSync.existsSync(absoluteFilePath)) {
-            await fs.unlink(absoluteFilePath);
-            console.log(`[API/DeleteFile] Physically deleted file: ${absoluteFilePath}`);
-        } else {
-            console.warn(`[API/DeleteFile] Physical file not found, skipping unlink: ${absoluteFilePath}`);
-        }
-    } catch (error: any) {
-        console.error(`Error deleting physical file ${absoluteFilePath}:`, error);
-        // Do not block DB update if physical file deletion fails (it might be gone already)
+    if (fsSync.existsSync(absoluteFilePath)) {
+        await fs.unlink(absoluteFilePath);
+        console.log(`[API/DeleteFile] Physically deleted file: ${absoluteFilePath}`);
+    } else {
+        console.warn(`[API/DeleteFile] Physical file not found, skipping unlink: ${absoluteFilePath}`);
     }
     
-    // Database record deletion
     await deleteFileRecord(projectId, filePath, user.username);
 
     return NextResponse.json({ message: 'File deleted successfully.' }, { status: 200 });
