@@ -45,6 +45,30 @@ export interface CheckOutResult {
   error?: string;
 }
 
+async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
+    try {
+        const data = await fs.readFile(dbPath, 'utf8');
+        if (data.trim() === "") {
+            return defaultData;
+        }
+        return JSON.parse(data) as T;
+    } catch (error: any) {
+        if (error.code === 'ENOENT') {
+          await fs.writeFile(dbPath, JSON.stringify(defaultData, null, 2), 'utf8');
+        }
+        return defaultData;
+    }
+}
+
+async function writeDb<T>(dbPath: string, data: T): Promise<void> {
+    try {
+        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        console.error(`[JSON DB Utils] Error writing to database at ${path.basename(dbPath)}:`, error);
+        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
+    }
+}
+
 
 // Helper function to calculate distance between two lat/lon points in meters
 function getDistanceInMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -184,33 +208,4 @@ export async function getMonthlyAttendanceReportData(month: number, year: number
   const yearStr = year.toString();
   
   return allRecords.filter(r => r.date.startsWith(`${yearStr}-${monthStr}`));
-}
-
-// --- Internal DB Functions ---
-
-async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
-    try {
-        const data = await fs.readFile(dbPath, 'utf8');
-        if (data.trim() === "") {
-            console.warn(`[JSON DB Utils] Database file at ${path.basename(dbPath)} is empty. Returning default data.`);
-            return defaultData;
-        }
-        return JSON.parse(data) as T;
-    } catch (error: any) {
-        if (error.code === 'ENOENT') {
-          console.log(`[JSON DB Utils] Database file not found at ${path.basename(dbPath)}. Returning default data without creating file.`);
-        } else {
-          console.error(`[JSON DB Utils] Error reading or parsing database at ${path.basename(dbPath)}. Returning default data. Error:`, error);
-        }
-        return defaultData;
-    }
-}
-
-async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    try {
-        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        console.error(`[JSON DB Utils] Error writing to database at ${path.basename(dbPath)}:`, error);
-        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
-    }
 }

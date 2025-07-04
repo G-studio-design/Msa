@@ -28,29 +28,6 @@ const DEFAULT_USERS: User[] = [
     }
 ];
 
-/**
- * Reads the entire user database, including developers.
- * Initializes with default users if the database is empty.
- * This is a low-level data access function.
- * @returns A promise that resolves to an array of all User objects.
- */
-export async function getAllUsers(): Promise<User[]> {
-    noStore();
-    const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
-    let users = await readDb<User[]>(USERS_DB_PATH, []);
-    
-    if (users.length === 0) {
-        console.log("[user-data] User database is empty. Initializing with default users.");
-        await writeDb(USERS_DB_PATH, DEFAULT_USERS);
-        return DEFAULT_USERS;
-    }
-    
-    return users;
-}
-
-
-// --- Internal DB Functions ---
-
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
     try {
         const data = await fs.readFile(dbPath, 'utf8');
@@ -61,7 +38,8 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
         return JSON.parse(data) as T;
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-          console.log(`[JSON DB Utils] Database file not found at ${path.basename(dbPath)}. Returning default data without creating file.`);
+          console.log(`[JSON DB Utils] Database file not found at ${path.basename(dbPath)}. Returning default data and creating it.`);
+          await fs.writeFile(dbPath, JSON.stringify(defaultData, null, 2), 'utf8');
         } else {
           console.error(`[JSON DB Utils] Error reading or parsing database at ${path.basename(dbPath)}. Returning default data. Error:`, error);
         }
@@ -76,4 +54,18 @@ async function writeDb<T>(dbPath: string, data: T): Promise<void> {
         console.error(`[JSON DB Utils] Error writing to database at ${path.basename(dbPath)}:`, error);
         throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
     }
+}
+
+
+/**
+ * Reads the entire user database, including developers.
+ * Initializes with default users if the database is empty.
+ * This is a low-level data access function.
+ * @returns A promise that resolves to an array of all User objects.
+ */
+export async function getAllUsers(): Promise<User[]> {
+    noStore();
+    const USERS_DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
+    const users = await readDb<User[]>(USERS_DB_PATH, DEFAULT_USERS);
+    return users;
 }

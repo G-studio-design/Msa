@@ -7,6 +7,16 @@ import type { User, AddUserData, UpdateProfileData, UpdatePasswordData, UpdateUs
 import { getAllUsers } from './data-access/user-data';
 import { unstable_noStore as noStore } from 'next/cache';
 
+async function writeDb<T>(dbPath: string, data: T): Promise<void> {
+    try {
+        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
+    } catch (error) {
+        console.error(`Error writing to database at ${path.basename(dbPath)}:`, error);
+        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
+    }
+}
+
+
 // --- Main Service Functions ---
 
 export async function findUserByUsername(username: string): Promise<User | null> {
@@ -34,6 +44,7 @@ export async function findUserById(userId: string): Promise<User | null> {
 }
 
 export async function verifyUserCredentials(usernameInput: string, passwordInput: string): Promise<Omit<User, 'password'> | null> {
+    noStore();
     const user = await findUserByUsername(usernameInput);
 
     if (!user) {
@@ -226,15 +237,4 @@ export async function clearUserGoogleTokens(userId: string): Promise<Omit<User, 
     await writeDb(DB_PATH, users);
     const { password: _p, ...userWithoutPassword } = users[userIndex];
     return userWithoutPassword;
-}
-
-// --- Internal DB Functions ---
-
-async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    try {
-        await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
-    } catch (error) {
-        console.error(`Error writing to database at ${path.basename(dbPath)}:`, error);
-        throw new Error(`Failed to save data to ${path.basename(dbPath)}.`);
-    }
 }
