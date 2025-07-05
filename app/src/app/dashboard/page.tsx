@@ -1,3 +1,4 @@
+
 // src/app/dashboard/page.tsx
 import React, { Suspense } from 'react';
 import { getAllProjects } from '@/services/project-service';

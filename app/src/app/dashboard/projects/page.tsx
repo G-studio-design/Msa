@@ -1,3 +1,4 @@
+
 import React, { Suspense } from 'react';
 import { getAllProjects } from '@/services/project-service';
 import ProjectsPageClient from '@/components/dashboard/ProjectsPageClient';
