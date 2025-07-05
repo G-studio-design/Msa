@@ -1,4 +1,5 @@
 // src/lib/path-utils.ts
+'use server';
 
 /**
  * Helper function to sanitize text for use in a path component.

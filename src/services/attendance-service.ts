@@ -6,6 +6,7 @@ import * as path from 'path';
 import { format } from 'date-fns';
 import { getAppSettings } from './settings-service';
 import { notifyUsersByRole } from './notification-service';
+import type { User } from '@/types/user-types';
 
 export interface AttendanceRecord {
   id: string;
