@@ -1,6 +1,4 @@
 // src/app/api/notify-division/route.ts
-'use server';
-
 import { NextResponse } from 'next/server';
 import { notifyUsersByRole } from '@/services/notification-service';
 import { findUserById } from '@/services/user-service';
