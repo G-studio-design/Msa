@@ -1,4 +1,3 @@
-
 // src/app/dashboard/add-project/page.tsx
 'use client';
 
@@ -86,19 +85,20 @@ export default function AddProjectPage() {
     setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
   };
 
+  const getTranslatedStatus = React.useCallback((statusKey: string) => {
+    if (!dashboardDict?.status || !statusKey) return statusKey;
+    const key = statusKey?.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status;
+    return dashboardDict.status[key] || statusKey;
+  }, [dashboardDict]);
+
   const onSubmit = async (data: AddProjectFormValues) => {
     if (!canAddProject || !currentUser) return;
+
     setIsLoading(true);
     form.clearErrors();
 
     try {
-      const projectCreationPayload = {
-        title: data.title,
-        workflowId: DEFAULT_WORKFLOW_ID,
-        createdBy: currentUser.username,
-        files: selectedFiles,
-      };
-
+      // 1. Create a FormData object to send multipart data
       const formData = new FormData();
       formData.append('title', data.title);
       formData.append('workflowId', DEFAULT_WORKFLOW_ID);
@@ -106,20 +106,20 @@ export default function AddProjectPage() {
       formData.append('userId', currentUser.id);
       selectedFiles.forEach(file => formData.append('files', file));
 
+      // 2. Send the request to the new unified API endpoint
       const response = await fetch('/api/projects', {
         method: 'POST',
         body: formData,
       });
 
-      const result = await response.json();
+      const newProject = await response.json();
       if (!response.ok) {
-        throw new Error(result.message || 'Failed to create project.');
+        throw new Error(newProject.message || 'Failed to create project.');
       }
-      
-      const newProject = result;
 
+      // 3. Success feedback and redirect
       const firstStepAssignedDivision = newProject.assignedDivision;
-      const translatedDivision = dashboardDict.status[firstStepAssignedDivision?.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status] || firstStepAssignedDivision;
+      const translatedDivision = getTranslatedStatus(firstStepAssignedDivision) || firstStepAssignedDivision;
 
       toast({
         title: addProjectDict.toast.success,

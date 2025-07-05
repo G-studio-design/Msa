@@ -1,4 +1,3 @@
-
 // src/app/api/upload-file/route.ts
 'use server';
 import { NextResponse } from 'next/server';
@@ -7,27 +6,25 @@ import * as path from 'path';
 import { sanitizeForPath } from '@/lib/path-utils'; 
 import { getAllUsers } from '@/services/data-access/user-data';
 
-// Define the allowed roles for file upload
+// This route is now primarily for single-file uploads outside the project creation flow.
+// For project creation, file handling is integrated into POST /api/projects.
 const ALLOWED_ROLES = ['Owner', 'Admin Proyek', 'Arsitek', 'Struktur', 'MEP', 'Admin Developer', 'Akuntan'];
 
 export async function POST(request: Request) {
-  // Define base directory safely within the handler
   const PROJECT_FILES_BASE_DIR = path.resolve(process.cwd(), 'src', 'database', 'project_files');
   
   try {
-    // Ensure the base directory for all project files exists
     await fs.mkdir(PROJECT_FILES_BASE_DIR, { recursive: true });
 
     const formData = await request.formData();
+    const file = formData.get('file') as File | null;
     const projectId = formData.get('projectId') as string | null;
     const userId = formData.get('userId') as string | null;
-    const files = formData.getAll('files') as File[];
-
-    if (!files || files.length === 0 || !projectId || !userId) {
-      return NextResponse.json({ message: 'Project ID, User ID and at least one file are required.' }, { status: 400 });
+    
+    if (!file || !projectId || !userId) {
+      return NextResponse.json({ message: 'Project ID, User ID and file are required.' }, { status: 400 });
     }
     
-    // --- Role Check ---
     const users = await getAllUsers();
     const user = users.find((u: any) => u.id === userId);
 
@@ -38,36 +35,27 @@ export async function POST(request: Request) {
     if (!ALLOWED_ROLES.includes(user.role)) {
       return NextResponse.json({ message: 'User role is not authorized to upload files.' }, { status: 403 });
     }
-    // --- End Role Check ---
 
     const projectSpecificDirRelative = projectId;
     const projectSpecificDirAbsolute = path.join(PROJECT_FILES_BASE_DIR, projectSpecificDirRelative);
 
-    // Ensure the project-specific directory exists
     await fs.mkdir(projectSpecificDirAbsolute, { recursive: true });
     
-    const uploadedFileEntries = [];
+    const originalFilename = file.name;
+    const safeFilenameForPath = sanitizeForPath(originalFilename) || `file_${Date.now()}`;
 
-    for (const file of files) {
-        const originalFilename = file.name;
-        const safeFilenameForPath = sanitizeForPath(originalFilename) || `file_${Date.now()}`;
-        const relativeFilePath = path.join(projectSpecificDirRelative, safeFilenameForPath);
-        const absoluteFilePath = path.join(PROJECT_FILES_BASE_DIR, relativeFilePath);
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        await fs.writeFile(absoluteFilePath, buffer);
-        uploadedFileEntries.push({
-            name: originalFilename,
-            uploadedBy: user.role,
-            path: relativeFilePath.replace(/\\/g, '/'),
-            timestamp: new Date().toISOString(),
-        });
-    }
+    const relativeFilePath = path.join(projectSpecificDirRelative, safeFilenameForPath);
+    const absoluteFilePath = path.join(PROJECT_FILES_BASE_DIR, relativeFilePath);
 
-    console.log(`[API Upload] ${files.length} file(s) uploaded successfully for project ${projectId}`);
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    await fs.writeFile(absoluteFilePath, buffer);
+
+    console.log(`[API Upload] File uploaded successfully to: ${absoluteFilePath}`);
     return NextResponse.json({ 
-      message: 'Files uploaded successfully.', 
-      uploadedFiles: uploadedFileEntries
+      message: 'File uploaded successfully.', 
+      relativePath: relativeFilePath.replace(/\\/g, '/'), // Ensure forward slashes for consistency
+      originalName: originalFilename,
     }, { status: 200 });
 
   } catch (error) {
