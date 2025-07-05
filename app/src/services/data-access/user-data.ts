@@ -1,4 +1,6 @@
 // src/services/data-access/user-data.ts
+'use server';
+
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User } from '@/types/user-types';
