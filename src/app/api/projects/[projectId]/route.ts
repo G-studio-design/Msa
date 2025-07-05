@@ -1,4 +1,6 @@
 // src/app/api/projects/[projectId]/route.ts
+'use server';
+
 import { NextResponse } from 'next/server';
 import { deleteProject, getProjectById } from '@/services/project-service';
 import { findUserById } from '@/services/user-service';

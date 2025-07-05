@@ -17,10 +17,12 @@ const nextConfig = {
     ],
   },
   typescript: {
-    ignoreBuildErrors: true,
+    // Set to false to see build errors. This is critical for debugging.
+    ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    // Also disable this to see all potential issues during build
+    ignoreDuringBuilds: false,
   },
 };
 
