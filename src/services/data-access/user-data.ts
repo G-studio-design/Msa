@@ -27,36 +27,30 @@ const DEFAULT_USERS: User[] = [
     }
 ];
 
+// This function ONLY READS. It does not create files, making it safe for build processes.
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
     try {
-        await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
-        if (data.trim() === "") {
-            return defaultData;
-        }
-        return JSON.parse(data) as T;
+        return data ? (JSON.parse(data) as T) : defaultData;
     } catch (error: any) {
         if (error.code === 'ENOENT') {
+          // File doesn't exist, return default data without trying to create it.
           return defaultData;
         }
         console.error(`[DB Read Error] Error reading or parsing database at ${path.basename(dbPath)}.`, error);
+        // Fallback to in-memory default data on other errors.
         return defaultData;
     }
 }
 
 /**
  * Reads the entire user database, including developers.
- * Initializes with default users if the database is empty.
+ * Initializes with default users if the database is empty or doesn't exist.
  * This is a low-level data access function.
  * @returns A promise that resolves to an array of all User objects.
  */
 export async function getAllUsers(): Promise<User[]> {
     const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
-    let users = await readDb<User[]>(DB_PATH, DEFAULT_USERS);
-
-    if (users.length === 0) {
-        return DEFAULT_USERS;
-    }
-
-    return users;
+    const users = await readDb<User[]>(DB_PATH, DEFAULT_USERS);
+    return users.length > 0 ? users : DEFAULT_USERS;
 }

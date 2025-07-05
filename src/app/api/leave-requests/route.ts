@@ -1,6 +1,6 @@
 // src/app/api/leave-requests/route.ts
 import { NextResponse } from 'next/server';
-import { addLeaveRequest } from '@/services/leave-request-service';
+import { addLeaveRequest, getAllLeaveRequests } from '@/services/leave-request-service';
 import type { AddLeaveRequestData } from '@/types/leave-request-types';
 
 export async function POST(request: Request) {
@@ -18,5 +18,15 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error('[API/LeaveRequests] Error creating leave request:', error);
     return NextResponse.json({ error: 'An unexpected server error occurred.' }, { status: 500 });
+  }
+}
+
+export async function GET(request: Request) {
+  try {
+      const allRequests = await getAllLeaveRequests();
+      return NextResponse.json(allRequests);
+  } catch (error: any) {
+      console.error('[API/LeaveRequests] Error fetching leave requests:', error);
+      return NextResponse.json({ error: "Failed to fetch leave requests." }, { status: 500 });
   }
 }
