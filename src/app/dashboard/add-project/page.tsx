@@ -98,32 +98,15 @@ export default function AddProjectPage() {
     setIsLoading(true);
     form.clearErrors();
 
-    let newProjectId: string | null = null;
-
     try {
-      // Step 1: Create the project entry via API
-      const projectResponse = await fetch('/api/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: data.title,
-          workflowId: DEFAULT_WORKFLOW_ID,
-          createdBy: currentUser.username,
-        }),
-      });
-      const newProjectResult: Project = await projectResponse.json();
-      if (!projectResponse.ok) {
-        throw new Error(newProjectResult.message || 'Failed to create project entry.');
-      }
-      newProjectId = newProjectResult.id;
-
-      // Step 2: Upload files if any
+      // Step 1: Upload files first to get their paths
+      const uploadedFileEntries: Omit<FileEntry, 'timestamp'>[] = [];
       if (selectedFiles.length > 0) {
-        const uploadedFileEntries: Omit<FileEntry, 'timestamp'>[] = [];
         for (const file of selectedFiles) {
           const formData = new FormData();
           formData.append('file', file);
-          formData.append('projectId', newProjectId);
+          // Temporary projectId, as we don't have it yet. The service should handle this.
+          formData.append('projectId', `temp_${Date.now()}`); 
           formData.append('userId', currentUser.id);
 
           const uploadResponse = await fetch('/api/upload-file', { method: 'POST', body: formData });
@@ -138,28 +121,28 @@ export default function AddProjectPage() {
             path: result.relativePath,
           });
         }
-        
-        // Step 3: Update the project with file metadata via API
-        if (uploadedFileEntries.length > 0) {
-          const addFilesResponse = await fetch('/api/projects/update', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              projectId: newProjectId,
-              updaterRole: currentUser.role,
-              updaterUsername: currentUser.username,
-              actionTaken: 'initial_files_added',
-              files: uploadedFileEntries,
-            }),
-          });
-          if (!addFilesResponse.ok) {
-            const errorData = await addFilesResponse.json().catch(() => ({ message: 'Failed to associate files with project.' }));
-            throw new Error(errorData.message);
-          }
-        }
       }
 
-      // Step 4: Success feedback and redirect
+      // Step 2: Create project with file metadata included
+      const projectCreationPayload = {
+        title: data.title,
+        workflowId: DEFAULT_WORKFLOW_ID,
+        createdBy: currentUser.username,
+        initialFiles: uploadedFileEntries,
+      };
+
+      const projectResponse = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(projectCreationPayload),
+      });
+
+      const newProjectResult: Project = await projectResponse.json();
+      if (!projectResponse.ok) {
+        throw new Error(newProjectResult.message || 'Failed to create project entry.');
+      }
+      
+      // Step 3: Success feedback and redirect
       const translatedDivision = getTranslatedStatus(newProjectResult.assignedDivision) || newProjectResult.assignedDivision;
       toast({
         title: addProjectDict.toast.success,
@@ -181,7 +164,6 @@ export default function AddProjectPage() {
         title: addProjectDict.toast.error,
         description: error.message || 'An unexpected error occurred while creating the project.',
       });
-      // Optional: Add cleanup logic here to delete the project if files failed to upload
     } finally {
       setIsLoading(false);
     }

@@ -49,7 +49,7 @@ export interface Project {
 export interface AddProjectData {
     title: string;
     workflowId: string;
-    initialFiles: FileEntry[];
+    initialFiles?: Omit<FileEntry, 'timestamp'>[];
     createdBy: string;
 }
 

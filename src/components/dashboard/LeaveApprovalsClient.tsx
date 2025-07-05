@@ -37,7 +37,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAllLeaveRequests, approveLeaveRequest, rejectLeaveRequest, type LeaveRequest } from '@/services/leave-request-service';
+import type { LeaveRequest } from '@/types/leave-request-types';
 import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale, enUS as EnglishLocale } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
@@ -58,7 +58,7 @@ export default function LeaveApprovalsClient({ initialRequests }: LeaveApprovals
   const [leaveApprovalsDict, setLeaveApprovalsDict] = React.useState(defaultDict.leaveApprovalsPage);
 
   const [pendingRequests, setPendingRequests] = React.useState<LeaveRequest[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false); // For refetches
+  const [isLoading, setIsLoading] = React.useState(false);
   const [isProcessing, setIsProcessing] = React.useState<string | false>(false);
 
   const [isRejectDialogOpen, setIsRejectDialogOpen] = React.useState(false);
@@ -81,11 +81,15 @@ export default function LeaveApprovalsClient({ initialRequests }: LeaveApprovals
     if (currentUser && currentUser.role === 'Owner') {
       setIsLoading(true);
       try {
-        const allRequests = await getAllLeaveRequests();
+        const response = await fetch('/api/leave-requests');
+        if (!response.ok) {
+          throw new Error(leaveApprovalsDict.toast.fetchError);
+        }
+        const allRequests: LeaveRequest[] = await response.json();
         setPendingRequests(allRequests.filter(req => req.status === 'Pending'));
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to fetch leave requests:", error);
-        toast({ variant: 'destructive', title: leaveApprovalsDict.toast.errorTitle, description: leaveApprovalsDict.toast.fetchError });
+        toast({ variant: 'destructive', title: leaveApprovalsDict.toast.errorTitle, description: error.message });
       } finally {
         setIsLoading(false);
       }
@@ -96,12 +100,20 @@ export default function LeaveApprovalsClient({ initialRequests }: LeaveApprovals
     if (!currentUser || currentUser.role !== 'Owner') return;
     setIsProcessing(requestId);
     try {
-      await approveLeaveRequest(requestId, currentUser.id, currentUser.username);
+      const response = await fetch(`/api/leave-requests/${requestId}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approverUserId: currentUser.id, approverUsername: currentUser.username }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || leaveApprovalsDict.toast.actionFailed);
+      }
       toast({ title: leaveApprovalsDict.toast.approvedSuccessTitle, description: leaveApprovalsDict.toast.approvedSuccessDesc });
       fetchPendingRequests(); // Refresh list
     } catch (error: any) {
       console.error("Error approving leave request:", error);
-      toast({ variant: 'destructive', title: leaveApprovalsDict.toast.errorTitle, description: error.message || leaveApprovalsDict.toast.actionFailed });
+      toast({ variant: 'destructive', title: leaveApprovalsDict.toast.errorTitle, description: error.message });
     } finally {
       setIsProcessing(false);
     }
@@ -120,14 +132,26 @@ export default function LeaveApprovalsClient({ initialRequests }: LeaveApprovals
     }
     setIsProcessing(requestToReject.id);
     try {
-      await rejectLeaveRequest(requestToReject.id, currentUser.id, currentUser.username, rejectionReason);
+      const response = await fetch(`/api/leave-requests/${requestToReject.id}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rejectorUserId: currentUser.id,
+          rejectorUsername: currentUser.username,
+          rejectionReason,
+        }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || leaveApprovalsDict.toast.actionFailed);
+      }
       toast({ title: leaveApprovalsDict.toast.rejectedSuccessTitle, description: leaveApprovalsDict.toast.rejectedSuccessDesc });
       fetchPendingRequests(); // Refresh list
       setIsRejectDialogOpen(false);
       setRequestToReject(null);
     } catch (error: any) {
       console.error("Error rejecting leave request:", error);
-      toast({ variant: 'destructive', title: leaveApprovalsDict.toast.errorTitle, description: error.message || leaveApprovalsDict.toast.actionFailed });
+      toast({ variant: 'destructive', title: leaveApprovalsDict.toast.errorTitle, description: error.message });
     } finally {
       setIsProcessing(false);
     }
