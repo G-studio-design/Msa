@@ -1,4 +1,6 @@
+
 // src/app/api/upload-file/route.ts
+'use server';
 import { NextResponse } from 'next/server';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -17,12 +19,12 @@ export async function POST(request: Request) {
     await fs.mkdir(PROJECT_FILES_BASE_DIR, { recursive: true });
 
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
     const projectId = formData.get('projectId') as string | null;
     const userId = formData.get('userId') as string | null;
-    
-    if (!file || !projectId || !userId) {
-      return NextResponse.json({ message: 'Project ID, User ID and file are required.' }, { status: 400 });
+    const files = formData.getAll('files') as File[];
+
+    if (!files || files.length === 0 || !projectId || !userId) {
+      return NextResponse.json({ message: 'Project ID, User ID and at least one file are required.' }, { status: 400 });
     }
     
     // --- Role Check ---
@@ -38,30 +40,34 @@ export async function POST(request: Request) {
     }
     // --- End Role Check ---
 
-    // The directory name is now ONLY the project ID for robustness.
     const projectSpecificDirRelative = projectId;
     const projectSpecificDirAbsolute = path.join(PROJECT_FILES_BASE_DIR, projectSpecificDirRelative);
 
     // Ensure the project-specific directory exists
     await fs.mkdir(projectSpecificDirAbsolute, { recursive: true });
     
-    const originalFilename = file.name;
-    const safeFilenameForPath = sanitizeForPath(originalFilename) || `file_${Date.now()}`;
+    const uploadedFileEntries = [];
 
-    // The relative path is now simpler and more robust
-    const relativeFilePath = path.join(projectSpecificDirRelative, safeFilenameForPath);
-    const absoluteFilePath = path.join(PROJECT_FILES_BASE_DIR, relativeFilePath);
+    for (const file of files) {
+        const originalFilename = file.name;
+        const safeFilenameForPath = sanitizeForPath(originalFilename) || `file_${Date.now()}`;
+        const relativeFilePath = path.join(projectSpecificDirRelative, safeFilenameForPath);
+        const absoluteFilePath = path.join(PROJECT_FILES_BASE_DIR, relativeFilePath);
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        await fs.writeFile(absoluteFilePath, buffer);
+        uploadedFileEntries.push({
+            name: originalFilename,
+            uploadedBy: user.role,
+            path: relativeFilePath.replace(/\\/g, '/'),
+            timestamp: new Date().toISOString(),
+        });
+    }
 
-    // Convert ArrayBuffer to Buffer and write file
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await fs.writeFile(absoluteFilePath, buffer);
-
-    console.log(`[API Upload] File uploaded successfully to: ${absoluteFilePath}`);
+    console.log(`[API Upload] ${files.length} file(s) uploaded successfully for project ${projectId}`);
     return NextResponse.json({ 
-      message: 'File uploaded successfully.', 
-      relativePath: relativeFilePath.replace(/\\/g, '/'), // Ensure forward slashes for consistency
-      originalName: originalFilename,
+      message: 'Files uploaded successfully.', 
+      uploadedFiles: uploadedFileEntries
     }, { status: 200 });
 
   } catch (error) {

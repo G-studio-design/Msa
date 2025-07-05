@@ -27,7 +27,6 @@ const getAddProjectSchema = (dictValidation: ReturnType<typeof getDictionary>['a
 });
 
 const defaultDict = getDictionary('en');
-const defaultDashboardDict = defaultDict.dashboardPage;
 
 export default function AddProjectPage() {
   const { currentUser } = useAuth();
@@ -87,13 +86,6 @@ export default function AddProjectPage() {
     setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
   };
 
-  const getTranslatedStatus = React.useCallback((statusKey: string) => {
-    const dictToUse = isClient ? dashboardDict : defaultDashboardDict;
-    if (!dictToUse?.status || !statusKey) return statusKey;
-    const key = statusKey?.toLowerCase().replace(/ /g, '') as keyof typeof dictToUse.status;
-    return dictToUse.status[key] || statusKey;
-  }, [isClient, dashboardDict]);
-
   const onSubmit = async (data: AddProjectFormValues) => {
     if (!canAddProject || !currentUser) return;
     setIsLoading(true);
@@ -104,51 +96,35 @@ export default function AddProjectPage() {
         title: data.title,
         workflowId: DEFAULT_WORKFLOW_ID,
         createdBy: currentUser.username,
+        files: selectedFiles,
       };
 
-      const projectResponse = await fetch('/api/projects', {
+      const formData = new FormData();
+      formData.append('title', data.title);
+      formData.append('workflowId', DEFAULT_WORKFLOW_ID);
+      formData.append('createdBy', currentUser.username);
+      formData.append('userId', currentUser.id);
+      selectedFiles.forEach(file => formData.append('files', file));
+
+      const response = await fetch('/api/projects', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(projectCreationPayload),
+        body: formData,
       });
 
-      const newProject = await projectResponse.json();
-      if (!projectResponse.ok) {
-        throw new Error(newProject.message || 'Failed to create project entry.');
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to create project.');
       }
-
-      if (selectedFiles.length > 0) {
-        const formData = new FormData();
-        selectedFiles.forEach(file => formData.append('files', file));
-        formData.append('projectId', newProject.id);
-        formData.append('userId', currentUser.id);
-
-        const fileResponse = await fetch('/api/upload-file', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!fileResponse.ok) {
-           const errorData = await fileResponse.json().catch(() => ({ message: 'File upload failed with non-JSON response' }));
-           console.error("File upload failed, attempting to delete project record...");
-           await fetch(`/api/projects/${newProject.id}`, { 
-             method: 'DELETE',
-             headers: { 'Content-Type': 'application/json' },
-             body: JSON.stringify({ deleterUserId: currentUser.id })
-           });
-           throw new Error(errorData.message || 'File upload failed. Project creation has been rolled back.');
-        }
-      }
+      
+      const newProject = result;
 
       const firstStepAssignedDivision = newProject.assignedDivision;
-      const translatedDivision = getTranslatedStatus(firstStepAssignedDivision) || firstStepAssignedDivision;
+      const translatedDivision = dashboardDict.status[firstStepAssignedDivision?.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status] || firstStepAssignedDivision;
 
       toast({
         title: addProjectDict.toast.success,
         description: (addProjectDict.toast.successDesc || defaultDict.addProjectPage.toast.successDesc)
           .replace('{title}', `"${newProject.title}"`) 
-          .replace(' using workflow "{workflowName}"', '') 
-          .replace(' dengan alur kerja "{workflowName}"', '') 
           .replace('{division}', translatedDivision),
       });
 
@@ -208,7 +184,7 @@ export default function AddProjectPage() {
       <Card className="w-full max-w-2xl mx-auto">
         <CardHeader>
            <CardTitle className="text-xl md:text-2xl">{addProjectDict.title}</CardTitle>
-          <CardDescription>{addProjectDict.description.replace('The standard workflow will be used.', 'The MSa standard workflow will be used.')}</CardDescription>
+          <CardDescription>{addProjectDict.description}</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
