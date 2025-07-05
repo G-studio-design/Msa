@@ -1,9 +1,6 @@
 // src/app/api/projects/route.ts
-'use server';
-
 import { NextResponse } from 'next/server';
 import { addProject, getAllProjects } from '@/services/project-service';
-import type { AddProjectData } from '@/types/project-types';
 
 export async function GET(request: Request) {
   try {
@@ -18,7 +15,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const projectData = (await request.json()) as AddProjectData;
+    const projectData = await request.json();
     if (!projectData.title || !projectData.workflowId || !projectData.createdBy) {
       return NextResponse.json({ message: 'Missing required project data.' }, { status: 400 });
     }

@@ -14,7 +14,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
-import type { FileEntry, Project } from '@/types/project-types';
+import { addProject, addFilesToProject } from '@/services/project-service';
+import type { FileEntry } from '@/types/project-types';
 import { Loader2, Upload, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
@@ -95,59 +96,63 @@ export default function AddProjectPage() {
 
   const onSubmit = async (data: AddProjectFormValues) => {
     if (!canAddProject || !currentUser) return;
+
     setIsLoading(true);
     form.clearErrors();
 
     try {
-      // Step 1: Upload files first to get their paths
-      const uploadedFileEntries: Omit<FileEntry, 'timestamp'>[] = [];
+      // Step 1: Create the project entry in the database to get a permanent ID
+      const newProject = await addProject({
+        title: data.title,
+        workflowId: DEFAULT_WORKFLOW_ID,
+        createdBy: currentUser.username,
+      });
+
+      // Step 2: Upload files using the permanent project ID
+      const uploadedFileEntries: FileEntry[] = [];
       if (selectedFiles.length > 0) {
         for (const file of selectedFiles) {
           const formData = new FormData();
           formData.append('file', file);
-          // Temporary projectId, as we don't have it yet. The service should handle this.
-          formData.append('projectId', `temp_${Date.now()}`); 
+          formData.append('projectId', newProject.id); // Use the real project ID
           formData.append('userId', currentUser.id);
 
-          const uploadResponse = await fetch('/api/upload-file', { method: 'POST', body: formData });
-          if (!uploadResponse.ok) {
-            const errorData = await uploadResponse.json().catch(() => ({ message: `Failed to upload ${file.name}` }));
-            throw new Error(errorData.message || `Failed to upload ${file.name}`);
+          try {
+            const response = await fetch('/api/upload-file', { method: 'POST', body: formData });
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({ message: `Failed to upload ${file.name}` }));
+              throw new Error(errorData.message || `Failed to upload ${file.name}`);
+            }
+            const result = await response.json();
+            uploadedFileEntries.push({
+              name: result.originalName,
+              uploadedBy: currentUser.username,
+              path: result.relativePath,
+              timestamp: new Date().toISOString(),
+            });
+          } catch (uploadError: any) {
+            console.error('File upload error:', file.name, uploadError);
+            toast({ variant: 'destructive', title: addProjectDict.toast.error, description: uploadError.message || `Failed to upload ${file.name}.` });
+            // Note: In a real-world scenario, you might want to handle cleanup of the created project entry here.
+            setIsLoading(false);
+            return; 
           }
-          const result = await uploadResponse.json();
-          uploadedFileEntries.push({
-            name: result.originalName,
-            uploadedBy: currentUser.role, // Use role instead of username
-            path: result.relativePath,
-          });
+        }
+        
+        // Step 3: Update the project entry with the file metadata
+        if (uploadedFileEntries.length > 0) {
+          await addFilesToProject(newProject.id, uploadedFileEntries, currentUser.username);
         }
       }
 
-      // Step 2: Create project with file metadata included
-      const projectCreationPayload = {
-        title: data.title,
-        workflowId: DEFAULT_WORKFLOW_ID,
-        createdBy: currentUser.username,
-        initialFiles: uploadedFileEntries,
-      };
+      // Step 4: Success feedback and redirect
+      const firstStepAssignedDivision = newProject.assignedDivision;
+      const translatedDivision = getTranslatedStatus(firstStepAssignedDivision) || firstStepAssignedDivision;
 
-      const projectResponse = await fetch('/api/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(projectCreationPayload),
-      });
-
-      const newProjectResult: Project = await projectResponse.json();
-      if (!projectResponse.ok) {
-        throw new Error(newProjectResult.message || 'Failed to create project entry.');
-      }
-      
-      // Step 3: Success feedback and redirect
-      const translatedDivision = getTranslatedStatus(newProjectResult.assignedDivision) || newProjectResult.assignedDivision;
       toast({
         title: addProjectDict.toast.success,
         description: (addProjectDict.toast.successDesc || defaultDict.addProjectPage.toast.successDesc)
-          .replace('{title}', `"${newProjectResult.title}"`) 
+          .replace('{title}', `"${newProject.title}"`) 
           .replace(' using workflow "{workflowName}"', '') 
           .replace(' dengan alur kerja "{workflowName}"', '') 
           .replace('{division}', translatedDivision),

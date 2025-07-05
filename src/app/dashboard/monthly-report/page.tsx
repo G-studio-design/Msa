@@ -1,12 +1,20 @@
-// src/app/dashboard/monthly-report/page.tsx
-'use client';
-
-import React, { Suspense, useState, useEffect, useCallback } from 'react';
+import React, { Suspense } from 'react';
+import { getAllProjects } from '@/services/project-service';
 import MonthlyReportClient from '@/components/dashboard/MonthlyReportClient';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import type { Project } from '@/types/project-types';
-import { useAuth } from '@/context/AuthContext';
+
+export const dynamic = 'force-dynamic';
+
+export default async function MonthlyReportPage() {
+  const allProjects = await getAllProjects();
+
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <MonthlyReportClient initialProjects={allProjects} />
+    </Suspense>
+  );
+}
 
 function PageSkeleton() {
     return (
@@ -24,40 +32,4 @@ function PageSkeleton() {
             </Card>
         </div>
     );
-}
-
-export default function MonthlyReportPage() {
-  const { currentUser } = useAuth();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const fetchProjects = useCallback(async () => {
-      setIsLoading(true);
-      try {
-          const response = await fetch('/api/projects');
-          if (!response.ok) {
-              throw new Error("Failed to fetch projects");
-          }
-          const data = await response.json();
-          setProjects(data);
-      } catch (error) {
-          console.error(error);
-      } finally {
-          setIsLoading(false);
-      }
-  }, []);
-
-  useEffect(() => {
-      if (currentUser) {
-          fetchProjects();
-      }
-  }, [currentUser, fetchProjects]);
-
-  if (isLoading) {
-      return <PageSkeleton />;
-  }
-
-  return (
-    <MonthlyReportClient initialProjects={projects} />
-  );
 }

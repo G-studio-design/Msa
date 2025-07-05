@@ -1,12 +1,20 @@
-// src/app/dashboard/projects/page.tsx
-'use client';
-
-import React, { Suspense, useState, useEffect, useCallback } from 'react';
+import React, { Suspense } from 'react';
+import { getAllProjects } from '@/services/project-service';
 import ProjectsPageClient from '@/components/dashboard/ProjectsPageClient';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { useAuth } from '@/context/AuthContext';
-import type { Project } from '@/types/project-types';
+
+export const dynamic = 'force-dynamic';
+
+export default async function ProjectsPage() {
+  const allProjects = await getAllProjects();
+
+  return (
+    <Suspense fallback={<ProjectsSkeleton />}>
+      <ProjectsPageClient initialProjects={allProjects} />
+    </Suspense>
+  );
+}
 
 function ProjectsSkeleton() {
     return (
@@ -20,41 +28,4 @@ function ProjectsSkeleton() {
             </Card>
         </div>
     );
-}
-
-export default function ProjectsPage() {
-  const { currentUser } = useAuth();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const fetchProjects = useCallback(async () => {
-    setIsLoading(true);
-    try {
-        const response = await fetch('/api/projects');
-        if (!response.ok) {
-            throw new Error('Failed to fetch projects');
-        }
-        const data: Project[] = await response.json();
-        setProjects(data);
-    } catch (error) {
-        console.error(error);
-        // Optionally show a toast or error message to the user
-    } finally {
-        setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if(currentUser) {
-        fetchProjects();
-    }
-  }, [currentUser, fetchProjects]);
-
-  if (isLoading) {
-      return <ProjectsSkeleton />;
-  }
-
-  return (
-    <ProjectsPageClient initialProjects={projects} />
-  );
 }

@@ -30,7 +30,7 @@ async function writeDb(data: Project[]): Promise<void> {
     await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
 }
 
-export async function addProject(projectData: AddProjectData): Promise<Project> {
+export async function addProject(projectData: Omit<AddProjectData, 'initialFiles'>): Promise<Project> {
     const projects = await readDb();
     const now = new Date().toISOString();
     const projectId = `project_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -39,8 +39,6 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
     if (!firstStep) {
         throw new Error('WORKFLOW_INVALID');
     }
-
-    const initialFiles: FileEntry[] = (projectData.initialFiles || []).map(f => ({...f, timestamp: now}));
 
     const newProject: Project = {
         id: projectId,
@@ -54,18 +52,10 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
             { division: projectData.createdBy, action: `Created Project with workflow: ${projectData.workflowId}`, timestamp: now, note: `Project entry created.` },
             { division: 'System', action: `Assigned to ${firstStep.assignedDivision} for ${firstStep.nextActionDescription || 'initial step'}`, timestamp: now }
         ],
-        files: initialFiles,
+        files: [],
         createdAt: now,
         createdBy: projectData.createdBy,
     };
-    
-    if (initialFiles.length > 0) {
-        newProject.workflowHistory.push({
-            division: projectData.createdBy,
-            action: `Uploaded initial file(s): ${initialFiles.map(f => f.name).join(', ')}`,
-            timestamp: now,
-        });
-    }
 
     projects.push(newProject);
     await writeDb(projects);
@@ -77,6 +67,28 @@ export async function addProject(projectData: AddProjectData): Promise<Project> 
 
     return newProject;
 }
+
+export async function addFilesToProject(projectId: string, filesToAdd: FileEntry[], actorUsername: string): Promise<Project | null> {
+    const projects = await readDb();
+    const projectIndex = projects.findIndex(p => p.id === projectId);
+    if (projectIndex === -1) {
+        return null;
+    }
+
+    const project = projects[projectIndex];
+    project.files.push(...filesToAdd);
+    project.workflowHistory.push({
+        division: actorUsername,
+        action: `Uploaded initial file(s): ${filesToAdd.map(f => f.name).join(', ')}`,
+        timestamp: new Date().toISOString(),
+    });
+    
+    projects[projectIndex] = project;
+    await writeDb(projects);
+    
+    return project;
+}
+
 
 export async function getAllProjects(): Promise<Project[]> {
     const projects = await readDb();

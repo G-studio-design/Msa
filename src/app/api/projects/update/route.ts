@@ -1,6 +1,4 @@
 // src/app/api/projects/update/route.ts
-'use server';
-
 import { NextResponse } from 'next/server';
 import { 
     updateProject, 
