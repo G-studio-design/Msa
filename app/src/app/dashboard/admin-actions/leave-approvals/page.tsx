@@ -1,3 +1,4 @@
+
 import React, { Suspense } from 'react';
 import { getAllLeaveRequests } from '@/services/leave-request-service';
 import LeaveApprovalsClient from '@/components/dashboard/LeaveApprovalsClient';
