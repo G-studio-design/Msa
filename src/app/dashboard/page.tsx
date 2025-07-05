@@ -1,4 +1,6 @@
+
 // src/app/dashboard/page.tsx
+'use server';
 import React, { Suspense } from 'react';
 import { getAllProjects } from '@/services/project-service';
 import { getApprovedLeaveRequests } from '@/services/leave-request-service';
@@ -9,6 +11,8 @@ import { getAppSettings } from '@/services/settings-service';
 import DashboardPageClient from '@/components/dashboard/DashboardPageClient';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+
+export const dynamic = 'force-dynamic';
 
 // This is a React Server Component (RSC)
 // It fetches data on the server and passes it to the client component.

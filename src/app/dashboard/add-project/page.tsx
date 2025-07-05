@@ -1,3 +1,5 @@
+
+// src/app/dashboard/add-project/page.tsx
 'use client';
 
 import * as React from 'react';
@@ -14,8 +16,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
-import { addProject, addFilesToProject } from '@/services/project-service';
-import type { FileEntry } from '@/types/project-types';
 import { Loader2, Upload, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
@@ -96,56 +96,50 @@ export default function AddProjectPage() {
 
   const onSubmit = async (data: AddProjectFormValues) => {
     if (!canAddProject || !currentUser) return;
-
     setIsLoading(true);
     form.clearErrors();
 
     try {
-      // Step 1: Create the project entry in the database to get a permanent ID
-      const newProject = await addProject({
+      const projectCreationPayload = {
         title: data.title,
         workflowId: DEFAULT_WORKFLOW_ID,
         createdBy: currentUser.username,
+      };
+
+      const projectResponse = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(projectCreationPayload),
       });
 
-      // Step 2: Upload files using the permanent project ID
-      const uploadedFileEntries: FileEntry[] = [];
-      if (selectedFiles.length > 0) {
-        for (const file of selectedFiles) {
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('projectId', newProject.id); // Use the real project ID
-          formData.append('userId', currentUser.id);
+      const newProject = await projectResponse.json();
+      if (!projectResponse.ok) {
+        throw new Error(newProject.message || 'Failed to create project entry.');
+      }
 
-          try {
-            const response = await fetch('/api/upload-file', { method: 'POST', body: formData });
-            if (!response.ok) {
-              const errorData = await response.json().catch(() => ({ message: `Failed to upload ${file.name}` }));
-              throw new Error(errorData.message || `Failed to upload ${file.name}`);
-            }
-            const result = await response.json();
-            uploadedFileEntries.push({
-              name: result.originalName,
-              uploadedBy: currentUser.username,
-              path: result.relativePath,
-              timestamp: new Date().toISOString(),
-            });
-          } catch (uploadError: any) {
-            console.error('File upload error:', file.name, uploadError);
-            toast({ variant: 'destructive', title: addProjectDict.toast.error, description: uploadError.message || `Failed to upload ${file.name}.` });
-            // Note: In a real-world scenario, you might want to handle cleanup of the created project entry here.
-            setIsLoading(false);
-            return; 
-          }
-        }
-        
-        // Step 3: Update the project entry with the file metadata
-        if (uploadedFileEntries.length > 0) {
-          await addFilesToProject(newProject.id, uploadedFileEntries, currentUser.username);
+      if (selectedFiles.length > 0) {
+        const formData = new FormData();
+        selectedFiles.forEach(file => formData.append('files', file));
+        formData.append('projectId', newProject.id);
+        formData.append('userId', currentUser.id);
+
+        const fileResponse = await fetch('/api/upload-file', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!fileResponse.ok) {
+           const errorData = await fileResponse.json().catch(() => ({ message: 'File upload failed with non-JSON response' }));
+           console.error("File upload failed, attempting to delete project record...");
+           await fetch(`/api/projects/${newProject.id}`, { 
+             method: 'DELETE',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ deleterUserId: currentUser.id })
+           });
+           throw new Error(errorData.message || 'File upload failed. Project creation has been rolled back.');
         }
       }
 
-      // Step 4: Success feedback and redirect
       const firstStepAssignedDivision = newProject.assignedDivision;
       const translatedDivision = getTranslatedStatus(firstStepAssignedDivision) || firstStepAssignedDivision;
 

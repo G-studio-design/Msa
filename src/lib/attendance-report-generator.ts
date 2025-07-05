@@ -1,3 +1,4 @@
+
 // src/lib/attendance-report-generator.ts
 'use server';
 
@@ -7,7 +8,7 @@ import {
 } from 'docx';
 import type { AttendanceRecord } from '@/services/attendance-service';
 import type { User } from '@/types/user-types';
-import type { LeaveRequest } from '@/services/leave-request-service';
+import type { LeaveRequest } from '@/types/leave-request-types';
 import type { HolidayEntry } from '@/services/holiday-service';
 import type { Language } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
