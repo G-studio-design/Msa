@@ -1,5 +1,5 @@
-
 // src/lib/path-utils.ts
+'use server';
 
 /**
  * Helper function to sanitize text for use in a path component.
@@ -14,5 +14,5 @@ export function sanitizeForPath(text: string): string {
   return text
     .toLowerCase()
     .replace(/\s+/g, '_') // Replace spaces with underscores
-    .replace(/[^a-z0-9_-]/g, ''); // Remove non-alphanumeric (except _, -)
+    .replace(/[^a-z0-9_.-]/g, ''); // Remove non-alphanumeric (except _, -, .)
 }

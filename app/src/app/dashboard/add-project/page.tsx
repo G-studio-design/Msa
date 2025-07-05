@@ -1,4 +1,4 @@
-
+// src/app/dashboard/add-project/page.tsx
 'use client';
 
 import * as React from 'react';
@@ -15,8 +15,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { getDictionary } from '@/lib/translations';
-import { addProject, addFilesToProject } from '@/services/project-service';
-import type { FileEntry } from '@/types/project-types';
 import { Loader2, Upload, Trash2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
@@ -28,7 +26,6 @@ const getAddProjectSchema = (dictValidation: ReturnType<typeof getDictionary>['a
 });
 
 const defaultDict = getDictionary('en');
-const defaultDashboardDict = defaultDict.dashboardPage;
 
 export default function AddProjectPage() {
   const { currentUser } = useAuth();
@@ -89,11 +86,10 @@ export default function AddProjectPage() {
   };
 
   const getTranslatedStatus = React.useCallback((statusKey: string) => {
-    const dictToUse = isClient ? dashboardDict : defaultDashboardDict;
-    if (!dictToUse?.status || !statusKey) return statusKey;
-    const key = statusKey?.toLowerCase().replace(/ /g, '') as keyof typeof dictToUse.status;
-    return dictToUse.status[key] || statusKey;
-  }, [isClient, dashboardDict]);
+    if (!dashboardDict?.status || !statusKey) return statusKey;
+    const key = statusKey?.toLowerCase().replace(/ /g, '') as keyof typeof dashboardDict.status;
+    return dashboardDict.status[key] || statusKey;
+  }, [dashboardDict]);
 
   const onSubmit = async (data: AddProjectFormValues) => {
     if (!canAddProject || !currentUser) return;
@@ -102,51 +98,26 @@ export default function AddProjectPage() {
     form.clearErrors();
 
     try {
-      // Step 1: Create the project entry in the database to get a permanent ID
-      const newProject = await addProject({
-        title: data.title,
-        workflowId: DEFAULT_WORKFLOW_ID,
-        createdBy: currentUser.username,
+      // 1. Create a FormData object to send multipart data
+      const formData = new FormData();
+      formData.append('title', data.title);
+      formData.append('workflowId', DEFAULT_WORKFLOW_ID);
+      formData.append('createdBy', currentUser.username);
+      formData.append('userId', currentUser.id);
+      selectedFiles.forEach(file => formData.append('files', file));
+
+      // 2. Send the request to the new unified API endpoint
+      const response = await fetch('/api/projects', {
+        method: 'POST',
+        body: formData,
       });
 
-      // Step 2: Upload files using the permanent project ID
-      const uploadedFileEntries: FileEntry[] = [];
-      if (selectedFiles.length > 0) {
-        for (const file of selectedFiles) {
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('projectId', newProject.id); // Use the real project ID
-          formData.append('userId', currentUser.id);
-
-          try {
-            const response = await fetch('/api/upload-file', { method: 'POST', body: formData });
-            if (!response.ok) {
-              const errorData = await response.json().catch(() => ({ message: `Failed to upload ${file.name}` }));
-              throw new Error(errorData.message || `Failed to upload ${file.name}`);
-            }
-            const result = await response.json();
-            uploadedFileEntries.push({
-              name: result.originalName,
-              uploadedBy: currentUser.username,
-              path: result.relativePath,
-              timestamp: new Date().toISOString(),
-            });
-          } catch (uploadError: any) {
-            console.error('File upload error:', file.name, uploadError);
-            toast({ variant: 'destructive', title: addProjectDict.toast.error, description: uploadError.message || `Failed to upload ${file.name}.` });
-            // Note: In a real-world scenario, you might want to handle cleanup of the created project entry here.
-            setIsLoading(false);
-            return; 
-          }
-        }
-        
-        // Step 3: Update the project entry with the file metadata
-        if (uploadedFileEntries.length > 0) {
-          await addFilesToProject(newProject.id, uploadedFileEntries, currentUser.username);
-        }
+      const newProject = await response.json();
+      if (!response.ok) {
+        throw new Error(newProject.message || 'Failed to create project.');
       }
 
-      // Step 4: Success feedback and redirect
+      // 3. Success feedback and redirect
       const firstStepAssignedDivision = newProject.assignedDivision;
       const translatedDivision = getTranslatedStatus(firstStepAssignedDivision) || firstStepAssignedDivision;
 
@@ -154,8 +125,6 @@ export default function AddProjectPage() {
         title: addProjectDict.toast.success,
         description: (addProjectDict.toast.successDesc || defaultDict.addProjectPage.toast.successDesc)
           .replace('{title}', `"${newProject.title}"`) 
-          .replace(' using workflow "{workflowName}"', '') 
-          .replace(' dengan alur kerja "{workflowName}"', '') 
           .replace('{division}', translatedDivision),
       });
 
@@ -215,7 +184,7 @@ export default function AddProjectPage() {
       <Card className="w-full max-w-2xl mx-auto">
         <CardHeader>
            <CardTitle className="text-xl md:text-2xl">{addProjectDict.title}</CardTitle>
-          <CardDescription>{addProjectDict.description.replace('The standard workflow will be used.', 'The MSa standard workflow will be used.')}</CardDescription>
+          <CardDescription>{addProjectDict.description}</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
