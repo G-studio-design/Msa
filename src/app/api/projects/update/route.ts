@@ -71,10 +71,14 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error('[API/Projects/Update] Error:', error);
     let errorMessage = 'An unexpected error occurred.';
-    if (error.message.includes('REVISION_NOT_SUPPORTED')) {
-        errorMessage = 'Revision is not supported for the current project step.';
-    } else if (error.message.includes('PROJECT_NOT_FOUND')) {
-        errorMessage = 'Project not found.';
+    if (error instanceof Error) {
+       if (error.message.includes('REVISION_NOT_SUPPORTED')) {
+           errorMessage = 'Revision is not supported for the current project step.';
+       } else if (error.message.includes('PROJECT_NOT_FOUND')) {
+           errorMessage = 'Project not found.';
+       } else {
+           errorMessage = error.message;
+       }
     }
     return NextResponse.json({ message: errorMessage }, { status: 500 });
   }

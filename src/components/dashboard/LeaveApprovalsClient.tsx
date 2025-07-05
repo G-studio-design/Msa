@@ -58,7 +58,6 @@ export default function LeaveApprovalsClient({ initialRequests }: LeaveApprovals
   const [leaveApprovalsDict, setLeaveApprovalsDict] = React.useState(defaultDict.leaveApprovalsPage);
 
   const [pendingRequests, setPendingRequests] = React.useState<LeaveRequest[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
   const [isProcessing, setIsProcessing] = React.useState<string | false>(false);
 
   const [isRejectDialogOpen, setIsRejectDialogOpen] = React.useState(false);
@@ -79,7 +78,6 @@ export default function LeaveApprovalsClient({ initialRequests }: LeaveApprovals
 
   const fetchPendingRequests = React.useCallback(async () => {
     if (currentUser && currentUser.role === 'Owner') {
-      setIsLoading(true);
       try {
         const response = await fetch('/api/leave-requests');
         if (!response.ok) {
@@ -90,8 +88,6 @@ export default function LeaveApprovalsClient({ initialRequests }: LeaveApprovals
       } catch (error: any) {
         console.error("Failed to fetch leave requests:", error);
         toast({ variant: 'destructive', title: leaveApprovalsDict.toast.errorTitle, description: error.message });
-      } finally {
-        setIsLoading(false);
       }
     }
   }, [currentUser, toast, leaveApprovalsDict]);
@@ -196,11 +192,7 @@ export default function LeaveApprovalsClient({ initialRequests }: LeaveApprovals
           <CardDescription>{leaveApprovalsDict.description}</CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="space-y-4">
-              {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
-            </div>
-          ) : pendingRequests.length === 0 ? (
+          {pendingRequests.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-center py-10 text-muted-foreground">
               <Inbox className="h-12 w-12 mb-4 opacity-50" />
               <p className="text-lg font-medium">{leaveApprovalsDict.noPendingRequests}</p>

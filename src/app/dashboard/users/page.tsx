@@ -1,20 +1,12 @@
-import React, { Suspense } from 'react';
-import { getAllUsersForDisplay } from '@/services/user-service';
+// src/app/dashboard/users/page.tsx
+'use client';
+
+import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import UsersPageClient from '@/components/dashboard/UsersPageClient';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-
-export const dynamic = 'force-dynamic';
-
-export default async function ManageUsersPage() {
-  const users = await getAllUsersForDisplay();
-
-  return (
-    <Suspense fallback={<PageSkeleton />}>
-      <UsersPageClient initialUsers={users} />
-    </Suspense>
-  );
-}
+import { useAuth } from '@/context/AuthContext';
+import type { User } from '@/types/user-types';
 
 function PageSkeleton() {
     return (
@@ -30,4 +22,40 @@ function PageSkeleton() {
            </Card>
        </div>
    );
+}
+
+export default function ManageUsersPage() {
+  const { currentUser } = useAuth();
+  const [users, setUsers] = useState<Omit<User, 'password'>[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchUsers = useCallback(async () => {
+    setIsLoading(true);
+    try {
+        const response = await fetch('/api/users');
+        if (!response.ok) {
+            throw new Error("Failed to fetch users");
+        }
+        const data = await response.json();
+        setUsers(data);
+    } catch (error) {
+        console.error(error);
+        // handle error display if needed
+    } finally {
+        setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+        fetchUsers();
+    }
+  }, [currentUser, fetchUsers]);
+
+
+  if (isLoading) {
+      return <PageSkeleton />;
+  }
+
+  return <UsersPageClient initialUsers={users} />;
 }
