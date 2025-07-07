@@ -1,4 +1,3 @@
-
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -9,13 +8,15 @@ import { AuthProvider } from '@/context/AuthContext';
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
-  title: 'Msarch App',
-  description: 'Employee task management application for various divisions.',
+  title: 'TaskTrackPro',
+  description: 'A professional project management tool for coordinated teamwork.',
+  manifest: '/manifest.json',
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  themeColor: '#1A237E',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

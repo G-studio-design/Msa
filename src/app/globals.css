@@ -4,87 +4,81 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%; /* White */
-    --foreground: 0 0% 3.9%; /* Default Dark Text */
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 220 75% 55%; /* Brighter, more modern blue */
-    --primary-foreground: 0 0% 98%; /* White/Light Text - should still work with the new primary */
-    --secondary: 0 0% 93%; /* Light Gray */
-    --secondary-foreground: 0 0% 9%; /* Dark Text */
-    --muted: 0 0% 93%; /* Light Gray */
-    --muted-foreground: 0 0% 45.1%; /* Medium Gray Text */
-    --accent: 0 0% 96.1%; /* Slightly Off-White */
-    --accent-foreground: 0 0% 9%; /* Dark Text */
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%; /* Light Gray Border */
-    --input: 0 0% 89.8%; /* Light Gray Input Background */
-    --ring: 187 100% 42%; /* Teal */
-    --chart-1: 120 60% 50%; /* Vibrant Green for Completed */
-    --chart-2: 210 70% 55%; /* Richer Blue for In Progress */
-    --chart-3: 197 37% 24%; 
-    --chart-4: 43 74% 66%; 
-    --chart-5: 27 87% 67%; 
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 243.4 90.9% 58.8%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 215 27.9% 16.9%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    --accent: 187 100% 42%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 243.4 90.9% 58.8%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
     --radius: 0.5rem;
   }
+ 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 220 70% 65%; /* Lighter Blue for Dark Mode Primary */
-    --primary-foreground: 0 0% 9%; /* Dark Text */
-    --secondary: 0 0% 14.9%; /* Dark Gray */
-    --secondary-foreground: 0 0% 98%; /* Light Text */
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 70% 50%; /* Adjusted destructive for dark mode */
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 187 90% 52%; /* Lighter Teal for Dark Mode Ring */
-    --chart-1: 120 50% 60%; /* Adjusted Vibrant Green for Dark Mode */
-    --chart-2: 210 60% 65%; /* Adjusted Richer Blue for Dark Mode */
-    --chart-3: 197 40% 34%;
-    --chart-4: 43 70% 70%;
-    --chart-5: 27 80% 70%;
+    --background: 20 14.3% 4.1%;
+    --foreground: 210 20% 98%;
+    --card: 24 9.8% 10%;
+    --card-foreground: 210 20% 98%;
+    --popover: 20 14.3% 4.1%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 243.4 90.9% 58.8%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 215 27.9% 16.9%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    --accent: 187 100% 42%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 243.4 90.9% 58.8%;
+    --radius: 0.5rem;
   }
 }
-
+ 
 @layer base {
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
-    /* font-family is handled by layout.tsx with Inter font variable */
   }
 }
 
 @layer utilities {
-  /* Teal accent for interactive elements - applies to ShadCN components and custom elements */
   .accent-teal {
-    @apply text-[hsl(var(--primary-foreground))]; /* Changed to primary-foreground for better contrast */
-    background-color: hsl(187, 100%, 42%); /* Teal */
+    @apply text-[hsl(var(--primary-foreground))]; 
+    background-color: hsl(187, 100%, 42%); 
   }
   .accent-teal:hover {
-    background-color: hsl(187, 100%, 35%); /* Darker Teal on hover */
+    background-color: hsl(187, 100%, 35%); 
   }
   .ring-teal {
     --tw-ring-color: hsl(187 100% 42%) !important;
   }
-  /* Apply teal ring to focus states of inputs and buttons */
   input:focus-visible, button:focus-visible, [role="button"]:focus-visible, select:focus-visible, textarea:focus-visible {
     @apply ring-2 ring-teal;
   }
   .text-accent {
-    color: hsl(187 100% 42%); /* Teal Text */
+    color: hsl(187 100% 42%); 
   }
 }

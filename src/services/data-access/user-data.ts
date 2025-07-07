@@ -1,26 +1,26 @@
-
-// src/services/data-access/user-data.ts
 'use server';
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User } from '@/types/user-types';
 
+const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
+
 const DEFAULT_USERS: User[] = [
     {
       id: "usr_dev_iwg",
-      username: "I.wayan_govina",
-      password: "Govina110900",
+      username: "dev_admin",
+      password: "password123",
       role: "Admin Developer",
-      email: "i.wayan_govina@example.dev",
-      displayName: "I Wayan Govina (Dev)",
+      email: "dev@example.com",
+      displayName: "Developer Admin",
       createdAt: new Date().toISOString(),
       whatsappNumber: ""
     },
     {
       id: "usr_owner_default",
-      username: "owner_default",
-      password: "owner123",
+      username: "owner",
+      password: "password123",
       role: "Owner",
       email: "owner@example.com",
       displayName: "Default Owner",
@@ -28,18 +28,17 @@ const DEFAULT_USERS: User[] = [
     }
 ];
 
-// This function ONLY READS. It does not create files, making it safe for build processes.
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
     try {
+        await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
-        return data ? (JSON.parse(data) as T) : defaultData;
+        return data.trim() ? (JSON.parse(data) as T) : defaultData;
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-          // File doesn't exist, return default data without trying to create it.
+          await fs.writeFile(dbPath, JSON.stringify(defaultData, null, 2), 'utf8');
           return defaultData;
         }
         console.error(`[DB Read Error] Error reading or parsing database at ${path.basename(dbPath)}.`, error);
-        // Fallback to in-memory default data on other errors.
         return defaultData;
     }
 }
@@ -51,7 +50,11 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
  * @returns A promise that resolves to an array of all User objects.
  */
 export async function getAllUsers(): Promise<User[]> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     const users = await readDb<User[]>(DB_PATH, DEFAULT_USERS);
-    return users.length > 0 ? users : DEFAULT_USERS;
+    // Ensure default users exist if the file was empty
+    if (users.length === 0) {
+      await fs.writeFile(DB_PATH, JSON.stringify(DEFAULT_USERS, null, 2), 'utf8');
+      return DEFAULT_USERS;
+    }
+    return users;
 }

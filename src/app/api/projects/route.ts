@@ -1,9 +1,8 @@
-
-// src/app/api/projects/route.ts
 'use server';
 
 import { NextResponse } from 'next/server';
-import { addProject, getAllProjects, addFilesToProject } from '@/services/project-service';
+import { addProject, getAllProjects, addFilesToProject, getProjectById } from '@/services/project-service';
+import { deleteProject } from '@/services/project-service';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { sanitizeForPath } from '@/lib/path-utils';
@@ -23,6 +22,8 @@ export async function POST(request: Request) {
   let newProjectId: string | null = null;
 
   try {
+    await fs.mkdir(PROJECT_FILES_BASE_DIR, { recursive: true });
+    
     const formData = await request.formData();
     const title = formData.get('title') as string | null;
     const workflowId = formData.get('workflowId') as string | null;
@@ -60,7 +61,6 @@ export async function POST(request: Request) {
         await addFilesToProject(newProjectId, fileEntries, createdBy);
     }
     
-    // Fetch the final state of the project to return
     const finalProject = await getProjectById(newProjectId);
 
     return NextResponse.json(finalProject, { status: 201 });
@@ -68,7 +68,6 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error('[API/Projects POST] Error:', error);
     
-    // Rollback: If project was created but file upload failed, delete the project
     if (newProjectId) {
         try {
             await deleteProject(newProjectId, 'system-rollback');
