@@ -1,5 +1,4 @@
 
-// src/services/data-access/user-data.ts
 'use server';
 
 import * as fs from 'fs/promises';
@@ -33,11 +32,14 @@ const DEFAULT_USERS: User[] = [
 // This function ONLY READS. It does not create files, making it safe for build processes.
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
     try {
+        await fs.mkdir(path.dirname(dbPath), { recursive: true });
+        await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
         return data ? (JSON.parse(data) as T) : defaultData;
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-          // File doesn't exist, return default data without trying to create it.
+          // File doesn't exist, create it with default data.
+          await fs.writeFile(dbPath, JSON.stringify(defaultData, null, 2), 'utf8');
           return defaultData;
         }
         console.error(`[DB Read Error] Error reading or parsing database at ${path.basename(dbPath)}.`, error);
