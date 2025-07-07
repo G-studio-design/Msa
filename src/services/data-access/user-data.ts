@@ -1,3 +1,5 @@
+
+// src/services/data-access/user-data.ts
 'use server';
 
 import * as fs from 'fs/promises';
@@ -28,17 +30,18 @@ const DEFAULT_USERS: User[] = [
     }
 ];
 
+// This function ONLY READS. It does not create files, making it safe for build processes.
 async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
     try {
-        await fs.access(dbPath);
         const data = await fs.readFile(dbPath, 'utf8');
-        return data.trim() ? (JSON.parse(data) as T) : defaultData;
+        return data ? (JSON.parse(data) as T) : defaultData;
     } catch (error: any) {
         if (error.code === 'ENOENT') {
-          await fs.writeFile(dbPath, JSON.stringify(defaultData, null, 2), 'utf8');
+          // File doesn't exist, return default data without trying to create it.
           return defaultData;
         }
         console.error(`[DB Read Error] Error reading or parsing database at ${path.basename(dbPath)}.`, error);
+        // Fallback to in-memory default data on other errors.
         return defaultData;
     }
 }
@@ -51,10 +54,5 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
  */
 export async function getAllUsers(): Promise<User[]> {
     const users = await readDb<User[]>(DB_PATH, DEFAULT_USERS);
-    // Ensure default users exist if the file was empty
-    if (users.length === 0) {
-      await fs.writeFile(DB_PATH, JSON.stringify(DEFAULT_USERS, null, 2), 'utf8');
-      return DEFAULT_USERS;
-    }
-    return users;
+    return users.length > 0 ? users : DEFAULT_USERS;
 }

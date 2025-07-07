@@ -1,3 +1,4 @@
+
 // src/app/dashboard/add-project/page.tsx
 'use client';
 
@@ -98,7 +99,6 @@ export default function AddProjectPage() {
     form.clearErrors();
 
     try {
-      // 1. Create a FormData object to send multipart data
       const formData = new FormData();
       formData.append('title', data.title);
       formData.append('workflowId', DEFAULT_WORKFLOW_ID);
@@ -106,7 +106,6 @@ export default function AddProjectPage() {
       formData.append('userId', currentUser.id);
       selectedFiles.forEach(file => formData.append('files', file));
 
-      // 2. Send the request to the new unified API endpoint
       const response = await fetch('/api/projects', {
         method: 'POST',
         body: formData,
@@ -117,7 +116,6 @@ export default function AddProjectPage() {
         throw new Error(newProject.message || 'Failed to create project.');
       }
 
-      // 3. Success feedback and redirect
       const firstStepAssignedDivision = newProject.assignedDivision;
       const translatedDivision = getTranslatedStatus(firstStepAssignedDivision) || firstStepAssignedDivision;
 

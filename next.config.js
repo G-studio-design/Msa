@@ -1,3 +1,4 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -17,12 +18,9 @@ const nextConfig = {
     ],
   },
   typescript: {
-    // Set to false to see all build errors, which is crucial for debugging.
-    // We will fix all errors so this can eventually be true.
     ignoreBuildErrors: false,
   },
   eslint: {
-    // It's better to see lint errors during build.
     ignoreDuringBuilds: false,
   },
 };
