@@ -484,8 +484,8 @@ export default function WorkflowsPageClient({ initialWorkflows }: WorkflowsPageC
                      <p className="text-xs text-muted-foreground pb-2">
                         {workflowsDict.editStepsInfo}
                      </p>
-                    <div className="flex-1 border rounded-md overflow-hidden"> {/* Container untuk ScrollArea */}
-                      <ScrollArea className="h-full"> {/* ScrollArea mengambil tinggi penuh dari kontainer */}
+                    <div className="flex-1 border rounded-md overflow-hidden">
+                      <ScrollArea className="h-full">
                         <Accordion 
                           type="single" 
                           collapsible 

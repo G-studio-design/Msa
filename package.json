@@ -1,6 +1,5 @@
-
 {
-  "name": "msaarch-app",
+  "name": "msarch-app",
   "version": "0.1.0",
   "private": true,
   "description": "A Next.js application for employee task and project management, rebuilt for stability.",
