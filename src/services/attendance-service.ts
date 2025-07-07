@@ -1,12 +1,11 @@
-
 // src/services/attendance-service.ts
 'use server';
 
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import { format } from 'date-fns';
 import { getAppSettings } from './settings-service';
 import { notifyUsersByRole } from './notification-service';
+import { readDb, writeDb } from '@/lib/database-utils';
 
 export interface AttendanceRecord {
   id: string;
@@ -44,28 +43,7 @@ export interface CheckOutResult {
   error?: string;
 }
 
-async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
-    try {
-        await fs.access(dbPath);
-        const data = await fs.readFile(dbPath, 'utf8');
-        if (data.trim() === "") {
-            return defaultData;
-        }
-        return JSON.parse(data) as T;
-    } catch (error: any) {
-        if (error.code === 'ENOENT') {
-          return defaultData;
-        }
-        console.error(`[DB Read Error] Error reading or parsing database at ${path.basename(dbPath)}.`, error);
-        return defaultData;
-    }
-}
-
-async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    const dbDir = path.dirname(dbPath);
-    await fs.mkdir(dbDir, { recursive: true });
-    await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
-}
+const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
 
 // Helper function to calculate distance between two lat/lon points in meters
 function getDistanceInMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -85,21 +63,18 @@ function getDistanceInMeters(lat1: number, lon1: number, lat2: number, lon2: num
 
 
 export async function getTodaysAttendance(userId: string): Promise<AttendanceRecord | null> {
-  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const attendanceRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
   return attendanceRecords.find(r => r.userId === userId && r.date === todayStr) || null;
 }
 
 export async function getTodaysAttendanceForAllUsers(): Promise<AttendanceRecord[]> {
-  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const allRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
   return allRecords.filter(r => r.date === todayStr);
 }
 
 export async function checkIn(data: CheckInData): Promise<CheckInResult> {
-  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   try {
     const settings = await getAppSettings();
 
@@ -154,7 +129,6 @@ export async function checkIn(data: CheckInData): Promise<CheckInResult> {
 }
 
 export async function checkOut(userId: string, reason: 'Normal' | 'Survei' | 'Sidang' = 'Normal'): Promise<CheckOutResult> {
-  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   try {
     const attendanceRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
     const todayStr = format(new Date(), 'yyyy-MM-dd');
@@ -172,6 +146,7 @@ export async function checkOut(userId: string, reason: 'Normal' | 'Survei' | 'Si
     record.checkOutTime = new Date().toISOString();
     record.checkOutReason = reason;
 
+    attendanceRecords[recordIndex] = record;
     await writeDb(DB_PATH, attendanceRecords);
     
     if (reason === 'Survei' || reason === 'Sidang') {
@@ -189,13 +164,11 @@ export async function checkOut(userId: string, reason: 'Normal' | 'Survei' | 'Si
 
 
 export async function getAttendanceForUser(userId: string): Promise<AttendanceRecord[]> {
-  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const attendanceRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
   return attendanceRecords.filter(r => r.userId === userId);
 }
 
 export async function getMonthlyAttendanceReportData(month: number, year: number): Promise<AttendanceRecord[]> {
-  const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'attendance.json');
   const allRecords = await readDb<AttendanceRecord[]>(DB_PATH, []);
   const monthStr = month.toString().padStart(2, '0');
   const yearStr = year.toString();

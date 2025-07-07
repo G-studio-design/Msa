@@ -1,6 +1,6 @@
+// src/services/project-service.ts
 'use server';
 
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import { format, parseISO } from 'date-fns';
 import { id as IndonesianLocale } from 'date-fns/locale';
@@ -8,29 +8,14 @@ import { notifyUsersByRole, deleteNotificationsByProjectId } from './notificatio
 import { getWorkflowById, getFirstStep, getTransitionInfo } from './workflow-service';
 import { DEFAULT_WORKFLOW_ID } from '@/config/workflow-constants';
 import type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry } from '@/types/project-types';
+import { readDb, writeDb } from '@/lib/database-utils';
 
 export type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleDetails, SurveyDetails, WorkflowHistoryEntry };
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
 
-async function readDb(): Promise<Project[]> {
-    try {
-        await fs.access(DB_PATH);
-        const data = await fs.readFile(DB_PATH, 'utf8');
-        return data ? JSON.parse(data) : [];
-    } catch (error) {
-        return [];
-    }
-}
-
-async function writeDb(data: Project[]): Promise<void> {
-    const dbDir = path.dirname(DB_PATH);
-    await fs.mkdir(dbDir, { recursive: true });
-    await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
-}
-
 export async function addProject(projectData: Omit<AddProjectData, 'initialFiles'>): Promise<Project> {
-    const projects = await readDb();
+    const projects = await readDb(DB_PATH, []);
     const now = new Date().toISOString();
     const projectId = `project_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     
@@ -57,7 +42,7 @@ export async function addProject(projectData: Omit<AddProjectData, 'initialFiles
     };
 
     projects.push(newProject);
-    await writeDb(projects);
+    await writeDb(DB_PATH, projects);
     
     if (firstStep.assignedDivision) {
         const message = `Proyek baru "${newProject.title}" telah dibuat oleh ${projectData.createdBy} dan memerlukan tindakan: ${firstStep.nextActionDescription || 'Langkah awal'}.`;
@@ -68,7 +53,7 @@ export async function addProject(projectData: Omit<AddProjectData, 'initialFiles
 }
 
 export async function addFilesToProject(projectId: string, filesToAdd: FileEntry[], actorUsername: string): Promise<Project | null> {
-    const projects = await readDb();
+    const projects = await readDb(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
     if (projectIndex === -1) {
         return null;
@@ -83,20 +68,20 @@ export async function addFilesToProject(projectId: string, filesToAdd: FileEntry
     });
     
     projects[projectIndex] = project;
-    await writeDb(projects);
+    await writeDb(DB_PATH, projects);
     
     return project;
 }
 
 
 export async function getAllProjects(): Promise<Project[]> {
-    const projects = await readDb();
+    const projects = await readDb(DB_PATH, []);
     projects.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return projects;
 }
 
 export async function getProjectById(projectId: string): Promise<Project | null> {
-    const projects = await readDb();
+    const projects = await readDb(DB_PATH, []);
     const project = projects.find(p => p.id === projectId) || null;
     if (project) {
         project.files = project.files || [];
@@ -108,7 +93,7 @@ export async function getProjectById(projectId: string): Promise<Project | null>
 export async function updateProject(params: UpdateProjectParams): Promise<Project | null> {
     const { projectId, updaterRole, updaterUsername, actionTaken, files: newFilesData = [], note, scheduleDetails, surveyDetails } = params;
 
-    const projects = await readDb();
+    const projects = await readDb(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND');
 
@@ -181,12 +166,12 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
     if (surveyDetails) currentProject.surveyDetails = surveyDetails;
 
     projects[projectIndex] = currentProject;
-    await writeDb(projects);
+    await writeDb(DB_PATH, projects);
     return currentProject;
 }
 
 export async function updateProjectTitle(projectId: string, newTitle: string): Promise<void> {
-    const projects = await readDb();
+    const projects = await readDb(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND');
 
@@ -197,11 +182,11 @@ export async function updateProjectTitle(projectId: string, newTitle: string): P
         action: `Manually changed project title from "${oldTitle}" to "${newTitle}".`,
         timestamp: new Date().toISOString(),
     });
-    await writeDb(projects);
+    await writeDb(DB_PATH, projects);
 }
 
 export async function deleteProjectFile(projectId: string, filePath: string, deleterUsername: string): Promise<void> {
-    const projects = await readDb();
+    const projects = await readDb(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
 
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND');
@@ -217,18 +202,18 @@ export async function deleteProjectFile(projectId: string, filePath: string, del
         });
     }
     
-    await writeDb(projects);
+    await writeDb(DB_PATH, projects);
 }
 
 export async function deleteProject(projectId: string, deleterUsername: string): Promise<string> {
-    const projects = await readDb();
+    const projects = await readDb(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND_FOR_DELETION');
 
     const projectTitle = projects[projectIndex].title;
     
     const remainingProjects = projects.filter(p => p.id !== projectId);
-    await writeDb(remainingProjects);
+    await writeDb(DB_PATH, remainingProjects);
     
     await deleteNotificationsByProjectId(projectId);
     return projectTitle;
@@ -246,7 +231,7 @@ export async function manuallyUpdateProjectStatusAndAssignment(
     }
 ): Promise<Project> {
     const { projectId, newStatus, newAssignedDivision, newNextAction, newProgress, adminUsername, reasonNote } = params;
-    let projects = await readDb();
+    let projects = await readDb(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
 
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND');
@@ -265,7 +250,7 @@ export async function manuallyUpdateProjectStatusAndAssignment(
     });
 
     projects[projectIndex] = currentProject;
-    await writeDb(projects);
+    await writeDb(DB_PATH, projects);
     
     if (newAssignedDivision && newStatus !== 'Completed' && newStatus !== 'Canceled') {
         const notificationMessage = `Proyek "${currentProject.title}" telah diperbarui oleh ${adminUsername}. Status baru: "${newStatus}", Ditugaskan ke: "${newAssignedDivision}".`;
@@ -282,7 +267,7 @@ export async function reviseProject(
     revisionNote?: string,
     actionTaken: string = 'revise'
 ): Promise<Project | null> {
-    let projects = await readDb();
+    let projects = await readDb(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND');
 
@@ -304,7 +289,7 @@ export async function reviseProject(
         note: revisionNote,
     });
     
-    await writeDb(projects);
+    await writeDb(DB_PATH, projects);
 
     if (revisionTransition.notification?.division) {
         const message = (revisionTransition.notification.message || "Proyek '{projectName}' memerlukan revisi dari Anda.")
@@ -322,7 +307,7 @@ export async function markParallelUploadsAsCompleteByDivision(
     division: string,
     username: string
 ): Promise<Project | null> {
-    let projects = await readDb();
+    let projects = await readDb(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
 
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND');
@@ -342,7 +327,7 @@ export async function markParallelUploadsAsCompleteByDivision(
             note: `Divisi ${division} telah menyelesaikan tugasnya.`,
         });
 
-        await writeDb(projects);
+        await writeDb(DB_PATH, projects);
 
         const notificationMessage = `Divisi ${division} telah menyelesaikan unggahan mereka untuk proyek "${project.title}".`;
         await notifyUsersByRole('Admin Proyek', notificationMessage, projectId);

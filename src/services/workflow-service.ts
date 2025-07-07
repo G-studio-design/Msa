@@ -1,8 +1,6 @@
-
 // src/services/workflow-service.ts
 'use server';
 
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import {
     DEFAULT_WORKFLOW_ID,
@@ -10,31 +8,9 @@ import {
     DEFAULT_WORKFLOW_DESCRIPTION
 } from '@/config/workflow-constants';
 import type { Workflow, WorkflowStep, WorkflowStepTransition } from '@/types/workflow-types';
+import { readDb, writeDb } from '@/lib/database-utils';
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'workflows.json');
-
-async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
-    try {
-        await fs.access(dbPath);
-        const data = await fs.readFile(dbPath, 'utf8');
-        if (data.trim() === "") {
-            return defaultData;
-        }
-        return JSON.parse(data) as T;
-    } catch (error: any) {
-        if (error.code === 'ENOENT') {
-          return defaultData;
-        }
-        console.error(`[DB Read Error] Error reading or parsing database at ${path.basename(dbPath)}.`, error);
-        return defaultData;
-    }
-}
-
-async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    const dbDir = path.dirname(dbPath);
-    await fs.mkdir(dbDir, { recursive: true });
-    await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
-}
 
 export async function getAllWorkflows(): Promise<Workflow[]> {
   const workflows = await readDb<Workflow[]>(DB_PATH, []);
