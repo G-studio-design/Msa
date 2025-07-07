@@ -1,7 +1,6 @@
-
 # Msarch App
 
-Ini adalah starter Next.js untuk aplikasi manajemen proyek dan tugas karyawan.
+Aplikasi starter Next.js untuk manajemen proyek dan tugas karyawan.
 
 ## Prasyarat
 
@@ -26,4 +25,4 @@ Sebelum Anda dapat menjalankan aplikasi ini, pastikan Node.js dan npm (yang teri
     npm run dev
     ```
 
-    Aplikasi sekarang akan berjalan di `http://localhost:4000`. Jika Anda ingin mengaksesnya dari perangkat lain di jaringan yang sama, gunakan alamat IP komputer Anda (misalnya, `http://192.168.1.10:4000`).
+    Aplikasi sekarang akan berjalan di `http://localhost:4000`. Jika Anda ingin mengaksesnya dari perangkat lain di jaringan yang sama, gunakan alamat IP lokal komputer Anda (misalnya, `http://192.168.1.10:4000`).

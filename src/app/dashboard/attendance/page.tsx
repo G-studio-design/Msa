@@ -1,5 +1,3 @@
-
-// src/app/dashboard/attendance/page.tsx
 'use server';
 import React, { Suspense } from 'react';
 import AttendancePageClient from '@/components/dashboard/AttendancePageClient';

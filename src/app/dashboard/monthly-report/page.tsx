@@ -1,5 +1,3 @@
-
-// src/app/dashboard/monthly-report/page.tsx
 'use server';
 import React, { Suspense } from 'react';
 import { getAllProjects } from '@/services/project-service';

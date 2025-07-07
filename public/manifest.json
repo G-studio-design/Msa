@@ -1,6 +1,6 @@
 {
   "name": "TaskTrackPro",
-  "short_name": "TaskTrackPro",
+  "short_name": "TaskTrack",
   "description": "A professional project management tool for coordinated teamwork.",
   "start_url": "/",
   "display": "standalone",

@@ -1,5 +1,4 @@
-
-// src/app/dashboard/page.tsx
+'use server';
 import React, { Suspense } from 'react';
 import { getAllProjects } from '@/services/project-service';
 import { getApprovedLeaveRequests } from '@/services/leave-request-service';
