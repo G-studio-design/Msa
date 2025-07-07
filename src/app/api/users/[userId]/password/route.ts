@@ -1,3 +1,4 @@
+
 // src/app/api/users/[userId]/password/route.ts
 import { NextResponse } from 'next/server';
 import { updatePassword } from '@/services/user-service';

@@ -1,3 +1,4 @@
+
 // src/app/api/attendance/check-out/route.ts
 import { NextResponse } from 'next/server';
 import { checkOut } from '@/services/attendance-service';

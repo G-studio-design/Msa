@@ -1,3 +1,4 @@
+
 // src/app/api/settings/attendance/route.ts
 import { NextResponse } from 'next/server';
 import { updateAttendanceSettings, type AttendanceSettings } from '@/services/settings-service';

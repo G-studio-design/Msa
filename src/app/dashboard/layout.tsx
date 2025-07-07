@@ -1,4 +1,5 @@
-'use server';
+
+// src/app/dashboard/layout.tsx
 import type { ReactNode } from 'react';
 import DashboardClientLayout from '@/components/layout/DashboardClientLayout';
 import { isAttendanceFeatureEnabled } from '@/services/settings-service';

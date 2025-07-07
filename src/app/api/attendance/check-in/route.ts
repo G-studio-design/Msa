@@ -1,3 +1,4 @@
+
 // src/app/api/attendance/check-in/route.ts
 import { NextResponse } from 'next/server';
 import { checkIn, type CheckInData } from '@/services/attendance-service';

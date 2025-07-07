@@ -1,3 +1,4 @@
+
 import { ImageResponse } from 'next/og'
 
 // Route segment config

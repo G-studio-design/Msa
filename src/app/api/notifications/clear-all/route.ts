@@ -1,3 +1,4 @@
+
 // src/app/api/notifications/clear-all/route.ts
 import { NextResponse } from 'next/server';
 import { clearAllNotifications as clearNotificationsService } from '@/services/notification-service';

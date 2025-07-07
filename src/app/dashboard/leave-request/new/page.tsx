@@ -1,3 +1,4 @@
+
 'use client';
 
 // src/app/dashboard/leave-request/new/page.tsx
@@ -129,7 +130,7 @@ export default function NewLeaveRequestPage() {
         const errorResult = await response.json();
         throw new Error(errorResult.error || leaveRequestDict.toast.submissionFailed);
       }
-
+      
       toast({ title: leaveRequestDict.toast.successTitle, description: leaveRequestDict.toast.requestSubmitted });
       form.reset({ // Reset form to initial default values
         leaveType: undefined,

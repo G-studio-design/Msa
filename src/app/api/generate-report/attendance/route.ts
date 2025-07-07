@@ -1,3 +1,4 @@
+
 // src/app/api/generate-report/attendance/route.ts
 import { NextResponse } from 'next/server';
 import { generateAttendanceWordReport } from '@/lib/attendance-report-generator';

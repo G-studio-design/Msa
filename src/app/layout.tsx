@@ -1,3 +1,4 @@
+
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -8,7 +9,7 @@ import { AuthProvider } from '@/context/AuthContext';
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
-  title: 'TaskTrackPro',
+  title: 'Msarch App',
   description: 'A professional project management tool for coordinated teamwork.',
   manifest: '/manifest.json',
 };

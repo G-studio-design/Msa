@@ -1,3 +1,4 @@
+
 // src/app/api/auth/google/disconnect/route.ts
 import { NextResponse } from 'next/server';
 import { clearUserGoogleTokens } from '@/services/user-service';
@@ -15,7 +16,6 @@ export async function POST(request: Request) {
     const updatedUser = await clearUserGoogleTokens(userId);
 
     if (!updatedUser) {
-        // This case might happen if the user was not found, which is handled by clearUserGoogleTokens throwing an error
         return NextResponse.json({ error: 'User not found or failed to update.' }, { status: 404 });
     }
 

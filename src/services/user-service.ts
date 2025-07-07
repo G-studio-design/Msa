@@ -6,15 +6,9 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User, AddUserData, UpdateProfileData, UpdatePasswordData, UpdateUserGoogleTokensData } from '@/types/user-types';
 import { getAllUsers } from './data-access/user-data';
+import { writeDb } from '@/lib/database-utils';
 
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
-
-async function writeAllUsers(data: User[]): Promise<void> {
-    const dbDir = path.dirname(DB_PATH);
-    await fs.mkdir(dbDir, { recursive: true });
-    await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
-}
-
 
 export async function findUserByUsername(username: string): Promise<User | null> {
     if (!username) return null;
@@ -73,7 +67,7 @@ export async function addUser(userData: AddUserData): Promise<Omit<User, 'passwo
     };
 
     users.push(newUser);
-    await writeAllUsers(users);
+    await writeDb(DB_PATH, users);
     const { password: _p, ...newUserWithoutPassword } = newUser;
     return newUserWithoutPassword;
 }
@@ -91,7 +85,7 @@ export async function deleteUser(userId: string): Promise<void> {
     }
 
     const remainingUsers = users.filter(user => user.id !== userId);
-    await writeAllUsers(remainingUsers);
+    await writeDb(DB_PATH, remainingUsers);
 }
 
 export async function updateUserProfile(updateData: UpdateProfileData): Promise<Omit<User, 'password'>> {
@@ -124,7 +118,7 @@ export async function updateUserProfile(updateData: UpdateProfileData): Promise<
     
     const updatedUser = { ...currentUserState, ...updateData };
     users[userIndex] = updatedUser;
-    await writeAllUsers(users);
+    await writeDb(DB_PATH, users);
     
     const { password: _p, ...userWithoutPassword } = updatedUser;
     return userWithoutPassword;
@@ -147,7 +141,7 @@ export async function updatePassword(updateData: UpdatePasswordData): Promise<vo
     }
 
     users[userIndex].password = updateData.newPassword;
-    await writeAllUsers(users);
+    await writeDb(DB_PATH, users);
 }
 
 export async function getAllUsersForDisplay(): Promise<Omit<User, 'password'>[]> {
@@ -178,7 +172,7 @@ export async function updateUserGoogleTokens(
         accessTokenExpiresAt: tokens.accessTokenExpiresAt !== undefined ? tokens.accessTokenExpiresAt : users[userIndex].accessTokenExpiresAt,
     };
     
-    await writeAllUsers(users);
+    await writeDb(DB_PATH, users);
 }
 
 export async function clearUserGoogleTokens(userId: string): Promise<Omit<User, 'password'>> {
@@ -197,7 +191,7 @@ export async function clearUserGoogleTokens(userId: string): Promise<Omit<User, 
 
     users[userIndex] = user;
     
-    await writeAllUsers(users);
+    await writeDb(DB_PATH, users);
     const { password: _p, ...userWithoutPassword } = users[userIndex];
     return userWithoutPassword;
 }
