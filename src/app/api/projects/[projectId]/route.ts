@@ -51,7 +51,7 @@ export async function DELETE(
     console.error(`[API/Projects DELETE] Error deleting project ${params.projectId}:`, error);
     let errorMessage = 'Failed to delete project.';
     let statusCode = 500;
-    if (error instanceof Error && error.message.includes('NOT_FOUND')) {
+    if (error.message.includes('NOT_FOUND')) {
         errorMessage = 'Project not found.';
         statusCode = 404;
     }

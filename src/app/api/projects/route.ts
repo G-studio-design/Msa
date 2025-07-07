@@ -1,8 +1,9 @@
 
 // src/app/api/projects/route.ts
+'use server';
+
 import { NextResponse } from 'next/server';
-import { addProject, getAllProjects, addFilesToProject, getProjectById } from '@/services/project-service';
-import { deleteProject } from '@/services/project-service';
+import { addProject, getAllProjects, addFilesToProject, getProjectById, deleteProject } from '@/services/project-service';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { sanitizeForPath } from '@/lib/path-utils';
@@ -22,22 +23,22 @@ export async function POST(request: Request) {
   let newProjectId: string | null = null;
 
   try {
-    await fs.mkdir(PROJECT_FILES_BASE_DIR, { recursive: true });
-    
     const formData = await request.formData();
     const title = formData.get('title') as string | null;
     const workflowId = formData.get('workflowId') as string | null;
     const createdBy = formData.get('createdBy') as string | null;
-    const userId = formData.get('userId') as string | null;
+    const userId = formData.get('userId') as string | null; // User ID from the form
     const files = formData.getAll('files') as File[];
 
     if (!title || !workflowId || !createdBy || !userId) {
       return NextResponse.json({ message: 'Missing required project data.' }, { status: 400 });
     }
 
+    // 1. Create the project entry to get an ID
     const newProject = await addProject({ title, workflowId, createdBy });
     newProjectId = newProject.id; 
 
+    // 2. Handle file uploads if any
     if (files.length > 0) {
         const projectSpecificDirAbsolute = path.join(PROJECT_FILES_BASE_DIR, newProjectId);
         await fs.mkdir(projectSpecificDirAbsolute, { recursive: true });
@@ -48,19 +49,23 @@ export async function POST(request: Request) {
             const safeFilenameForPath = sanitizeForPath(originalFilename) || `file_${Date.now()}`;
             const relativeFilePath = path.join(newProjectId, safeFilenameForPath);
             const absoluteFilePath = path.join(PROJECT_FILES_BASE_DIR, relativeFilePath);
+            
             const bytes = await file.arrayBuffer();
             const buffer = Buffer.from(bytes);
             await fs.writeFile(absoluteFilePath, buffer);
+
             fileEntries.push({
                 name: originalFilename,
                 path: relativeFilePath.replace(/\\/g, '/'),
                 timestamp: new Date().toISOString(),
-                uploadedBy: createdBy
+                uploadedBy: createdBy // Use the creator's username
             });
         }
+        // 3. Update the project with the file metadata
         await addFilesToProject(newProjectId, fileEntries, createdBy);
     }
     
+    // 4. Fetch the final state of the project to return
     const finalProject = await getProjectById(newProjectId);
 
     return NextResponse.json(finalProject, { status: 201 });
@@ -68,6 +73,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error('[API/Projects POST] Error:', error);
     
+    // Rollback logic: If project entry was created but something failed after, delete the entry
     if (newProjectId) {
         try {
             await deleteProject(newProjectId, 'system-rollback');
