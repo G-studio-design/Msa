@@ -1,3 +1,6 @@
+
+// src/app/dashboard/admin-actions/workflows/page.tsx
+'use server';
 import React, { Suspense } from 'react';
 import { getAllWorkflows } from '@/services/workflow-service';
 import WorkflowsPageClient from '@/components/dashboard/WorkflowsPageClient';

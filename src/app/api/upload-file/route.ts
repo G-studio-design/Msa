@@ -1,5 +1,5 @@
+
 // src/app/api/upload-file/route.ts
-'use server';
 import { NextResponse } from 'next/server';
 import * as fs from 'fs/promises';
 import * as path from 'path';

@@ -1,3 +1,6 @@
+
+// src/app/dashboard/users/page.tsx
+'use server';
 import React, { Suspense } from 'react';
 import { getAllUsersForDisplay } from '@/services/user-service';
 import UsersPageClient from '@/components/dashboard/UsersPageClient';

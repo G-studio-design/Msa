@@ -1,7 +1,5 @@
 
 // src/app/api/projects/route.ts
-'use server';
-
 import { NextResponse } from 'next/server';
 import { addProject, getAllProjects, addFilesToProject, getProjectById } from '@/services/project-service';
 import { deleteProject } from '@/services/project-service';

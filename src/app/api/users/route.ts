@@ -1,6 +1,5 @@
-// src/app/api/users/route.ts
-'use server';
 
+// src/app/api/users/route.ts
 import { NextResponse } from 'next/server';
 import { addUser, getAllUsersForDisplay } from '@/services/user-service';
 import type { AddUserData } from '@/types/user-types';

@@ -1,3 +1,6 @@
+
+// src/app/dashboard/attendance-report/page.tsx
+'use server';
 import React, { Suspense } from 'react';
 import { isAttendanceFeatureEnabled } from '@/services/settings-service';
 import AttendanceReportClient from '@/components/dashboard/AttendanceReportClient';
