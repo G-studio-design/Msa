@@ -1,10 +1,20 @@
+'use client';
+import LoginPage from '@/components/auth/login-page';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function Home() {
-  return (
-    <main style={{ fontFamily: 'sans-serif', padding: '2rem' }}>
-      <h1>It Works.</h1>
-      <p>The basic application structure and build process are now correct.</p>
-      <p>We can now proceed with restoring the application's functionality step by step.</p>
-    </main>
-  )
+    const { currentUser } = useAuth();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (currentUser) {
+            router.replace('/dashboard');
+        }
+    }, [currentUser, router]);
+
+    // If there is a user, this component will redirect.
+    // Otherwise, it will render the LoginPage.
+    return <LoginPage />;
 }

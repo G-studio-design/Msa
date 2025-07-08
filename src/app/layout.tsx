@@ -1,20 +1,38 @@
+import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { Toaster } from '@/components/ui/toaster';
+import { LanguageProvider } from '@/context/LanguageContext';
+import { AuthProvider } from '@/context/AuthContext';
 
-import './globals.css'
-import type { Metadata } from 'next'
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
-  title: 'Msarch App - Build Test',
-  description: 'Testing the basic application structure.',
-}
+  title: 'Msarch App',
+  description: 'Employee task management application for various divisions.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
+
 
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} font-sans antialiased`}>
+        <AuthProvider>
+          <LanguageProvider>
+              {children}
+              <Toaster />
+          </LanguageProvider>
+        </AuthProvider>
+      </body>
     </html>
-  )
+  );
 }
