@@ -1,3 +1,1 @@
-
-// This file is intentionally left blank to resolve build conflicts.
-// The correct configuration file is located at the project root.
+// This file is intentionally left blank. The correct configuration is at the project root.

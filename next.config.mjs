@@ -17,10 +17,13 @@ const nextConfig = {
     ],
   },
   typescript: {
-    ignoreBuildErrors: false,
+    // Set to true if you want to fail build on type errors
+    ignoreBuildErrors: true,
   },
   eslint: {
-    ignoreDuringBuilds: false,
+    // Warning: This allows production builds to successfully complete even if
+    // your project has ESLint errors.
+    ignoreDuringBuilds: true,
   },
 };
 

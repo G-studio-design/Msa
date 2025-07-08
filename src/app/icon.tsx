@@ -1,4 +1,3 @@
-
 import { ImageResponse } from 'next/og'
 
 // Route segment config
@@ -19,7 +18,7 @@ export default function Icon() {
       <div
         style={{
           fontSize: 24,
-          background: '#1A237E', // Dark blue primary color from PRD
+          background: '#0c4a6e', // A dark blue color matching the theme
           width: '100%',
           height: '100%',
           display: 'flex',
@@ -35,8 +34,6 @@ export default function Icon() {
     ),
     // ImageResponse options
     {
-      // For convenience, we can re-use the exported icons size metadata
-      // config to also set the ImageResponse's width and height.
       ...size,
     }
   )
