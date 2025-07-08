@@ -1,1 +1,5 @@
-// This file is intentionally left blank. The correct page is at /src/app/page.tsx
+import LoginPage from '@/components/auth/login-page';
+
+export default function Home() {
+  return <LoginPage />;
+}

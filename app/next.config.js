@@ -1,1 +1,1 @@
-// This file is intentionally left blank. The correct configuration is at the project root.
+// This file is obsolete and has been moved to the project root.

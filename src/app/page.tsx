@@ -1,7 +1,9 @@
-import LoginPage from '@/components/auth/login-page';
-
-// The root page of the application, which serves as the entry point.
-// It renders the login component.
-export default function RootPage() {
-  return <LoginPage />;
+export default function Page() {
+  return (
+    <main style={{ fontFamily: 'sans-serif', padding: '2rem' }}>
+      <h1>It Works!</h1>
+      <p>The basic application structure is now correct.</p>
+      <p>We can now proceed with rebuilding the application features on this stable foundation.</p>
+    </main>
+  );
 }

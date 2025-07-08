@@ -1,23 +1,17 @@
-
-import type { Metadata, Viewport } from 'next';
+import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import { LanguageProvider } from '@/context/LanguageContext';
+import { AuthProvider } from '@/context/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
-import { LanguageProvider } from '@/context/LanguageContext'; // Import LanguageProvider
-import { AuthProvider } from '@/context/AuthContext'; // Corrected import path
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Msarch App',
-  description: 'Employee task management application for various divisions.',
+  description: 'Aplikasi manajemen proyek dan tugas karyawan',
+  manifest: '/manifest.json',
 };
-
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-};
-
 
 export default function RootLayout({
   children,
@@ -26,12 +20,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`}>
-        {/* Wrap with AuthProvider first, then LanguageProvider */}
+      <body className={inter.className}>
         <AuthProvider>
           <LanguageProvider>
-              {children}
-              <Toaster />
+            {children}
+            <Toaster />
           </LanguageProvider>
         </AuthProvider>
       </body>
