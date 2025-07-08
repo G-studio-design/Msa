@@ -1,8 +1,7 @@
-
 {
   "name": "Msarch App",
   "short_name": "Msarch",
-  "description": "Employee task and project management application.",
+  "description": "Employee task management application for various divisions.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
