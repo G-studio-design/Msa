@@ -6,5 +6,5 @@ export default function Home() {
       <p>The basic application structure and build process are now correct.</p>
       <p>We can now proceed with restoring the application's functionality step by step.</p>
     </main>
-  );
+  )
 }
