@@ -20,15 +20,15 @@
         "name": "next"
       }
     ],
-    "baseUrl": "app/src",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["app/src/*"]
     }
   },
   "include": [
     "next-env.d.ts",
-    "app/src/**/*.ts",
-    "app/src/**/*.tsx",
+    "**/*.ts",
+    "**/*.tsx",
     ".next/types/**/*.ts"
   ],
   "exclude": [
