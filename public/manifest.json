@@ -1,8 +1,7 @@
-
 {
   "name": "Msarch App",
   "short_name": "Msarch",
-  "description": "Aplikasi manajemen proyek dan tugas karyawan.",
+  "description": "Aplikasi manajemen proyek dan tugas karyawan",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
