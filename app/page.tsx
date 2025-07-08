@@ -1,3 +1,1 @@
-
-// This file is obsolete and has been moved to /src/app/page.tsx
-// This file can be safely deleted.
+// This file is obsolete. The main page is now at src/app/page.tsx
