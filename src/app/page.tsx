@@ -1,20 +1,15 @@
-'use client';
-import LoginPage from '@/components/auth/login-page';
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
-export default function Home() {
-    const { currentUser } = useAuth();
-    const router = useRouter();
-
-    useEffect(() => {
-        if (currentUser) {
-            router.replace('/dashboard');
-        }
-    }, [currentUser, router]);
-
-    // If there is a user, this component will redirect.
-    // Otherwise, it will render the LoginPage.
-    return <LoginPage />;
+export default function HomePage() {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center p-24">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold tracking-tight text-green-600 sm:text-6xl">
+          It Works!
+        </h1>
+        <p className="mt-6 text-lg leading-8 text-gray-600">
+          The project foundation is now fixed. We can now proceed with restoring your application.
+        </p>
+      </div>
+    </main>
+  );
 }
