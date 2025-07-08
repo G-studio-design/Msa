@@ -3,7 +3,7 @@
 
 /**
  * Helper function to sanitize text for use in a path component.
- * Replaces spaces with underscores, removes non-alphanumeric characters (except underscore and hyphen).
+ * Replaces spaces with underscores, removes non-alphanumeric characters (except underscore, hyphen, and period).
  * @param text The text to sanitize.
  * @returns The sanitized text.
  */

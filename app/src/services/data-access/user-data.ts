@@ -1,47 +1,33 @@
 // src/services/data-access/user-data.ts
 'use server';
 
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User } from '@/types/user-types';
+import { readDb } from '@/lib/database-utils';
+
+const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
 
 const DEFAULT_USERS: User[] = [
     {
       id: "usr_dev_iwg",
-      username: "I.wayan_govina",
-      password: "Govina110900",
+      username: "dev_admin",
+      password: "password123",
       role: "Admin Developer",
-      email: "i.wayan_govina@example.dev",
-      displayName: "I Wayan Govina (Dev)",
+      email: "dev@example.com",
+      displayName: "Developer Admin",
       createdAt: new Date().toISOString(),
       whatsappNumber: ""
     },
     {
       id: "usr_owner_default",
-      username: "owner_default",
-      password: "owner123",
+      username: "owner",
+      password: "password123",
       role: "Owner",
       email: "owner@example.com",
       displayName: "Default Owner",
       createdAt: new Date().toISOString()
     }
 ];
-
-// This function ONLY READS. It does not create files, making it safe for build processes.
-async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
-    try {
-        const data = await fs.readFile(dbPath, 'utf8');
-        return data ? (JSON.parse(data) as T) : defaultData;
-    } catch (error: any) {
-        if (error.code === 'ENOENT') {
-          // File doesn't exist, return default data without trying to create it.
-          return defaultData;
-        }
-        console.error(`[DB Read Error] Error reading or parsing database at ${path.basename(dbPath)}.`, error);
-        // Fallback to in-memory default data on other errors.
-        return defaultData;
-    }
-}
 
 /**
  * Reads the entire user database, including developers.
@@ -50,7 +36,8 @@ async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
  * @returns A promise that resolves to an array of all User objects.
  */
 export async function getAllUsers(): Promise<User[]> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'users.json');
     const users = await readDb<User[]>(DB_PATH, DEFAULT_USERS);
+    // If the read operation returns an empty array (e.g., file was empty),
+    // ensure the default users are still returned.
     return users.length > 0 ? users : DEFAULT_USERS;
 }

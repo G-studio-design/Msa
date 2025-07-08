@@ -22,7 +22,15 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["app/src/*"]
+      "@/app/*": ["app/src/app/*"],
+      "@/components/*": ["app/src/components/*"],
+      "@/lib/*": ["app/src/lib/*"],
+      "@/context/*": ["app/src/context/*"],
+      "@/hooks/*": ["app/src/hooks/*"],
+      "@/services/*": ["app/src/services/*"],
+      "@/config/*": ["app/src/config/*"],
+      "@/types/*": ["app/src/types/*"],
+      "@/locales/*": ["app/src/locales/*"]
     }
   },
   "include": [

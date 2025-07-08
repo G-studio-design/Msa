@@ -1,10 +1,10 @@
 // src/services/notification-service.ts
 'use server';
 
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { User } from '@/types/user-types';
 import { getAllUsers } from './data-access/user-data';
+import { readDb, writeDb } from '@/lib/database-utils';
 
 export interface Notification {
     id: string;
@@ -15,30 +15,8 @@ export interface Notification {
     isRead: boolean;
 }
 
+const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
 const NOTIFICATION_LIMIT = 300; 
-
-async function readDb<T>(dbPath: string, defaultData: T): Promise<T> {
-    try {
-        await fs.access(dbPath);
-        const data = await fs.readFile(dbPath, 'utf8');
-        if (data.trim() === "") {
-            return defaultData;
-        }
-        return JSON.parse(data) as T;
-    } catch (error: any) {
-        if (error.code === 'ENOENT') {
-          return defaultData;
-        }
-        console.error(`[DB Read Error] Error reading or parsing database at ${path.basename(dbPath)}.`, error);
-        return defaultData;
-    }
-}
-
-async function writeDb<T>(dbPath: string, data: T): Promise<void> {
-    const dbDir = path.dirname(dbPath);
-    await fs.mkdir(dbDir, { recursive: true });
-    await fs.writeFile(dbPath, JSON.stringify(data, null, 2), 'utf8');
-}
 
 async function findUsersByRole(role: string): Promise<User[]> {
     const allUsers = await getAllUsers();
@@ -47,7 +25,6 @@ async function findUsersByRole(role: string): Promise<User[]> {
 }
 
 export async function notifyUsersByRole(roleOrRoles: string | string[], message: string, projectId?: string): Promise<void> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     const rolesToNotify = Array.isArray(roleOrRoles) ? roleOrRoles : [roleOrRoles];
     
     if (rolesToNotify.length === 0 || rolesToNotify.every(r => !r)) {
@@ -92,7 +69,6 @@ export async function notifyUsersByRole(roleOrRoles: string | string[], message:
 }
 
 export async function notifyUserById(userId: string, message: string, projectId?: string): Promise<void> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     if (!userId) {
         return;
     }
@@ -115,7 +91,6 @@ export async function notifyUserById(userId: string, message: string, projectId?
 }
 
 export async function getNotificationsForUser(userId: string): Promise<Notification[]> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     const allNotifications = await readDb<Notification[]>(DB_PATH, []);
     const userNotifications = allNotifications.filter(n => n.userId === userId);
     userNotifications.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -123,7 +98,6 @@ export async function getNotificationsForUser(userId: string): Promise<Notificat
 }
 
 export async function markNotificationAsRead(notificationId: string): Promise<void> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     const notifications = await readDb<Notification[]>(DB_PATH, []);
     const notificationIndex = notifications.findIndex(n => n.id === notificationId);
 
@@ -136,7 +110,6 @@ export async function markNotificationAsRead(notificationId: string): Promise<vo
 }
 
 export async function deleteNotificationsByProjectId(projectId: string): Promise<void> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     if (!projectId) {
         return;
     }
@@ -150,7 +123,6 @@ export async function deleteNotificationsByProjectId(projectId: string): Promise
 }
 
 export async function clearAllNotifications(): Promise<void> {
-    const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'notifications.json');
     try {
         await writeDb(DB_PATH, []); 
     } catch (error) {
