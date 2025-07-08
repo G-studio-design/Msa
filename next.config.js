@@ -1,7 +1,4 @@
-
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-    // Konfigurasi akan ditambahkan kembali nanti
-};
+const nextConfig = {};
 
 module.exports = nextConfig;

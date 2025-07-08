@@ -1,4 +1,3 @@
-
 export default function HomePage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
@@ -7,7 +6,7 @@ export default function HomePage() {
           It Works!
         </h1>
         <p className="mt-6 text-lg leading-8 text-gray-600">
-          The project foundation is now fixed. We can now proceed with restoring your application.
+          The project foundation is now fixed. If you can see this, we can now restore your application.
         </p>
       </div>
     </main>
