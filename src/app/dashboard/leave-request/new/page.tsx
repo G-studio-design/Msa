@@ -1,4 +1,5 @@
 
+// src/app/dashboard/leave-request/new/page.tsx
 import React from 'react';
 import NewLeaveRequestPageClient from '@/components/dashboard/NewLeaveRequestPageClient';
 

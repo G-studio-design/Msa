@@ -1,4 +1,5 @@
 
+// src/app/dashboard/add-project/page.tsx
 'use client';
 
 import AddProjectPageClient from '@/components/dashboard/AddProjectPageClient';
