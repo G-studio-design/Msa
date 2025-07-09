@@ -1,4 +1,3 @@
-
 {
   "compilerOptions": {
     "target": "es5",
@@ -22,15 +21,6 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/components/*": ["app/src/components/*"],
-      "@/lib/*": ["app/src/lib/*"],
-      "@/context/*": ["app/src/context/*"],
-      "@/hooks/*": ["app/src/hooks/*"],
-      "@/services/*": ["app/src/services/*"],
-      "@/types/*": ["app/src/types/*"],
-      "@/locales/*": ["app/src/locales/*"],
-      "@/config/*": ["app/src/config/*"],
-      "@/database/*": ["app/src/database/*"],
       "@/*": ["app/src/*"]
     }
   },
