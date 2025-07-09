@@ -1,3 +1,4 @@
+
 {
   "compilerOptions": {
     "target": "es5",
@@ -19,8 +20,18 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./app/src/*"]
+      "@/components/*": ["app/src/components/*"],
+      "@/lib/*": ["app/src/lib/*"],
+      "@/context/*": ["app/src/context/*"],
+      "@/hooks/*": ["app/src/hooks/*"],
+      "@/services/*": ["app/src/services/*"],
+      "@/types/*": ["app/src/types/*"],
+      "@/locales/*": ["app/src/locales/*"],
+      "@/config/*": ["app/src/config/*"],
+      "@/database/*": ["app/src/database/*"],
+      "@/*": ["app/src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

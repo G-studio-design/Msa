@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
-import { Button } from '../../components/ui/button';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -14,17 +14,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '../../components/ui/form';
-import { Input } from '../../components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
-import { useToast } from '../../hooks/use-toast';
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useToast } from '@/hooks/use-toast';
 import { LogIn, Loader2, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useLanguage } from '../../context/LanguageContext';
-import { getDictionary } from '../../lib/translations';
-import type { User } from '../../types/user-types';
-import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '@/context/LanguageContext';
+import { getDictionary } from '@/lib/translations';
+import type { User } from '@/types/user-types';
+import { useAuth } from '@/context/AuthContext';
 
 const defaultDict = getDictionary('en');
 
