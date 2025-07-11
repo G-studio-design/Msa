@@ -1,4 +1,3 @@
-
 // src/app/api/leave-requests/route.ts
 import { NextResponse } from 'next/server';
 import { addLeaveRequest, getAllLeaveRequests } from '@/services/leave-request-service';

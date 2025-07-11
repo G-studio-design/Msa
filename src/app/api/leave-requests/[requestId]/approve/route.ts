@@ -1,4 +1,3 @@
-
 // src/app/api/leave-requests/[requestId]/approve/route.ts
 import { NextResponse } from 'next/server';
 import { approveLeaveRequest } from '@/services/leave-request-service';

@@ -1,4 +1,3 @@
-
 // src/app/dashboard/layout.tsx
 import type { ReactNode } from 'react';
 import DashboardClientLayout from '@/components/layout/DashboardClientLayout';

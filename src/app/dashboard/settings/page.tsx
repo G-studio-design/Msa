@@ -1,4 +1,3 @@
-
 // src/app/dashboard/settings/page.tsx
 import SettingsPageClient from '@/components/dashboard/SettingsPageClient';
 

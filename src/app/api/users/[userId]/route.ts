@@ -1,4 +1,3 @@
-
 // src/app/api/users/[userId]/route.ts
 import { NextResponse } from 'next/server';
 import { updateUserProfile, deleteUser } from '@/services/user-service';
