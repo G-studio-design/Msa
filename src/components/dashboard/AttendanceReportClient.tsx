@@ -1,3 +1,4 @@
+
 'use client';
 
 // src/components/dashboard/AttendanceReportClient.tsx
@@ -17,8 +18,9 @@ import { format, parseISO, eachDayOfInterval, isWithinInterval } from 'date-fns'
 import { id as idLocale, enUS as enLocale } from 'date-fns/locale';
 import { getMonthlyAttendanceReportData, type AttendanceRecord } from '@/services/attendance-service';
 import { getAllUsersForDisplay } from '@/services/user-service';
-import type { User } from '@/types/user-types'; // CORRECT: Import from centralized types file
-import { getApprovedLeaveRequests, type LeaveRequest } from '@/services/leave-request-service';
+import type { User } from '@/types/user-types';
+import { getApprovedLeaveRequests } from '@/services/leave-request-service';
+import type { LeaveRequest } from '@/types/leave-request-types';
 import { getAllHolidays, type HolidayEntry } from '@/services/holiday-service';
 import { Card as ResponsiveCard } from '@/components/ui/card';
 
