@@ -1,4 +1,3 @@
-
 // src/app/api/auth/login/route.ts
 import { NextResponse } from 'next/server';
 import { verifyUserCredentials } from '@/services/user-service';
@@ -14,9 +13,9 @@ export async function POST(request: Request) {
     const user = await verifyUserCredentials(username, password);
 
     if (user) {
-      // Return user data without the password
-      const { password, ...userToReturn } = user;
-      return NextResponse.json(userToReturn);
+      // 'user' object from verifyUserCredentials already has the password removed.
+      // We can return it directly.
+      return NextResponse.json(user);
     } else {
       return NextResponse.json({ message: 'Invalid username or password.' }, { status: 401 });
     }
