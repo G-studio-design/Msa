@@ -1691,7 +1691,7 @@ export default function ProjectsPageClient({ initialProjects }: ProjectsPageClie
                         <CardDescription>{project.nextAction || projectsDict.none}</CardDescription>
                     </CardHeader>
                    <CardContent className="p-4 sm:p-6 pt-0">
-                      {showDivisionalChecklist && (
+                      {showDivisionalChecklist && currentUser && (
                         <div className="space-y-4 border-t pt-4 mt-4">
                             <h3 className="text-lg font-semibold">{`Checklist Unggahan Divisi Anda (${getTranslatedStatus(currentUser.role)})`}</h3>
                             <ul className="space-y-2">
