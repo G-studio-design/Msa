@@ -121,7 +121,7 @@ export default function LoginPage() {
        <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
            <div className="flex justify-center mb-4">
-               <Image src="https://placehold.co/64x64.png" alt="MsArch App Logo" width={64} height={64} data-ai-hint="logo placeholder" />
+               <Image src="/msarch-logo.png" alt="MsArch App Logo" width={64} height={64} />
            </div>
            <CardTitle className="text-center text-2xl font-bold text-primary">
             MsArch App
