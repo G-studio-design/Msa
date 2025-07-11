@@ -2,6 +2,7 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -119,8 +120,11 @@ export default function LoginPage() {
      <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
        <Card className="w-full max-w-md shadow-lg">
         <CardHeader>
+           <div className="flex justify-center mb-4">
+               <Image src="/msarch-logo.png" alt="MsArch App Logo" width={64} height={64} />
+           </div>
            <CardTitle className="text-center text-2xl font-bold text-primary">
-            {isClient ? dict.title : defaultDict.login.title}
+            MsArch App
           </CardTitle>
             <CardDescription className="text-center text-muted-foreground">
                 {isClient ? dict.description : defaultDict.login.description}
