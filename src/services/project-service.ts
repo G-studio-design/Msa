@@ -15,7 +15,7 @@ export type { Project, AddProjectData, UpdateProjectParams, FileEntry, ScheduleD
 const DB_PATH = path.resolve(process.cwd(), 'src', 'database', 'projects.json');
 
 export async function addProject(projectData: Omit<AddProjectData, 'initialFiles'>): Promise<Project> {
-    const projects = await readDb(DB_PATH, []);
+    const projects = await readDb<Project[]>(DB_PATH, []);
     const now = new Date().toISOString();
     const projectId = `project_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     
@@ -53,7 +53,7 @@ export async function addProject(projectData: Omit<AddProjectData, 'initialFiles
 }
 
 export async function addFilesToProject(projectId: string, filesToAdd: FileEntry[], actorUsername: string): Promise<Project | null> {
-    const projects = await readDb(DB_PATH, []);
+    const projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
     if (projectIndex === -1) {
         return null;
@@ -75,13 +75,13 @@ export async function addFilesToProject(projectId: string, filesToAdd: FileEntry
 
 
 export async function getAllProjects(): Promise<Project[]> {
-    const projects = await readDb(DB_PATH, []);
+    const projects = await readDb<Project[]>(DB_PATH, []);
     projects.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return projects;
 }
 
 export async function getProjectById(projectId: string): Promise<Project | null> {
-    const projects = await readDb(DB_PATH, []);
+    const projects = await readDb<Project[]>(DB_PATH, []);
     const project = projects.find(p => p.id === projectId) || null;
     if (project) {
         project.files = project.files || [];
@@ -93,7 +93,7 @@ export async function getProjectById(projectId: string): Promise<Project | null>
 export async function updateProject(params: UpdateProjectParams): Promise<Project | null> {
     const { projectId, updaterRole, updaterUsername, actionTaken, files: newFilesData = [], note, scheduleDetails, surveyDetails } = params;
 
-    const projects = await readDb(DB_PATH, []);
+    const projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND');
 
@@ -171,7 +171,7 @@ export async function updateProject(params: UpdateProjectParams): Promise<Projec
 }
 
 export async function updateProjectTitle(projectId: string, newTitle: string): Promise<void> {
-    const projects = await readDb(DB_PATH, []);
+    const projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND');
 
@@ -186,7 +186,7 @@ export async function updateProjectTitle(projectId: string, newTitle: string): P
 }
 
 export async function deleteProjectFile(projectId: string, filePath: string, deleterUsername: string): Promise<void> {
-    const projects = await readDb(DB_PATH, []);
+    const projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
 
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND');
@@ -206,7 +206,7 @@ export async function deleteProjectFile(projectId: string, filePath: string, del
 }
 
 export async function deleteProject(projectId: string, deleterUsername: string): Promise<string> {
-    const projects = await readDb(DB_PATH, []);
+    const projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND_FOR_DELETION');
 
@@ -231,7 +231,7 @@ export async function manuallyUpdateProjectStatusAndAssignment(
     }
 ): Promise<Project> {
     const { projectId, newStatus, newAssignedDivision, newNextAction, newProgress, adminUsername, reasonNote } = params;
-    let projects = await readDb(DB_PATH, []);
+    let projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
 
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND');
@@ -267,7 +267,7 @@ export async function reviseProject(
     revisionNote?: string,
     actionTaken: string = 'revise'
 ): Promise<Project | null> {
-    let projects = await readDb(DB_PATH, []);
+    let projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND');
 
@@ -307,7 +307,7 @@ export async function markParallelUploadsAsCompleteByDivision(
     division: string,
     username: string
 ): Promise<Project | null> {
-    let projects = await readDb(DB_PATH, []);
+    let projects = await readDb<Project[]>(DB_PATH, []);
     const projectIndex = projects.findIndex(p => p.id === projectId);
 
     if (projectIndex === -1) throw new Error('PROJECT_NOT_FOUND');
